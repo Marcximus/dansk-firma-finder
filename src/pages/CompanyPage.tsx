@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getCompanyById, Company } from '@/services/companyAPI';
 import CompanyDetails from '@/components/CompanyDetails';
+import Layout from '@/components/Layout';
 import { useToast } from '@/components/ui/use-toast';
 
 const CompanyPage: React.FC = () => {
@@ -48,24 +49,28 @@ const CompanyPage: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="container mx-auto px-4 py-16 text-center">
-        <p className="text-lg text-muted-foreground">Loading company details...</p>
-      </div>
+      <Layout>
+        <div className="text-center py-16">
+          <p className="text-lg text-muted-foreground">Loading company details...</p>
+        </div>
+      </Layout>
     );
   }
 
   if (!company) {
     return (
-      <div className="container mx-auto px-4 py-16 text-center">
-        <p className="text-lg text-muted-foreground">Company not found</p>
-      </div>
+      <Layout>
+        <div className="text-center py-16">
+          <p className="text-lg text-muted-foreground">Company not found</p>
+        </div>
+      </Layout>
     );
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <Layout>
       <CompanyDetails company={company} />
-    </div>
+    </Layout>
   );
 };
 
