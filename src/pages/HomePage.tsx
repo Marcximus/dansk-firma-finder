@@ -24,7 +24,7 @@ const HomePage = () => {
     <Layout>
       <div className="max-w-5xl mx-auto">
         <div className="py-12 text-center">
-          <h1 className="text-4xl font-bold mb-6">Danish Company Database</h1>
+          <h1 className="text-4xl font-bold mb-6">Selskabs Info</h1>
           <p className="text-xl text-muted-foreground mb-8">
             Search and explore detailed information about Danish companies
           </p>
