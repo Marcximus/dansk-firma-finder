@@ -111,6 +111,18 @@ serve(async (req) => {
       const currentEmail = vrvirksomhed.elektroniskPost?.find((email: any) => email.periode?.gyldigTil === null);
       const emailAddress = currentEmail?.kontaktoplysning || vrvirksomhed.elektroniskPost?.[0]?.kontaktoplysning || null;
       
+      // Get current legal form
+      const currentForm = vrvirksomhed.virksomhedsform?.find((form: any) => form.periode?.gyldigTil === null);
+      const legalForm = currentForm?.langBeskrivelse || currentForm?.kortBeskrivelse || 'N/A';
+      
+      // Get current status 
+      const currentStatus = vrvirksomhed.virksomhedsstatus?.find((status: any) => status.periode?.gyldigTil === null);
+      const status = currentStatus?.status || 'N/A';
+      
+      // Get employee count from latest employment data
+      const latestEmployment = vrvirksomhed.aarsbeskaeftigelse?.[0];
+      const employeeCount = latestEmployment?.antalAnsatte || latestEmployment?.antalAarsvaerk || 0;
+      
       // Build address string
       let addressString = 'N/A';
       if (primaryAddress.vejnavn || primaryAddress.husnummerFra) {
@@ -129,17 +141,26 @@ serve(async (req) => {
         city: primaryAddress.postdistrikt || 'N/A',
         postalCode: primaryAddress.postnummer?.toString() || 'N/A',
         industry: industry,
-        employeeCount: Math.floor(Math.random() * 1000) + 1, // Mock data for now
+        employeeCount: employeeCount,
         yearFounded: vrvirksomhed.stiftelsesDato ? new Date(vrvirksomhed.stiftelsesDato).getFullYear() : null,
         revenue: 'N/A',
         website: vrvirksomhed.hjemmeside?.find((site: any) => site.periode?.gyldigTil === null)?.kontaktoplysning || null,
         description: 'Company information from Danish Business Authority',
-        logo: null
+        logo: null,
+        email: emailAddress,
+        legalForm: legalForm,
+        status: status,
+        // Store full CVR data for detailed view
+        realCvrData: vrvirksomhed
       };
     }) || [];
 
     return new Response(
-      JSON.stringify({ companies }),
+      JSON.stringify({ 
+        companies,
+        // Also return the full data for the first result (useful for detailed view)
+        fullCvrData: data.hits?.hits?.[0]?._source
+      }),
       { 
         headers: { 
           ...corsHeaders, 
