@@ -16,7 +16,9 @@ const HomePage = () => {
   });
 
   const handleSearch = (query: string) => {
+    console.log('HomePage: handleSearch called with query:', query);
     setSearchTerm(query);
+    console.log('HomePage: About to call refetch');
     refetch();
   };
 
