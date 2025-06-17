@@ -28,14 +28,14 @@ serve(async (req) => {
     let searchQuery;
     
     if (cvr) {
-      // Search by CVR number
+      // Search by CVR number - convert to integer for exact match
       searchQuery = {
         "query": {
           "bool": {
             "must": [
               {
                 "term": {
-                  "Vrvirksomhed.cvrNummer": cvr
+                  "Vrvirksomhed.cvrNummer": parseInt(cvr)
                 }
               }
             ]
@@ -43,14 +43,18 @@ serve(async (req) => {
         }
       };
     } else if (companyName) {
-      // Search by company name using wildcard query
+      // Search by company name using match query with fuzziness
       searchQuery = {
         "query": {
           "bool": {
             "must": [
               {
-                "wildcard": {
-                  "Vrvirksomhed.navne.navn": `*${companyName.toLowerCase()}*`
+                "match": {
+                  "Vrvirksomhed.navne.navn": {
+                    "query": companyName,
+                    "fuzziness": "AUTO",
+                    "operator": "and"
+                  }
                 }
               }
             ]
@@ -90,22 +94,46 @@ serve(async (req) => {
     const companies = data.hits?.hits?.map((hit: any) => {
       const source = hit._source;
       const vrvirksomhed = source.Vrvirksomhed || {};
-      const primaryName = vrvirksomhed.navne?.find((n: any) => n.periode?.gyldigTil === null)?.navn || vrvirksomhed.navne?.[0]?.navn || 'Unknown';
-      const primaryAddress = vrvirksomhed.beliggenhedsadresse || vrvirksomhed.postadresse || {};
+      
+      // Get the current/active name (where gyldigTil is null) or the most recent name
+      const activeName = vrvirksomhed.navne?.find((n: any) => n.periode?.gyldigTil === null);
+      const primaryName = activeName?.navn || vrvirksomhed.navne?.[0]?.navn || 'Unknown';
+      
+      // Get the current/active address (where gyldigTil is null) or the most recent address
+      const activeAddress = vrvirksomhed.beliggenhedsadresse?.find((addr: any) => addr.periode?.gyldigTil === null);
+      const primaryAddress = activeAddress || vrvirksomhed.beliggenhedsadresse?.[0] || {};
+      
+      // Get current industry info
+      const currentIndustry = vrvirksomhed.hovedbranche?.find((branch: any) => branch.periode?.gyldigTil === null);
+      const industry = currentIndustry?.branchetekst || vrvirksomhed.hovedbranche?.[0]?.branchetekst || 'N/A';
+      
+      // Get current email
+      const currentEmail = vrvirksomhed.elektroniskPost?.find((email: any) => email.periode?.gyldigTil === null);
+      const emailAddress = currentEmail?.kontaktoplysning || vrvirksomhed.elektroniskPost?.[0]?.kontaktoplysning || null;
+      
+      // Build address string
+      let addressString = 'N/A';
+      if (primaryAddress.vejnavn || primaryAddress.husnummerFra) {
+        const street = primaryAddress.vejnavn || '';
+        const houseNumber = primaryAddress.husnummerFra || '';
+        const floor = primaryAddress.etage ? `, ${primaryAddress.etage}` : '';
+        const door = primaryAddress.sidedoer ? ` ${primaryAddress.sidedoer}` : '';
+        addressString = `${street} ${houseNumber}${floor}${door}`.trim();
+      }
       
       return {
         id: vrvirksomhed.cvrNummer?.toString() || hit._id,
         name: primaryName,
         cvr: vrvirksomhed.cvrNummer?.toString() || '',
-        address: `${primaryAddress.vejnavn || ''} ${primaryAddress.husnummerFra || ''}`.trim() || 'N/A',
+        address: addressString,
         city: primaryAddress.postdistrikt || 'N/A',
         postalCode: primaryAddress.postnummer?.toString() || 'N/A',
-        industry: vrvirksomhed.hovedbranche?.branchetekst || 'N/A',
-        employeeCount: vrvirksomhed.virksomhedsstatus?.[0]?.status === 'AKTIV' ? Math.floor(Math.random() * 1000) + 1 : 0,
-        yearFounded: vrvirksomhed.stiftelsesdato ? new Date(vrvirksomhed.stiftelsesdato).getFullYear() : null,
+        industry: industry,
+        employeeCount: Math.floor(Math.random() * 1000) + 1, // Mock data for now
+        yearFounded: vrvirksomhed.stiftelsesDato ? new Date(vrvirksomhed.stiftelsesDato).getFullYear() : null,
         revenue: 'N/A',
-        website: vrvirksomhed.elektroniskPost?.find((e: any) => e.kontaktoplysning?.includes('www.'))?.kontaktoplysning || null,
-        description: vrvirksomhed.formaal || 'No description available',
+        website: vrvirksomhed.hjemmeside?.find((site: any) => site.periode?.gyldigTil === null)?.kontaktoplysning || null,
+        description: 'Company information from Danish Business Authority',
         logo: null
       };
     }) || [];
