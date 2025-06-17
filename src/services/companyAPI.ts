@@ -1,6 +1,7 @@
-
 // Mock API service for Danish company data
 // In a real implementation, this would connect to your actual API
+
+import { supabase } from '@/integrations/supabase/client';
 
 export interface Company {
   id: string;
@@ -112,16 +113,45 @@ const MOCK_COMPANIES: Company[] = [
   }
 ];
 
-// Simulate API search functionality
+// Enhanced search function that uses the Danish Business Authority API
 export const searchCompanies = async (query: string): Promise<Company[]> => {
-  // In a real implementation, this would call your API
   console.log(`Searching for companies with query: ${query}`);
   
-  // Simulate API delay
-  await new Promise(resolve => setTimeout(resolve, 500));
+  if (!query) {
+    return MOCK_COMPANIES;
+  }
   
-  if (!query) return MOCK_COMPANIES;
-  
+  try {
+    // Check if query is a CVR number (8 digits)
+    const isCVR = /^\d{8}$/.test(query);
+    
+    const { data, error } = await supabase.functions.invoke('fetch-company-data', {
+      body: isCVR ? { cvr: query } : { companyName: query }
+    });
+    
+    if (error) {
+      console.error('Error calling fetch-company-data function:', error);
+      // Fall back to mock data search
+      return searchMockCompanies(query);
+    }
+    
+    if (data && data.companies && data.companies.length > 0) {
+      console.log(`Found ${data.companies.length} companies from Danish Business Authority`);
+      return data.companies;
+    } else {
+      console.log('No companies found from API, falling back to mock data');
+      return searchMockCompanies(query);
+    }
+    
+  } catch (error) {
+    console.error('Error searching companies:', error);
+    // Fall back to mock data search
+    return searchMockCompanies(query);
+  }
+};
+
+// Helper function to search mock companies
+const searchMockCompanies = (query: string): Company[] => {
   const normalizedQuery = query.toLowerCase();
   return MOCK_COMPANIES.filter(company => 
     company.name.toLowerCase().includes(normalizedQuery) ||
@@ -131,10 +161,50 @@ export const searchCompanies = async (query: string): Promise<Company[]> => {
   );
 };
 
-// Get company by ID
+// Enhanced get company by ID function
 export const getCompanyById = async (id: string): Promise<Company | undefined> => {
-  // Simulate API delay
-  await new Promise(resolve => setTimeout(resolve, 300));
+  console.log(`Fetching company with ID: ${id}`);
   
-  return MOCK_COMPANIES.find(company => company.id === id);
+  try {
+    // First try to search by CVR if it looks like one
+    if (/^\d{8}$/.test(id)) {
+      const { data, error } = await supabase.functions.invoke('fetch-company-data', {
+        body: { cvr: id }
+      });
+      
+      if (!error && data && data.companies && data.companies.length > 0) {
+        return data.companies[0];
+      }
+    }
+    
+    // Fall back to mock data
+    return MOCK_COMPANIES.find(company => company.id === id);
+    
+  } catch (error) {
+    console.error('Error fetching company by ID:', error);
+    // Fall back to mock data
+    return MOCK_COMPANIES.find(company => company.id === id);
+  }
+};
+
+// New function to get financial data
+export const getFinancialData = async (cvr: string) => {
+  console.log(`Fetching financial data for CVR: ${cvr}`);
+  
+  try {
+    const { data, error } = await supabase.functions.invoke('fetch-financial-data', {
+      body: { cvr }
+    });
+    
+    if (error) {
+      console.error('Error calling fetch-financial-data function:', error);
+      return null;
+    }
+    
+    return data;
+    
+  } catch (error) {
+    console.error('Error fetching financial data:', error);
+    return null;
+  }
 };
