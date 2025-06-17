@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { searchCompanies, Company } from '@/services/companyAPI';
 import SearchBar from '@/components/SearchBar';
 import CompanyCard from '@/components/CompanyCard';
@@ -8,18 +8,19 @@ import Layout from '@/components/Layout';
 
 const HomePage = () => {
   const [searchTerm, setSearchTerm] = useState<string>('');
+  const queryClient = useQueryClient();
   
-  const { data: companies = [], isLoading, refetch } = useQuery({
+  const { data: companies = [], isLoading } = useQuery({
     queryKey: ['companies', searchTerm],
     queryFn: () => searchCompanies(searchTerm),
-    enabled: false,
+    enabled: !!searchTerm,
   });
 
   const handleSearch = (query: string) => {
     console.log('HomePage: handleSearch called with query:', query);
     setSearchTerm(query);
-    console.log('HomePage: About to call refetch');
-    refetch();
+    // Invalidate and refetch the query with the new search term
+    queryClient.invalidateQueries({ queryKey: ['companies', query] });
   };
 
   return (
