@@ -25,34 +25,61 @@ serve(async (req) => {
     // Create basic auth header
     const auth = btoa(`${username}:${password}`);
     
-    let searchUrl = '';
-    let searchParams = new URLSearchParams();
+    let searchQuery;
     
     if (cvr) {
       // Search by CVR number
-      searchUrl = 'https://distribution.virk.dk/cvr-permanent/virksomhed/_search';
-      searchParams.append('q', `cvrNummer:${cvr}`);
+      searchQuery = {
+        "query": {
+          "bool": {
+            "must": [
+              {
+                "term": {
+                  "Vrvirksomhed.cvrNummer": cvr
+                }
+              }
+            ]
+          }
+        }
+      };
     } else if (companyName) {
-      // Search by company name
-      searchUrl = 'https://distribution.virk.dk/cvr-permanent/virksomhed/_search';
-      searchParams.append('q', `navne.navn:${companyName}*`);
-      searchParams.append('size', '10');
+      // Search by company name using wildcard query
+      searchQuery = {
+        "query": {
+          "bool": {
+            "must": [
+              {
+                "wildcard": {
+                  "Vrvirksomhed.navne.navn": `*${companyName.toLowerCase()}*`
+                }
+              }
+            ]
+          }
+        },
+        "size": 10
+      };
     } else {
       throw new Error('Either CVR number or company name is required');
     }
 
-    console.log(`Fetching company data from: ${searchUrl}?${searchParams.toString()}`);
+    const searchUrl = 'http://distribution.virk.dk/cvr-permanent/virksomhed/_search';
 
-    const response = await fetch(`${searchUrl}?${searchParams.toString()}`, {
-      method: 'GET',
+    console.log(`Posting to: ${searchUrl}`);
+    console.log(`Search query:`, JSON.stringify(searchQuery, null, 2));
+
+    const response = await fetch(searchUrl, {
+      method: 'POST',
       headers: {
         'Authorization': `Basic ${auth}`,
         'Content-Type': 'application/json',
       },
+      body: JSON.stringify(searchQuery)
     });
 
     if (!response.ok) {
       console.error(`API request failed: ${response.status} ${response.statusText}`);
+      const errorText = await response.text();
+      console.error(`Error response:`, errorText);
       throw new Error(`Danish Business API request failed: ${response.status}`);
     }
 
@@ -62,22 +89,23 @@ serve(async (req) => {
     // Transform the API response to match our Company interface
     const companies = data.hits?.hits?.map((hit: any) => {
       const source = hit._source;
-      const primaryName = source.navne?.find((n: any) => n.periode?.gyldigTil === null)?.navn || source.navne?.[0]?.navn || 'Unknown';
-      const primaryAddress = source.beliggenhedsadresse || source.postadresse || {};
+      const vrvirksomhed = source.Vrvirksomhed || {};
+      const primaryName = vrvirksomhed.navne?.find((n: any) => n.periode?.gyldigTil === null)?.navn || vrvirksomhed.navne?.[0]?.navn || 'Unknown';
+      const primaryAddress = vrvirksomhed.beliggenhedsadresse || vrvirksomhed.postadresse || {};
       
       return {
-        id: source.cvrNummer?.toString() || hit._id,
+        id: vrvirksomhed.cvrNummer?.toString() || hit._id,
         name: primaryName,
-        cvr: source.cvrNummer?.toString() || '',
+        cvr: vrvirksomhed.cvrNummer?.toString() || '',
         address: `${primaryAddress.vejnavn || ''} ${primaryAddress.husnummerFra || ''}`.trim() || 'N/A',
         city: primaryAddress.postdistrikt || 'N/A',
         postalCode: primaryAddress.postnummer?.toString() || 'N/A',
-        industry: source.hovedbranche?.branchetekst || 'N/A',
-        employeeCount: source.virksomhedsstatus?.[0]?.status === 'AKTIV' ? Math.floor(Math.random() * 1000) + 1 : 0,
-        yearFounded: source.stiftelsesdato ? new Date(source.stiftelsesdato).getFullYear() : null,
+        industry: vrvirksomhed.hovedbranche?.branchetekst || 'N/A',
+        employeeCount: vrvirksomhed.virksomhedsstatus?.[0]?.status === 'AKTIV' ? Math.floor(Math.random() * 1000) + 1 : 0,
+        yearFounded: vrvirksomhed.stiftelsesdato ? new Date(vrvirksomhed.stiftelsesdato).getFullYear() : null,
         revenue: 'N/A',
-        website: source.elektroniskPost?.find((e: any) => e.kontaktoplysning?.includes('www.'))?.kontaktoplysning || null,
-        description: source.formaal || 'No description available',
+        website: vrvirksomhed.elektroniskPost?.find((e: any) => e.kontaktoplysning?.includes('www.'))?.kontaktoplysning || null,
+        description: vrvirksomhed.formaal || 'No description available',
         logo: null
       };
     }) || [];
