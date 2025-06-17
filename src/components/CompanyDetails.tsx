@@ -12,6 +12,12 @@ import HistoricalNamesCard from './company-details/HistoricalNamesCard';
 import AdditionalInfoCard from './company-details/AdditionalInfoCard';
 import HistoricalAddressesCard from './company-details/HistoricalAddressesCard';
 import DataSourceInfo from './company-details/DataSourceInfo';
+import EmploymentHistoryCard from './company-details/EmploymentHistoryCard';
+import IndustryHistoryCard from './company-details/IndustryHistoryCard';
+import StatusHistoryCard from './company-details/StatusHistoryCard';
+import ContactInformationCard from './company-details/ContactInformationCard';
+import BusinessUnitsCard from './company-details/BusinessUnitsCard';
+import AttributesCard from './company-details/AttributesCard';
 
 interface CompanyDetailsProps {
   company: Company;
@@ -26,7 +32,7 @@ const CompanyDetails: React.FC<CompanyDetailsProps> = ({ company }) => {
     ...company,
     email: company.email || "contact@" + company.name.toLowerCase().replace(/\s+/g, '') + ".dk",
     legalForm: company.legalForm || "Anpartsselskab",
-    purposeText: "Company information from Danish Business Authority. Full purpose description not available in current data structure.",
+    purposeText: cvrDetails?.purposeText || "Company information from Danish Business Authority. Full purpose description not available in current data structure.",
     management: cvrDetails?.management || [
       { role: "Information not available", name: "Data not accessible through current API", address: "N/A" }
     ],
@@ -49,13 +55,19 @@ const CompanyDetails: React.FC<CompanyDetailsProps> = ({ company }) => {
         <div className="lg:col-span-2 space-y-6">
           <KeyInformationCard company={company} legalForm={companyData.legalForm} />
           <CompanyInformationCard purposeText={companyData.purposeText} />
+          <ContactInformationCard company={company} />
           <ManagementCard management={companyData.management} />
+          <EmploymentHistoryCard cvrData={company.realCvrData} />
+          <IndustryHistoryCard cvrData={company.realCvrData} />
+          <StatusHistoryCard cvrData={company.realCvrData} />
           <HistoricalNamesCard historicalNames={companyData.historicalNames} />
         </div>
 
         {/* Right Column - 1/3 width */}
         <div className="space-y-6">
           <AdditionalInfoCard company={company} adProtection={companyData.adProtection} />
+          <BusinessUnitsCard cvrData={company.realCvrData} />
+          <AttributesCard cvrData={company.realCvrData} />
           <HistoricalAddressesCard historicalAddresses={companyData.historicalAddresses} />
           <DataSourceInfo />
         </div>

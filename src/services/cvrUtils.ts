@@ -31,12 +31,24 @@ export const extractCvrDetails = (cvrData: any) => {
     
     // Determine role based on attributes or organization type
     let role = 'Deltager';
-    if (relation.organisationer) {
+    if (relation.organisationer && relation.organisationer.length > 0) {
       const org = relation.organisationer[0];
       if (org?.hovedtype) {
         role = org.hovedtype === 'DIREKTION' ? 'Direktør' : 
                org.hovedtype === 'BESTYRELSE' ? 'Bestyrelse' : 
+               org.hovedtype === 'FULDT_ANSVARLIG_DELTAGERE' ? 'Interessenter' :
                org.hovedtype;
+      }
+      
+      // Get more specific role from member data
+      if (org.medlemsData && org.medlemsData.length > 0) {
+        const memberData = org.medlemsData[0];
+        if (memberData.attributter) {
+          const funkAttribute = memberData.attributter.find((attr: any) => attr.type === 'FUNKTION');
+          if (funkAttribute && funkAttribute.vaerdier && funkAttribute.vaerdier.length > 0) {
+            role = funkAttribute.vaerdier[0].vaerdi || role;
+          }
+        }
       }
     }
     
@@ -83,6 +95,30 @@ export const extractCvrDetails = (cvrData: any) => {
   const latestEmployment = vrvirksomhed.aarsbeskaeftigelse?.[0];
   const employeeCount = latestEmployment?.antalAnsatte || latestEmployment?.antalAarsvaerk || 0;
 
+  // Enhanced purpose text from various sources
+  let purposeText = "Company information from Danish Business Authority.";
+  
+  // Try to extract more meaningful purpose information
+  if (vrvirksomhed.hovedbranche && vrvirksomhed.hovedbranche.length > 0) {
+    const currentIndustry = vrvirksomhed.hovedbranche.find((branch: any) => branch.periode?.gyldigTil === null);
+    const industry = currentIndustry || vrvirksomhed.hovedbranche[0];
+    purposeText = `Primary business activity: ${industry.branchetekst} (Code: ${industry.branchekode}). `;
+    
+    // Add secondary industries if available
+    const secondaryIndustries = [
+      ...(vrvirksomhed.bibranche1 || []),
+      ...(vrvirksomhed.bibranche2 || []),
+      ...(vrvirksomhed.bibranche3 || [])
+    ];
+    
+    if (secondaryIndustries.length > 0) {
+      const currentSecondary = secondaryIndustries.filter((branch: any) => !branch.periode?.gyldigTil);
+      if (currentSecondary.length > 0) {
+        purposeText += `Secondary activities include: ${currentSecondary.map((branch: any) => branch.branchetekst).join(', ')}.`;
+      }
+    }
+  }
+
   return {
     management,
     historicalNames,
@@ -90,6 +126,7 @@ export const extractCvrDetails = (cvrData: any) => {
     legalForm,
     status,
     employeeCount,
+    purposeText,
     fullData: vrvirksomhed
   };
 };
