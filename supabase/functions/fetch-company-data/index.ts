@@ -60,7 +60,7 @@ serve(async (req) => {
             ]
           }
         },
-        "size": 10
+        "size": 100
       };
     } else {
       throw new Error('Either CVR number or company name is required');
