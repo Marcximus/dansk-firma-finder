@@ -3,7 +3,6 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Company } from '@/services/companyAPI';
-import { Building } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 interface CompanyCardProps {
@@ -14,20 +13,16 @@ const CompanyCard: React.FC<CompanyCardProps> = ({ company }) => {
   return (
     <Card className="h-full hover:shadow-md transition-shadow fadeIn">
       <CardHeader className="pb-2">
-        <div className="flex justify-between items-start gap-3">
-          <CardTitle className="text-xl font-bold leading-tight">
+        <div className="flex flex-col items-center gap-3">
+          <CardTitle className="text-xl font-bold leading-tight text-center">
             {company.name}
           </CardTitle>
-          {company.logo ? (
+          {company.logo && (
             <img 
               src={company.logo} 
               alt={`${company.name} logo`} 
-              className="company-logo flex-shrink-0"
+              className="company-logo"
             />
-          ) : (
-            <div className="company-logo flex items-center justify-center bg-secondary flex-shrink-0">
-              <Building size={32} className="text-primary" />
-            </div>
           )}
         </div>
       </CardHeader>
