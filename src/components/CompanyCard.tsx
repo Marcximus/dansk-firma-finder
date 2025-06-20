@@ -14,18 +14,18 @@ const CompanyCard: React.FC<CompanyCardProps> = ({ company }) => {
   return (
     <Card className="h-full hover:shadow-md transition-shadow fadeIn">
       <CardHeader className="pb-2">
-        <div className="flex justify-between items-center">
-          <CardTitle className="text-xl font-bold truncate">
+        <div className="flex justify-between items-start gap-3">
+          <CardTitle className="text-xl font-bold leading-tight">
             {company.name}
           </CardTitle>
           {company.logo ? (
             <img 
               src={company.logo} 
               alt={`${company.name} logo`} 
-              className="company-logo"
+              className="company-logo flex-shrink-0"
             />
           ) : (
-            <div className="company-logo flex items-center justify-center bg-secondary">
+            <div className="company-logo flex items-center justify-center bg-secondary flex-shrink-0">
               <Building size={32} className="text-primary" />
             </div>
           )}

@@ -10,11 +10,14 @@ const HomePage = () => {
   const [searchTerm, setSearchTerm] = useState<string>('');
   const queryClient = useQueryClient();
   
-  const { data: companies = [], isLoading } = useQuery({
+  const { data: rawCompanies = [], isLoading } = useQuery({
     queryKey: ['companies', searchTerm],
     queryFn: () => searchCompanies(searchTerm),
     enabled: !!searchTerm,
   });
+
+  // Sort companies alphabetically by name
+  const companies = rawCompanies.sort((a, b) => a.name.localeCompare(b.name));
 
   const handleSearch = (query: string) => {
     console.log('HomePage: handleSearch called with query:', query);
