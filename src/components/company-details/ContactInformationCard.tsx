@@ -1,7 +1,6 @@
-
 import React from 'react';
 import { Company } from '@/services/companyAPI';
-import { Mail, Phone, Globe, Fax } from 'lucide-react';
+import { Mail, Phone, Globe, Printer } from 'lucide-react';
 
 interface ContactInformationCardProps {
   company: Company;
@@ -62,7 +61,7 @@ const ContactInformationCard: React.FC<ContactInformationCardProps> = ({ company
         
         {currentFax && (
           <div className="flex items-center gap-3">
-            <Fax className="h-4 w-4 text-muted-foreground" />
+            <Printer className="h-4 w-4 text-muted-foreground" />
             <div>
               <span className="text-sm font-medium text-muted-foreground">Fax</span>
               <div className="font-medium">{currentFax.kontaktoplysning}</div>
