@@ -10,6 +10,35 @@ interface CompanyCardProps {
 }
 
 const CompanyCard: React.FC<CompanyCardProps> = ({ company }) => {
+  // Extract CEO from CVR data if available
+  const getCEO = () => {
+    if (company.realCvrData?.deltagerRelation) {
+      const ceo = company.realCvrData.deltagerRelation.find((relation: any) => {
+        const org = relation.organisationer?.[0];
+        if (org?.hovedtype === 'DIREKTION') {
+          return true;
+        }
+        // Also check for specific CEO role in member data
+        if (org?.medlemsData) {
+          const memberData = org.medlemsData[0];
+          if (memberData?.attributter) {
+            const funkAttribute = memberData.attributter.find((attr: any) => attr.type === 'FUNKTION');
+            if (funkAttribute?.vaerdier?.[0]?.vaerdi?.toLowerCase().includes('administrerende')) {
+              return true;
+            }
+          }
+        }
+        return false;
+      });
+      
+      if (ceo) {
+        const currentName = ceo.deltager?.navne?.find((n: any) => n.periode?.gyldigTil === null);
+        return currentName?.navn || ceo.deltager?.navne?.[0]?.navn || 'N/A';
+      }
+    }
+    return 'N/A';
+  };
+
   return (
     <Card className="h-full hover:shadow-md transition-shadow fadeIn">
       <CardHeader className="pb-2">
@@ -33,12 +62,12 @@ const CompanyCard: React.FC<CompanyCardProps> = ({ company }) => {
             <p>{company.cvr}</p>
           </div>
           <div>
-            <p className="text-sm font-medium text-muted-foreground">Industry</p>
-            <p>{company.industry}</p>
+            <p className="text-sm font-medium text-muted-foreground">Administrerende direktør</p>
+            <p>{getCEO()}</p>
           </div>
           <div>
-            <p className="text-sm font-medium text-muted-foreground">Location</p>
-            <p>{company.city}, {company.postalCode}</p>
+            <p className="text-sm font-medium text-muted-foreground">Adresse</p>
+            <p>{company.address}, {company.postalCode} {company.city}</p>
           </div>
           <div className="pt-2">
             <Button asChild className="w-full">
