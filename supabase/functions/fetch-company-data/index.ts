@@ -56,8 +56,19 @@ serve(async (req) => {
 
     // Transform the API response to match our Company interface
     const companies = data.hits?.hits?.map((hit: any) => {
-      return transformCompanyData(hit, determineLegalForm, determineStatus, companyName);
+      const transformedCompany = transformCompanyData(hit, determineLegalForm, determineStatus, companyName);
+      // Add debug information about the score
+      console.log(`Company: ${transformedCompany.name}, Score: ${hit._score}`);
+      return {
+        ...transformedCompany,
+        _debugScore: hit._score // Add score for debugging
+      };
     }) || [];
+
+    console.log('Final ranking order:');
+    companies.forEach((company, index) => {
+      console.log(`${index + 1}. ${company.name} (Score: ${company._debugScore})`);
+    });
 
     return new Response(
       JSON.stringify({ 
