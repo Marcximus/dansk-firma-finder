@@ -12,25 +12,61 @@ interface CompanyCardProps {
 const CompanyCard: React.FC<CompanyCardProps> = ({ company }) => {
   // Extract the first director from CVR data
   const getDirector = () => {
+    console.log('Company data:', company);
+    console.log('Real CVR data:', company.realCvrData);
+    
     if (!company.realCvrData?.deltagerRelation) {
+      console.log('No deltagerRelation found');
       return null;
     }
 
+    console.log('DeltagerRelation:', company.realCvrData.deltagerRelation);
+
     for (const relation of company.realCvrData.deltagerRelation) {
+      console.log('Processing relation:', relation);
+      
       // Get person name
       const currentName = relation.deltager?.navne?.find((n: any) => n.periode?.gyldigTil === null);
       const personName = currentName?.navn || relation.deltager?.navne?.[0]?.navn;
       
+      console.log('Person name:', personName);
+      
       if (personName && relation.organisationer) {
+        console.log('Organisationer:', relation.organisationer);
+        
         for (const org of relation.organisationer) {
-          // Check if this is a director role
-          if (org.hovedtype === 'DIREKTION') {
+          console.log('Checking org:', org);
+          console.log('Hovedtype:', org.hovedtype);
+          
+          // Check for director role - try multiple variations
+          if (org.hovedtype === 'DIREKTION' || org.hovedtype === 'DIREKTØR') {
+            console.log('Found director:', personName);
             return personName;
+          }
+          
+          // Also check medlemsData for more specific role information
+          if (org.medlemsData) {
+            for (const medlem of org.medlemsData) {
+              if (medlem.attributter) {
+                for (const attr of medlem.attributter) {
+                  if (attr.type === 'FUNKTION' && attr.vaerdier) {
+                    for (const vaerdi of attr.vaerdier) {
+                      console.log('Found role:', vaerdi.vaerdi);
+                      if (vaerdi.vaerdi === 'DIREKTØR' || vaerdi.vaerdi.includes('DIREKTØR')) {
+                        console.log('Found director via medlemsData:', personName);
+                        return personName;
+                      }
+                    }
+                  }
+                }
+              }
+            }
           }
         }
       }
     }
     
+    console.log('No director found');
     return null;
   };
 
