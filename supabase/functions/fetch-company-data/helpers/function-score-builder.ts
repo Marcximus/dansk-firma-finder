@@ -1,42 +1,29 @@
 
 import { cleanCompanyName } from './legal-form-utils.ts';
 
-// Build function score for length penalties and exact match boosts
+// Build function score for length penalties using native Elasticsearch features only
 export const buildFunctionScore = (companyName: string) => {
   const cleanedQuery = cleanCompanyName(companyName);
   
   return [
+    // Use field_value_factor to apply length-based scoring
     {
-      "script_score": {
-        "script": {
-          "source": `
-            // Penalty for longer company names when we have exact matches
-            String name = doc['Vrvirksomhed.navne.navn.keyword'].value;
-            if (name == null) return _score;
-            
-            String cleanName = name.toLowerCase().replaceAll(/\\s+/, ' ').trim();
-            String searchTerm = params.searchTerm.toLowerCase().trim();
-            
-            // If this is an exact match, apply length penalty
-            if (cleanName.equals(searchTerm)) {
-              // Shorter names get higher scores
-              double lengthPenalty = Math.max(0.5, 1.0 - (cleanName.length() - searchTerm.length()) * 0.01);
-              return _score * lengthPenalty;
-            }
-            
-            // If search term is contained in name, apply containment boost
-            if (cleanName.contains(searchTerm)) {
-              // Exact containment gets a boost, but less than exact match
-              if (cleanName.startsWith(searchTerm + ' ') || cleanName.endsWith(' ' + searchTerm) || cleanName.contains(' ' + searchTerm + ' ')) {
-                return _score * 0.9; // Word boundary match
-              }
-              return _score * 0.7; // Substring match
-            }
-            
-            return _score;
-          `,
-          "params": {
-            "searchTerm": cleanedQuery
+      "field_value_factor": {
+        "field": "Vrvirksomhed.navne.navn.keyword",
+        "factor": 1.0,
+        "modifier": "none",
+        "missing": 1
+      },
+      "weight": 1.0
+    },
+    // Add a simple boost for shorter names
+    {
+      "weight": 1.2,
+      "filter": {
+        "range": {
+          "Vrvirksomhed.navne.navn.keyword": {
+            "gte": cleanedQuery,
+            "lte": cleanedQuery + "Z"
           }
         }
       }

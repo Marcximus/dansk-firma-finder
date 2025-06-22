@@ -2,7 +2,7 @@
 import { cleanCompanyName } from './legal-form-utils.ts';
 import { SEARCH_TIERS } from './search-tiers.ts';
 
-// Build phrase and word matching queries
+// Build phrase and word matching queries using only native Elasticsearch features
 export const buildPhraseMatchQueries = (companyName: string) => {
   const cleanedQuery = cleanCompanyName(companyName);
   const queryWords = cleanedQuery.split(/\s+/);
