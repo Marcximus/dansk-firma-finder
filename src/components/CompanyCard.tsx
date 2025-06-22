@@ -10,20 +10,21 @@ interface CompanyCardProps {
 }
 
 const CompanyCard: React.FC<CompanyCardProps> = ({ company }) => {
-  // Extract the first director from CVR data
-  const getDirector = () => {
+  // Extract the first director or owner from CVR data
+  const getDirectorOrOwner = () => {
     console.log('Company data:', company);
     console.log('Real CVR data:', company.realCvrData);
     
     if (!company.realCvrData?.deltagerRelation) {
       console.log('No deltagerRelation found');
-      return null;
+      return { name: null, role: null };
     }
 
     console.log('DeltagerRelation:', company.realCvrData.deltagerRelation);
 
+    // First pass: Look for directors
     for (const relation of company.realCvrData.deltagerRelation) {
-      console.log('Processing relation:', relation);
+      console.log('Processing relation for director:', relation);
       
       // Get person name
       const currentName = relation.deltager?.navne?.find((n: any) => n.periode?.gyldigTil === null);
@@ -35,13 +36,13 @@ const CompanyCard: React.FC<CompanyCardProps> = ({ company }) => {
         console.log('Organisationer:', relation.organisationer);
         
         for (const org of relation.organisationer) {
-          console.log('Checking org:', org);
+          console.log('Checking org for director:', org);
           console.log('Hovedtype:', org.hovedtype);
           
           // Check for director role - try multiple variations
           if (org.hovedtype === 'DIREKTION' || org.hovedtype === 'DIREKTØR') {
             console.log('Found director:', personName);
-            return personName;
+            return { name: personName, role: 'Direktør' };
           }
           
           // Also check medlemsData for more specific role information
@@ -54,7 +55,7 @@ const CompanyCard: React.FC<CompanyCardProps> = ({ company }) => {
                       console.log('Found role:', vaerdi.vaerdi);
                       if (vaerdi.vaerdi === 'DIREKTØR' || vaerdi.vaerdi.includes('DIREKTØR')) {
                         console.log('Found director via medlemsData:', personName);
-                        return personName;
+                        return { name: personName, role: 'Direktør' };
                       }
                     }
                   }
@@ -66,11 +67,35 @@ const CompanyCard: React.FC<CompanyCardProps> = ({ company }) => {
       }
     }
     
-    console.log('No director found');
-    return null;
+    console.log('No director found, looking for liable partner');
+    
+    // Second pass: Look for liable partners (owners) if no director found
+    for (const relation of company.realCvrData.deltagerRelation) {
+      console.log('Processing relation for owner:', relation);
+      
+      // Get person name
+      const currentName = relation.deltager?.navne?.find((n: any) => n.periode?.gyldigTil === null);
+      const personName = currentName?.navn || relation.deltager?.navne?.[0]?.navn;
+      
+      if (personName && relation.organisationer) {
+        for (const org of relation.organisationer) {
+          console.log('Checking org for owner:', org);
+          console.log('Hovedtype:', org.hovedtype);
+          
+          // Check for liable partner role
+          if (org.hovedtype === 'FULDT_ANSVARLIG_DELTAGERE') {
+            console.log('Found liable partner (owner):', personName);
+            return { name: personName, role: 'Ejer' };
+          }
+        }
+      }
+    }
+    
+    console.log('No director or owner found');
+    return { name: null, role: null };
   };
 
-  const director = getDirector();
+  const { name: personName, role: personRole } = getDirectorOrOwner();
 
   return (
     <Card className="h-full hover:shadow-md transition-shadow fadeIn">
@@ -95,10 +120,10 @@ const CompanyCard: React.FC<CompanyCardProps> = ({ company }) => {
             <p>{company.cvr}</p>
           </div>
           
-          {/* Display director */}
+          {/* Display director or owner */}
           <div>
-            <p className="text-sm font-medium text-muted-foreground">Direktør</p>
-            <p>{director || 'N/A'}</p>
+            <p className="text-sm font-medium text-muted-foreground">{personRole || 'Direktør'}</p>
+            <p>{personName || 'N/A'}</p>
           </div>
           
           <div>
