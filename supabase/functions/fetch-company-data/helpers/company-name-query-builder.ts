@@ -11,6 +11,30 @@ export const buildCompanyNameQuery = (companyName: string) => {
     "query": {
       "bool": {
         "should": [
+          // TIER 0: EXACT matches for complete company names (highest priority)
+          {
+            "bool": {
+              "should": [
+                {
+                  "term": {
+                    "Vrvirksomhed.navne.navn.keyword": {
+                      "value": cleanedQuery,
+                      "boost": SEARCH_TIERS.EXACT_MATCH
+                    }
+                  }
+                },
+                {
+                  "term": {
+                    "Vrvirksomhed.binavne.navn.keyword": {
+                      "value": cleanedQuery,
+                      "boost": SEARCH_TIERS.EXACT_MATCH
+                    }
+                  }
+                }
+              ]
+            }
+          },
+          
           // TIER 1: EXACT matches on primary names (company names or person names)
           {
             "bool": {
