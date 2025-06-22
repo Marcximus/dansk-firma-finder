@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -107,23 +106,21 @@ const CompanyCard: React.FC<CompanyCardProps> = ({ company }) => {
 
   return (
     <Card className="h-full flex flex-col hover:shadow-md transition-shadow fadeIn">
-      <CardHeader className="pb-4">
-        <div className="flex flex-col items-center gap-4">
-          <CardTitle className="text-lg font-bold leading-tight text-center min-h-[3rem] flex items-center justify-center">
-            {company.name}
-          </CardTitle>
-          {company.logo && (
-            <div className="w-16 h-16 flex items-center justify-center">
-              <img 
-                src={company.logo} 
-                alt={`${company.name} logo`} 
-                className="max-w-full max-h-full object-contain"
-              />
-            </div>
-          )}
-        </div>
+      <CardHeader className="pb-6 pt-8">
+        <CardTitle className="text-lg font-bold leading-tight text-center min-h-[3rem] flex items-center justify-center mb-6">
+          {company.name}
+        </CardTitle>
+        {company.logo && (
+          <div className="w-16 h-16 flex items-center justify-center mx-auto">
+            <img 
+              src={company.logo} 
+              alt={`${company.name} logo`} 
+              className="max-w-full max-h-full object-contain"
+            />
+          </div>
+        )}
       </CardHeader>
-      <CardContent className="flex-1 flex flex-col">
+      <CardContent className="flex-1 flex flex-col pt-0">
         <div className="space-y-4 text-sm flex-1">
           <div className="grid grid-cols-3 gap-2">
             <span className="font-medium text-muted-foreground">CVR</span>
