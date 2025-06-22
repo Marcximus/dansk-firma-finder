@@ -1,5 +1,5 @@
 
-// Enhanced utility functions for building positional queries with proper boost scaling
+// Simplified utility functions for building positional queries with normalized boost scaling
 export const buildPositionalQuery = (field: string, boost: number, queryWords: string[], cleanedQuery: string) => {
   if (queryWords.length === 1) {
     return {
@@ -12,7 +12,7 @@ export const buildPositionalQuery = (field: string, boost: number, queryWords: s
     };
   }
   
-  // For multi-word queries, create enhanced span query with controlled boost values
+  // For multi-word queries, create positional query with normalized boost values
   return {
     "bool": {
       "should": [
@@ -21,50 +21,50 @@ export const buildPositionalQuery = (field: string, boost: number, queryWords: s
           "match_phrase": {
             [field]: {
               "query": cleanedQuery,
-              "boost": boost * 3 // 3x base boost for exact phrases
+              "boost": boost * 3
             }
           }
         },
-        // Words in exact order with no gaps gets very high boost
+        // Words in exact order with no gaps
         {
           "span_near": {
             "clauses": queryWords.map(word => ({
               "span_term": { [field]: word }
             })),
-            "slop": 0, // No gaps allowed
+            "slop": 0,
             "in_order": true,
-            "boost": boost * 2.5 // 2.5x base boost
+            "boost": boost * 2.5
           }
         },
-        // Words in correct order with small gaps get high boost
+        // Words in correct order with small gaps
         {
           "span_near": {
             "clauses": queryWords.map(word => ({
               "span_term": { [field]: word }
             })),
-            "slop": 2, // Allow small gaps
+            "slop": 2,
             "in_order": true,
-            "boost": boost * 2 // 2x base boost
+            "boost": boost * 2
           }
         },
-        // Words in correct order with larger gaps get medium boost
+        // Words in correct order with larger gaps
         {
           "span_near": {
             "clauses": queryWords.map(word => ({
               "span_term": { [field]: word }
             })),
-            "slop": 5, // Allow larger gaps
+            "slop": 5,
             "in_order": true,
-            "boost": boost * 1.5 // 1.5x base boost
+            "boost": boost * 1.5
           }
         },
-        // All words present in any order gets base boost
+        // All words present in any order
         {
           "match": {
             [field]: {
               "query": cleanedQuery,
               "operator": "and",
-              "boost": boost // Base boost
+              "boost": boost
             }
           }
         }
