@@ -1,4 +1,3 @@
-
 import { cleanCompanyName } from './legal-form-utils.ts';
 import { SEARCH_TIERS } from './search-tiers.ts';
 
@@ -42,13 +41,14 @@ export const buildCompanyNameQuery = (companyName: string) => {
                   "field_value_factor": {
                     "field": "Vrvirksomhed.navne.navn.keyword",
                     "modifier": "reciprocal",
-                    "factor": 0.1,
+                    "factor": 1,
                     "missing": 1
                   }
                 }
               ],
               "boost": SEARCH_TIERS.SHORTEST_EXACT_MATCH,
-              "score_mode": "multiply"
+              "score_mode": "multiply",
+              "boost_mode": "multiply"
             }
           },
           
