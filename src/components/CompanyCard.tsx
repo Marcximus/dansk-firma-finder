@@ -124,7 +124,7 @@ const CompanyCard: React.FC<CompanyCardProps> = ({ company }) => {
           </div>
           
           <div>
-            <span className="font-medium">Virksomhedsform</span> {company.legalForm || 'N/A'}
+            <span className="font-medium">Type</span> {company.legalForm || 'N/A'}
           </div>
           
           <div>
