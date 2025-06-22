@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { Company } from './types';
 import { MOCK_COMPANIES } from './mockData';
@@ -27,6 +26,7 @@ export const searchCompanies = async (query: string): Promise<Company[]> => {
     
     if (data && data.companies && data.companies.length > 0) {
       console.log(`Found ${data.companies.length} companies from Danish Business Authority`);
+      // CRITICAL: Return companies in the exact order from backend - DO NOT SORT
       return data.companies;
     } else {
       console.log('No companies found from API, falling back to mock data');
@@ -43,12 +43,29 @@ export const searchCompanies = async (query: string): Promise<Company[]> => {
 // Helper function to search mock companies
 const searchMockCompanies = (query: string): Company[] => {
   const normalizedQuery = query.toLowerCase();
-  return MOCK_COMPANIES.filter(company => 
+  const filteredCompanies = MOCK_COMPANIES.filter(company => 
     company.name.toLowerCase().includes(normalizedQuery) ||
     company.cvr.includes(normalizedQuery) ||
     company.industry.toLowerCase().includes(normalizedQuery) ||
     company.city.toLowerCase().includes(normalizedQuery)
   );
+  
+  // For mock data, sort by exact matches first, then relevance
+  return filteredCompanies.sort((a, b) => {
+    const aExact = a.name.toLowerCase() === normalizedQuery;
+    const bExact = b.name.toLowerCase() === normalizedQuery;
+    
+    if (aExact && !bExact) return -1;
+    if (!aExact && bExact) return 1;
+    
+    const aStarts = a.name.toLowerCase().startsWith(normalizedQuery);
+    const bStarts = b.name.toLowerCase().startsWith(normalizedQuery);
+    
+    if (aStarts && !bStarts) return -1;
+    if (!aStarts && bStarts) return 1;
+    
+    return a.name.localeCompare(b.name);
+  });
 };
 
 // Enhanced get company by ID function that fetches full CVR data
