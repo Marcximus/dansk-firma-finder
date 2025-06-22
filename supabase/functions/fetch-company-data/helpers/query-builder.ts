@@ -20,7 +20,7 @@ export const buildSearchQuery = (cvr?: string, companyName?: string) => {
     const isPersonSearch = companyName.trim().split(/\s+/).length >= 2;
     
     if (isPersonSearch) {
-      // Search for person in company relationships
+      // Search for person in company relationships with corrected nesting
       return {
         "query": {
           "bool": {
@@ -35,26 +35,16 @@ export const buildSearchQuery = (cvr?: string, companyName?: string) => {
                   }
                 }
               },
-              // Search in participant names (board members, directors, owners, etc.)
+              // Search in participant names - only deltagerRelation is nested
               {
                 "nested": {
                   "path": "Vrvirksomhed.deltagerRelation",
                   "query": {
-                    "nested": {
-                      "path": "Vrvirksomhed.deltagerRelation.deltager",
-                      "query": {
-                        "nested": {
-                          "path": "Vrvirksomhed.deltagerRelation.deltager.navne",
-                          "query": {
-                            "match": {
-                              "Vrvirksomhed.deltagerRelation.deltager.navne.navn": {
-                                "query": companyName,
-                                "fuzziness": "AUTO",
-                                "operator": "and"
-                              }
-                            }
-                          }
-                        }
+                    "match": {
+                      "Vrvirksomhed.deltagerRelation.deltager.navne.navn": {
+                        "query": companyName,
+                        "fuzziness": "AUTO",
+                        "operator": "and"
                       }
                     }
                   }
