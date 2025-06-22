@@ -1,7 +1,7 @@
 
 // Search tier definitions and boost values
 export const SEARCH_TIERS = {
-  SHORTEST_EXACT_MATCH: 50000, // Increased significantly to ensure exact matches win
+  SHORTEST_EXACT_MATCH: 100000, // Massively increased to ensure true exact matches win
   EXACT_MATCH: 15000,
   EXACT_PRIMARY: 10000,
   EXACT_SECONDARY: 9000,
