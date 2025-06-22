@@ -25,20 +25,20 @@ export const transformCompanyData = (hit: any, determineLegalForm: (vrvirksomhed
   const vrvirksomhed = source.Vrvirksomhed || {};
   
   // Get the current/active name (where gyldigTil is null) or the most recent name
-  const activeName = vrvirksomhed.navne?.find((n: any) => n.periode?.gyldigTil === null);
-  const primaryName = activeName?.navn || vrvirksomhed.navne?.[0]?.navn || 'Unknown';
+  const currentName = vrvirksomhed.navne?.find((n: any) => n.periode?.gyldigTil === null);
+  const primaryName = currentName?.navn || vrvirksomhed.navne?.[vrvirksomhed.navne.length - 1]?.navn || 'Unknown';
   
   // Get the current/active address (where gyldigTil is null) or the most recent address
-  const activeAddress = vrvirksomhed.beliggenhedsadresse?.find((addr: any) => addr.periode?.gyldigTil === null);
-  const primaryAddress = activeAddress || vrvirksomhed.beliggenhedsadresse?.[0] || {};
+  const currentAddress = vrvirksomhed.beliggenhedsadresse?.find((addr: any) => addr.periode?.gyldigTil === null);
+  const primaryAddress = currentAddress || vrvirksomhed.beliggenhedsadresse?.[vrvirksomhed.beliggenhedsadresse.length - 1] || {};
   
   // Get current industry info
   const currentIndustry = vrvirksomhed.hovedbranche?.find((branch: any) => branch.periode?.gyldigTil === null);
-  const industry = currentIndustry?.branchetekst || vrvirksomhed.hovedbranche?.[0]?.branchetekst || 'N/A';
+  const industry = currentIndustry?.branchetekst || vrvirksomhed.hovedbranche?.[vrvirksomhed.hovedbranche.length - 1]?.branchetekst || 'N/A';
   
   // Get current email
   const currentEmail = vrvirksomhed.elektroniskPost?.find((email: any) => email.periode?.gyldigTil === null);
-  const emailAddress = currentEmail?.kontaktoplysning || vrvirksomhed.elektroniskPost?.[0]?.kontaktoplysning || null;
+  const emailAddress = currentEmail?.kontaktoplysning || vrvirksomhed.elektroniskPost?.[vrvirksomhed.elektroniskPost.length - 1]?.kontaktoplysning || null;
   
   // Get current legal form using enhanced logic
   const legalForm = determineLegalForm(vrvirksomhed);
@@ -70,8 +70,8 @@ export const transformCompanyData = (hit: any, determineLegalForm: (vrvirksomhed
       const deltager = relation.deltager;
       if (!deltager) return null;
       
-      const currentName = deltager.navne?.find((n: any) => n.periode?.gyldigTil === null);
-      const name = currentName?.navn || deltager.navne?.[0]?.navn || '';
+      const currentPersonName = deltager.navne?.find((n: any) => n.periode?.gyldigTil === null);
+      const name = currentPersonName?.navn || deltager.navne?.[deltager.navne.length - 1]?.navn || '';
       
       if (name.toLowerCase().includes(searchLower)) {
         // Determine role
@@ -108,6 +108,10 @@ export const transformCompanyData = (hit: any, determineLegalForm: (vrvirksomhed
     }
   }
   
+  // Get current website
+  const currentWebsite = vrvirksomhed.hjemmeside?.find((site: any) => site.periode?.gyldigTil === null);
+  const website = currentWebsite?.kontaktoplysning || vrvirksomhed.hjemmeside?.[vrvirksomhed.hjemmeside.length - 1]?.kontaktoplysning || null;
+  
   return {
     id: vrvirksomhed.cvrNummer?.toString() || hit._id,
     name: primaryName,
@@ -119,7 +123,7 @@ export const transformCompanyData = (hit: any, determineLegalForm: (vrvirksomhed
     employeeCount: employeeCount,
     yearFounded: vrvirksomhed.stiftelsesDato ? new Date(vrvirksomhed.stiftelsesDato).getFullYear() : null,
     revenue: 'N/A',
-    website: vrvirksomhed.hjemmeside?.find((site: any) => site.periode?.gyldigTil === null)?.kontaktoplysning || null,
+    website: website,
     description: description,
     logo: null,
     email: emailAddress,

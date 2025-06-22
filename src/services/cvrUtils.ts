@@ -13,10 +13,10 @@ export const extractCvrDetails = (cvrData: any) => {
     if (!deltager) return null;
     
     const currentName = deltager.navne?.find((n: any) => n.periode?.gyldigTil === null);
-    const name = currentName?.navn || deltager.navne?.[0]?.navn || 'Unknown';
+    const name = currentName?.navn || deltager.navne?.[deltager.navne.length - 1]?.navn || 'Unknown';
     
     const currentAddress = deltager.beliggenhedsadresse?.find((addr: any) => addr.periode?.gyldigTil === null);
-    const address = currentAddress || deltager.beliggenhedsadresse?.[0];
+    const address = currentAddress || deltager.beliggenhedsadresse?.[deltager.beliggenhedsadresse.length - 1];
     
     let addressString = 'N/A';
     if (address) {
@@ -59,11 +59,16 @@ export const extractCvrDetails = (cvrData: any) => {
     };
   }).filter(Boolean) || [];
 
-  // Extract historical information
+  // Extract historical information - sort by date to show most recent first
   const historicalNames = vrvirksomhed.navne?.map((navnItem: any) => ({
     period: `${navnItem.periode?.gyldigFra || 'Unknown'} - ${navnItem.periode?.gyldigTil || 'Present'}`,
     name: navnItem.navn
-  })) || [];
+  })).sort((a: any, b: any) => {
+    // Sort so current names (with 'Present') come first
+    if (a.period.includes('Present') && !b.period.includes('Present')) return -1;
+    if (b.period.includes('Present') && !a.period.includes('Present')) return 1;
+    return b.period.localeCompare(a.period);
+  }) || [];
 
   const historicalAddresses = vrvirksomhed.beliggenhedsadresse?.map((addr: any) => {
     let addressString = '';
@@ -81,15 +86,21 @@ export const extractCvrDetails = (cvrData: any) => {
       period: `${addr.periode?.gyldigFra || 'Unknown'} - ${addr.periode?.gyldigTil || 'Present'}`,
       address: addressString
     };
+  }).sort((a: any, b: any) => {
+    // Sort so current addresses (with 'Present') come first
+    if (a.period.includes('Present') && !b.period.includes('Present')) return -1;
+    if (b.period.includes('Present') && !a.period.includes('Present')) return 1;
+    return b.period.localeCompare(a.period);
   }) || [];
 
-  // Extract company form information
+  // Extract company form information - get current form
   const currentForm = vrvirksomhed.virksomhedsform?.find((form: any) => form.periode?.gyldigTil === null);
-  const legalForm = currentForm?.langBeskrivelse || currentForm?.kortBeskrivelse || 'N/A';
+  const legalForm = currentForm?.langBeskrivelse || currentForm?.kortBeskrivelse || 
+                   vrvirksomhed.virksomhedsform?.[vrvirksomhed.virksomhedsform.length - 1]?.langBeskrivelse || 'N/A';
 
-  // Extract status
+  // Extract status - get current status
   const currentStatus = vrvirksomhed.virksomhedsstatus?.find((status: any) => status.periode?.gyldigTil === null);
-  const status = currentStatus?.status || 'N/A';
+  const status = currentStatus?.status || vrvirksomhed.virksomhedsstatus?.[vrvirksomhed.virksomhedsstatus.length - 1]?.status || 'N/A';
 
   // Extract employment data
   const latestEmployment = vrvirksomhed.aarsbeskaeftigelse?.[0];
@@ -101,7 +112,7 @@ export const extractCvrDetails = (cvrData: any) => {
   // Try to extract more meaningful purpose information
   if (vrvirksomhed.hovedbranche && vrvirksomhed.hovedbranche.length > 0) {
     const currentIndustry = vrvirksomhed.hovedbranche.find((branch: any) => branch.periode?.gyldigTil === null);
-    const industry = currentIndustry || vrvirksomhed.hovedbranche[0];
+    const industry = currentIndustry || vrvirksomhed.hovedbranche[vrvirksomhed.hovedbranche.length - 1];
     purposeText = `Primary business activity: ${industry.branchetekst} (Code: ${industry.branchekode}). `;
     
     // Add secondary industries if available
