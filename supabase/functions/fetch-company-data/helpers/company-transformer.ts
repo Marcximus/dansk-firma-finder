@@ -17,7 +17,7 @@ export interface CompanyTransformationResult {
   legalForm: string;
   status: string;
   realCvrData: any;
-  foundPersons?: string[]; // Add this to track found persons in search
+  foundPersons?: string[]; // Track found persons in search
 }
 
 export const transformCompanyData = (hit: any, determineLegalForm: (vrvirksomhed: any) => string, determineStatus: (vrvirksomhed: any) => string, searchQuery?: string): CompanyTransformationResult => {
@@ -60,9 +60,11 @@ export const transformCompanyData = (hit: any, determineLegalForm: (vrvirksomhed
     addressString = `${street} ${houseNumber}${floor}${door}`.trim();
   }
   
-  // Extract found persons if this was a person search
+  // Extract found persons if search matches people in the company
   let foundPersons: string[] = [];
-  if (searchQuery && searchQuery.trim().split(/\s+/).length >= 2) {
+  let description = 'Company information from Danish Business Authority';
+  
+  if (searchQuery && vrvirksomhed.deltagerRelation) {
     const searchLower = searchQuery.toLowerCase();
     foundPersons = vrvirksomhed.deltagerRelation?.map((relation: any) => {
       const deltager = relation.deltager;
@@ -99,12 +101,11 @@ export const transformCompanyData = (hit: any, determineLegalForm: (vrvirksomhed
       }
       return null;
     }).filter(Boolean) || [];
-  }
-  
-  // Enhanced description for person searches
-  let description = 'Company information from Danish Business Authority';
-  if (foundPersons.length > 0) {
-    description = `Found person(s): ${foundPersons.join(', ')}. Company information from Danish Business Authority.`;
+    
+    // Update description if persons were found
+    if (foundPersons.length > 0) {
+      description = `Found person(s): ${foundPersons.join(', ')}. Company information from Danish Business Authority.`;
+    }
   }
   
   return {
