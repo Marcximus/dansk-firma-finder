@@ -14,25 +14,23 @@ export const buildCompanyNameQuery = (companyName: string) => {
     "query": {
       "bool": {
         "should": [
-          // TIER 0: SHORTEST EXACT matches - prioritize exact single-word matches
+          // TIER 0: SHORTEST EXACT matches - prioritize exact matches with shorter names
           {
             "function_score": {
               "query": {
                 "bool": {
                   "should": [
                     {
-                      "term": {
-                        "Vrvirksomhed.navne.navn.keyword": {
-                          "value": cleanedQuery,
-                          "case_insensitive": true
+                      "match_phrase": {
+                        "Vrvirksomhed.navne.navn": {
+                          "query": cleanedQuery
                         }
                       }
                     },
                     {
-                      "term": {
-                        "Vrvirksomhed.binavne.navn.keyword": {
-                          "value": cleanedQuery,
-                          "case_insensitive": true
+                      "match_phrase": {
+                        "Vrvirksomhed.binavne.navn": {
+                          "query": cleanedQuery
                         }
                       }
                     }
@@ -41,12 +39,12 @@ export const buildCompanyNameQuery = (companyName: string) => {
               },
               "functions": [
                 {
-                  "filter": {
-                    "script": {
-                      "source": "Math.max(0, 100 - doc['Vrvirksomhed.navne.navn.keyword'].value.length())"
-                    }
-                  },
-                  "weight": 1000
+                  "field_value_factor": {
+                    "field": "Vrvirksomhed.navne.navn.keyword",
+                    "modifier": "reciprocal",
+                    "factor": 0.1,
+                    "missing": 1
+                  }
                 }
               ],
               "boost": SEARCH_TIERS.SHORTEST_EXACT_MATCH,
