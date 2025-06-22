@@ -128,7 +128,10 @@ const CompanyCard: React.FC<CompanyCardProps> = ({ company }) => {
           
           <div>
             <p className="text-sm font-medium text-muted-foreground">Adresse</p>
-            <p>{company.address}, {company.postalCode} {company.city}</p>
+            <div>
+              <p>{company.address}</p>
+              <p>{company.postalCode} {company.city}</p>
+            </div>
           </div>
           <div className="pt-2">
             <Button asChild className="w-full">
