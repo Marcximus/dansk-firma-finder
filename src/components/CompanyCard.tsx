@@ -115,29 +115,29 @@ const CompanyCard: React.FC<CompanyCardProps> = ({ company }) => {
       </CardHeader>
       <CardContent>
         <div className="space-y-3 text-sm">
-          <div className="flex justify-between items-center">
-            <span className="font-medium">CVR</span>
+          <div className="flex items-center">
+            <span className="font-medium w-20">CVR</span>
             <span>{company.cvr}</span>
           </div>
           
-          <div className="flex justify-between items-center">
-            <span className="font-medium">{personRole || 'Direktør'}</span>
+          <div className="flex items-center">
+            <span className="font-medium w-20">{personRole || 'Direktør'}</span>
             <span>{personName || 'N/A'}</span>
           </div>
           
-          <div className="flex justify-between items-center">
-            <span className="font-medium">Type</span>
+          <div className="flex items-center">
+            <span className="font-medium w-20">Type</span>
             <span>{company.legalForm || 'N/A'}</span>
           </div>
           
-          <div className="flex justify-between items-center">
-            <span className="font-medium">Status</span>
+          <div className="flex items-center">
+            <span className="font-medium w-20">Status</span>
             <span>{company.status || 'Aktiv'}</span>
           </div>
           
-          <div className="flex justify-between items-start">
-            <span className="font-medium">Adresse</span>
-            <div className="text-right">
+          <div className="flex items-start">
+            <span className="font-medium w-20">Adresse</span>
+            <div>
               <div>{company.address}</div>
               <div>{company.postalCode} {company.city}</div>
             </div>
