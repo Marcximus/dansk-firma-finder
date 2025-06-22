@@ -1,4 +1,3 @@
-
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 
 const corsHeaders = {
@@ -90,6 +89,36 @@ serve(async (req) => {
     const data = await response.json();
     console.log('API Response:', JSON.stringify(data, null, 2));
 
+    // Helper function to determine legal form
+    const determineLegalForm = (vrvirksomhed: any) => {
+      // First try the standard virksomhedsform field
+      const currentForm = vrvirksomhed.virksomhedsform?.find((form: any) => form.periode?.gyldigTil === null);
+      if (currentForm?.langBeskrivelse || currentForm?.kortBeskrivelse) {
+        return currentForm.langBeskrivelse || currentForm.kortBeskrivelse;
+      }
+      
+      // If no standard form, check deltagerRelation for business structure clues
+      if (vrvirksomhed.deltagerRelation) {
+        for (const relation of vrvirksomhed.deltagerRelation) {
+          if (relation.organisationer) {
+            for (const org of relation.organisationer) {
+              // Check for sole proprietorship indicators
+              if (org.hovedtype === 'FULDT_ANSVARLIG_DELTAGERE') {
+                return 'Enkeltmandsvirksomhed';
+              }
+              // Other business structure mappings can be added here
+              if (org.hovedtype === 'DIREKTION') {
+                // Could indicate various corporate forms, but we'd need more info
+                continue;
+              }
+            }
+          }
+        }
+      }
+      
+      return 'N/A';
+    };
+
     // Transform the API response to match our Company interface
     const companies = data.hits?.hits?.map((hit: any) => {
       const source = hit._source;
@@ -111,9 +140,8 @@ serve(async (req) => {
       const currentEmail = vrvirksomhed.elektroniskPost?.find((email: any) => email.periode?.gyldigTil === null);
       const emailAddress = currentEmail?.kontaktoplysning || vrvirksomhed.elektroniskPost?.[0]?.kontaktoplysning || null;
       
-      // Get current legal form
-      const currentForm = vrvirksomhed.virksomhedsform?.find((form: any) => form.periode?.gyldigTil === null);
-      const legalForm = currentForm?.langBeskrivelse || currentForm?.kortBeskrivelse || 'N/A';
+      // Get current legal form using enhanced logic
+      const legalForm = determineLegalForm(vrvirksomhed);
       
       // Get current status 
       const currentStatus = vrvirksomhed.virksomhedsstatus?.find((status: any) => status.periode?.gyldigTil === null);
