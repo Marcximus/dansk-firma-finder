@@ -14,7 +14,47 @@ export const buildCompanyNameQuery = (companyName: string) => {
     "query": {
       "bool": {
         "should": [
-          // TIER 0: EXACT matches for complete company names (case-insensitive, highest priority)
+          // TIER 0: SHORTEST EXACT matches - prioritize exact single-word matches
+          {
+            "function_score": {
+              "query": {
+                "bool": {
+                  "should": [
+                    {
+                      "term": {
+                        "Vrvirksomhed.navne.navn.keyword": {
+                          "value": cleanedQuery,
+                          "case_insensitive": true
+                        }
+                      }
+                    },
+                    {
+                      "term": {
+                        "Vrvirksomhed.binavne.navn.keyword": {
+                          "value": cleanedQuery,
+                          "case_insensitive": true
+                        }
+                      }
+                    }
+                  ]
+                }
+              },
+              "functions": [
+                {
+                  "filter": {
+                    "script": {
+                      "source": "Math.max(0, 100 - doc['Vrvirksomhed.navne.navn.keyword'].value.length())"
+                    }
+                  },
+                  "weight": 1000
+                }
+              ],
+              "boost": SEARCH_TIERS.SHORTEST_EXACT_MATCH,
+              "score_mode": "multiply"
+            }
+          },
+          
+          // TIER 1: EXACT matches for complete company names (case-insensitive)
           {
             "bool": {
               "should": [
@@ -38,7 +78,7 @@ export const buildCompanyNameQuery = (companyName: string) => {
             }
           },
           
-          // TIER 1: EXACT matches on primary names (company names or person names) - case insensitive
+          // TIER 2: EXACT matches on primary names (company names or person names) - case insensitive
           {
             "bool": {
               "should": [
@@ -67,7 +107,7 @@ export const buildCompanyNameQuery = (companyName: string) => {
             }
           },
           
-          // TIER 2: EXACT matches on secondary names (binavne) - case insensitive
+          // TIER 3: EXACT matches on secondary names (binavne) - case insensitive
           {
             "match_phrase": {
               "Vrvirksomhed.binavne.navn": {
@@ -77,7 +117,7 @@ export const buildCompanyNameQuery = (companyName: string) => {
             }
           },
           
-          // TIER 3: All words present (both words must be found)
+          // TIER 4: All words present (both words must be found)
           {
             "bool": {
               "should": [
@@ -117,7 +157,7 @@ export const buildCompanyNameQuery = (companyName: string) => {
             }
           },
           
-          // TIER 4: Words in correct positions (first word at start gets priority)
+          // TIER 5: Words in correct positions (first word at start gets priority)
           {
             "bool": {
               "should": [
@@ -154,7 +194,7 @@ export const buildCompanyNameQuery = (companyName: string) => {
             }
           },
           
-          // TIER 5: All other remaining results (at least one word match)
+          // TIER 6: All other remaining results (at least one word match)
           {
             "bool": {
               "should": [
