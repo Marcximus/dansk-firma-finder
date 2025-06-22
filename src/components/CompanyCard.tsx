@@ -97,6 +97,14 @@ const CompanyCard: React.FC<CompanyCardProps> = ({ company }) => {
 
   const { name: personName, role: personRole } = getDirectorOrOwner();
 
+  // Transform legal form text to clean up specific cases
+  const cleanLegalForm = (legalForm: string) => {
+    if (legalForm === 'Personligt ejet Mindre Virksomhed') {
+      return 'Personligt Ejet Virksomhed';
+    }
+    return legalForm;
+  };
+
   return (
     <Card className="h-full hover:shadow-md transition-shadow fadeIn">
       <CardHeader className="pb-2">
@@ -127,7 +135,7 @@ const CompanyCard: React.FC<CompanyCardProps> = ({ company }) => {
           
           <div className="flex items-center">
             <span className="font-medium w-20">Type</span>
-            <span>{company.legalForm || 'N/A'}</span>
+            <span>{cleanLegalForm(company.legalForm || 'N/A')}</span>
           </div>
           
           <div className="flex items-center">
