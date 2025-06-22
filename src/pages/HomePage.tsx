@@ -16,8 +16,29 @@ const HomePage = () => {
     enabled: !!searchTerm,
   });
 
-  // Sort companies alphabetically by name
-  const companies = rawCompanies.sort((a, b) => a.name.localeCompare(b.name));
+  // Sort companies by relevance to search term
+  const companies = rawCompanies.sort((a, b) => {
+    if (!searchTerm) return a.name.localeCompare(b.name);
+    
+    const searchLower = searchTerm.toLowerCase();
+    const aName = a.name.toLowerCase();
+    const bName = b.name.toLowerCase();
+    
+    // Exact match comes first
+    if (aName === searchLower && bName !== searchLower) return -1;
+    if (bName === searchLower && aName !== searchLower) return 1;
+    
+    // Starts with search term comes next
+    if (aName.startsWith(searchLower) && !bName.startsWith(searchLower)) return -1;
+    if (bName.startsWith(searchLower) && !aName.startsWith(searchLower)) return 1;
+    
+    // Contains search term comes next
+    if (aName.includes(searchLower) && !bName.includes(searchLower)) return -1;
+    if (bName.includes(searchLower) && !aName.includes(searchLower)) return 1;
+    
+    // If both have same relevance level, sort alphabetically
+    return a.name.localeCompare(b.name);
+  });
 
   const handleSearch = (query: string) => {
     console.log('HomePage: handleSearch called with query:', query);
