@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -107,8 +106,8 @@ const CompanyCard: React.FC<CompanyCardProps> = ({ company }) => {
 
   return (
     <Card className="h-full flex flex-col hover:shadow-md transition-shadow fadeIn">
-      <CardHeader className="pb-4">
-        <div className="flex flex-col items-center gap-4">
+      <CardHeader className="pb-2 pt-3">
+        <div className="flex flex-col items-center gap-3">
           <CardTitle className="text-lg font-bold leading-tight text-center min-h-[3rem] flex items-center justify-center">
             {company.name}
           </CardTitle>
@@ -123,7 +122,7 @@ const CompanyCard: React.FC<CompanyCardProps> = ({ company }) => {
           )}
         </div>
       </CardHeader>
-      <CardContent className="flex-1 flex flex-col">
+      <CardContent className="flex-1 flex flex-col pt-2">
         <div className="space-y-4 text-sm flex-1">
           <div className="grid grid-cols-3 gap-2">
             <span className="font-medium text-muted-foreground">CVR</span>
