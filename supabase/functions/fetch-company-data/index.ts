@@ -1,3 +1,4 @@
+
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 
 const corsHeaders = {
@@ -119,6 +120,31 @@ serve(async (req) => {
       return 'N/A';
     };
 
+    // Helper function to determine company status
+    const determineStatus = (vrvirksomhed: any) => {
+      // Try to get the current status from virksomhedsstatus
+      const currentStatus = vrvirksomhed.virksomhedsstatus?.find((status: any) => status.periode?.gyldigTil === null);
+      if (currentStatus?.status) {
+        return currentStatus.status;
+      }
+      
+      // If no explicit status but company has active lifecycle, assume NORMAL
+      if (vrvirksomhed.livsforloeb && vrvirksomhed.livsforloeb.length > 0) {
+        const currentLifecycle = vrvirksomhed.livsforloeb.find((life: any) => life.periode?.gyldigTil === null);
+        if (currentLifecycle) {
+          return 'NORMAL';
+        }
+      }
+      
+      // If company has current name, address, or other active data, assume NORMAL
+      if (vrvirksomhed.navne?.some((n: any) => n.periode?.gyldigTil === null) ||
+          vrvirksomhed.beliggenhedsadresse?.some((addr: any) => addr.periode?.gyldigTil === null)) {
+        return 'NORMAL';
+      }
+      
+      return 'N/A';
+    };
+
     // Transform the API response to match our Company interface
     const companies = data.hits?.hits?.map((hit: any) => {
       const source = hit._source;
@@ -143,9 +169,8 @@ serve(async (req) => {
       // Get current legal form using enhanced logic
       const legalForm = determineLegalForm(vrvirksomhed);
       
-      // Get current status 
-      const currentStatus = vrvirksomhed.virksomhedsstatus?.find((status: any) => status.periode?.gyldigTil === null);
-      const status = currentStatus?.status || 'N/A';
+      // Get current status using enhanced logic
+      const status = determineStatus(vrvirksomhed);
       
       // Get employee count from latest employment data
       const latestEmployment = vrvirksomhed.aarsbeskaeftigelse?.[0];
