@@ -1,4 +1,3 @@
-
 import { cleanCompanyName } from './legal-form-utils.ts';
 import { SEARCH_TIERS } from './search-tiers.ts';
 
@@ -41,36 +40,17 @@ export const buildCompanyNameQuery = (companyName: string) => {
                           }
                         ]
                       }
-                    },
-                    // Also check case-insensitive exact matches
-                    {
-                      "bool": {
-                        "must": [
-                          {
-                            "match": {
-                              "Vrvirksomhed.navne.navn": {
-                                "query": cleanedQuery,
-                                "operator": "and"
-                              }
-                            }
-                          },
-                          {
-                            "term": {
-                              "Vrvirksomhed.navne.navn.keyword": cleanedQuery
-                            }
-                          }
-                        ]
-                      }
                     }
                   ]
                 }
               },
               "functions": [
                 {
-                  "script_score": {
-                    "script": {
-                      "source": "1.0 / Math.max(1, doc['Vrvirksomhed.navne.navn.keyword'].value.length())"
-                    }
+                  "field_value_factor": {
+                    "field": "Vrvirksomhed.navne.navn.keyword",
+                    "modifier": "reciprocal",
+                    "factor": 1,
+                    "missing": 1
                   }
                 }
               ],
