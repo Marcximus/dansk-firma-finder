@@ -25,8 +25,18 @@ const HomePage = () => {
     enabled: !!searchTerm,
   });
 
+  // Debug: Log what companies are about to be rendered
+  useEffect(() => {
+    if (companies.length > 0) {
+      console.log('🎨 HomePage: About to render companies in this order:');
+      companies.forEach((company: Company, index: number) => {
+        console.log(`  ${index + 1}. ${company.name}`);
+      });
+    }
+  }, [companies]);
+
   const handleSearch = (query: string) => {
-    console.log('HomePage: handleSearch called with query:', query);
+    console.log('🎨 HomePage: handleSearch called with query:', query);
     setSearchTerm(query);
     // Invalidate and refetch the query with the new search term
     queryClient.invalidateQueries({ queryKey: ['companies', query] });

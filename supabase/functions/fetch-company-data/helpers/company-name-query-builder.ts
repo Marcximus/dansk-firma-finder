@@ -7,26 +7,29 @@ export const buildCompanyNameQuery = (companyName: string) => {
   const cleanedQuery = cleanCompanyName(companyName);
   const queryWords = cleanedQuery.split(/\s+/);
   
+  console.log(`Building query for: "${cleanedQuery}" (original: "${companyName}")`);
+  console.log(`Query words: ${queryWords.join(', ')}`);
+  
   return {
     "query": {
       "bool": {
         "should": [
-          // TIER 0: EXACT matches for complete company names (highest priority)
+          // TIER 0: EXACT matches for complete company names (case-insensitive, highest priority)
           {
             "bool": {
               "should": [
                 {
-                  "term": {
-                    "Vrvirksomhed.navne.navn.keyword": {
-                      "value": cleanedQuery,
+                  "match_phrase": {
+                    "Vrvirksomhed.navne.navn": {
+                      "query": cleanedQuery,
                       "boost": SEARCH_TIERS.EXACT_MATCH
                     }
                   }
                 },
                 {
-                  "term": {
-                    "Vrvirksomhed.binavne.navn.keyword": {
-                      "value": cleanedQuery,
+                  "match_phrase": {
+                    "Vrvirksomhed.binavne.navn": {
+                      "query": cleanedQuery,
                       "boost": SEARCH_TIERS.EXACT_MATCH
                     }
                   }
@@ -35,7 +38,7 @@ export const buildCompanyNameQuery = (companyName: string) => {
             }
           },
           
-          // TIER 1: EXACT matches on primary names (company names or person names)
+          // TIER 1: EXACT matches on primary names (company names or person names) - case insensitive
           {
             "bool": {
               "should": [
@@ -64,7 +67,7 @@ export const buildCompanyNameQuery = (companyName: string) => {
             }
           },
           
-          // TIER 2: EXACT matches on secondary names (binavne)
+          // TIER 2: EXACT matches on secondary names (binavne) - case insensitive
           {
             "match_phrase": {
               "Vrvirksomhed.binavne.navn": {
@@ -119,9 +122,9 @@ export const buildCompanyNameQuery = (companyName: string) => {
             "bool": {
               "should": [
                 {
-                  "regexp": {
+                  "match_phrase_prefix": {
                     "Vrvirksomhed.navne.navn": {
-                      "value": `^${queryWords[0]}.*`,
+                      "query": queryWords[0],
                       "boost": SEARCH_TIERS.CORRECT_POSITIONS
                     }
                   }
@@ -130,9 +133,9 @@ export const buildCompanyNameQuery = (companyName: string) => {
                   "nested": {
                     "path": "Vrvirksomhed.deltagerRelation",
                     "query": {
-                      "regexp": {
+                      "match_phrase_prefix": {
                         "Vrvirksomhed.deltagerRelation.deltager.navne.navn": {
-                          "value": `^${queryWords[0]}.*`,
+                          "query": queryWords[0],
                           "boost": SEARCH_TIERS.CORRECT_POSITIONS
                         }
                       }
@@ -140,9 +143,9 @@ export const buildCompanyNameQuery = (companyName: string) => {
                   }
                 },
                 {
-                  "regexp": {
+                  "match_phrase_prefix": {
                     "Vrvirksomhed.binavne.navn": {
-                      "value": `^${queryWords[0]}.*`,
+                      "query": queryWords[0],
                       "boost": SEARCH_TIERS.CORRECT_POSITIONS
                     }
                   }

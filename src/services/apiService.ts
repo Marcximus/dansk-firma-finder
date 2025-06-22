@@ -1,41 +1,54 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { Company } from './types';
 import { MOCK_COMPANIES } from './mockData';
 
 // Enhanced search function that uses the Danish Business Authority API
 export const searchCompanies = async (query: string): Promise<Company[]> => {
-  console.log(`Searching for companies with query: ${query}`);
+  console.log(`🔍 Frontend: Searching for companies with query: "${query}"`);
   
   if (!query) {
+    console.log('🔍 Frontend: Empty query, returning mock companies');
     return MOCK_COMPANIES;
   }
   
   try {
     // Check if query is a CVR number (8 digits)
     const isCVR = /^\d{8}$/.test(query);
+    console.log(`🔍 Frontend: Is CVR number? ${isCVR}`);
     
+    console.log('🔍 Frontend: Calling supabase edge function...');
     const { data, error } = await supabase.functions.invoke('fetch-company-data', {
       body: isCVR ? { cvr: query } : { companyName: query }
     });
     
     if (error) {
-      console.error('Error calling fetch-company-data function:', error);
-      // Fall back to mock data search
+      console.error('🔍 Frontend: Error calling fetch-company-data function:', error);
+      console.log('🔍 Frontend: Falling back to mock data search');
       return searchMockCompanies(query);
     }
     
+    console.log('🔍 Frontend: Edge function response:', data);
+    
     if (data && data.companies && data.companies.length > 0) {
-      console.log(`Found ${data.companies.length} companies from Danish Business Authority`);
+      console.log(`🔍 Frontend: Found ${data.companies.length} companies from Danish Business Authority`);
+      
+      // Log the order received from backend
+      console.log('🔍 Frontend: Companies received in this order:');
+      data.companies.forEach((company: any, index: number) => {
+        console.log(`  ${index + 1}. ${company.name} (Score: ${company._debugScore || 'N/A'})`);
+      });
+      
       // CRITICAL: Return companies in the exact order from backend - DO NOT SORT
       return data.companies;
     } else {
-      console.log('No companies found from API, falling back to mock data');
+      console.log('🔍 Frontend: No companies found from API, falling back to mock data');
       return searchMockCompanies(query);
     }
     
   } catch (error) {
-    console.error('Error searching companies:', error);
-    // Fall back to mock data search
+    console.error('🔍 Frontend: Error searching companies:', error);
+    console.log('🔍 Frontend: Falling back to mock data search');
     return searchMockCompanies(query);
   }
 };
