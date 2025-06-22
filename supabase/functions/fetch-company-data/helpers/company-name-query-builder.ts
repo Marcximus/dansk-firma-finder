@@ -1,3 +1,4 @@
+
 import { cleanCompanyName } from './legal-form-utils.ts';
 import { SEARCH_TIERS } from './search-tiers.ts';
 
@@ -13,24 +14,52 @@ export const buildCompanyNameQuery = (companyName: string) => {
     "query": {
       "bool": {
         "should": [
-          // TIER 0: SHORTEST EXACT matches - prioritize exact matches with shorter names
+          // TIER 0: TRUE EXACT MATCHES - only companies with exactly this name
           {
             "function_score": {
               "query": {
                 "bool": {
                   "should": [
                     {
-                      "match_phrase": {
-                        "Vrvirksomhed.navne.navn": {
-                          "query": cleanedQuery
-                        }
+                      "bool": {
+                        "must": [
+                          {
+                            "term": {
+                              "Vrvirksomhed.navne.navn.keyword": cleanedQuery
+                            }
+                          }
+                        ]
                       }
                     },
                     {
-                      "match_phrase": {
-                        "Vrvirksomhed.binavne.navn": {
-                          "query": cleanedQuery
-                        }
+                      "bool": {
+                        "must": [
+                          {
+                            "term": {
+                              "Vrvirksomhed.binavne.navn.keyword": cleanedQuery
+                            }
+                          }
+                        ]
+                      }
+                    },
+                    // Also check case-insensitive exact matches
+                    {
+                      "bool": {
+                        "must": [
+                          {
+                            "match": {
+                              "Vrvirksomhed.navne.navn": {
+                                "query": cleanedQuery,
+                                "operator": "and"
+                              }
+                            }
+                          },
+                          {
+                            "term": {
+                              "Vrvirksomhed.navne.navn.keyword": cleanedQuery
+                            }
+                          }
+                        ]
                       }
                     }
                   ]
@@ -38,11 +67,10 @@ export const buildCompanyNameQuery = (companyName: string) => {
               },
               "functions": [
                 {
-                  "field_value_factor": {
-                    "field": "Vrvirksomhed.navne.navn.keyword",
-                    "modifier": "reciprocal",
-                    "factor": 1,
-                    "missing": 1
+                  "script_score": {
+                    "script": {
+                      "source": "1.0 / Math.max(1, doc['Vrvirksomhed.navne.navn.keyword'].value.length())"
+                    }
                   }
                 }
               ],
@@ -52,7 +80,7 @@ export const buildCompanyNameQuery = (companyName: string) => {
             }
           },
           
-          // TIER 1: EXACT matches for complete company names (case-insensitive)
+          // TIER 1: PHRASE matches for complete company names (case-insensitive)
           {
             "bool": {
               "should": [
