@@ -5,7 +5,7 @@ export const buildTier0ExactMatchQuery = (cleanedQuery: string) => {
   return {
     "bool": {
       "should": [
-        // Case-insensitive exact match for company names with length preference
+        // Case-insensitive exact match for company names using match with strict operator
         {
           "bool": {
             "must": [
@@ -13,27 +13,22 @@ export const buildTier0ExactMatchQuery = (cleanedQuery: string) => {
                 "match": {
                   "Vrvirksomhed.navne.navn": {
                     "query": cleanedQuery,
-                    "operator": "and",
-                    "boost": SEARCH_TIERS.SHORTEST_EXACT_MATCH
+                    "operator": "and"
                   }
                 }
               }
             ],
             "filter": [
               {
-                "script": {
-                  "script": {
-                    "source": "doc['Vrvirksomhed.navne.navn.keyword'].value.toLowerCase() == params.query.toLowerCase()",
-                    "params": {
-                      "query": cleanedQuery
-                    }
-                  }
+                "term": {
+                  "Vrvirksomhed.navne.navn.keyword": cleanedQuery.toLowerCase()
                 }
               }
-            ]
+            ],
+            "boost": SEARCH_TIERS.SHORTEST_EXACT_MATCH
           }
         },
-        // Case-insensitive exact match for secondary names (binavne) with length preference
+        // Case-insensitive exact match for secondary names (binavne)
         {
           "bool": {
             "must": [
@@ -41,24 +36,65 @@ export const buildTier0ExactMatchQuery = (cleanedQuery: string) => {
                 "match": {
                   "Vrvirksomhed.binavne.navn": {
                     "query": cleanedQuery,
-                    "operator": "and",
-                    "boost": SEARCH_TIERS.SHORTEST_EXACT_MATCH
+                    "operator": "and"
                   }
                 }
               }
             ],
             "filter": [
               {
-                "script": {
-                  "script": {
-                    "source": "doc['Vrvirksomhed.binavne.navn.keyword'].value.toLowerCase() == params.query.toLowerCase()",
-                    "params": {
-                      "query": cleanedQuery
-                    }
+                "term": {
+                  "Vrvirksomhed.binavne.navn.keyword": cleanedQuery.toLowerCase()
+                }
+              }
+            ],
+            "boost": SEARCH_TIERS.SHORTEST_EXACT_MATCH
+          }
+        },
+        // Also try uppercase version for exact matching
+        {
+          "bool": {
+            "must": [
+              {
+                "match": {
+                  "Vrvirksomhed.navne.navn": {
+                    "query": cleanedQuery,
+                    "operator": "and"
                   }
                 }
               }
-            ]
+            ],
+            "filter": [
+              {
+                "term": {
+                  "Vrvirksomhed.navne.navn.keyword": cleanedQuery.toUpperCase()
+                }
+              }
+            ],
+            "boost": SEARCH_TIERS.SHORTEST_EXACT_MATCH
+          }
+        },
+        // Try the original case as well
+        {
+          "bool": {
+            "must": [
+              {
+                "match": {
+                  "Vrvirksomhed.navne.navn": {
+                    "query": cleanedQuery,
+                    "operator": "and"
+                  }
+                }
+              }
+            ],
+            "filter": [
+              {
+                "term": {
+                  "Vrvirksomhed.navne.navn.keyword": cleanedQuery
+                }
+              }
+            ],
+            "boost": SEARCH_TIERS.SHORTEST_EXACT_MATCH
           }
         }
       ]
