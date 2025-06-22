@@ -109,7 +109,7 @@ const CompanyCard: React.FC<CompanyCardProps> = ({ company }) => {
     <Card className="h-full flex flex-col hover:shadow-md transition-shadow fadeIn">
       <CardHeader className="pb-2 pt-3">
         <div className="flex flex-col items-center gap-3">
-          <CardTitle className="text-lg font-bold leading-tight text-center min-h-[2rem] flex items-center justify-center px-4">
+          <CardTitle className="text-lg font-bold leading-tight text-center min-h-[2rem] flex items-center justify-center px-2">
             {company.name}
           </CardTitle>
           {company.logo && (
