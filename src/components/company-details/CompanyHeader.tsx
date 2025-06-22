@@ -10,7 +10,29 @@ interface CompanyHeaderProps {
 }
 
 const CompanyHeader: React.FC<CompanyHeaderProps> = ({ company }) => {
-  const statusColor = company.status === 'NORMAL' ? 'bg-green-500' : 'bg-gray-500';
+  // Function to get appropriate color and display text for status
+  const getStatusDisplay = (status: string) => {
+    switch (status) {
+      case 'NORMAL':
+        return { color: 'bg-green-500', text: 'Aktiv' };
+      case 'OPLØST EFTER ERKLÆRING':
+        return { color: 'bg-red-500', text: 'Opløst efter erklæring' };
+      case 'OPLØST EFTER KONKURS':
+        return { color: 'bg-red-600', text: 'Opløst efter konkurs' };
+      case 'UNDER KONKURS':
+        return { color: 'bg-orange-500', text: 'Under konkurs' };
+      case 'UNDER LIKVIDATION':
+        return { color: 'bg-orange-400', text: 'Under likvidation' };
+      case 'OPHØRT':
+        return { color: 'bg-gray-500', text: 'Ophørt' };
+      case 'UKENDT':
+        return { color: 'bg-gray-400', text: 'Ukendt' };
+      default:
+        return { color: 'bg-gray-500', text: status || 'Ukendt' };
+    }
+  };
+
+  const statusDisplay = getStatusDisplay(company.status);
 
   return (
     <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
@@ -30,8 +52,8 @@ const CompanyHeader: React.FC<CompanyHeaderProps> = ({ company }) => {
           <Map className="h-4 w-4" />
           <span>{company.city}</span>
         </div>
-        <Badge className={`${statusColor} text-white`}>
-          {company.status === 'NORMAL' ? 'Active' : company.status || 'Unknown'}
+        <Badge className={`${statusDisplay.color} text-white`}>
+          {statusDisplay.text}
         </Badge>
       </div>
       <div className="flex flex-wrap gap-2">
