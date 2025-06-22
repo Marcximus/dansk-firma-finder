@@ -28,9 +28,9 @@ const HomePage = () => {
   // Debug: Log what companies are about to be rendered
   useEffect(() => {
     if (companies.length > 0) {
-      console.log('🎨 HomePage: About to render companies in this order:');
+      console.log('🎨 HomePage: About to render companies in this exact order (NO FRONTEND SORTING):');
       companies.forEach((company: Company, index: number) => {
-        console.log(`  ${index + 1}. ${company.name}`);
+        console.log(`  ${index + 1}. ${company.name} (Backend Score: ${(company as any)._debugScore || 'N/A'})`);
       });
     }
   }, [companies]);
@@ -73,6 +73,7 @@ const HomePage = () => {
           </div>
         )}
 
+        {/* Render companies in the exact order from backend - NO SORTING ON FRONTEND */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {companies.map((company: Company) => (
             <CompanyCard key={company.id} company={company} />

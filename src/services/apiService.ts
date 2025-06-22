@@ -34,12 +34,14 @@ export const searchCompanies = async (query: string): Promise<Company[]> => {
       console.log(`🔍 Frontend: Found ${data.companies.length} companies from Danish Business Authority`);
       
       // Log the order received from backend
-      console.log('🔍 Frontend: Companies received in this order:');
+      console.log('🔍 Frontend: Companies received in this order from backend:');
       data.companies.forEach((company: any, index: number) => {
         console.log(`  ${index + 1}. ${company.name} (Score: ${company._debugScore || 'N/A'})`);
       });
       
-      // CRITICAL: Return companies in the exact order from backend - DO NOT SORT
+      // CRITICAL: Return companies in the exact order from backend - DO NOT SORT OR REORDER
+      // The backend has already applied the correct ranking based on search tiers
+      console.log('🔍 Frontend: Returning companies in exact backend order (no frontend sorting)');
       return data.companies;
     } else {
       console.log('🔍 Frontend: No companies found from API, falling back to mock data');
