@@ -10,53 +10,55 @@ interface CompanyCardProps {
 }
 
 const CompanyCard: React.FC<CompanyCardProps> = ({ company }) => {
-  // Extract management roles from CVR data if available
-  const getManagementRoles = () => {
+  // Extract all management roles from CVR data if available
+  const getAllManagementRoles = () => {
     const roles: { type: string; name: string }[] = [];
     
     if (company.realCvrData?.deltagerRelation) {
       company.realCvrData.deltagerRelation.forEach((relation: any) => {
-        const org = relation.organisationer?.[0];
-        if (org) {
-          let roleType = '';
-          let personName = '';
-          
-          // Get person name
-          const currentName = relation.deltager?.navne?.find((n: any) => n.periode?.gyldigTil === null);
-          personName = currentName?.navn || relation.deltager?.navne?.[0]?.navn || 'N/A';
-          
-          // Determine role type
-          if (org.hovedtype === 'DIREKTION') {
-            // Check if it's specifically Administrerende direktør
-            if (org.medlemsData) {
+        // Get person name
+        const currentName = relation.deltager?.navne?.find((n: any) => n.periode?.gyldigTil === null);
+        const personName = currentName?.navn || relation.deltager?.navne?.[0]?.navn || 'N/A';
+        
+        if (personName !== 'N/A' && relation.organisationer) {
+          relation.organisationer.forEach((org: any) => {
+            let roleDescription = '';
+            
+            // Get the role type from hovedtype
+            const hovedtype = org.hovedtype;
+            
+            // Get more specific role from member data if available
+            if (org.medlemsData && org.medlemsData.length > 0) {
               const memberData = org.medlemsData[0];
-              if (memberData?.attributter) {
+              if (memberData.attributter) {
                 const funkAttribute = memberData.attributter.find((attr: any) => attr.type === 'FUNKTION');
-                const funkValue = funkAttribute?.vaerdier?.[0]?.vaerdi?.toLowerCase();
-                if (funkValue && funkValue.includes('administrerende')) {
-                  roleType = 'DIREKTION';
-                }
-              }
-            } else {
-              roleType = 'DIREKTION';
-            }
-          } else if (org.hovedtype === 'BESTYRELSE') {
-            // Check if it's specifically Bestyrelsesformand
-            if (org.medlemsData) {
-              const memberData = org.medlemsData[0];
-              if (memberData?.attributter) {
-                const funkAttribute = memberData.attributter.find((attr: any) => attr.type === 'FUNKTION');
-                const funkValue = funkAttribute?.vaerdier?.[0]?.vaerdi?.toLowerCase();
-                if (funkValue && funkValue.includes('formand')) {
-                  roleType = 'BESTYRELSE';
+                if (funkAttribute && funkAttribute.vaerdier && funkAttribute.vaerdier.length > 0) {
+                  roleDescription = funkAttribute.vaerdier[0].vaerdi;
                 }
               }
             }
-          }
-          
-          if (roleType && personName !== 'N/A') {
-            roles.push({ type: roleType, name: personName });
-          }
+            
+            // Fall back to hovedtype if no specific function found
+            if (!roleDescription && hovedtype) {
+              switch (hovedtype) {
+                case 'DIREKTION':
+                  roleDescription = 'Direktion';
+                  break;
+                case 'BESTYRELSE':
+                  roleDescription = 'Bestyrelse';
+                  break;
+                case 'FULDT_ANSVARLIG_DELTAGERE':
+                  roleDescription = 'Interessenter';
+                  break;
+                default:
+                  roleDescription = hovedtype;
+              }
+            }
+            
+            if (roleDescription) {
+              roles.push({ type: roleDescription, name: personName });
+            }
+          });
         }
       });
     }
@@ -64,7 +66,7 @@ const CompanyCard: React.FC<CompanyCardProps> = ({ company }) => {
     return roles;
   };
 
-  const managementRoles = getManagementRoles();
+  const managementRoles = getAllManagementRoles();
 
   return (
     <Card className="h-full hover:shadow-md transition-shadow fadeIn">
@@ -89,11 +91,11 @@ const CompanyCard: React.FC<CompanyCardProps> = ({ company }) => {
             <p>{company.cvr}</p>
           </div>
           
-          {/* Display management roles */}
+          {/* Display all management roles */}
           {managementRoles.map((role, index) => (
             <div key={index}>
               <p className="text-sm font-medium text-muted-foreground">
-                {role.type === 'DIREKTION' ? 'DIREKTION: Administrerende direktør' : 'BESTYRELSE: Bestyrelsesformand'}
+                {role.type}
               </p>
               <p>{role.name}</p>
             </div>
@@ -102,8 +104,8 @@ const CompanyCard: React.FC<CompanyCardProps> = ({ company }) => {
           {/* Show fallback if no management roles found */}
           {managementRoles.length === 0 && (
             <div>
-              <p className="text-sm font-medium text-muted-foreground">Administrerende direktør</p>
-              <p>N/A</p>
+              <p className="text-sm font-medium text-muted-foreground">Management</p>
+              <p>Information not available</p>
             </div>
           )}
           
