@@ -17,9 +17,10 @@ export interface CompanyTransformationResult {
   legalForm: string;
   status: string;
   realCvrData: any;
+  foundPersons?: string[]; // Add this to track found persons in search
 }
 
-export const transformCompanyData = (hit: any, determineLegalForm: (vrvirksomhed: any) => string, determineStatus: (vrvirksomhed: any) => string): CompanyTransformationResult => {
+export const transformCompanyData = (hit: any, determineLegalForm: (vrvirksomhed: any) => string, determineStatus: (vrvirksomhed: any) => string, searchQuery?: string): CompanyTransformationResult => {
   const source = hit._source;
   const vrvirksomhed = source.Vrvirksomhed || {};
   
@@ -59,6 +60,53 @@ export const transformCompanyData = (hit: any, determineLegalForm: (vrvirksomhed
     addressString = `${street} ${houseNumber}${floor}${door}`.trim();
   }
   
+  // Extract found persons if this was a person search
+  let foundPersons: string[] = [];
+  if (searchQuery && searchQuery.trim().split(/\s+/).length >= 2) {
+    const searchLower = searchQuery.toLowerCase();
+    foundPersons = vrvirksomhed.deltagerRelation?.map((relation: any) => {
+      const deltager = relation.deltager;
+      if (!deltager) return null;
+      
+      const currentName = deltager.navne?.find((n: any) => n.periode?.gyldigTil === null);
+      const name = currentName?.navn || deltager.navne?.[0]?.navn || '';
+      
+      if (name.toLowerCase().includes(searchLower)) {
+        // Determine role
+        let role = 'Deltager';
+        if (relation.organisationer && relation.organisationer.length > 0) {
+          const org = relation.organisationer[0];
+          if (org?.hovedtype) {
+            role = org.hovedtype === 'DIREKTION' ? 'Direktør' : 
+                   org.hovedtype === 'BESTYRELSE' ? 'Bestyrelse' : 
+                   org.hovedtype === 'FULDT_ANSVARLIG_DELTAGERE' ? 'Interessenter' :
+                   org.hovedtype;
+          }
+          
+          // Get more specific role from member data
+          if (org.medlemsData && org.medlemsData.length > 0) {
+            const memberData = org.medlemsData[0];
+            if (memberData.attributter) {
+              const funkAttribute = memberData.attributter.find((attr: any) => attr.type === 'FUNKTION');
+              if (funkAttribute && funkAttribute.vaerdier && funkAttribute.vaerdier.length > 0) {
+                role = funkAttribute.vaerdier[0].vaerdi || role;
+              }
+            }
+          }
+        }
+        
+        return `${name} (${role})`;
+      }
+      return null;
+    }).filter(Boolean) || [];
+  }
+  
+  // Enhanced description for person searches
+  let description = 'Company information from Danish Business Authority';
+  if (foundPersons.length > 0) {
+    description = `Found person(s): ${foundPersons.join(', ')}. Company information from Danish Business Authority.`;
+  }
+  
   return {
     id: vrvirksomhed.cvrNummer?.toString() || hit._id,
     name: primaryName,
@@ -71,11 +119,12 @@ export const transformCompanyData = (hit: any, determineLegalForm: (vrvirksomhed
     yearFounded: vrvirksomhed.stiftelsesDato ? new Date(vrvirksomhed.stiftelsesDato).getFullYear() : null,
     revenue: 'N/A',
     website: vrvirksomhed.hjemmeside?.find((site: any) => site.periode?.gyldigTil === null)?.kontaktoplysning || null,
-    description: 'Company information from Danish Business Authority',
+    description: description,
     logo: null,
     email: emailAddress,
     legalForm: legalForm,
     status: status,
+    foundPersons: foundPersons,
     // Store full CVR data for detailed view
     realCvrData: vrvirksomhed
   };

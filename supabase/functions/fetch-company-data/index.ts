@@ -56,7 +56,7 @@ serve(async (req) => {
 
     // Transform the API response to match our Company interface
     const companies = data.hits?.hits?.map((hit: any) => {
-      return transformCompanyData(hit, determineLegalForm, determineStatus);
+      return transformCompanyData(hit, determineLegalForm, determineStatus, companyName);
     }) || [];
 
     return new Response(
