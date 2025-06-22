@@ -1,6 +1,7 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useLocation } from 'react-router-dom';
 import { searchCompanies, Company } from '@/services/companyAPI';
 import SearchBar from '@/components/SearchBar';
 import CompanyCard from '@/components/CompanyCard';
@@ -9,6 +10,14 @@ import Layout from '@/components/Layout';
 const HomePage = () => {
   const [searchTerm, setSearchTerm] = useState<string>('');
   const queryClient = useQueryClient();
+  const location = useLocation();
+  
+  // Clear search when navigating to home page
+  useEffect(() => {
+    if (location.pathname === '/' && location.search === '') {
+      setSearchTerm('');
+    }
+  }, [location]);
   
   const { data: companies = [], isLoading } = useQuery({
     queryKey: ['companies', searchTerm],
