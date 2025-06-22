@@ -36,22 +36,42 @@ export const buildSearchQuery = (cvr?: string, companyName?: string) => {
       cleanedQuery = companyName;
     }
     
-    // Unified search that covers both company names and people
+    // Prioritized search that heavily favors company name matches
     return {
       "query": {
         "bool": {
           "should": [
-            // Search in company names
+            // Exact company name match (highest boost)
+            {
+              "match_phrase": {
+                "Vrvirksomhed.navne.navn": {
+                  "query": cleanedQuery,
+                  "boost": 10
+                }
+              }
+            },
+            // Close company name match with minimal fuzziness (high boost)
             {
               "match": {
                 "Vrvirksomhed.navne.navn": {
                   "query": cleanedQuery,
-                  "fuzziness": "AUTO",
-                  "operator": "and"
+                  "fuzziness": "1",
+                  "operator": "and",
+                  "boost": 5
                 }
               }
             },
-            // Search in participant names (people associated with companies)
+            // Partial company name match (medium boost)
+            {
+              "match": {
+                "Vrvirksomhed.navne.navn": {
+                  "query": cleanedQuery,
+                  "operator": "or",
+                  "boost": 2
+                }
+              }
+            },
+            // People name match (lowest boost, more restrictive)
             {
               "nested": {
                 "path": "Vrvirksomhed.deltagerRelation",
@@ -59,8 +79,9 @@ export const buildSearchQuery = (cvr?: string, companyName?: string) => {
                   "match": {
                     "Vrvirksomhed.deltagerRelation.deltager.navne.navn": {
                       "query": cleanedQuery,
-                      "fuzziness": "AUTO",
-                      "operator": "and"
+                      "fuzziness": "1",
+                      "operator": "and",
+                      "boost": 0.5
                     }
                   }
                 }
