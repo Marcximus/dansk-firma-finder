@@ -106,56 +106,58 @@ const CompanyCard: React.FC<CompanyCardProps> = ({ company }) => {
   };
 
   return (
-    <Card className="h-full hover:shadow-md transition-shadow fadeIn">
-      <CardHeader className="pb-2">
-        <div className="flex flex-col items-center gap-3">
-          <CardTitle className="text-xl font-bold leading-tight text-center">
+    <Card className="h-full flex flex-col hover:shadow-md transition-shadow fadeIn">
+      <CardHeader className="pb-4">
+        <div className="flex flex-col items-center gap-4">
+          <CardTitle className="text-lg font-bold leading-tight text-center min-h-[3rem] flex items-center justify-center">
             {company.name}
           </CardTitle>
           {company.logo && (
-            <img 
-              src={company.logo} 
-              alt={`${company.name} logo`} 
-              className="company-logo"
-            />
+            <div className="w-16 h-16 flex items-center justify-center">
+              <img 
+                src={company.logo} 
+                alt={`${company.name} logo`} 
+                className="max-w-full max-h-full object-contain"
+              />
+            </div>
           )}
         </div>
       </CardHeader>
-      <CardContent>
-        <div className="space-y-3 text-sm">
-          <div className="flex items-center">
-            <span className="font-medium w-20">CVR</span>
-            <span>{company.cvr}</span>
+      <CardContent className="flex-1 flex flex-col">
+        <div className="space-y-4 text-sm flex-1">
+          <div className="grid grid-cols-3 gap-2">
+            <span className="font-medium text-muted-foreground">CVR</span>
+            <span className="col-span-2">{company.cvr}</span>
           </div>
           
-          <div className="flex items-center">
-            <span className="font-medium w-20">{personRole || 'Direktør'}</span>
-            <span>{personName || 'N/A'}</span>
+          <div className="grid grid-cols-3 gap-2">
+            <span className="font-medium text-muted-foreground">{personRole || 'Direktør'}</span>
+            <span className="col-span-2">{personName || 'N/A'}</span>
           </div>
           
-          <div className="flex items-center">
-            <span className="font-medium w-20">Type</span>
-            <span>{cleanLegalForm(company.legalForm || 'N/A')}</span>
+          <div className="grid grid-cols-3 gap-2">
+            <span className="font-medium text-muted-foreground">Type</span>
+            <span className="col-span-2">{cleanLegalForm(company.legalForm || 'N/A')}</span>
           </div>
           
-          <div className="flex items-center">
-            <span className="font-medium w-20">Status</span>
-            <span>{company.status || 'Aktiv'}</span>
+          <div className="grid grid-cols-3 gap-2">
+            <span className="font-medium text-muted-foreground">Status</span>
+            <span className="col-span-2">{company.status || 'Aktiv'}</span>
           </div>
           
-          <div className="flex items-start">
-            <span className="font-medium w-20">Adresse</span>
-            <div>
+          <div className="grid grid-cols-3 gap-2">
+            <span className="font-medium text-muted-foreground">Adresse</span>
+            <div className="col-span-2">
               <div>{company.address}</div>
               <div>{company.postalCode} {company.city}</div>
             </div>
           </div>
-          
-          <div className="pt-4">
-            <Button asChild className="w-full">
-              <Link to={`/company/${company.id}`}>View Details</Link>
-            </Button>
-          </div>
+        </div>
+        
+        <div className="mt-6 pt-4 border-t">
+          <Button asChild className="w-full">
+            <Link to={`/company/${company.id}`}>View Details</Link>
+          </Button>
         </div>
       </CardContent>
     </Card>
