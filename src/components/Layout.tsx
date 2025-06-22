@@ -1,6 +1,6 @@
 
-import React, { ReactNode } from 'react';
-import { Link } from 'react-router-dom';
+import React, { ReactNode, useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Search } from 'lucide-react';
@@ -10,6 +10,17 @@ interface LayoutProps {
 }
 
 const Layout: React.FC<LayoutProps> = ({ children }) => {
+  const [headerSearchQuery, setHeaderSearchQuery] = useState('');
+  const navigate = useNavigate();
+
+  const handleHeaderSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (headerSearchQuery.trim()) {
+      // Navigate to home page and trigger search
+      navigate(`/?search=${encodeURIComponent(headerSearchQuery.trim())}`);
+    }
+  };
+
   return (
     <div className="min-h-screen flex flex-col">
       {/* Header */}
@@ -17,15 +28,17 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         <div className="container mx-auto py-3 px-4 flex flex-col md:flex-row items-center gap-4">
           <Link to="/" className="text-2xl font-bold text-primary">Selskabs Info</Link>
           
-          <div className="flex-1 w-full md:w-auto">
+          <form onSubmit={handleHeaderSearch} className="flex-1 w-full md:w-auto">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input 
                 className="pl-10"
                 placeholder="Search by company name, CVR, industry, or city..." 
+                value={headerSearchQuery}
+                onChange={(e) => setHeaderSearchQuery(e.target.value)}
               />
             </div>
-          </div>
+          </form>
           
           <div className="flex items-center gap-2">
             <Button variant="outline">Log In</Button>

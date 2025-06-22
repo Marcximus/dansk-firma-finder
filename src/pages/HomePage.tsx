@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useSearchParams } from 'react-router-dom';
 import { searchCompanies, Company } from '@/services/companyAPI';
 import SearchBar from '@/components/SearchBar';
 import CompanyCard from '@/components/CompanyCard';
@@ -11,13 +11,17 @@ const HomePage = () => {
   const [searchTerm, setSearchTerm] = useState<string>('');
   const queryClient = useQueryClient();
   const location = useLocation();
+  const [searchParams] = useSearchParams();
   
-  // Clear search when navigating to home page
+  // Handle search from URL parameters (from header search)
   useEffect(() => {
-    if (location.pathname === '/' && location.search === '') {
+    const searchFromUrl = searchParams.get('search');
+    if (searchFromUrl) {
+      setSearchTerm(searchFromUrl);
+    } else if (location.pathname === '/' && location.search === '') {
       setSearchTerm('');
     }
-  }, [location]);
+  }, [location, searchParams]);
   
   const { data: companies = [], isLoading } = useQuery({
     queryKey: ['companies', searchTerm],
