@@ -26,15 +26,25 @@ const HomePage = () => {
   return (
     <Layout>
       <div className="max-w-5xl mx-auto">
-        <div className="py-12 text-center">
-          <h1 className="text-4xl font-bold mb-6">Selskabs Info</h1>
-          <p className="text-xl text-muted-foreground mb-8">
-            Search and explore detailed information about Danish companies
-          </p>
-          <div className="flex justify-center mb-12">
+        {/* Only show hero section if no search has been performed */}
+        {!searchTerm && (
+          <div className="py-12 text-center">
+            <h1 className="text-4xl font-bold mb-6">Selskabs Info</h1>
+            <p className="text-xl text-muted-foreground mb-8">
+              Search and explore detailed information about Danish companies
+            </p>
+            <div className="flex justify-center mb-12">
+              <SearchBar onSearch={handleSearch} isLoading={isLoading} />
+            </div>
+          </div>
+        )}
+
+        {/* Show search bar at top when search is active */}
+        {searchTerm && (
+          <div className="mb-6">
             <SearchBar onSearch={handleSearch} isLoading={isLoading} />
           </div>
-        </div>
+        )}
 
         {searchTerm && (
           <div className="mb-4">
