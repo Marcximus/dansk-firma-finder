@@ -2,23 +2,23 @@
 import { cleanCompanyName } from './legal-form-utils.ts';
 import { buildPositionalQuery } from './positional-query-builder.ts';
 
-// Company name search query builder with refined ranking
+// Company name search query builder with corrected hierarchical ranking
 export const buildCompanyNameQuery = (companyName: string) => {
   const cleanedQuery = cleanCompanyName(companyName);
   const queryWords = cleanedQuery.split(/\s+/);
   
-  // Refined hierarchical search with precise ranking according to requirements
+  // Corrected hierarchical search with proper boost separation
   return {
     "query": {
       "bool": {
         "should": [
-          // TIER 1: EXACT MATCHES ON PRIMARY NAMES (Highest Priority - Boost 1000-950)
+          // TIER 1: EXACT MATCHES ON PRIMARY NAMES (Highest Priority - Boost 10000-9500)
           // Exact company name match (current names)
           {
             "match_phrase": {
               "Vrvirksomhed.navne.navn": {
                 "query": cleanedQuery,
-                "boost": 1000
+                "boost": 10000
               }
             }
           },
@@ -30,43 +30,43 @@ export const buildCompanyNameQuery = (companyName: string) => {
                 "match_phrase": {
                   "Vrvirksomhed.deltagerRelation.deltager.navne.navn": {
                     "query": cleanedQuery,
-                    "boost": 950
+                    "boost": 9500
                   }
                 }
               }
             }
           },
           
-          // TIER 2: EXACT MATCHES ON SECONDARY/BI-NAMES (High Priority - Boost 900-850)
-          // Exact secondary company name match (binavne)
+          // TIER 2: EXACT MATCHES ON SECONDARY/BI-NAMES (Second Priority - Boost 9000)
+          // Exact secondary company name match (binavne) - MUST rank higher than partial matches
           {
             "match_phrase": {
               "Vrvirksomhed.binavne.navn": {
                 "query": cleanedQuery,
-                "boost": 900
+                "boost": 9000
               }
             }
           },
           
-          // TIER 3: ALL WORDS PRESENT - POSITIONAL SCORING (Medium-High Priority - Boost 800-600)
+          // TIER 3: ALL WORDS PRESENT - POSITIONAL SCORING (Medium-High Priority - Boost 3000-2000)
           // Company names with all words (positional scoring favors correct order)
-          buildPositionalQuery("Vrvirksomhed.navne.navn", 300, queryWords, cleanedQuery),
+          buildPositionalQuery("Vrvirksomhed.navne.navn", 1000, queryWords, cleanedQuery),
           
           // Person names with all words (positional scoring)
           {
             "nested": {
               "path": "Vrvirksomhed.deltagerRelation",
-              "query": buildPositionalQuery("Vrvirksomhed.deltagerRelation.deltager.navne.navn", 280, queryWords, cleanedQuery)
+              "query": buildPositionalQuery("Vrvirksomhed.deltagerRelation.deltager.navne.navn", 900, queryWords, cleanedQuery)
             }
           },
           
-          // TIER 4: SINGLE WORD MATCHES WITH STRONG POSITION PREFERENCE (Medium Priority - Boost 500-300)
+          // TIER 4: SINGLE WORD MATCHES WITH STRONG POSITION PREFERENCE (Medium Priority - Boost 1500-800)
           // Enhanced positional scoring for single words - first word gets much higher boost
           ...queryWords.map((word, index) => ({
             "match": {
               "Vrvirksomhed.navne.navn": {
                 "query": word,
-                "boost": index === 0 ? 500 : Math.max(300 - (index * 50), 100) // First word gets 500, subsequent words decrease significantly
+                "boost": index === 0 ? 1500 : Math.max(800 - (index * 100), 300) // First word gets 1500, subsequent words decrease significantly
               }
             }
           })),
@@ -79,28 +79,28 @@ export const buildCompanyNameQuery = (companyName: string) => {
                 "match": {
                   "Vrvirksomhed.deltagerRelation.deltager.navne.navn": {
                     "query": word,
-                    "boost": index === 0 ? 450 : Math.max(250 - (index * 40), 80) // First word gets 450, subsequent words decrease
+                    "boost": index === 0 ? 1400 : Math.max(700 - (index * 80), 250) // First word gets 1400, subsequent words decrease
                   }
                 }
               }
             }
           })),
           
-          // TIER 5: MATCHES ON SECONDARY NAMES (BINAVNE) - ALL WORDS AND SINGLE WORDS (Medium-Low Priority - Boost 250-100)
+          // TIER 5: MATCHES ON SECONDARY NAMES (BINAVNE) - ALL WORDS AND SINGLE WORDS (Medium-Low Priority - Boost 700-200)
           // Secondary names with all words (positional scoring)
-          buildPositionalQuery("Vrvirksomhed.binavne.navn", 200, queryWords, cleanedQuery),
+          buildPositionalQuery("Vrvirksomhed.binavne.navn", 600, queryWords, cleanedQuery),
           
           // Single word matches for secondary names with positional preference
           ...queryWords.map((word, index) => ({
             "match": {
               "Vrvirksomhed.binavne.navn": {
                 "query": word,
-                "boost": index === 0 ? 250 : Math.max(150 - (index * 30), 50) // First word gets higher boost
+                "boost": index === 0 ? 700 : Math.max(400 - (index * 50), 150) // First word gets higher boost
               }
             }
           })),
           
-          // TIER 6: ALL OTHER REMAINING RESULTS - FUZZY AND PARTIAL MATCHES (Lower Priority - Boost 40-5)
+          // TIER 6: ALL OTHER REMAINING RESULTS - FUZZY AND PARTIAL MATCHES (Lower Priority - Boost 100-5)
           // Fuzzy matches for typos in primary names
           {
             "match": {
@@ -108,7 +108,7 @@ export const buildCompanyNameQuery = (companyName: string) => {
                 "query": cleanedQuery,
                 "fuzziness": "1",
                 "operator": "and",
-                "boost": 40
+                "boost": 100
               }
             }
           },
@@ -122,7 +122,7 @@ export const buildCompanyNameQuery = (companyName: string) => {
                     "query": cleanedQuery,
                     "fuzziness": "1",
                     "operator": "and",
-                    "boost": 30
+                    "boost": 80
                   }
                 }
               }
@@ -135,7 +135,7 @@ export const buildCompanyNameQuery = (companyName: string) => {
                 "query": cleanedQuery,
                 "fuzziness": "1",
                 "operator": "and",
-                "boost": 25
+                "boost": 60
               }
             }
           },
@@ -147,7 +147,7 @@ export const buildCompanyNameQuery = (companyName: string) => {
                 "query": cleanedQuery,
                 "operator": "or",
                 "minimum_should_match": "60%",
-                "boost": 15
+                "boost": 40
               }
             }
           },
@@ -160,7 +160,7 @@ export const buildCompanyNameQuery = (companyName: string) => {
                     "query": cleanedQuery,
                     "operator": "or",
                     "minimum_should_match": "60%",
-                    "boost": 10
+                    "boost": 30
                   }
                 }
               }
@@ -172,7 +172,7 @@ export const buildCompanyNameQuery = (companyName: string) => {
                 "query": cleanedQuery,
                 "operator": "or",
                 "minimum_should_match": "60%",
-                "boost": 5
+                "boost": 20
               }
             }
           }

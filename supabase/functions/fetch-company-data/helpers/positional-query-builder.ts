@@ -1,5 +1,5 @@
 
-// Enhanced utility functions for building positional queries with stronger word order preference
+// Enhanced utility functions for building positional queries with proper boost scaling
 export const buildPositionalQuery = (field: string, boost: number, queryWords: string[], cleanedQuery: string) => {
   if (queryWords.length === 1) {
     return {
@@ -12,16 +12,16 @@ export const buildPositionalQuery = (field: string, boost: number, queryWords: s
     };
   }
   
-  // For multi-word queries, create enhanced span query with stronger positional scoring
+  // For multi-word queries, create enhanced span query with controlled boost values
   return {
     "bool": {
       "should": [
-        // Exact phrase gets highest boost (perfect match)
+        // Exact phrase gets highest boost within this tier
         {
           "match_phrase": {
             [field]: {
               "query": cleanedQuery,
-              "boost": boost * 3 // Significantly higher boost for exact phrases
+              "boost": boost * 3 // 3x base boost for exact phrases
             }
           }
         },
@@ -33,7 +33,7 @@ export const buildPositionalQuery = (field: string, boost: number, queryWords: s
             })),
             "slop": 0, // No gaps allowed
             "in_order": true,
-            "boost": boost * 2.5
+            "boost": boost * 2.5 // 2.5x base boost
           }
         },
         // Words in correct order with small gaps get high boost
@@ -44,7 +44,7 @@ export const buildPositionalQuery = (field: string, boost: number, queryWords: s
             })),
             "slop": 2, // Allow small gaps
             "in_order": true,
-            "boost": boost * 2
+            "boost": boost * 2 // 2x base boost
           }
         },
         // Words in correct order with larger gaps get medium boost
@@ -55,16 +55,16 @@ export const buildPositionalQuery = (field: string, boost: number, queryWords: s
             })),
             "slop": 5, // Allow larger gaps
             "in_order": true,
-            "boost": boost * 1.5
+            "boost": boost * 1.5 // 1.5x base boost
           }
         },
-        // All words present in any order gets lower boost
+        // All words present in any order gets base boost
         {
           "match": {
             [field]: {
               "query": cleanedQuery,
               "operator": "and",
-              "boost": boost
+              "boost": boost // Base boost
             }
           }
         }
