@@ -33,13 +33,23 @@ export const searchCompanies = async (query: string): Promise<Company[]> => {
     if (data && data.companies && data.companies.length > 0) {
       console.log(`🔍 Frontend: Found ${data.companies.length} companies from Danish Business Authority`);
       
-      // Log the order received from backend
+      // Log the order received from backend with detailed analysis
       console.log('🔍 Frontend: Companies received in this order:');
       data.companies.forEach((company: any, index: number) => {
-        console.log(`  ${index + 1}. ${company.name} (Score: ${company._debugScore || 'N/A'})`);
+        const cleanSearchTerm = query.toLowerCase().trim();
+        const cleanCompanyName = company.name.toLowerCase().trim();
+        const isExactMatch = cleanCompanyName === cleanSearchTerm;
+        const isContained = cleanCompanyName.includes(cleanSearchTerm);
+        
+        console.log(`  ${index + 1}. ${company.name}`);
+        console.log(`     🎯 Score: ${company._debugScore || 'N/A'}`);
+        console.log(`     📏 Length: ${company.name.length}`);
+        console.log(`     🎯 Exact match: ${isExactMatch}`);
+        console.log(`     📦 Contains "${query}": ${isContained}`);
       });
       
       // CRITICAL: Return companies in the exact order from backend - DO NOT SORT
+      console.log('🔍 Frontend: ⚠️ PRESERVING EXACT ORDER FROM BACKEND - NOT SORTING');
       return data.companies;
     } else {
       console.log('🔍 Frontend: No companies found from API, falling back to mock data');
