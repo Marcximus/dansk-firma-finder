@@ -114,26 +114,30 @@ const CompanyCard: React.FC<CompanyCardProps> = ({ company }) => {
         </div>
       </CardHeader>
       <CardContent>
-        <div className="space-y-3">
+        <div className="space-y-2 text-sm">
           <div>
-            <p className="text-sm font-medium text-muted-foreground">CVR</p>
-            <p>{company.cvr}</p>
-          </div>
-          
-          {/* Display director or owner */}
-          <div>
-            <p className="text-sm font-medium text-muted-foreground">{personRole || 'Direktør'}</p>
-            <p>{personName || 'N/A'}</p>
+            <span className="font-medium">CVR</span> {company.cvr}
           </div>
           
           <div>
-            <p className="text-sm font-medium text-muted-foreground">Adresse</p>
-            <div>
-              <p>{company.address}</p>
-              <p>{company.postalCode} {company.city}</p>
-            </div>
+            <span className="font-medium">{personRole || 'Direktør'}</span> {personName || 'N/A'}
           </div>
-          <div className="pt-2">
+          
+          <div>
+            <span className="font-medium">Virksomhedsform</span> {company.legalForm || 'N/A'}
+          </div>
+          
+          <div>
+            <span className="font-medium">Status</span> {company.status || 'Aktiv'}
+          </div>
+          
+          <div>
+            <span className="font-medium">Adresse</span> {company.address}
+            <br />
+            {company.postalCode} {company.city}
+          </div>
+          
+          <div className="pt-4">
             <Button asChild className="w-full">
               <Link to={`/company/${company.id}`}>View Details</Link>
             </Button>
