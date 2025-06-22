@@ -1,5 +1,12 @@
+
 import { cleanCompanyName } from './legal-form-utils.ts';
-import { SEARCH_TIERS } from './search-tiers.ts';
+import { buildTier0ExactMatchQuery } from './query-builders/tier0-exact-match.ts';
+import { buildTier1PhraseMatchQuery } from './query-builders/tier1-phrase-match.ts';
+import { buildTier2ExactPrimaryQuery } from './query-builders/tier2-exact-primary.ts';
+import { buildTier3ExactSecondaryQuery } from './query-builders/tier3-exact-secondary.ts';
+import { buildTier4AllWordsQuery } from './query-builders/tier4-all-words.ts';
+import { buildTier5CorrectPositionsQuery } from './query-builders/tier5-correct-positions.ts';
+import { buildTier6RemainingQuery } from './query-builders/tier6-remaining.ts';
 
 // Simplified hierarchical search query with clean tier-based ranking
 export const buildCompanyNameQuery = (companyName: string) => {
@@ -14,231 +21,25 @@ export const buildCompanyNameQuery = (companyName: string) => {
       "bool": {
         "should": [
           // TIER 0: TRUE EXACT MATCHES - only companies with exactly this name
-          {
-            "function_score": {
-              "query": {
-                "bool": {
-                  "should": [
-                    {
-                      "bool": {
-                        "must": [
-                          {
-                            "term": {
-                              "Vrvirksomhed.navne.navn.keyword": cleanedQuery
-                            }
-                          }
-                        ]
-                      }
-                    },
-                    {
-                      "bool": {
-                        "must": [
-                          {
-                            "term": {
-                              "Vrvirksomhed.binavne.navn.keyword": cleanedQuery
-                            }
-                          }
-                        ]
-                      }
-                    }
-                  ]
-                }
-              },
-              "functions": [
-                {
-                  "field_value_factor": {
-                    "field": "Vrvirksomhed.navne.navn.keyword",
-                    "modifier": "reciprocal",
-                    "factor": 1,
-                    "missing": 1
-                  }
-                }
-              ],
-              "boost": SEARCH_TIERS.SHORTEST_EXACT_MATCH,
-              "score_mode": "multiply",
-              "boost_mode": "multiply"
-            }
-          },
+          buildTier0ExactMatchQuery(cleanedQuery),
           
           // TIER 1: PHRASE matches for complete company names (case-insensitive)
-          {
-            "bool": {
-              "should": [
-                {
-                  "match_phrase": {
-                    "Vrvirksomhed.navne.navn": {
-                      "query": cleanedQuery,
-                      "boost": SEARCH_TIERS.EXACT_MATCH
-                    }
-                  }
-                },
-                {
-                  "match_phrase": {
-                    "Vrvirksomhed.binavne.navn": {
-                      "query": cleanedQuery,
-                      "boost": SEARCH_TIERS.EXACT_MATCH
-                    }
-                  }
-                }
-              ]
-            }
-          },
+          buildTier1PhraseMatchQuery(cleanedQuery),
           
           // TIER 2: EXACT matches on primary names (company names or person names) - case insensitive
-          {
-            "bool": {
-              "should": [
-                {
-                  "match_phrase": {
-                    "Vrvirksomhed.navne.navn": {
-                      "query": cleanedQuery,
-                      "boost": SEARCH_TIERS.EXACT_PRIMARY
-                    }
-                  }
-                },
-                {
-                  "nested": {
-                    "path": "Vrvirksomhed.deltagerRelation",
-                    "query": {
-                      "match_phrase": {
-                        "Vrvirksomhed.deltagerRelation.deltager.navne.navn": {
-                          "query": cleanedQuery,
-                          "boost": SEARCH_TIERS.EXACT_PRIMARY
-                        }
-                      }
-                    }
-                  }
-                }
-              ]
-            }
-          },
+          buildTier2ExactPrimaryQuery(cleanedQuery),
           
           // TIER 3: EXACT matches on secondary names (binavne) - case insensitive
-          {
-            "match_phrase": {
-              "Vrvirksomhed.binavne.navn": {
-                "query": cleanedQuery,
-                "boost": SEARCH_TIERS.EXACT_SECONDARY
-              }
-            }
-          },
+          buildTier3ExactSecondaryQuery(cleanedQuery),
           
           // TIER 4: All words present (both words must be found)
-          {
-            "bool": {
-              "should": [
-                {
-                  "match": {
-                    "Vrvirksomhed.navne.navn": {
-                      "query": cleanedQuery,
-                      "operator": "and",
-                      "boost": SEARCH_TIERS.ALL_WORDS
-                    }
-                  }
-                },
-                {
-                  "nested": {
-                    "path": "Vrvirksomhed.deltagerRelation",
-                    "query": {
-                      "match": {
-                        "Vrvirksomhed.deltagerRelation.deltager.navne.navn": {
-                          "query": cleanedQuery,
-                          "operator": "and",
-                          "boost": SEARCH_TIERS.ALL_WORDS
-                        }
-                      }
-                    }
-                  }
-                },
-                {
-                  "match": {
-                    "Vrvirksomhed.binavne.navn": {
-                      "query": cleanedQuery,
-                      "operator": "and",
-                      "boost": SEARCH_TIERS.ALL_WORDS
-                    }
-                  }
-                }
-              ]
-            }
-          },
+          buildTier4AllWordsQuery(cleanedQuery),
           
           // TIER 5: Words in correct positions (first word at start gets priority)
-          {
-            "bool": {
-              "should": [
-                {
-                  "match_phrase_prefix": {
-                    "Vrvirksomhed.navne.navn": {
-                      "query": queryWords[0],
-                      "boost": SEARCH_TIERS.CORRECT_POSITIONS
-                    }
-                  }
-                },
-                {
-                  "nested": {
-                    "path": "Vrvirksomhed.deltagerRelation",
-                    "query": {
-                      "match_phrase_prefix": {
-                        "Vrvirksomhed.deltagerRelation.deltager.navne.navn": {
-                          "query": queryWords[0],
-                          "boost": SEARCH_TIERS.CORRECT_POSITIONS
-                        }
-                      }
-                    }
-                  }
-                },
-                {
-                  "match_phrase_prefix": {
-                    "Vrvirksomhed.binavne.navn": {
-                      "query": queryWords[0],
-                      "boost": SEARCH_TIERS.CORRECT_POSITIONS
-                    }
-                  }
-                }
-              ]
-            }
-          },
+          buildTier5CorrectPositionsQuery(queryWords),
           
           // TIER 6: All other remaining results (at least one word match)
-          {
-            "bool": {
-              "should": [
-                {
-                  "match": {
-                    "Vrvirksomhed.navne.navn": {
-                      "query": cleanedQuery,
-                      "operator": "or",
-                      "boost": SEARCH_TIERS.REMAINING
-                    }
-                  }
-                },
-                {
-                  "nested": {
-                    "path": "Vrvirksomhed.deltagerRelation",
-                    "query": {
-                      "match": {
-                        "Vrvirksomhed.deltagerRelation.deltager.navne.navn": {
-                          "query": cleanedQuery,
-                          "operator": "or",
-                          "boost": SEARCH_TIERS.REMAINING
-                        }
-                      }
-                    }
-                  }
-                },
-                {
-                  "match": {
-                    "Vrvirksomhed.binavne.navn": {
-                      "query": cleanedQuery,
-                      "operator": "or",
-                      "boost": SEARCH_TIERS.REMAINING
-                    }
-                  }
-                }
-              ]
-            }
-          }
+          buildTier6RemainingQuery(cleanedQuery)
         ],
         "minimum_should_match": 1
       }
