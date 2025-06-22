@@ -10,63 +10,31 @@ interface CompanyCardProps {
 }
 
 const CompanyCard: React.FC<CompanyCardProps> = ({ company }) => {
-  // Extract all management roles from CVR data if available
-  const getAllManagementRoles = () => {
-    const roles: { type: string; name: string }[] = [];
-    
-    if (company.realCvrData?.deltagerRelation) {
-      company.realCvrData.deltagerRelation.forEach((relation: any) => {
-        // Get person name
-        const currentName = relation.deltager?.navne?.find((n: any) => n.periode?.gyldigTil === null);
-        const personName = currentName?.navn || relation.deltager?.navne?.[0]?.navn || 'N/A';
-        
-        if (personName !== 'N/A' && relation.organisationer) {
-          relation.organisationer.forEach((org: any) => {
-            let roleDescription = '';
-            
-            // Get the role type from hovedtype
-            const hovedtype = org.hovedtype;
-            
-            // Get more specific role from member data if available
-            if (org.medlemsData && org.medlemsData.length > 0) {
-              const memberData = org.medlemsData[0];
-              if (memberData.attributter) {
-                const funkAttribute = memberData.attributter.find((attr: any) => attr.type === 'FUNKTION');
-                if (funkAttribute && funkAttribute.vaerdier && funkAttribute.vaerdier.length > 0) {
-                  roleDescription = funkAttribute.vaerdier[0].vaerdi;
-                }
-              }
-            }
-            
-            // Fall back to hovedtype if no specific function found
-            if (!roleDescription && hovedtype) {
-              switch (hovedtype) {
-                case 'DIREKTION':
-                  roleDescription = 'Direktion';
-                  break;
-                case 'BESTYRELSE':
-                  roleDescription = 'Bestyrelse';
-                  break;
-                case 'FULDT_ANSVARLIG_DELTAGERE':
-                  roleDescription = 'Interessenter';
-                  break;
-                default:
-                  roleDescription = hovedtype;
-              }
-            }
-            
-            if (roleDescription) {
-              roles.push({ type: roleDescription, name: personName });
-            }
-          });
+  // Extract the first director from CVR data
+  const getDirector = () => {
+    if (!company.realCvrData?.deltagerRelation) {
+      return null;
+    }
+
+    for (const relation of company.realCvrData.deltagerRelation) {
+      // Get person name
+      const currentName = relation.deltager?.navne?.find((n: any) => n.periode?.gyldigTil === null);
+      const personName = currentName?.navn || relation.deltager?.navne?.[0]?.navn;
+      
+      if (personName && relation.organisationer) {
+        for (const org of relation.organisationer) {
+          // Check if this is a director role
+          if (org.hovedtype === 'DIREKTION') {
+            return personName;
+          }
         }
-      });
+      }
     }
     
-    return roles;
+    return null;
   };
 
-  const managementRoles = getAllManagementRoles();
+  const director = getDirector();
 
   return (
     <Card className="h-full hover:shadow-md transition-shadow fadeIn">
@@ -91,23 +59,11 @@ const CompanyCard: React.FC<CompanyCardProps> = ({ company }) => {
             <p>{company.cvr}</p>
           </div>
           
-          {/* Display all management roles */}
-          {managementRoles.map((role, index) => (
-            <div key={index}>
-              <p className="text-sm font-medium text-muted-foreground">
-                {role.type}
-              </p>
-              <p>{role.name}</p>
-            </div>
-          ))}
-          
-          {/* Show fallback if no management roles found */}
-          {managementRoles.length === 0 && (
-            <div>
-              <p className="text-sm font-medium text-muted-foreground">Management</p>
-              <p>Information not available</p>
-            </div>
-          )}
+          {/* Display director */}
+          <div>
+            <p className="text-sm font-medium text-muted-foreground">Direktør</p>
+            <p>{director || 'N/A'}</p>
+          </div>
           
           <div>
             <p className="text-sm font-medium text-muted-foreground">Adresse</p>
