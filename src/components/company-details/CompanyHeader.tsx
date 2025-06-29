@@ -12,13 +12,14 @@ interface CompanyHeaderProps {
 const CompanyHeader: React.FC<CompanyHeaderProps> = ({ company }) => {
   // Function to get appropriate color and display text for status
   const getStatusDisplay = (status: string) => {
+    // Simplify dissolved statuses to just "OPLØST"
+    if (status?.includes('OPLØST')) {
+      return { color: 'bg-red-500', text: 'OPLØST' };
+    }
+    
     switch (status) {
       case 'NORMAL':
         return { color: 'bg-green-500', text: 'Aktiv' };
-      case 'OPLØST EFTER ERKLÆRING':
-        return { color: 'bg-red-500', text: 'Opløst efter erklæring' };
-      case 'OPLØST EFTER KONKURS':
-        return { color: 'bg-red-600', text: 'Opløst efter konkurs' };
       case 'UNDER KONKURS':
         return { color: 'bg-orange-500', text: 'Under konkurs' };
       case 'UNDER LIKVIDATION':

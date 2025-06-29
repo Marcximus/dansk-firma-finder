@@ -15,13 +15,14 @@ const StatusHistoryCard: React.FC<StatusHistoryCardProps> = ({ cvrData }) => {
 
   // Function to get display text for status
   const getStatusDisplay = (status: string) => {
+    // Simplify dissolved statuses to just "OPLØST"
+    if (status?.includes('OPLØST')) {
+      return 'OPLØST';
+    }
+    
     switch (status) {
       case 'NORMAL':
         return 'Aktiv';
-      case 'OPLØST EFTER ERKLÆRING':
-        return 'Opløst efter erklæring';
-      case 'OPLØST EFTER KONKURS':
-        return 'Opløst efter konkurs';
       case 'UNDER KONKURS':
         return 'Under konkurs';
       case 'UNDER LIKVIDATION':
@@ -33,12 +34,14 @@ const StatusHistoryCard: React.FC<StatusHistoryCardProps> = ({ cvrData }) => {
 
   // Function to get badge variant for status
   const getStatusVariant = (status: string) => {
+    // All dissolved statuses get destructive variant
+    if (status?.includes('OPLØST')) {
+      return 'destructive';
+    }
+    
     switch (status) {
       case 'NORMAL':
         return 'default';
-      case 'OPLØST EFTER ERKLÆRING':
-      case 'OPLØST EFTER KONKURS':
-        return 'destructive';
       case 'UNDER KONKURS':
       case 'UNDER LIKVIDATION':
         return 'secondary';
