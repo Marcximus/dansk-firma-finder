@@ -12,11 +12,6 @@ interface CompanyHeaderProps {
 const CompanyHeader: React.FC<CompanyHeaderProps> = ({ company }) => {
   // Function to get appropriate color and display text for status
   const getStatusDisplay = (status: string) => {
-    // Simplify dissolved statuses to just "OPLØST"
-    if (status?.includes('OPLØST')) {
-      return { color: 'bg-red-500', text: 'OPLØST' };
-    }
-    
     switch (status) {
       case 'NORMAL':
         return { color: 'bg-green-500', text: 'Aktiv' };
@@ -29,6 +24,10 @@ const CompanyHeader: React.FC<CompanyHeaderProps> = ({ company }) => {
       case 'UKENDT':
         return { color: 'bg-gray-400', text: 'Ukendt' };
       default:
+        // Show full status for dissolved companies and others
+        if (status?.includes('OPLØST')) {
+          return { color: 'bg-red-500', text: status };
+        }
         return { color: 'bg-gray-500', text: status || 'Ukendt' };
     }
   };

@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Activity } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
@@ -13,13 +12,8 @@ const StatusHistoryCard: React.FC<StatusHistoryCardProps> = ({ cvrData }) => {
   const statusHistory = cvrData.virksomhedsstatus || [];
   const lifeHistory = cvrData.livsforloeb || [];
 
-  // Function to get display text for status
+  // Function to get display text for status (keep full details)
   const getStatusDisplay = (status: string) => {
-    // Simplify dissolved statuses to just "OPLØST"
-    if (status?.includes('OPLØST')) {
-      return 'OPLØST';
-    }
-    
     switch (status) {
       case 'NORMAL':
         return 'Aktiv';
@@ -28,13 +22,12 @@ const StatusHistoryCard: React.FC<StatusHistoryCardProps> = ({ cvrData }) => {
       case 'UNDER LIKVIDATION':
         return 'Under likvidation';
       default:
-        return status;
+        return status; // Show full status including detailed dissolved statuses
     }
   };
 
   // Function to get badge variant for status
   const getStatusVariant = (status: string) => {
-    // All dissolved statuses get destructive variant
     if (status?.includes('OPLØST')) {
       return 'destructive';
     }
