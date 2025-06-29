@@ -62,13 +62,6 @@ const HomePage = () => {
           </div>
         )}
 
-        {/* Show search bar at top when search is active */}
-        {searchTerm && (
-          <div className="mb-6">
-            <SearchBar onSearch={handleSearch} isLoading={isLoading} />
-          </div>
-        )}
-
         {searchTerm && (
           <div className="mb-4">
             <h2 className="text-xl font-semibold">
