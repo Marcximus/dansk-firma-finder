@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -9,6 +10,30 @@ interface CompanyCardProps {
 }
 
 const CompanyCard: React.FC<CompanyCardProps> = ({ company }) => {
+  // Transform legal form text to clean up specific cases for search results
+  const cleanLegalForm = (legalForm: string) => {
+    // First handle the foreign company simplification
+    if (legalForm === 'Anden udenlandsk virksomhed' || 
+        legalForm === 'Filial af udenlandsk aktieselskab, kommanditakties etc') {
+      return 'Udenlandsk Virksomhed';
+    }
+    
+    // Then handle the personal company simplification
+    if (legalForm === 'Personligt ejet Mindre Virksomhed') {
+      return 'Personligt Ejet Virksomhed';
+    }
+    
+    return legalForm;
+  };
+
+  // Transform status to simplify dissolved statuses for search results
+  const cleanStatus = (status: string) => {
+    if (status?.includes('OPLØST')) {
+      return 'OPLØST';
+    }
+    return status;
+  };
+
   // Extract the first director or owner from CVR data
   const getDirectorOrOwner = () => {
     console.log('Company data:', company);
@@ -96,14 +121,6 @@ const CompanyCard: React.FC<CompanyCardProps> = ({ company }) => {
 
   const { name: personName, role: personRole } = getDirectorOrOwner();
 
-  // Transform legal form text to clean up specific cases
-  const cleanLegalForm = (legalForm: string) => {
-    if (legalForm === 'Personligt ejet Mindre Virksomhed') {
-      return 'Personligt Ejet Virksomhed';
-    }
-    return legalForm;
-  };
-
   return (
     <Card className="h-full flex flex-col hover:shadow-md transition-shadow fadeIn">
       <CardHeader className="pb-2 pt-3">
@@ -141,7 +158,7 @@ const CompanyCard: React.FC<CompanyCardProps> = ({ company }) => {
           
           <div className="grid grid-cols-3 gap-2">
             <span className="font-medium text-muted-foreground">Status</span>
-            <span className="col-span-2">{company.status || 'Aktiv'}</span>
+            <span className="col-span-2">{cleanStatus(company.status || 'Aktiv')}</span>
           </div>
           
           <div className="grid grid-cols-3 gap-2">
