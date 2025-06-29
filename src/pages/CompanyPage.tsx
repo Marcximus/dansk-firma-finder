@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getCompanyById, Company } from '@/services/companyAPI';
@@ -13,6 +12,28 @@ const CompanyPage: React.FC = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
 
+  // Transform company data to simplify legal forms and statuses
+  const transformCompanyData = (company: Company): Company => {
+    // Transform legal form
+    let transformedLegalForm = company.legalForm;
+    if (company.legalForm === 'Anden udenlandsk virksomhed' || 
+        company.legalForm === 'Filial af udenlandsk aktieselskab, kommanditakties etc') {
+      transformedLegalForm = 'Udenlandsk Virksomhed';
+    }
+
+    // Transform status - simplify dissolved statuses
+    let transformedStatus = company.status;
+    if (company.status?.includes('OPLØST')) {
+      transformedStatus = 'OPLØST';
+    }
+
+    return {
+      ...company,
+      legalForm: transformedLegalForm,
+      status: transformedStatus
+    };
+  };
+
   useEffect(() => {
     const fetchCompany = async () => {
       if (!id) {
@@ -23,7 +44,9 @@ const CompanyPage: React.FC = () => {
       try {
         const companyData = await getCompanyById(id);
         if (companyData) {
-          setCompany(companyData);
+          // Apply transformations to the company data
+          const transformedCompany = transformCompanyData(companyData);
+          setCompany(transformedCompany);
         } else {
           toast({
             title: "Company not found",

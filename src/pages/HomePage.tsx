@@ -23,12 +23,37 @@ const HomePage = () => {
     }
   }, [location, searchParams]);
   
-  const { data: companies = [], isLoading } = useQuery({
+  const { data: rawCompanies = [], isLoading } = useQuery({
     queryKey: ['companies', searchTerm],
     queryFn: () => searchCompanies(searchTerm),
     enabled: !!searchTerm,
   });
 
+  // Transform company data to simplify legal forms and statuses
+  const transformCompanyData = (company: Company): Company => {
+    // Transform legal form
+    let transformedLegalForm = company.legalForm;
+    if (company.legalForm === 'Anden udenlandsk virksomhed' || 
+        company.legalForm === 'Filial af udenlandsk aktieselskab, kommanditakties etc') {
+      transformedLegalForm = 'Udenlandsk Virksomhed';
+    }
+
+    // Transform status - simplify dissolved statuses
+    let transformedStatus = company.status;
+    if (company.status?.includes('OPLØST')) {
+      transformedStatus = 'OPLØST';
+    }
+
+    return {
+      ...company,
+      legalForm: transformedLegalForm,
+      status: transformedStatus
+    };
+  };
+
+  // Apply transformations to all companies
+  const companies = rawCompanies.map(transformCompanyData);
+  
   // Debug: Log what companies are about to be rendered
   useEffect(() => {
     if (companies.length > 0) {
