@@ -14,6 +14,7 @@ import {
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Textarea } from '@/components/ui/textarea';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 
 interface LayoutProps {
   children: ReactNode;
@@ -28,6 +29,9 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     email: '',
     phone: '',
     question: '',
+    companySize: '',
+    urgency: '',
+    budget: '',
     wantCall: false,
     wantEmail: false,
   });
@@ -36,6 +40,9 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     email: '',
     phone: '',
     question: '',
+    companySize: '',
+    annualRevenue: '',
+    currentProvider: '',
     wantCall: false,
     wantEmail: false,
   });
@@ -59,6 +66,9 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       email: '',
       phone: '',
       question: '',
+      companySize: '',
+      urgency: '',
+      budget: '',
       wantCall: false,
       wantEmail: false,
     });
@@ -75,6 +85,9 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       email: '',
       phone: '',
       question: '',
+      companySize: '',
+      annualRevenue: '',
+      currentProvider: '',
       wantCall: false,
       wantEmail: false,
     });
@@ -122,7 +135,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                   Hjælp til Jura
                 </Button>
               </DialogTrigger>
-              <DialogContent className="sm:max-w-[500px]">
+              <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
                   <DialogTitle>Har du brug for hjælp til det juridiske?</DialogTitle>
                 </DialogHeader>
@@ -140,6 +153,92 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                       onChange={(e) => handleInputChange('question', e.target.value)}
                       required
                     />
+                  </div>
+
+                  {/* Company Size */}
+                  <div className="space-y-3">
+                    <Label>Virksomhedsstørrelse</Label>
+                    <RadioGroup
+                      value={formData.companySize}
+                      onValueChange={(value) => handleInputChange('companySize', value)}
+                    >
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="enkeltmandsvirksomhed" id="r1" />
+                        <Label htmlFor="r1">Enkeltmandsvirksomhed</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="1-10" id="r2" />
+                        <Label htmlFor="r2">1-10 ansatte</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="11-50" id="r3" />
+                        <Label htmlFor="r3">11-50 ansatte</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="51-200" id="r4" />
+                        <Label htmlFor="r4">51-200 ansatte</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="200+" id="r5" />
+                        <Label htmlFor="r5">200+ ansatte</Label>
+                      </div>
+                    </RadioGroup>
+                  </div>
+
+                  {/* Urgency */}
+                  <div className="space-y-3">
+                    <Label>Hvor hurtigt skal det løses?</Label>
+                    <RadioGroup
+                      value={formData.urgency}
+                      onValueChange={(value) => handleInputChange('urgency', value)}
+                    >
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="akut" id="u1" />
+                        <Label htmlFor="u1">Akut (inden for 24 timer)</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="hurtig" id="u2" />
+                        <Label htmlFor="u2">Hurtig (inden for en uge)</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="normal" id="u3" />
+                        <Label htmlFor="u3">Normal (inden for en måned)</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="fleksibel" id="u4" />
+                        <Label htmlFor="u4">Fleksibel tidsramme</Label>
+                      </div>
+                    </RadioGroup>
+                  </div>
+
+                  {/* Budget */}
+                  <div className="space-y-3">
+                    <Label>Forventet budget</Label>
+                    <RadioGroup
+                      value={formData.budget}
+                      onValueChange={(value) => handleInputChange('budget', value)}
+                    >
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="under-10k" id="b1" />
+                        <Label htmlFor="b1">Under 10.000 kr.</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="10k-25k" id="b2" />
+                        <Label htmlFor="b2">10.000-25.000 kr.</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="25k-50k" id="b3" />
+                        <Label htmlFor="b3">25.000-50.000 kr.</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="50k+" id="b4" />
+                        <Label htmlFor="b4">50.000+ kr.</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="ved-ikke" id="b5" />
+                        <Label htmlFor="b5">Ved ikke / ønsker rådgivning</Label>
+                      </div>
+                    </RadioGroup>
                   </div>
                   
                   <div className="space-y-2">
@@ -213,7 +312,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                   Hjælp til Regnskab
                 </Button>
               </DialogTrigger>
-              <DialogContent className="sm:max-w-[500px]">
+              <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
                   <DialogTitle>Har du brug for hjælp til regnskabet?</DialogTitle>
                 </DialogHeader>
@@ -231,6 +330,92 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                       onChange={(e) => handleRegnskabInputChange('question', e.target.value)}
                       required
                     />
+                  </div>
+
+                  {/* Company Size */}
+                  <div className="space-y-3">
+                    <Label>Virksomhedsstørrelse</Label>
+                    <RadioGroup
+                      value={regnskabFormData.companySize}
+                      onValueChange={(value) => handleRegnskabInputChange('companySize', value)}
+                    >
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="enkeltmandsvirksomhed" id="rs1" />
+                        <Label htmlFor="rs1">Enkeltmandsvirksomhed</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="1-10" id="rs2" />
+                        <Label htmlFor="rs2">1-10 ansatte</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="11-50" id="rs3" />
+                        <Label htmlFor="rs3">11-50 ansatte</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="51-200" id="rs4" />
+                        <Label htmlFor="rs4">51-200 ansatte</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="200+" id="rs5" />
+                        <Label htmlFor="rs5">200+ ansatte</Label>
+                      </div>
+                    </RadioGroup>
+                  </div>
+
+                  {/* Annual Revenue */}
+                  <div className="space-y-3">
+                    <Label>Årlig omsætning</Label>
+                    <RadioGroup
+                      value={regnskabFormData.annualRevenue}
+                      onValueChange={(value) => handleRegnskabInputChange('annualRevenue', value)}
+                    >
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="under-1m" id="ar1" />
+                        <Label htmlFor="ar1">Under 1 mio. kr.</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="1m-5m" id="ar2" />
+                        <Label htmlFor="ar2">1-5 mio. kr.</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="5m-25m" id="ar3" />
+                        <Label htmlFor="ar3">5-25 mio. kr.</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="25m-100m" id="ar4" />
+                        <Label htmlFor="ar4">25-100 mio. kr.</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="100m+" id="ar5" />
+                        <Label htmlFor="ar5">100+ mio. kr.</Label>
+                      </div>
+                    </RadioGroup>
+                  </div>
+
+                  {/* Current Provider */}
+                  <div className="space-y-3">
+                    <Label>Har I revisor i dag?</Label>
+                    <RadioGroup
+                      value={regnskabFormData.currentProvider}
+                      onValueChange={(value) => handleRegnskabInputChange('currentProvider', value)}
+                    >
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="ingen" id="cp1" />
+                        <Label htmlFor="cp1">Nej, ingen revisor</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="utilfreds" id="cp2" />
+                        <Label htmlFor="cp2">Ja, men utilfreds</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="supplerende" id="cp3" />
+                        <Label htmlFor="cp3">Ja, men søger supplerende hjælp</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="sammenlign" id="cp4" />
+                        <Label htmlFor="cp4">Ja, men vil sammenligne priser</Label>
+                      </div>
+                    </RadioGroup>
                   </div>
                   
                   <div className="space-y-2">
