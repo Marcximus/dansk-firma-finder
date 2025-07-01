@@ -2,6 +2,7 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { Company } from '@/services/companyAPI';
 import { Link } from 'react-router-dom';
 
@@ -32,6 +33,14 @@ const CompanyCard: React.FC<CompanyCardProps> = ({ company }) => {
       return 'OPLØST';
     }
     return status;
+  };
+
+  // Get status color based on status value
+  const getStatusColor = (status: string) => {
+    if (status === 'NORMAL') {
+      return 'bg-green-500 text-white hover:bg-green-600';
+    }
+    return 'bg-red-500 text-white hover:bg-red-600';
   };
 
   // Extract the first director or owner from CVR data
@@ -120,6 +129,7 @@ const CompanyCard: React.FC<CompanyCardProps> = ({ company }) => {
   };
 
   const { name: personName, role: personRole } = getDirectorOrOwner();
+  const statusText = cleanStatus(company.status || 'Aktiv');
 
   return (
     <Card className="h-full flex flex-col hover:shadow-md transition-shadow fadeIn">
@@ -158,7 +168,11 @@ const CompanyCard: React.FC<CompanyCardProps> = ({ company }) => {
           
           <div className="grid grid-cols-3 gap-2">
             <span className="font-medium text-muted-foreground">Status</span>
-            <span className="col-span-2">{cleanStatus(company.status || 'Aktiv')}</span>
+            <div className="col-span-2">
+              <Badge className={getStatusColor(company.status || 'NORMAL')}>
+                {statusText}
+              </Badge>
+            </div>
           </div>
           
           <div className="grid grid-cols-3 gap-2">
