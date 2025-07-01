@@ -45,73 +45,91 @@ const BasicInfoAccordion: React.FC<BasicInfoAccordionProps> = ({ company, cvrDat
       <AccordionContent className="px-6 pb-4">
         <Card>
           <CardContent className="p-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-4">
-                <div className="flex items-start gap-3">
-                  <FileText className="h-5 w-5 text-muted-foreground mt-1" />
-                  <div>
-                    <div className="font-medium text-sm text-muted-foreground">CVR-nummer</div>
-                    <div className="font-semibold text-lg">{company.cvr}</div>
-                  </div>
+            <div className="space-y-6">
+              {/* CVR-nummer */}
+              <div className="flex items-start gap-3">
+                <FileText className="h-5 w-5 text-muted-foreground mt-1" />
+                <div>
+                  <div className="font-medium text-sm text-muted-foreground">CVR-nummer</div>
+                  <div className="font-semibold text-lg">{company.cvr}</div>
                 </div>
-
-                <div className="flex items-start gap-3">
-                  <MapPin className="h-5 w-5 text-muted-foreground mt-1" />
-                  <div>
-                    <div className="font-medium text-sm text-muted-foreground">Adresse</div>
-                    <div className="font-semibold">
-                      {company.address}<br />
-                      {company.postalCode} {company.city}
-                    </div>
-                  </div>
-                </div>
-
-                {company.yearFounded && (
-                  <div className="flex items-start gap-3">
-                    <Calendar className="h-5 w-5 text-muted-foreground mt-1" />
-                    <div>
-                      <div className="font-medium text-sm text-muted-foreground">Startdato</div>
-                      <div className="font-semibold">{cvrData?.stiftelsesDato ? formatDate(cvrData.stiftelsesDato) : company.yearFounded}</div>
-                    </div>
-                  </div>
-                )}
               </div>
 
-              <div className="space-y-4">
-                <div className="flex items-start gap-3">
-                  <Building className="h-5 w-5 text-muted-foreground mt-1" />
-                  <div>
-                    <div className="font-medium text-sm text-muted-foreground">Virksomhedsform</div>
-                    <div className="font-semibold">{company.legalForm}</div>
+              {/* Adresse */}
+              <div className="flex items-start gap-3">
+                <MapPin className="h-5 w-5 text-muted-foreground mt-1" />
+                <div>
+                  <div className="font-medium text-sm text-muted-foreground">Adresse</div>
+                  <div className="font-semibold">
+                    {company.address}<br />
+                    {company.postalCode} {company.city}
                   </div>
                 </div>
+              </div>
 
-                {(contactInfo.email || contactInfo.phone) && (
-                  <div className="space-y-3">
-                    <div className="font-medium text-sm text-muted-foreground">Kontaktoplysninger</div>
-                    {contactInfo.email && (
-                      <div className="flex items-center gap-3">
+              {/* Startdato */}
+              <div className="flex items-start gap-3">
+                <Calendar className="h-5 w-5 text-muted-foreground mt-1" />
+                <div>
+                  <div className="font-medium text-sm text-muted-foreground">Startdato</div>
+                  <div className="font-semibold">
+                    {cvrData?.stiftelsesDato ? formatDate(cvrData.stiftelsesDato) : (company.yearFounded || 'Ikke oplyst')}
+                  </div>
+                </div>
+              </div>
+
+              {/* Virksomhedsform */}
+              <div className="flex items-start gap-3">
+                <Building className="h-5 w-5 text-muted-foreground mt-1" />
+                <div>
+                  <div className="font-medium text-sm text-muted-foreground">Virksomhedsform</div>
+                  <div className="font-semibold">{company.legalForm}</div>
+                </div>
+              </div>
+
+              {/* Kontaktoplysninger */}
+              <div className="flex items-start gap-3">
+                <div className="flex flex-col gap-1 mt-1">
+                  <Mail className="h-5 w-5 text-muted-foreground" />
+                  <Phone className="h-5 w-5 text-muted-foreground" />
+                </div>
+                <div>
+                  <div className="font-medium text-sm text-muted-foreground">Kontaktoplysninger</div>
+                  <div className="space-y-2">
+                    {contactInfo.email ? (
+                      <div className="flex items-center gap-2">
                         <Mail className="h-4 w-4 text-muted-foreground" />
                         <a href={`mailto:${contactInfo.email}`} className="font-medium text-primary hover:underline">
                           {contactInfo.email}
                         </a>
                       </div>
+                    ) : (
+                      <div className="flex items-center gap-2">
+                        <Mail className="h-4 w-4 text-muted-foreground" />
+                        <span className="font-medium text-muted-foreground">Ikke oplyst</span>
+                      </div>
                     )}
-                    {contactInfo.phone && (
-                      <div className="flex items-center gap-3">
+                    {contactInfo.phone ? (
+                      <div className="flex items-center gap-2">
                         <Phone className="h-4 w-4 text-muted-foreground" />
                         <span className="font-medium">{contactInfo.phone}</span>
                       </div>
+                    ) : (
+                      <div className="flex items-center gap-2">
+                        <Phone className="h-4 w-4 text-muted-foreground" />
+                        <span className="font-medium text-muted-foreground">Ikke oplyst</span>
+                      </div>
                     )}
                   </div>
-                )}
+                </div>
+              </div>
 
-                <div className="flex items-start gap-3">
-                  <AlertCircle className="h-5 w-5 text-muted-foreground mt-1" />
-                  <div>
-                    <div className="font-medium text-sm text-muted-foreground">Status</div>
-                    <div className="font-semibold">{company.status}</div>
-                  </div>
+              {/* Status */}
+              <div className="flex items-start gap-3">
+                <AlertCircle className="h-5 w-5 text-muted-foreground mt-1" />
+                <div>
+                  <div className="font-medium text-sm text-muted-foreground">Status</div>
+                  <div className="font-semibold">{company.status}</div>
                 </div>
               </div>
             </div>
