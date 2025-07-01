@@ -46,7 +46,7 @@ const SearchBar: React.FC<SearchBarProps> = ({ onSearch, isLoading = false }) =>
       <Button type="submit" disabled={isLoading} className="h-12 px-6">
         {isLoading ? (
           <div className="flex items-center gap-2">
-            <Spinner variant="circle" size={16} />
+            <Spinner variant="default" size={16} />
             Søger...
           </div>
         ) : (

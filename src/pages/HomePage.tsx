@@ -93,7 +93,7 @@ const HomePage = () => {
             <h2 className="text-xl font-semibold flex items-center gap-2">
               {isLoading ? (
                 <>
-                  <Spinner variant="circle" size={20} />
+                  <Spinner variant="default" size={20} />
                   Søger...
                 </>
               ) : (
