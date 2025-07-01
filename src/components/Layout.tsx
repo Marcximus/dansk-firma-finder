@@ -1,10 +1,8 @@
-
 import React, { ReactNode, useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Search } from 'lucide-react';
-import { useDebounce } from '@/hooks/useDebounce';
 
 interface LayoutProps {
   children: ReactNode;
@@ -12,15 +10,7 @@ interface LayoutProps {
 
 const Layout: React.FC<LayoutProps> = ({ children }) => {
   const [headerSearchQuery, setHeaderSearchQuery] = useState('');
-  const debouncedSearchQuery = useDebounce(headerSearchQuery, 500); // 500ms delay
   const navigate = useNavigate();
-
-  // Trigger search when debounced value changes
-  useEffect(() => {
-    if (debouncedSearchQuery.trim()) {
-      navigate(`/?search=${encodeURIComponent(debouncedSearchQuery.trim())}`);
-    }
-  }, [debouncedSearchQuery, navigate]);
 
   const handleHeaderSearch = (e: React.FormEvent) => {
     e.preventDefault();

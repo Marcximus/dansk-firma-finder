@@ -1,9 +1,8 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Search } from 'lucide-react';
-import { useDebounce } from '@/hooks/useDebounce';
 import { Spinner } from '@/components/ui/spinner';
 
 interface SearchBarProps {
@@ -13,15 +12,6 @@ interface SearchBarProps {
 
 const SearchBar: React.FC<SearchBarProps> = ({ onSearch, isLoading = false }) => {
   const [query, setQuery] = useState('');
-  const debouncedQuery = useDebounce(query, 500); // 500ms delay
-
-  // Trigger search when debounced value changes
-  useEffect(() => {
-    if (debouncedQuery.trim()) {
-      console.log('SearchBar: Auto-searching with debounced query:', debouncedQuery);
-      onSearch(debouncedQuery);
-    }
-  }, [debouncedQuery, onSearch]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
