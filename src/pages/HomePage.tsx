@@ -77,7 +77,7 @@ const HomePage = () => {
         {/* Only show hero section if no search has been performed */}
         {!searchTerm && (
           <div className="py-12 text-center">
-            <h1 className="text-4xl font-bold mb-6">Selskabs Info</h1>
+            <h1 className="text-4xl font-bold mb-6">Selskabsinfo</h1>
             <p className="text-xl text-muted-foreground mb-8">
               Søg og udforsk detaljerede oplysninger om danske virksomheder
             </p>

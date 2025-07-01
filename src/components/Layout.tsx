@@ -34,7 +34,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       {/* Header */}
       <header className="bg-white border-b sticky top-0 z-10">
         <div className="container mx-auto py-3 px-4 flex flex-col md:flex-row items-center gap-4">
-          <Link to="/" className="text-2xl font-bold text-primary">Selskabs Info</Link>
+          <Link to="/" className="text-2xl font-bold text-primary">Selskabsinfo</Link>
           
           <form onSubmit={handleHeaderSearch} className="flex-1 w-full md:w-auto">
             <div className="relative">
@@ -65,7 +65,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         <div className="container mx-auto px-4 py-8">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             <div>
-              <h3 className="text-lg font-semibold mb-4">Selskabs Info</h3>
+              <h3 className="text-lg font-semibold mb-4">Selskabsinfo</h3>
               <p className="text-muted-foreground">Nem adgang til danske virksomhedsoplysninger siden 2025.</p>
             </div>
             <div>
@@ -94,7 +94,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             </div>
           </div>
           <div className="text-center text-muted-foreground text-sm pt-8 mt-8 border-t">
-            © 2025 Selskabs Info. Alle data kommer fra offentlige registre.
+            © 2025 Selskabsinfo. Alle data kommer fra offentlige registre.
           </div>
         </div>
       </footer>
