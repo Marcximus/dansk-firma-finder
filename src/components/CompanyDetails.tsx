@@ -4,14 +4,14 @@ import { Company, extractCvrDetails } from '@/services/companyAPI';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import CompanyHeader from './company-details/CompanyHeader';
-import BasicInformationSection from './company-details/BasicInformationSection';
-import ManagementSection from './company-details/ManagementSection';
-import FinancialSection from './company-details/FinancialSection';
-import HistorySection from './company-details/HistorySection';
-import ContactSection from './company-details/ContactSection';
-import LegalSection from './company-details/LegalSection';
+import BasicInfoAccordion from './company-details/BasicInfoAccordion';
+import ExtendedInfoAccordion from './company-details/ExtendedInfoAccordion';
+import ManagementAccordion from './company-details/ManagementAccordion';
+import OwnershipAccordion from './company-details/OwnershipAccordion';
+import FinancialAccordion from './company-details/FinancialAccordion';
+import HistoryAccordion from './company-details/HistoryAccordion';
 import DataSourceInfo from './company-details/DataSourceInfo';
 
 interface CompanyDetailsProps {
@@ -19,47 +19,20 @@ interface CompanyDetailsProps {
 }
 
 const CompanyDetails: React.FC<CompanyDetailsProps> = ({ company }) => {
-  // Extract real CVR data if available
   const cvrDetails = company.realCvrData ? extractCvrDetails(company.realCvrData) : null;
   
   return (
     <div className="py-6 max-w-7xl mx-auto px-4">
       <CompanyHeader company={company} />
 
-      <Tabs defaultValue="basic" className="w-full">
-        <TabsList className="grid w-full grid-cols-6 mb-6">
-          <TabsTrigger value="basic">Grundoplysninger</TabsTrigger>
-          <TabsTrigger value="management">Ledelse & Ejerskab</TabsTrigger>
-          <TabsTrigger value="financial">Økonomi</TabsTrigger>
-          <TabsTrigger value="history">Historik</TabsTrigger>
-          <TabsTrigger value="contact">Kontakt</TabsTrigger>
-          <TabsTrigger value="legal">Juridisk</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="basic" className="space-y-6">
-          <BasicInformationSection company={company} cvrData={company.realCvrData} />
-        </TabsContent>
-
-        <TabsContent value="management" className="space-y-6">
-          <ManagementSection cvrData={company.realCvrData} />
-        </TabsContent>
-
-        <TabsContent value="financial" className="space-y-6">
-          <FinancialSection cvr={company.cvr} cvrData={company.realCvrData} />
-        </TabsContent>
-
-        <TabsContent value="history" className="space-y-6">
-          <HistorySection cvrData={company.realCvrData} />
-        </TabsContent>
-
-        <TabsContent value="contact" className="space-y-6">
-          <ContactSection company={company} cvrData={company.realCvrData} />
-        </TabsContent>
-
-        <TabsContent value="legal" className="space-y-6">
-          <LegalSection company={company} cvrData={company.realCvrData} />
-        </TabsContent>
-      </Tabs>
+      <Accordion type="multiple" defaultValue={["basic", "extended", "management", "ownership", "financial", "history"]} className="w-full space-y-4">
+        <BasicInfoAccordion company={company} cvrData={company.realCvrData} />
+        <ExtendedInfoAccordion company={company} cvrData={company.realCvrData} />
+        <ManagementAccordion cvrData={company.realCvrData} />
+        <OwnershipAccordion cvrData={company.realCvrData} />
+        <FinancialAccordion cvr={company.cvr} cvrData={company.realCvrData} />
+        <HistoryAccordion cvrData={company.realCvrData} />
+      </Accordion>
       
       <div className="mt-8 space-y-4">
         <DataSourceInfo />
