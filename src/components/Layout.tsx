@@ -41,7 +41,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input 
                 className="pl-10"
-                placeholder="Search by company name, CVR, industry, or city..." 
+                placeholder="Søg efter virksomhedsnavn, CVR, branche eller by..." 
                 value={headerSearchQuery}
                 onChange={(e) => setHeaderSearchQuery(e.target.value)}
               />
@@ -49,8 +49,8 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           </form>
           
           <div className="flex items-center gap-2">
-            <Button variant="outline">Log In</Button>
-            <Button>Sign Up</Button>
+            <Button variant="outline">Log Ind</Button>
+            <Button>Tilmeld</Button>
           </div>
         </div>
       </header>
@@ -66,35 +66,35 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             <div>
               <h3 className="text-lg font-semibold mb-4">Selskabs Info</h3>
-              <p className="text-muted-foreground">Providing easy access to Danish company information since 2025.</p>
+              <p className="text-muted-foreground">Nem adgang til danske virksomhedsoplysninger siden 2025.</p>
             </div>
             <div>
-              <h3 className="text-lg font-semibold mb-4">Services</h3>
+              <h3 className="text-lg font-semibold mb-4">Tjenester</h3>
               <ul className="space-y-2">
-                <li><a href="#" className="text-muted-foreground hover:text-primary">Company Search</a></li>
-                <li><a href="#" className="text-muted-foreground hover:text-primary">Business Reports</a></li>
-                <li><a href="#" className="text-muted-foreground hover:text-primary">Financial Analysis</a></li>
+                <li><a href="#" className="text-muted-foreground hover:text-primary">Virksomhedssøgning</a></li>
+                <li><a href="#" className="text-muted-foreground hover:text-primary">Virksomhedsrapporter</a></li>
+                <li><a href="#" className="text-muted-foreground hover:text-primary">Finansiel Analyse</a></li>
               </ul>
             </div>
             <div>
               <h3 className="text-lg font-semibold mb-4">Support</h3>
               <ul className="space-y-2">
-                <li><a href="#" className="text-muted-foreground hover:text-primary">Help Center</a></li>
-                <li><a href="#" className="text-muted-foreground hover:text-primary">Contact Us</a></li>
-                <li><a href="#" className="text-muted-foreground hover:text-primary">FAQs</a></li>
+                <li><a href="#" className="text-muted-foreground hover:text-primary">Hjælpecenter</a></li>
+                <li><a href="#" className="text-muted-foreground hover:text-primary">Kontakt Os</a></li>
+                <li><a href="#" className="text-muted-foreground hover:text-primary">FAQ</a></li>
               </ul>
             </div>
             <div>
-              <h3 className="text-lg font-semibold mb-4">Legal</h3>
+              <h3 className="text-lg font-semibold mb-4">Juridisk</h3>
               <ul className="space-y-2">
-                <li><a href="#" className="text-muted-foreground hover:text-primary">Terms of Service</a></li>
-                <li><a href="#" className="text-muted-foreground hover:text-primary">Privacy Policy</a></li>
-                <li><a href="#" className="text-muted-foreground hover:text-primary">Data Sources</a></li>
+                <li><a href="#" className="text-muted-foreground hover:text-primary">Servicevilkår</a></li>
+                <li><a href="#" className="text-muted-foreground hover:text-primary">Privatlivspolitik</a></li>
+                <li><a href="#" className="text-muted-foreground hover:text-primary">Datakilder</a></li>
               </ul>
             </div>
           </div>
           <div className="text-center text-muted-foreground text-sm pt-8 mt-8 border-t">
-            © 2025 Selskabs Info. All data sourced from public registries.
+            © 2025 Selskabs Info. Alle data kommer fra offentlige registre.
           </div>
         </div>
       </footer>

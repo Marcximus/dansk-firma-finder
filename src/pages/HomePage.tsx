@@ -79,7 +79,7 @@ const HomePage = () => {
           <div className="py-12 text-center">
             <h1 className="text-4xl font-bold mb-6">Selskabs Info</h1>
             <p className="text-xl text-muted-foreground mb-8">
-              Search and explore detailed information about Danish companies
+              Søg og udforsk detaljerede oplysninger om danske virksomheder
             </p>
             <div className="flex justify-center mb-12">
               <SearchBar onSearch={handleSearch} isLoading={isLoading} />
@@ -90,7 +90,7 @@ const HomePage = () => {
         {searchTerm && (
           <div className="mb-4">
             <h2 className="text-xl font-semibold">
-              {isLoading ? 'Searching...' : `Results for "${searchTerm}"`}
+              {isLoading ? 'Søger...' : `Resultater for "${searchTerm}"`}
             </h2>
           </div>
         )}
@@ -105,7 +105,7 @@ const HomePage = () => {
         {searchTerm && companies.length === 0 && !isLoading && (
           <div className="text-center py-8">
             <p className="text-lg text-muted-foreground">
-              No companies found matching your search criteria.
+              Ingen virksomheder fundet, der matcher dine søgekriterier.
             </p>
           </div>
         )}
@@ -113,7 +113,7 @@ const HomePage = () => {
         {!searchTerm && !isLoading && (
           <div className="text-center py-8">
             <p className="text-lg text-muted-foreground">
-              Enter a search term to find companies.
+              Indtast et søgeord for at finde virksomheder.
             </p>
           </div>
         )}

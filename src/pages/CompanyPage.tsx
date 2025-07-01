@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getCompanyById, Company } from '@/services/companyAPI';
@@ -26,8 +27,8 @@ const CompanyPage: React.FC = () => {
           setCompany(companyData);
         } else {
           toast({
-            title: "Company not found",
-            description: "The requested company could not be found.",
+            title: "Virksomhed ikke fundet",
+            description: "Den ønskede virksomhed kunne ikke findes.",
             variant: "destructive",
           });
           navigate('/');
@@ -35,8 +36,8 @@ const CompanyPage: React.FC = () => {
       } catch (error) {
         console.error('Error fetching company details:', error);
         toast({
-          title: "Error",
-          description: "Failed to load company details. Please try again.",
+          title: "Fejl",
+          description: "Kunne ikke indlæse virksomhedsdetaljer. Prøv venligst igen.",
           variant: "destructive",
         });
       } finally {
@@ -51,7 +52,7 @@ const CompanyPage: React.FC = () => {
     return (
       <Layout>
         <div className="text-center py-16">
-          <p className="text-lg text-muted-foreground">Loading company details...</p>
+          <p className="text-lg text-muted-foreground">Indlæser virksomhedsdetaljer...</p>
         </div>
       </Layout>
     );
@@ -61,7 +62,7 @@ const CompanyPage: React.FC = () => {
     return (
       <Layout>
         <div className="text-center py-16">
-          <p className="text-lg text-muted-foreground">Company not found</p>
+          <p className="text-lg text-muted-foreground">Virksomhed ikke fundet</p>
         </div>
       </Layout>
     );

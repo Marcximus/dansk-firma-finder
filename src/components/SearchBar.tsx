@@ -36,14 +36,14 @@ const SearchBar: React.FC<SearchBarProps> = ({ onSearch, isLoading = false }) =>
         <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
         <Input 
           type="text"
-          placeholder="Search companies by name, CVR, industry, or city..."
+          placeholder="Søg virksomheder efter navn, CVR, branche eller by..."
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           className="pl-10 h-12"
         />
       </div>
       <Button type="submit" disabled={isLoading} className="h-12 px-6">
-        {isLoading ? 'Searching...' : 'Search'}
+        {isLoading ? 'Søger...' : 'Søg'}
       </Button>
     </form>
   );

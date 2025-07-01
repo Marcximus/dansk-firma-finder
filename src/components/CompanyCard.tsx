@@ -148,12 +148,12 @@ const CompanyCard: React.FC<CompanyCardProps> = ({ company }) => {
           
           <div className="grid grid-cols-3 gap-2">
             <span className="font-medium text-muted-foreground">{personRole || 'Direktør'}</span>
-            <span className="col-span-2">{personName || 'N/A'}</span>
+            <span className="col-span-2">{personName || 'Ikke tilgængelig'}</span>
           </div>
           
           <div className="grid grid-cols-3 gap-2">
             <span className="font-medium text-muted-foreground">Type</span>
-            <span className="col-span-2">{cleanLegalForm(company.legalForm || 'N/A')}</span>
+            <span className="col-span-2">{cleanLegalForm(company.legalForm || 'Ikke tilgængelig')}</span>
           </div>
           
           <div className="grid grid-cols-3 gap-2">
@@ -172,7 +172,7 @@ const CompanyCard: React.FC<CompanyCardProps> = ({ company }) => {
         
         <div className="mt-6 pt-4 border-t">
           <Button asChild className="w-full">
-            <Link to={`/company/${company.id}`}>View Details</Link>
+            <Link to={`/company/${company.id}`}>Se Detaljer</Link>
           </Button>
         </div>
       </CardContent>

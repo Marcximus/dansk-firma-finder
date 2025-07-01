@@ -41,7 +41,7 @@ const CompanyHeader: React.FC<CompanyHeaderProps> = ({ company }) => {
         {company.yearFounded && (
           <div className="flex items-center gap-1.5">
             <Calendar className="h-4 w-4" />
-            <span>Established: {company.yearFounded}</span>
+            <span>Etableret: {company.yearFounded}</span>
           </div>
         )}
         <div className="flex items-center gap-1.5">
@@ -63,7 +63,7 @@ const CompanyHeader: React.FC<CompanyHeaderProps> = ({ company }) => {
         </Button>
         <Button variant="outline" size="sm" className="flex gap-1">
           <Share2 size={16} />
-          Share
+          Del
         </Button>
       </div>
     </div>
