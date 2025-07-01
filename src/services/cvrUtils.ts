@@ -141,3 +141,223 @@ export const extractCvrDetails = (cvrData: any) => {
     fullData: vrvirksomhed
   };
 };
+
+// Helper functions for extracting specific data sections
+export const extractExtendedInfo = (cvrData: any) => {
+  if (!cvrData?.Vrvirksomhed) return null;
+  
+  const vrvirksomhed = cvrData.Vrvirksomhed;
+  
+  const getCurrentValue = (array: any[], fieldName: string) => {
+    if (!array || array.length === 0) return null;
+    const current = array.find((item: any) => item.periode?.gyldigTil === null);
+    return current?.[fieldName] || array[array.length - 1]?.[fieldName] || null;
+  };
+
+  return {
+    phone: getCurrentValue(vrvirksomhed.telefonNummer, 'kontaktoplysning'),
+    municipality: getCurrentValue(vrvirksomhed.beliggenhedsadresse, 'kommune'),
+    purpose: vrvirksomhed.formaal,
+    binavne: (vrvirksomhed.binavne || []).map((navn: any) => navn.navn).filter(Boolean),
+    secondaryIndustries: [
+      ...(vrvirksomhed.bibranche1 || []),
+      ...(vrvirksomhed.bibranche2 || []),
+      ...(vrvirksomhed.bibranche3 || [])
+    ].filter((branch: any) => !branch.periode?.gyldigTil),
+    isListed: vrvirksomhed.boersnoteret || false,
+    accountingYear: (() => {
+      const regnskabsperiode = vrvirksomhed.regnskabsperiode || [];
+      const current = regnskabsperiode.find((periode: any) => periode.periode?.gyldigTil === null) || regnskabsperiode[regnskabsperiode.length - 1];
+      return current ? `${current.regnskabsperiodefra} - ${current.regnskabsperiodetil}` : null;
+    })(),
+    latestStatuteDate: (() => {
+      const vedtaegter = vrvirksomhed.vedtaegter || [];
+      const latest = vedtaegter.find((v: any) => v.periode?.gyldigTil === null) || vedtaegter[vedtaegter.length - 1];
+      return latest?.dato || null;
+    })(),
+    capitalClasses: (vrvirksomhed.kapitalforhold || []).filter((k: any) => !k.periode?.gyldigTil),
+    registeredCapital: (() => {
+      const kapitalforhold = vrvirksomhed.kapitalforhold || [];
+      const current = kapitalforhold.find((k: any) => !k.periode?.gyldigTil && k.kapitalbeloeb);
+      return current?.kapitalbeloeb || vrvirksomhed.registreretKapital || null;
+    })()
+  };
+};
+
+export const extractSigningRulesData = (cvrData: any) => {
+  if (!cvrData?.Vrvirksomhed) return null;
+  
+  const vrvirksomhed = cvrData.Vrvirksomhed;
+  const relations = vrvirksomhed.deltagerRelation || [];
+
+  const getSigningRules = () => {
+    const tegningsregler = vrvirksomhed.tegningsregler || [];
+    let signingRules = tegningsregler.map((regel: any) => regel.regel || regel.beskrivelse || regel.tekst).filter(Boolean);
+    
+    const attributter = vrvirksomhed.attributter || [];
+    const signingAttributes = attributter.filter((attr: any) => 
+      attr.type === 'TEGNINGSREGEL' || attr.type === 'BINDING_RULE'
+    );
+    
+    signingAttributes.forEach((attr: any) => {
+      if (attr.vaerdier) {
+        attr.vaerdier.forEach((value: any) => {
+          if (value.vaerdi) {
+            signingRules.push(value.vaerdi);
+          }
+        });
+      }
+    });
+    
+    return signingRules;
+  };
+
+  return {
+    signingRules: getSigningRules(),
+    management: relations.filter((relation: any) => 
+      relation.organisationer?.some((org: any) => org.hovedtype === 'DIREKTION')
+    ),
+    board: relations.filter((relation: any) => 
+      relation.organisationer?.some((org: any) => org.hovedtype === 'BESTYRELSE')
+    ),
+    auditors: relations.filter((relation: any) => 
+      relation.organisationer?.some((org: any) => org.hovedtype === 'REVISION')
+    )
+  };
+};
+
+export const extractOwnershipData = (cvrData: any) => {
+  if (!cvrData?.Vrvirksomhed) return null;
+  
+  const vrvirksomhed = cvrData.Vrvirksomhed;
+
+  const formatAddress = (addr: any) => {
+    if (!addr) return 'Adresse ikke tilgængelig';
+    
+    const parts = [];
+    if (addr.vejnavn) parts.push(addr.vejnavn);
+    if (addr.husnummerFra) parts.push(addr.husnummerFra);
+    if (addr.etage) parts.push(`${addr.etage}. sal`);
+    if (addr.sidedoer) parts.push(addr.sidedoer);
+    
+    const streetAddress = parts.join(' ');
+    const postalInfo = [addr.postnummer, addr.postdistrikt].filter(Boolean).join(' ');
+    
+    return streetAddress && postalInfo ? `${streetAddress}, ${postalInfo}` : 'Adresse ikke tilgængelig';
+  };
+
+  const getOwnershipFromRelations = () => {
+    const relations = vrvirksomhed.deltagerRelation || [];
+    return relations.filter((relation: any) => 
+      relation.organisationer?.some((org: any) => 
+        org.hovedtype === 'EJER' || 
+        org.hovedtype === 'FULDT_ANSVARLIG_DELTAGERE' ||
+        org.medlemsData?.some((medlem: any) => 
+          medlem.attributter?.some((attr: any) => 
+            attr.type === 'EJERANDEL' || attr.type === 'STEMMERETTIGHEDER'
+          )
+        )
+      )
+    ).map((relation: any) => {
+      const deltager = relation.deltager;
+      const personName = deltager?.navne?.find((n: any) => n.periode?.gyldigTil === null)?.navn || 
+                       deltager?.navne?.[deltager.navne.length - 1]?.navn || 'Ukendt';
+      
+      const address = deltager?.adresser?.find((addr: any) => addr.periode?.gyldigTil === null) ||
+                     deltager?.beliggenhedsadresse?.find((addr: any) => addr.periode?.gyldigTil === null) ||
+                     deltager?.adresser?.[0] ||
+                     deltager?.beliggenhedsadresse?.[0];
+
+      let ejerandel = null;
+      let stemmerettigheder = null;
+      let periode = null;
+
+      relation.organisationer?.forEach((org: any) => {
+        org.medlemsData?.forEach((medlem: any) => {
+          periode = periode || medlem.periode;
+          medlem.attributter?.forEach((attr: any) => {
+            if (attr.type === 'EJERANDEL' && attr.vaerdier?.[0]?.vaerdi) {
+              ejerandel = attr.vaerdier[0].vaerdi;
+            }
+            if (attr.type === 'STEMMERETTIGHEDER' && attr.vaerdier?.[0]?.vaerdi) {
+              stemmerettigheder = attr.vaerdier[0].vaerdi;
+            }
+          });
+        });
+      });
+
+      return {
+        navn: personName,
+        adresse: formatAddress(address),
+        ejerandel: ejerandel || 'Ikke oplyst',
+        stemmerettigheder: stemmerettigheder || 'Ikke oplyst',
+        periode: periode,
+        isActive: !periode?.gyldigTil
+      };
+    });
+  };
+
+  const legaleEjere = vrvirksomhed.legaleEjere || [];
+  const ownershipFromRelations = getOwnershipFromRelations();
+  const rielleEjere = vrvirksomhed.rielleEjere || vrvirksomhed.beneficialOwners || [];
+
+  return {
+    currentOwners: [
+      ...legaleEjere.filter((ejer: any) => !ejer.periode?.gyldigTil),
+      ...ownershipFromRelations.filter((owner: any) => owner.isActive)
+    ],
+    formerOwners: [
+      ...legaleEjere.filter((ejer: any) => ejer.periode?.gyldigTil),
+      ...ownershipFromRelations.filter((owner: any) => !owner.isActive)
+    ],
+    rielleEjere
+  };
+};
+
+export const extractFinancialData = (cvrData: any) => {
+  if (!cvrData?.Vrvirksomhed) return null;
+  
+  const vrvirksomhed = cvrData.Vrvirksomhed;
+
+  const getFinancialKPIs = () => {
+    const regnskabstal = vrvirksomhed.regnskabstal || [];
+    const finansielleNoegletal = vrvirksomhed.finansielleNoegletal || [];
+    
+    let financialKPIs: any = {};
+    
+    if (regnskabstal.length > 0) {
+      const latest = regnskabstal[regnskabstal.length - 1];
+      financialKPIs = {
+        nettoomsaetning: latest.nettoomsaetning || latest.revenue || null,
+        bruttofortjeneste: latest.bruttofortjeneste || latest.grossProfit || null,
+        aaretsResultat: latest.aaretsResultat || latest.netIncome || null,
+        egenkapital: latest.egenkapital || latest.equity || null,
+        statusBalance: latest.statusBalance || latest.totalAssets || null,
+        periode: latest.periode || latest.year || null
+      };
+    }
+    
+    if (finansielleNoegletal.length > 0) {
+      const latest = finansielleNoegletal[finansielleNoegletal.length - 1];
+      financialKPIs = {
+        ...financialKPIs,
+        nettoomsaetning: financialKPIs.nettoomsaetning || latest.revenue || latest.turnover,
+        bruttofortjeneste: financialKPIs.bruttofortjeneste || latest.grossProfit,
+        aaretsResultat: financialKPIs.aaretsResultat || latest.netResult || latest.profit,
+        egenkapital: financialKPIs.egenkapital || latest.equity,
+        statusBalance: financialKPIs.statusBalance || latest.balance || latest.totalAssets,
+        periode: financialKPIs.periode || latest.year || latest.periode
+      };
+    }
+    
+    return financialKPIs;
+  };
+
+  return {
+    financialKPIs: getFinancialKPIs(),
+    yearlyEmployment: vrvirksomhed.aarsbeskaeftigelse || [],
+    quarterlyEmployment: vrvirksomhed.kvartalsbeskaeftigelse || [],
+    kapitalforhold: vrvirksomhed.kapitalforhold || [],
+    regnskabsperiode: vrvirksomhed.regnskabsperiode || []
+  };
+};
