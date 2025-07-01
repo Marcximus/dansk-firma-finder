@@ -18,6 +18,10 @@ import StatusHistoryCard from './company-details/StatusHistoryCard';
 import ContactInformationCard from './company-details/ContactInformationCard';
 import BusinessUnitsCard from './company-details/BusinessUnitsCard';
 import AttributesCard from './company-details/AttributesCard';
+import FinancialReportsCard from './company-details/FinancialReportsCard';
+import ComprehensiveAddressCard from './company-details/ComprehensiveAddressCard';
+import ComprehensiveManagementCard from './company-details/ComprehensiveManagementCard';
+import ComprehensiveNamesCard from './company-details/ComprehensiveNamesCard';
 
 interface CompanyDetailsProps {
   company: Company;
@@ -56,11 +60,22 @@ const CompanyDetails: React.FC<CompanyDetailsProps> = ({ company }) => {
           <KeyInformationCard company={company} legalForm={companyData.legalForm} />
           <CompanyInformationCard purposeText={companyData.purposeText} />
           <ContactInformationCard company={company} />
-          <ManagementCard management={companyData.management} />
+          
+          {/* Comprehensive Management - Replaces basic management card */}
+          <ComprehensiveManagementCard cvrData={company.realCvrData} />
+          
+          {/* Financial Reports - NEW */}
+          <FinancialReportsCard cvr={company.cvr} />
+          
           <EmploymentHistoryCard cvrData={company.realCvrData} />
           <IndustryHistoryCard cvrData={company.realCvrData} />
           <StatusHistoryCard cvrData={company.realCvrData} />
-          <HistoricalNamesCard historicalNames={companyData.historicalNames} />
+          
+          {/* Comprehensive Names - Replaces basic historical names */}
+          <ComprehensiveNamesCard cvrData={company.realCvrData} />
+          
+          {/* Comprehensive Addresses - NEW */}
+          <ComprehensiveAddressCard cvrData={company.realCvrData} />
         </div>
 
         {/* Right Column - 1/3 width */}
@@ -77,7 +92,7 @@ const CompanyDetails: React.FC<CompanyDetailsProps> = ({ company }) => {
         <Button asChild variant="outline" className="flex gap-1.5">
           <Link to="/">
             <ArrowLeft className="w-4 h-4" />
-            Back to search
+            Tilbage til søgning
           </Link>
         </Button>
       </div>
