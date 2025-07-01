@@ -22,7 +22,16 @@ interface LayoutProps {
 const Layout: React.FC<LayoutProps> = ({ children }) => {
   const [headerSearchQuery, setHeaderSearchQuery] = useState('');
   const [isJuridiskDialogOpen, setIsJuridiskDialogOpen] = useState(false);
+  const [isRegnskabDialogOpen, setIsRegnskabDialogOpen] = useState(false);
   const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    question: '',
+    wantCall: false,
+    wantEmail: false,
+  });
+  const [regnskabFormData, setRegnskabFormData] = useState({
     name: '',
     email: '',
     phone: '',
@@ -41,7 +50,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
 
   const handleFormSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Form submitted:', formData);
+    console.log('Juridisk form submitted:', formData);
     // Here you would typically send the data to your backend
     setIsJuridiskDialogOpen(false);
     // Reset form
@@ -55,8 +64,31 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     });
   };
 
+  const handleRegnskabFormSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    console.log('Regnskab form submitted:', regnskabFormData);
+    // Here you would typically send the data to your backend
+    setIsRegnskabDialogOpen(false);
+    // Reset form
+    setRegnskabFormData({
+      name: '',
+      email: '',
+      phone: '',
+      question: '',
+      wantCall: false,
+      wantEmail: false,
+    });
+  };
+
   const handleInputChange = (field: string, value: string | boolean) => {
     setFormData(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+
+  const handleRegnskabInputChange = (field: string, value: string | boolean) => {
+    setRegnskabFormData(prev => ({
       ...prev,
       [field]: value
     }));
@@ -175,9 +207,97 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
               </DialogContent>
             </Dialog>
             
-            <Button className="bg-green-600 hover:bg-green-700 text-white">
-              Hjælp til Regnskab
-            </Button>
+            <Dialog open={isRegnskabDialogOpen} onOpenChange={setIsRegnskabDialogOpen}>
+              <DialogTrigger asChild>
+                <Button className="bg-green-600 hover:bg-green-700 text-white">
+                  Hjælp til Regnskab
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-[500px]">
+                <DialogHeader>
+                  <DialogTitle>Har du brug for hjælp til regnskabet?</DialogTitle>
+                </DialogHeader>
+                <div className="mb-4 text-sm text-muted-foreground">
+                  Skriv dit spørgsmål og dine kontaktoplysninger, så kontakter vores revisor dig med en løsning og en pris
+                </div>
+                
+                <form onSubmit={handleRegnskabFormSubmit} className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="regnskab-question">Dit spørgsmål</Label>
+                    <Textarea
+                      id="regnskab-question"
+                      placeholder="Beskriv dit regnskabsmæssige spørgsmål..."
+                      value={regnskabFormData.question}
+                      onChange={(e) => handleRegnskabInputChange('question', e.target.value)}
+                      required
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="regnskab-name">Navn</Label>
+                    <Input
+                      id="regnskab-name"
+                      type="text"
+                      value={regnskabFormData.name}
+                      onChange={(e) => handleRegnskabInputChange('name', e.target.value)}
+                      required
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="regnskab-email">Email</Label>
+                    <Input
+                      id="regnskab-email"
+                      type="email"
+                      value={regnskabFormData.email}
+                      onChange={(e) => handleRegnskabInputChange('email', e.target.value)}
+                      required
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="regnskab-phone">Telefonnummer</Label>
+                    <Input
+                      id="regnskab-phone"
+                      type="tel"
+                      value={regnskabFormData.phone}
+                      onChange={(e) => handleRegnskabInputChange('phone', e.target.value)}
+                      required
+                    />
+                  </div>
+                  
+                  <div className="space-y-3">
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="regnskab-wantCall"
+                        checked={regnskabFormData.wantCall}
+                        onCheckedChange={(checked) => handleRegnskabInputChange('wantCall', checked as boolean)}
+                      />
+                      <Label htmlFor="regnskab-wantCall">Jeg vil ringes op</Label>
+                    </div>
+                    
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="regnskab-wantEmail"
+                        checked={regnskabFormData.wantEmail}
+                        onCheckedChange={(checked) => handleRegnskabInputChange('wantEmail', checked as boolean)}
+                      />
+                      <Label htmlFor="regnskab-wantEmail">Jeg vil have en mail</Label>
+                    </div>
+                  </div>
+                  
+                  <div className="flex justify-end gap-2 pt-4">
+                    <Button type="button" variant="outline" onClick={() => setIsRegnskabDialogOpen(false)}>
+                      Annuller
+                    </Button>
+                    <Button type="submit" className="bg-green-600 hover:bg-green-700">
+                      Send forespørgsel
+                    </Button>
+                  </div>
+                </form>
+              </DialogContent>
+            </Dialog>
+            
             <Button>Tilmeld</Button>
           </div>
         </div>
