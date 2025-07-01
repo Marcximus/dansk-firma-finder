@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Search } from 'lucide-react';
 import { useDebounce } from '@/hooks/useDebounce';
+import { Spinner } from '@/components/ui/spinner';
 
 interface SearchBarProps {
   onSearch: (query: string) => void;
@@ -43,7 +44,14 @@ const SearchBar: React.FC<SearchBarProps> = ({ onSearch, isLoading = false }) =>
         />
       </div>
       <Button type="submit" disabled={isLoading} className="h-12 px-6">
-        {isLoading ? 'Søger...' : 'Søg'}
+        {isLoading ? (
+          <div className="flex items-center gap-2">
+            <Spinner variant="circle" size={16} />
+            Søger...
+          </div>
+        ) : (
+          'Søg'
+        )}
       </Button>
     </form>
   );

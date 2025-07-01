@@ -6,6 +6,7 @@ import { searchCompanies, Company } from '@/services/companyAPI';
 import SearchBar from '@/components/SearchBar';
 import CompanyCard from '@/components/CompanyCard';
 import Layout from '@/components/Layout';
+import { Spinner } from '@/components/ui/spinner';
 
 const HomePage = () => {
   const [searchTerm, setSearchTerm] = useState<string>('');
@@ -89,8 +90,15 @@ const HomePage = () => {
 
         {searchTerm && (
           <div className="mb-4">
-            <h2 className="text-xl font-semibold">
-              {isLoading ? 'Søger...' : `Resultater for "${searchTerm}"`}
+            <h2 className="text-xl font-semibold flex items-center gap-2">
+              {isLoading ? (
+                <>
+                  <Spinner variant="circle" size={20} />
+                  Søger...
+                </>
+              ) : (
+                `Resultater for "${searchTerm}"`
+              )}
             </h2>
           </div>
         )}
