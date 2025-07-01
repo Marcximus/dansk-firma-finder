@@ -1,3 +1,4 @@
+
 import React, { ReactNode, useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Input } from '@/components/ui/input';
@@ -40,6 +41,12 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           
           <div className="flex items-center gap-2">
             <Button variant="outline">Log Ind</Button>
+            <Button className="bg-blue-600 hover:bg-blue-700 text-white">
+              Jeg skal bruge hjælp til Jura
+            </Button>
+            <Button className="bg-green-600 hover:bg-green-700 text-white">
+              Jeg skal bruge hjælp til Regnskab
+            </Button>
             <Button>Tilmeld</Button>
           </div>
         </div>
