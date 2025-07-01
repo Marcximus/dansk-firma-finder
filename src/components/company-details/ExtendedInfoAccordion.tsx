@@ -25,69 +25,72 @@ const ExtendedInfoAccordion: React.FC<ExtendedInfoAccordionProps> = ({ company, 
         </div>
       </AccordionTrigger>
       <AccordionContent className="px-6 pb-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
-          {/* Telefon */}
-          <div className="flex items-start gap-3">
-            <Phone className="h-5 w-5 text-muted-foreground mt-0.5" />
-            <div>
-              <div className="font-medium text-sm text-muted-foreground mb-1">Telefon</div>
-              <div className="font-semibold">
-                {extendedInfo?.phone || 'Ikke tilgængelig'}
+        <div className="space-y-6">
+          {/* Basic Info Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {/* Telefon */}
+            <div className="flex items-start gap-3 p-4 border rounded-lg">
+              <Phone className="h-5 w-5 text-muted-foreground mt-0.5" />
+              <div>
+                <div className="font-medium text-sm text-muted-foreground mb-1">Telefon</div>
+                <div className="font-semibold">
+                  {extendedInfo?.phone || 'Ikke tilgængelig'}
+                </div>
+              </div>
+            </div>
+
+            {/* Kommune */}
+            <div className="flex items-start gap-3 p-4 border rounded-lg">
+              <MapPin className="h-5 w-5 text-muted-foreground mt-0.5" />
+              <div>
+                <div className="font-medium text-sm text-muted-foreground mb-1">Kommune</div>
+                <div className="font-semibold">
+                  {extendedInfo?.municipality?.kommuneNavn || extendedInfo?.municipality || 'Ikke tilgængelig'}
+                </div>
+              </div>
+            </div>
+
+            {/* Branchekode */}
+            <div className="flex items-start gap-3 p-4 border rounded-lg">
+              <Briefcase className="h-5 w-5 text-muted-foreground mt-0.5" />
+              <div>
+                <div className="font-medium text-sm text-muted-foreground mb-1">Branchekode</div>
+                <div className="font-semibold">{company.industry || 'Ikke tilgængelig'}</div>
+              </div>
+            </div>
+
+            {/* Børsnoteret */}
+            <div className="flex items-start gap-3 p-4 border rounded-lg">
+              <TrendingUp className="h-5 w-5 text-muted-foreground mt-0.5" />
+              <div>
+                <div className="font-medium text-sm text-muted-foreground mb-1">Børsnoteret</div>
+                <div className="font-semibold">
+                  {extendedInfo?.isListed !== undefined ? (extendedInfo.isListed ? 'Ja' : 'Nej') : 'Ikke tilgængelig'}
+                </div>
+              </div>
+            </div>
+
+            {/* Regnskabsår */}
+            <div className="flex items-start gap-3 p-4 border rounded-lg">
+              <Calendar className="h-5 w-5 text-muted-foreground mt-0.5" />
+              <div>
+                <div className="font-medium text-sm text-muted-foreground mb-1">Regnskabsår</div>
+                <div className="font-semibold">{extendedInfo?.accountingYear || 'Ikke tilgængelig'}</div>
+              </div>
+            </div>
+
+            {/* Seneste vedtægtsdato */}
+            <div className="flex items-start gap-3 p-4 border rounded-lg">
+              <FileText className="h-5 w-5 text-muted-foreground mt-0.5" />
+              <div>
+                <div className="font-medium text-sm text-muted-foreground mb-1">Seneste vedtægtsdato</div>
+                <div className="font-semibold">{extendedInfo?.latestStatuteDate || 'Ikke tilgængelig'}</div>
               </div>
             </div>
           </div>
 
-          {/* Kommune */}
-          <div className="flex items-start gap-3">
-            <MapPin className="h-5 w-5 text-muted-foreground mt-0.5" />
-            <div>
-              <div className="font-medium text-sm text-muted-foreground mb-1">Kommune</div>
-              <div className="font-semibold">
-                {extendedInfo?.municipality?.kommuneNavn || extendedInfo?.municipality || 'Ikke tilgængelig'}
-              </div>
-            </div>
-          </div>
-
-          {/* Branchekode */}
-          <div className="flex items-start gap-3">
-            <Briefcase className="h-5 w-5 text-muted-foreground mt-0.5" />
-            <div>
-              <div className="font-medium text-sm text-muted-foreground mb-1">Branchekode</div>
-              <div className="font-semibold">{company.industry || 'Ikke tilgængelig'}</div>
-            </div>
-          </div>
-
-          {/* Børsnoteret */}
-          <div className="flex items-start gap-3">
-            <TrendingUp className="h-5 w-5 text-muted-foreground mt-0.5" />
-            <div>
-              <div className="font-medium text-sm text-muted-foreground mb-1">Børsnoteret</div>
-              <div className="font-semibold">
-                {extendedInfo?.isListed !== undefined ? (extendedInfo.isListed ? 'Ja' : 'Nej') : 'Ikke tilgængelig'}
-              </div>
-            </div>
-          </div>
-
-          {/* Regnskabsår */}
-          <div className="flex items-start gap-3">
-            <Calendar className="h-5 w-5 text-muted-foreground mt-0.5" />
-            <div>
-              <div className="font-medium text-sm text-muted-foreground mb-1">Regnskabsår</div>
-              <div className="font-semibold">{extendedInfo?.accountingYear || 'Ikke tilgængelig'}</div>
-            </div>
-          </div>
-
-          {/* Seneste vedtægtsdato */}
-          <div className="flex items-start gap-3">
-            <FileText className="h-5 w-5 text-muted-foreground mt-0.5" />
-            <div>
-              <div className="font-medium text-sm text-muted-foreground mb-1">Seneste vedtægtsdato</div>
-              <div className="font-semibold">{extendedInfo?.latestStatuteDate || 'Ikke tilgængelig'}</div>
-            </div>
-          </div>
-
-          {/* Registreret kapital */}
-          <div className="flex items-start gap-3">
+          {/* Registreret kapital - Single row */}
+          <div className="flex items-start gap-3 p-4 border rounded-lg">
             <DollarSign className="h-5 w-5 text-muted-foreground mt-0.5" />
             <div>
               <div className="font-medium text-sm text-muted-foreground mb-1">Registreret kapital</div>
@@ -100,8 +103,19 @@ const ExtendedInfoAccordion: React.FC<ExtendedInfoAccordionProps> = ({ company, 
             </div>
           </div>
 
+          {/* Formål - Full width */}
+          <div className="flex items-start gap-3 p-4 border rounded-lg">
+            <Target className="h-5 w-5 text-muted-foreground mt-0.5" />
+            <div>
+              <div className="font-medium text-sm text-muted-foreground mb-1">Formål</div>
+              <div className="font-semibold text-sm leading-relaxed">
+                {extendedInfo?.purpose || 'Ikke tilgængelig'}
+              </div>
+            </div>
+          </div>
+
           {/* Bibrancher */}
-          <div className="flex items-start gap-3 md:col-span-2">
+          <div className="flex items-start gap-3 p-4 border rounded-lg">
             <Briefcase className="h-5 w-5 text-muted-foreground mt-0.5" />
             <div>
               <div className="font-medium text-sm text-muted-foreground mb-2">Bibrancher</div>
@@ -119,19 +133,8 @@ const ExtendedInfoAccordion: React.FC<ExtendedInfoAccordionProps> = ({ company, 
             </div>
           </div>
 
-          {/* Formål */}
-          <div className="flex items-start gap-3 md:col-span-2">
-            <Target className="h-5 w-5 text-muted-foreground mt-0.5" />
-            <div>
-              <div className="font-medium text-sm text-muted-foreground mb-1">Formål</div>
-              <div className="font-semibold text-sm leading-relaxed">
-                {extendedInfo?.purpose || 'Ikke tilgængelig'}
-              </div>
-            </div>
-          </div>
-
           {/* Binavne */}
-          <div className="flex items-start gap-3 md:col-span-2">
+          <div className="flex items-start gap-3 p-4 border rounded-lg">
             <Info className="h-5 w-5 text-muted-foreground mt-0.5" />
             <div>
               <div className="font-medium text-sm text-muted-foreground mb-2">Binavne</div>
@@ -148,7 +151,7 @@ const ExtendedInfoAccordion: React.FC<ExtendedInfoAccordionProps> = ({ company, 
           </div>
 
           {/* Kapitalklasser */}
-          <div className="flex items-start gap-3 md:col-span-2">
+          <div className="flex items-start gap-3 p-4 border rounded-lg">
             <DollarSign className="h-5 w-5 text-muted-foreground mt-0.5" />
             <div>
               <div className="font-medium text-sm text-muted-foreground mb-2">Kapitalklasser</div>
