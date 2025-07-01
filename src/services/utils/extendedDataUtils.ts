@@ -29,16 +29,24 @@ export const extractExtendedInfo = (cvrData: any) => {
     return municipality;
   };
 
-  // Enhanced purpose extraction
+  // Fixed purpose extraction
   const getPurpose = () => {
     const formaal = vrvirksomhed.formaal;
     console.log('Purpose extraction - formaal:', formaal);
     
-    // Handle different data structures
-    if (typeof formaal === 'string') {
+    // Handle array structure with vaerdi field
+    if (Array.isArray(formaal) && formaal.length > 0) {
+      // Find current purpose (where gyldigTil is null) or use the last one
+      const currentPurpose = formaal.find((f: any) => f.periode?.gyldigTil === null) || formaal[formaal.length - 1];
+      return currentPurpose?.vaerdi || null;
+    }
+    // Handle direct string
+    else if (typeof formaal === 'string') {
       return formaal;
-    } else if (formaal && typeof formaal === 'object') {
-      return formaal.value || formaal.tekst || formaal.beskrivelse || null;
+    }
+    // Handle object with value property
+    else if (formaal && typeof formaal === 'object') {
+      return formaal.vaerdi || formaal.value || formaal.tekst || formaal.beskrivelse || null;
     }
     return null;
   };
@@ -70,6 +78,25 @@ export const extractExtendedInfo = (cvrData: any) => {
     return registeredCapital;
   };
 
+  // Fixed accounting year extraction
+  const getAccountingYear = () => {
+    const regnskabsperiode = vrvirksomhed.regnskabsperiode || [];
+    console.log('Accounting year extraction - regnskabsperiode:', regnskabsperiode);
+    
+    // Find current period (where gyldigTil is null) or use the most recent one
+    const current = regnskabsperiode.find((periode: any) => periode.periode?.gyldigTil === null) || regnskabsperiode[regnskabsperiode.length - 1];
+    
+    if (current) {
+      const from = current.regnskabsperiodefra || current.regnskabsPeriodeFra;
+      const to = current.regnskabsperiodetil || current.regnskabsPeriodeTil;
+      const result = from && to ? `${from} - ${to}` : null;
+      console.log('Accounting year result:', result, 'from current:', current);
+      return result;
+    }
+    
+    return null;
+  };
+
   const result = {
     phone: getPhone(),
     municipality: getMunicipality(),
@@ -77,11 +104,7 @@ export const extractExtendedInfo = (cvrData: any) => {
     binavne: (vrvirksomhed.binavne || []).map((navn: any) => navn.navn).filter(Boolean),
     secondaryIndustries: getSecondaryIndustries(),
     isListed: vrvirksomhed.boersnoteret || false,
-    accountingYear: (() => {
-      const regnskabsperiode = vrvirksomhed.regnskabsperiode || [];
-      const current = regnskabsperiode.find((periode: any) => periode.periode?.gyldigTil === null) || regnskabsperiode[regnskabsperiode.length - 1];
-      return current ? `${current.regnskabsperiodefra} - ${current.regnskabsperiodetil}` : null;
-    })(),
+    accountingYear: getAccountingYear(),
     latestStatuteDate: (() => {
       const vedtaegter = vrvirksomhed.vedtaegter || [];
       const latest = vedtaegter.find((v: any) => v.periode?.gyldigTil === null) || vedtaegter[vedtaegter.length - 1];
