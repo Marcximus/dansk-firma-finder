@@ -1,7 +1,6 @@
 
 import React from 'react';
 import { AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
-import { Card, CardContent } from '@/components/ui/card';
 import { Company } from '@/services/companyAPI';
 import { FileText, MapPin, Calendar, Building, Mail, Phone, AlertCircle } from 'lucide-react';
 
@@ -112,105 +111,100 @@ const BasicInfoAccordion: React.FC<BasicInfoAccordionProps> = ({ company, cvrDat
           <span className="text-lg font-semibold">Grundoplysninger</span>
         </div>
       </AccordionTrigger>
-      <AccordionContent className="px-6 pb-4">
-        <Card>
-          <CardContent className="p-6">
-            <div className="space-y-6">
-              {/* CVR-nummer */}
-              <div className="flex items-start gap-3">
-                <FileText className="h-5 w-5 text-muted-foreground mt-1" />
-                <div>
-                  <div className="font-medium text-sm text-muted-foreground">CVR-nummer</div>
-                  <div className="font-semibold text-lg">{company.cvr}</div>
-                </div>
-              </div>
+      <AccordionContent className="px-6 pb-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
+          {/* CVR-nummer */}
+          <div className="flex items-start gap-3">
+            <FileText className="h-5 w-5 text-muted-foreground mt-0.5" />
+            <div>
+              <div className="font-medium text-sm text-muted-foreground mb-1">CVR-nummer</div>
+              <div className="font-semibold">{company.cvr}</div>
+            </div>
+          </div>
 
-              {/* Adresse */}
-              <div className="flex items-start gap-3">
-                <MapPin className="h-5 w-5 text-muted-foreground mt-1" />
-                <div>
-                  <div className="font-medium text-sm text-muted-foreground">Adresse</div>
-                  <div className="font-semibold">
-                    {address.street}<br />
-                    {address.postal} {address.city}
-                  </div>
-                </div>
-              </div>
-
-              {/* Startdato */}
-              <div className="flex items-start gap-3">
-                <Calendar className="h-5 w-5 text-muted-foreground mt-1" />
-                <div>
-                  <div className="font-medium text-sm text-muted-foreground">Startdato</div>
-                  <div className="font-semibold">{getStartDate()}</div>
-                </div>
-              </div>
-
-              {/* Virksomhedsform */}
-              <div className="flex items-start gap-3">
-                <Building className="h-5 w-5 text-muted-foreground mt-1" />
-                <div>
-                  <div className="font-medium text-sm text-muted-foreground">Virksomhedsform</div>
-                  <div className="font-semibold">{getLegalForm()}</div>
-                </div>
-              </div>
-
-              {/* Kontaktoplysninger */}
-              <div className="flex items-start gap-3">
-                <div className="flex flex-col gap-1 mt-1">
-                  <Mail className="h-5 w-5 text-muted-foreground" />
-                  <Phone className="h-5 w-5 text-muted-foreground" />
-                </div>
-                <div>
-                  <div className="font-medium text-sm text-muted-foreground">Kontaktoplysninger</div>
-                  <div className="space-y-2">
-                    {contactInfo.email ? (
-                      <div className="flex items-center gap-2">
-                        <Mail className="h-4 w-4 text-muted-foreground" />
-                        <a href={`mailto:${contactInfo.email}`} className="font-medium text-primary hover:underline">
-                          {contactInfo.email}
-                        </a>
-                      </div>
-                    ) : (
-                      <div className="flex items-center gap-2">
-                        <Mail className="h-4 w-4 text-muted-foreground" />
-                        <span className="font-medium text-muted-foreground">Ikke oplyst</span>
-                      </div>
-                    )}
-                    {contactInfo.phone ? (
-                      <div className="flex items-center gap-2">
-                        <Phone className="h-4 w-4 text-muted-foreground" />
-                        <span className="font-medium">{contactInfo.phone}</span>
-                      </div>
-                    ) : (
-                      <div className="flex items-center gap-2">
-                        <Phone className="h-4 w-4 text-muted-foreground" />
-                        <span className="font-medium text-muted-foreground">Ikke oplyst</span>
-                      </div>
-                    )}
-                    {website && (
-                      <div className="flex items-center gap-2">
-                        <Building className="h-4 w-4 text-muted-foreground" />
-                        <a href={website.startsWith('http') ? website : `https://${website}`} target="_blank" rel="noopener noreferrer" className="font-medium text-primary hover:underline">
-                          {website}
-                        </a>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              {/* Status */}
-              <div className="flex items-start gap-3">
-                <AlertCircle className="h-5 w-5 text-muted-foreground mt-1" />
-                <div>
-                  <div className="font-medium text-sm text-muted-foreground">Status</div>
-                  <div className="font-semibold">{getStatus()}</div>
-                </div>
+          {/* Adresse */}
+          <div className="flex items-start gap-3">
+            <MapPin className="h-5 w-5 text-muted-foreground mt-0.5" />
+            <div>
+              <div className="font-medium text-sm text-muted-foreground mb-1">Adresse</div>
+              <div className="font-semibold">
+                {address.street}<br />
+                {address.postal} {address.city}
               </div>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+
+          {/* Startdato */}
+          <div className="flex items-start gap-3">
+            <Calendar className="h-5 w-5 text-muted-foreground mt-0.5" />
+            <div>
+              <div className="font-medium text-sm text-muted-foreground mb-1">Startdato</div>
+              <div className="font-semibold">{getStartDate()}</div>
+            </div>
+          </div>
+
+          {/* Virksomhedsform */}
+          <div className="flex items-start gap-3">
+            <Building className="h-5 w-5 text-muted-foreground mt-0.5" />
+            <div>
+              <div className="font-medium text-sm text-muted-foreground mb-1">Virksomhedsform</div>
+              <div className="font-semibold">{getLegalForm()}</div>
+            </div>
+          </div>
+
+          {/* Kontaktoplysninger */}
+          <div className="flex items-start gap-3 md:col-span-2">
+            <Mail className="h-5 w-5 text-muted-foreground mt-0.5" />
+            <div className="flex-1">
+              <div className="font-medium text-sm text-muted-foreground mb-2">Kontaktoplysninger</div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {contactInfo.email ? (
+                  <div className="flex items-center gap-2">
+                    <Mail className="h-4 w-4 text-muted-foreground" />
+                    <a href={`mailto:${contactInfo.email}`} className="font-medium text-primary hover:underline text-sm">
+                      {contactInfo.email}
+                    </a>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2">
+                    <Mail className="h-4 w-4 text-muted-foreground" />
+                    <span className="font-medium text-muted-foreground text-sm">Ikke oplyst</span>
+                  </div>
+                )}
+                
+                {contactInfo.phone ? (
+                  <div className="flex items-center gap-2">
+                    <Phone className="h-4 w-4 text-muted-foreground" />
+                    <span className="font-medium text-sm">{contactInfo.phone}</span>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2">
+                    <Phone className="h-4 w-4 text-muted-foreground" />
+                    <span className="font-medium text-muted-foreground text-sm">Ikke oplyst</span>
+                  </div>
+                )}
+                
+                {website && (
+                  <div className="flex items-center gap-2">
+                    <Building className="h-4 w-4 text-muted-foreground" />
+                    <a href={website.startsWith('http') ? website : `https://${website}`} target="_blank" rel="noopener noreferrer" className="font-medium text-primary hover:underline text-sm">
+                      {website}
+                    </a>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Status */}
+          <div className="flex items-start gap-3">
+            <AlertCircle className="h-5 w-5 text-muted-foreground mt-0.5" />
+            <div>
+              <div className="font-medium text-sm text-muted-foreground mb-1">Status</div>
+              <div className="font-semibold">{getStatus()}</div>
+            </div>
+          </div>
+        </div>
       </AccordionContent>
     </AccordionItem>
   );

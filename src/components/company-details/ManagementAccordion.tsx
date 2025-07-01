@@ -1,7 +1,6 @@
 
 import React from 'react';
 import { AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
-import { Card, CardContent } from '@/components/ui/card';
 import { Users, Crown, Shield, UserCheck, FileText } from 'lucide-react';
 
 interface ManagementAccordionProps {
@@ -61,7 +60,6 @@ const ManagementAccordion: React.FC<ManagementAccordionProps> = ({ cvrData }) =>
     }
   };
 
-  // Get signing rules from CVR data
   const getSigningRules = () => {
     return cvrData.tegningsregel || "Ikke oplyst";
   };
@@ -74,67 +72,62 @@ const ManagementAccordion: React.FC<ManagementAccordionProps> = ({ cvrData }) =>
           <span className="text-lg font-semibold">Tegningsregel & personkreds</span>
         </div>
       </AccordionTrigger>
-      <AccordionContent className="px-6 pb-4">
-        <Card>
-          <CardContent className="p-6">
-            <div className="space-y-6">
-              <div className="flex items-start gap-3">
-                <FileText className="h-5 w-5 text-muted-foreground mt-1" />
-                <div>
-                  <div className="font-medium text-sm text-muted-foreground mb-2">Tegningsregel</div>
-                  <div className="font-medium text-sm leading-relaxed">{getSigningRules()}</div>
-                </div>
-              </div>
+      <AccordionContent className="px-6 pb-6">
+        <div className="space-y-6">
+          <div className="flex items-start gap-3">
+            <FileText className="h-5 w-5 text-muted-foreground mt-0.5" />
+            <div>
+              <div className="font-medium text-sm text-muted-foreground mb-1">Tegningsregel</div>
+              <div className="font-medium text-sm leading-relaxed">{getSigningRules()}</div>
+            </div>
+          </div>
 
-              {relations.map((relation: any, index: number) => {
-                const personName = getPersonName(relation.deltager);
-                const personAddress = getPersonAddress(relation.deltager);
+          {relations.map((relation: any, index: number) => {
+            const personName = getPersonName(relation.deltager);
+            const personAddress = getPersonAddress(relation.deltager);
 
-                return (
-                  <div key={index} className="border rounded-lg p-4">
-                    <div className="font-semibold text-lg mb-2">{personName}</div>
-                    <div className="text-sm text-muted-foreground mb-4">{personAddress}</div>
-                    
-                    {relation.organisationer && relation.organisationer.length > 0 && (
-                      <div className="space-y-3">
-                        <h5 className="font-medium text-sm">Roller:</h5>
-                        {relation.organisationer.map((org: any, orgIndex: number) => (
-                          <div key={orgIndex} className="flex items-start gap-3 p-3 bg-gray-50 rounded">
-                            {getRoleIcon(org.hovedtype)}
-                            <div className="flex-1">
-                              <div className="font-medium">
-                                {getRoleDisplayName(org.hovedtype)}
-                              </div>
-                              {org.medlemsData && org.medlemsData.map((medlem: any, medlemIndex: number) => (
-                                <div key={medlemIndex} className="text-sm text-muted-foreground mt-1">
-                                  {medlem.periode && (
-                                    <div>
-                                      Periode: {medlem.periode.gyldigFra || 'Ukendt'} - {medlem.periode.gyldigTil || 'Nuværende'}
-                                    </div>
+            return (
+              <div key={index} className="border-l-4 border-blue-200 pl-4">
+                <div className="font-semibold text-base mb-1">{personName}</div>
+                <div className="text-sm text-muted-foreground mb-3">{personAddress}</div>
+                
+                {relation.organisationer && relation.organisationer.length > 0 && (
+                  <div className="space-y-2">
+                    {relation.organisationer.map((org: any, orgIndex: number) => (
+                      <div key={orgIndex} className="flex items-start gap-2">
+                        {getRoleIcon(org.hovedtype)}
+                        <div className="flex-1">
+                          <div className="font-medium text-sm">
+                            {getRoleDisplayName(org.hovedtype)}
+                          </div>
+                          {org.medlemsData && org.medlemsData.map((medlem: any, medlemIndex: number) => (
+                            <div key={medlemIndex} className="text-xs text-muted-foreground mt-1">
+                              {medlem.periode && (
+                                <div>
+                                  Periode: {medlem.periode.gyldigFra || 'Ukendt'} - {medlem.periode.gyldigTil || 'Nuværende'}
+                                </div>
+                              )}
+                              {medlem.attributter && medlem.attributter.map((attr: any, attrIndex: number) => (
+                                <div key={attrIndex}>
+                                  {attr.type === 'VALGFORM' && attr.vaerdier && (
+                                    <div>Valgform: {attr.vaerdier[0]?.vaerdi}</div>
                                   )}
-                                  {medlem.attributter && medlem.attributter.map((attr: any, attrIndex: number) => (
-                                    <div key={attrIndex}>
-                                      {attr.type === 'VALGFORM' && attr.vaerdier && (
-                                        <div>Valgform: {attr.vaerdier[0]?.vaerdi}</div>
-                                      )}
-                                      {attr.type === 'FUNKTION' && attr.vaerdier && (
-                                        <div>Funktion: {attr.vaerdier[0]?.vaerdi}</div>
-                                      )}
-                                    </div>
-                                  ))}
+                                  {attr.type === 'FUNKTION' && attr.vaerdier && (
+                                    <div>Funktion: {attr.vaerdier[0]?.vaerdi}</div>
+                                  )}
                                 </div>
                               ))}
                             </div>
-                          </div>
-                        ))}
+                          ))}
+                        </div>
                       </div>
-                    )}
+                    ))}
                   </div>
-                );
-              })}
-            </div>
-          </CardContent>
-        </Card>
+                )}
+              </div>
+            );
+          })}
+        </div>
       </AccordionContent>
     </AccordionItem>
   );
