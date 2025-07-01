@@ -21,18 +21,88 @@ const BasicInfoAccordion: React.FC<BasicInfoAccordionProps> = ({ company, cvrDat
   };
 
   const getContactInfo = () => {
-    if (!cvrData) return {};
+    if (!cvrData) return { email: null, phone: null };
     
     const currentEmail = cvrData.elektroniskPost?.find((email: any) => email.periode?.gyldigTil === null);
     const currentPhone = cvrData.telefonNummer?.find((phone: any) => phone.periode?.gyldigTil === null);
     
     return {
-      email: currentEmail?.kontaktoplysning || null,
-      phone: currentPhone?.kontaktoplysning || null
+      email: currentEmail?.kontaktoplysning || 
+             cvrData.elektroniskPost?.[cvrData.elektroniskPost.length - 1]?.kontaktoplysning || 
+             company.email || null,
+      phone: currentPhone?.kontaktoplysning || 
+             cvrData.telefonNummer?.[cvrData.telefonNummer.length - 1]?.kontaktoplysning || null
+    };
+  };
+
+  const getWebsite = () => {
+    if (!cvrData) return company.website;
+    
+    const currentWebsite = cvrData.hjemmeside?.find((site: any) => site.periode?.gyldigTil === null);
+    return currentWebsite?.kontaktoplysning || 
+           cvrData.hjemmeside?.[cvrData.hjemmeside.length - 1]?.kontaktoplysning || 
+           company.website || null;
+  };
+
+  const getStartDate = () => {
+    if (cvrData?.stiftelsesDato) {
+      return formatDate(cvrData.stiftelsesDato);
+    }
+    if (company.yearFounded) {
+      return company.yearFounded.toString();
+    }
+    return 'Ikke oplyst';
+  };
+
+  const getLegalForm = () => {
+    if (!cvrData) return company.legalForm || 'Ikke oplyst';
+    
+    const currentForm = cvrData.virksomhedsform?.find((form: any) => form.periode?.gyldigTil === null);
+    return currentForm?.langBeskrivelse || 
+           currentForm?.kortBeskrivelse || 
+           cvrData.virksomhedsform?.[cvrData.virksomhedsform.length - 1]?.langBeskrivelse ||
+           company.legalForm || 
+           'Ikke oplyst';
+  };
+
+  const getStatus = () => {
+    if (!cvrData) return company.status || 'Ikke oplyst';
+    
+    const currentStatus = cvrData.virksomhedsstatus?.find((status: any) => status.periode?.gyldigTil === null);
+    return currentStatus?.status || 
+           cvrData.virksomhedsstatus?.[cvrData.virksomhedsstatus.length - 1]?.status ||
+           company.status || 
+           'Ikke oplyst';
+  };
+
+  const getAddress = () => {
+    if (!cvrData?.beliggenhedsadresse) {
+      return {
+        street: company.address || 'Ikke oplyst',
+        postal: company.postalCode || '',
+        city: company.city || ''
+      };
+    }
+    
+    const currentAddress = cvrData.beliggenhedsadresse.find((addr: any) => addr.periode?.gyldigTil === null);
+    const addr = currentAddress || cvrData.beliggenhedsadresse[cvrData.beliggenhedsadresse.length - 1];
+    
+    const parts = [];
+    if (addr.vejnavn) parts.push(addr.vejnavn);
+    if (addr.husnummerFra) parts.push(addr.husnummerFra);
+    if (addr.etage) parts.push(`${addr.etage}. sal`);
+    if (addr.sidedoer) parts.push(addr.sidedoer);
+    
+    return {
+      street: parts.join(' ') || company.address || 'Ikke oplyst',
+      postal: addr.postnummer?.toString() || company.postalCode || '',
+      city: addr.postdistrikt || company.city || ''
     };
   };
 
   const contactInfo = getContactInfo();
+  const website = getWebsite();
+  const address = getAddress();
 
   return (
     <AccordionItem value="basic" className="border rounded-lg">
@@ -61,8 +131,8 @@ const BasicInfoAccordion: React.FC<BasicInfoAccordionProps> = ({ company, cvrDat
                 <div>
                   <div className="font-medium text-sm text-muted-foreground">Adresse</div>
                   <div className="font-semibold">
-                    {company.address}<br />
-                    {company.postalCode} {company.city}
+                    {address.street}<br />
+                    {address.postal} {address.city}
                   </div>
                 </div>
               </div>
@@ -72,9 +142,7 @@ const BasicInfoAccordion: React.FC<BasicInfoAccordionProps> = ({ company, cvrDat
                 <Calendar className="h-5 w-5 text-muted-foreground mt-1" />
                 <div>
                   <div className="font-medium text-sm text-muted-foreground">Startdato</div>
-                  <div className="font-semibold">
-                    {cvrData?.stiftelsesDato ? formatDate(cvrData.stiftelsesDato) : (company.yearFounded || 'Ikke oplyst')}
-                  </div>
+                  <div className="font-semibold">{getStartDate()}</div>
                 </div>
               </div>
 
@@ -83,7 +151,7 @@ const BasicInfoAccordion: React.FC<BasicInfoAccordionProps> = ({ company, cvrDat
                 <Building className="h-5 w-5 text-muted-foreground mt-1" />
                 <div>
                   <div className="font-medium text-sm text-muted-foreground">Virksomhedsform</div>
-                  <div className="font-semibold">{company.legalForm}</div>
+                  <div className="font-semibold">{getLegalForm()}</div>
                 </div>
               </div>
 
@@ -120,6 +188,14 @@ const BasicInfoAccordion: React.FC<BasicInfoAccordionProps> = ({ company, cvrDat
                         <span className="font-medium text-muted-foreground">Ikke oplyst</span>
                       </div>
                     )}
+                    {website && (
+                      <div className="flex items-center gap-2">
+                        <Building className="h-4 w-4 text-muted-foreground" />
+                        <a href={website.startsWith('http') ? website : `https://${website}`} target="_blank" rel="noopener noreferrer" className="font-medium text-primary hover:underline">
+                          {website}
+                        </a>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
@@ -129,7 +205,7 @@ const BasicInfoAccordion: React.FC<BasicInfoAccordionProps> = ({ company, cvrDat
                 <AlertCircle className="h-5 w-5 text-muted-foreground mt-1" />
                 <div>
                   <div className="font-medium text-sm text-muted-foreground">Status</div>
-                  <div className="font-semibold">{company.status}</div>
+                  <div className="font-semibold">{getStatus()}</div>
                 </div>
               </div>
             </div>
