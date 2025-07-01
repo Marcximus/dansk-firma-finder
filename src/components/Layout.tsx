@@ -4,6 +4,16 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Search } from 'lucide-react';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Textarea } from '@/components/ui/textarea';
 
 interface LayoutProps {
   children: ReactNode;
@@ -11,6 +21,15 @@ interface LayoutProps {
 
 const Layout: React.FC<LayoutProps> = ({ children }) => {
   const [headerSearchQuery, setHeaderSearchQuery] = useState('');
+  const [isJuridiskDialogOpen, setIsJuridiskDialogOpen] = useState(false);
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    question: '',
+    wantCall: false,
+    wantEmail: false,
+  });
   const navigate = useNavigate();
 
   const handleHeaderSearch = (e: React.FormEvent) => {
@@ -18,6 +37,29 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     if (headerSearchQuery.trim()) {
       navigate(`/?search=${encodeURIComponent(headerSearchQuery.trim())}`);
     }
+  };
+
+  const handleFormSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    console.log('Form submitted:', formData);
+    // Here you would typically send the data to your backend
+    setIsJuridiskDialogOpen(false);
+    // Reset form
+    setFormData({
+      name: '',
+      email: '',
+      phone: '',
+      question: '',
+      wantCall: false,
+      wantEmail: false,
+    });
+  };
+
+  const handleInputChange = (field: string, value: string | boolean) => {
+    setFormData(prev => ({
+      ...prev,
+      [field]: value
+    }));
   };
 
   return (
@@ -41,9 +83,98 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           
           <div className="flex items-center gap-2">
             <Button variant="outline">Log Ind</Button>
-            <Button className="bg-blue-600 hover:bg-blue-700 text-white">
-              Hjælp til Jura
-            </Button>
+            
+            <Dialog open={isJuridiskDialogOpen} onOpenChange={setIsJuridiskDialogOpen}>
+              <DialogTrigger asChild>
+                <Button className="bg-blue-600 hover:bg-blue-700 text-white">
+                  Hjælp til Jura
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-[500px]">
+                <DialogHeader>
+                  <DialogTitle>Har du brug for hjælp til det juridiske?</DialogTitle>
+                </DialogHeader>
+                <div className="mb-4 text-sm text-muted-foreground">
+                  Skriv dit spørgsmål og dine kontaktoplysninger, så kontakter vores advokat dig med en løsning og en pris
+                </div>
+                
+                <form onSubmit={handleFormSubmit} className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="question">Dit spørgsmål</Label>
+                    <Textarea
+                      id="question"
+                      placeholder="Beskriv dit juridiske spørgsmål..."
+                      value={formData.question}
+                      onChange={(e) => handleInputChange('question', e.target.value)}
+                      required
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="name">Navn</Label>
+                    <Input
+                      id="name"
+                      type="text"
+                      value={formData.name}
+                      onChange={(e) => handleInputChange('name', e.target.value)}
+                      required
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="email">Email</Label>
+                    <Input
+                      id="email"
+                      type="email"
+                      value={formData.email}
+                      onChange={(e) => handleInputChange('email', e.target.value)}
+                      required
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="phone">Telefonnummer</Label>
+                    <Input
+                      id="phone"
+                      type="tel"
+                      value={formData.phone}
+                      onChange={(e) => handleInputChange('phone', e.target.value)}
+                      required
+                    />
+                  </div>
+                  
+                  <div className="space-y-3">
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="wantCall"
+                        checked={formData.wantCall}
+                        onCheckedChange={(checked) => handleInputChange('wantCall', checked as boolean)}
+                      />
+                      <Label htmlFor="wantCall">Jeg vil ringes op</Label>
+                    </div>
+                    
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="wantEmail"
+                        checked={formData.wantEmail}
+                        onCheckedChange={(checked) => handleInputChange('wantEmail', checked as boolean)}
+                      />
+                      <Label htmlFor="wantEmail">Jeg vil have en mail</Label>
+                    </div>
+                  </div>
+                  
+                  <div className="flex justify-end gap-2 pt-4">
+                    <Button type="button" variant="outline" onClick={() => setIsJuridiskDialogOpen(false)}>
+                      Annuller
+                    </Button>
+                    <Button type="submit" className="bg-blue-600 hover:bg-blue-700">
+                      Send forespørgsel
+                    </Button>
+                  </div>
+                </form>
+              </DialogContent>
+            </Dialog>
+            
             <Button className="bg-green-600 hover:bg-green-700 text-white">
               Hjælp til Regnskab
             </Button>
