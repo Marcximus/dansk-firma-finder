@@ -109,14 +109,6 @@ const HomePage = () => {
             </p>
           </div>
         )}
-        
-        {!searchTerm && !isLoading && (
-          <div className="text-center py-8">
-            <p className="text-lg text-muted-foreground">
-              Indtast et søgeord for at finde virksomheder.
-            </p>
-          </div>
-        )}
       </div>
     </Layout>
   );
