@@ -22,18 +22,27 @@ serve(async (req) => {
     const username = Deno.env.get('DANISH_BUSINESS_API_USERNAME');
     const password = Deno.env.get('DANISH_BUSINESS_API_PASSWORD');
     
-    if (!username || !password) {
-      throw new Error('Danish Business API credentials not configured');
+    if (!username || password) {
+      console.log('Danish Business API credentials not configured, returning empty results');
+      return new Response(
+        JSON.stringify({ financialReports: [] }),
+        { 
+          headers: { 
+            ...corsHeaders, 
+            'Content-Type': 'application/json' 
+          } 
+        }
+      );
     }
 
     // Create basic auth header
     const auth = btoa(`${username}:${password}`);
     
-    // Search for financial reports (regnskaber)
+    // Search for financial reports using the correct Erhvervsstyrelsen API
     const searchUrl = 'https://distribution.virk.dk/offentliggoerelser/_search';
     const searchParams = new URLSearchParams();
-    searchParams.append('q', `cvrNummer:${cvr} AND dokumenttype:AARSRAPPORT`);
-    searchParams.append('size', '5');
+    searchParams.append('q', `cvrNummer:${cvr}`);
+    searchParams.append('size', '10');
     searchParams.append('sort', 'offentliggoerelsesTidspunkt:desc');
 
     console.log(`Fetching financial data from: ${searchUrl}?${searchParams.toString()}`);
@@ -43,27 +52,48 @@ serve(async (req) => {
       headers: {
         'Authorization': `Basic ${auth}`,
         'Content-Type': 'application/json',
+        'Accept': 'application/json',
       },
     });
 
     if (!response.ok) {
       console.error(`Financial API request failed: ${response.status} ${response.statusText}`);
-      throw new Error(`Danish Business Financial API request failed: ${response.status}`);
+      const errorText = await response.text();
+      console.error('Error response:', errorText);
+      
+      return new Response(
+        JSON.stringify({ 
+          financialReports: [],
+          error: `API request failed: ${response.status}`
+        }),
+        { 
+          headers: { 
+            ...corsHeaders, 
+            'Content-Type': 'application/json' 
+          } 
+        }
+      );
     }
 
     const data = await response.json();
-    console.log('Financial API Response:', JSON.stringify(data, null, 2));
+    console.log('Financial API Response structure:', JSON.stringify(data, null, 2));
 
-    // Transform the financial data
+    // Transform the financial data with better error handling
     const financialReports = data.hits?.hits?.map((hit: any) => {
       const source = hit._source;
       return {
-        period: source.regnskabsperiode || 'N/A',
-        publishDate: source.offentliggoerelsesTidspunkt ? new Date(source.offentliggoerelsesTidspunkt).toLocaleDateString('da-DK') : 'N/A',
-        approvalDate: source.indlaesningsTidspunkt ? new Date(source.indlaesningsTidspunkt).toLocaleDateString('da-DK') : 'N/A',
-        documentUrl: source.dokumentUrl || null
+        period: source.regnskabsperiode || source.periode || 'N/A',
+        publishDate: source.offentliggoerelsesTidspunkt ? 
+          new Date(source.offentliggoerelsesTidspunkt).toLocaleDateString('da-DK') : 'N/A',
+        approvalDate: source.indlaesningsTidspunkt ? 
+          new Date(source.indlaesningsTidspunkt).toLocaleDateString('da-DK') : 'N/A',
+        documentUrl: source.dokumentUrl || source.url || null,
+        documentType: source.dokumenttype || 'Årsrapport',
+        companyName: source.navne?.[0] || source.virksomhedsnavn || 'N/A'
       };
     }) || [];
+
+    console.log(`Found ${financialReports.length} financial reports for CVR ${cvr}`);
 
     return new Response(
       JSON.stringify({ financialReports }),

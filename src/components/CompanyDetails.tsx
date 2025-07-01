@@ -12,6 +12,7 @@ import ManagementAccordion from './company-details/ManagementAccordion';
 import OwnershipAccordion from './company-details/OwnershipAccordion';
 import FinancialAccordion from './company-details/FinancialAccordion';
 import HistoryAccordion from './company-details/HistoryAccordion';
+import RawDataAccordion from './company-details/RawDataAccordion';
 import DataSourceInfo from './company-details/DataSourceInfo';
 
 interface CompanyDetailsProps {
@@ -32,6 +33,7 @@ const CompanyDetails: React.FC<CompanyDetailsProps> = ({ company }) => {
         <OwnershipAccordion cvrData={company.realCvrData} />
         <FinancialAccordion cvr={company.cvr} cvrData={company.realCvrData} />
         <HistoryAccordion cvrData={company.realCvrData} />
+        <RawDataAccordion cvrData={company.realCvrData} />
       </Accordion>
       
       <div className="mt-8 space-y-4">
