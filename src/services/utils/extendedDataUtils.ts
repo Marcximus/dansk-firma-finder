@@ -29,25 +29,64 @@ export const extractExtendedInfo = (cvrData: any) => {
     return municipality;
   };
 
-  // Fixed purpose extraction
+  // Fixed purpose extraction with detailed logging
   const getPurpose = () => {
+    console.log('=== PURPOSE EXTRACTION DEBUG ===');
+    console.log('vrvirksomhed keys:', Object.keys(vrvirksomhed));
+    
+    // Check all possible locations for formaal
     const formaal = vrvirksomhed.formaal;
-    console.log('Purpose extraction - formaal:', formaal);
+    const virksomhedsform = vrvirksomhed.virksomhedsform;
+    const hovedbranche = vrvirksomhed.hovedbranche;
+    
+    console.log('Direct formaal:', formaal);
+    console.log('virksomhedsform:', virksomhedsform);
+    console.log('hovedbranche:', hovedbranche);
+    
+    // Look for formaal in nested structures
+    if (vrvirksomhed.virksomhedMetadata) {
+      console.log('virksomhedMetadata:', vrvirksomhed.virksomhedMetadata);
+    }
+    
+    // Check if formaal is nested under another property
+    Object.keys(vrvirksomhed).forEach(key => {
+      if (typeof vrvirksomhed[key] === 'object' && vrvirksomhed[key] !== null) {
+        if (Array.isArray(vrvirksomhed[key])) {
+          vrvirksomhed[key].forEach((item: any, index: number) => {
+            if (item && typeof item === 'object' && item.vaerdi && typeof item.vaerdi === 'string' && item.vaerdi.toLowerCase().includes('formål')) {
+              console.log(`Found potential formaal in ${key}[${index}]:`, item);
+            }
+          });
+        } else if (vrvirksomhed[key].formaal) {
+          console.log(`Found formaal in ${key}:`, vrvirksomhed[key].formaal);
+        }
+      }
+    });
     
     // Handle array structure with vaerdi field
     if (Array.isArray(formaal) && formaal.length > 0) {
+      console.log('Processing formaal as array:', formaal);
       // Find current purpose (where gyldigTil is null) or use the last one
       const currentPurpose = formaal.find((f: any) => f.periode?.gyldigTil === null) || formaal[formaal.length - 1];
-      return currentPurpose?.vaerdi || null;
+      console.log('Selected purpose:', currentPurpose);
+      const result = currentPurpose?.vaerdi || null;
+      console.log('Final purpose result:', result);
+      return result;
     }
     // Handle direct string
     else if (typeof formaal === 'string') {
+      console.log('Processing formaal as string:', formaal);
       return formaal;
     }
     // Handle object with value property
     else if (formaal && typeof formaal === 'object') {
-      return formaal.vaerdi || formaal.value || formaal.tekst || formaal.beskrivelse || null;
+      console.log('Processing formaal as object:', formaal);
+      const result = formaal.vaerdi || formaal.value || formaal.tekst || formaal.beskrivelse || null;
+      console.log('Object purpose result:', result);
+      return result;
     }
+    
+    console.log('No formaal found, returning null');
     return null;
   };
 
@@ -78,22 +117,33 @@ export const extractExtendedInfo = (cvrData: any) => {
     return registeredCapital;
   };
 
-  // Fixed accounting year extraction
+  // Fixed accounting year extraction with detailed logging
   const getAccountingYear = () => {
+    console.log('=== ACCOUNTING YEAR EXTRACTION DEBUG ===');
     const regnskabsperiode = vrvirksomhed.regnskabsperiode || [];
     console.log('Accounting year extraction - regnskabsperiode:', regnskabsperiode);
     
+    if (regnskabsperiode.length === 0) {
+      console.log('No regnskabsperiode found');
+      return null;
+    }
+    
     // Find current period (where gyldigTil is null) or use the most recent one
     const current = regnskabsperiode.find((periode: any) => periode.periode?.gyldigTil === null) || regnskabsperiode[regnskabsperiode.length - 1];
+    console.log('Selected periode:', current);
     
     if (current) {
-      const from = current.regnskabsperiodefra || current.regnskabsPeriodeFra;
-      const to = current.regnskabsperiodetil || current.regnskabsPeriodeTil;
+      // Try different possible field names
+      const from = current.regnskabsperiodefra || current.regnskabsPeriodeFra || current.fra || current.startDato;
+      const to = current.regnskabsperiodetil || current.regnskabsPeriodeTil || current.til || current.slutDato;
+      console.log('From field:', from, 'To field:', to);
+      
       const result = from && to ? `${from} - ${to}` : null;
-      console.log('Accounting year result:', result, 'from current:', current);
+      console.log('Accounting year result:', result);
       return result;
     }
     
+    console.log('No valid accounting period found');
     return null;
   };
 
