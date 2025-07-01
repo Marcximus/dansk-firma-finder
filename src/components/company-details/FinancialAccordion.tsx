@@ -35,16 +35,103 @@ const FinancialAccordion: React.FC<FinancialAccordionProps> = ({ cvr, cvrData })
   const kapitalforhold = cvrData?.kapitalforhold || [];
   const regnskabsperiode = cvrData?.regnskabsperiode || [];
 
+  // Extract financial KPIs from CVR data or reports
+  const getFinancialKPIs = () => {
+    // Look for financial data in various CVR fields
+    const regnskabstal = cvrData?.regnskabstal || [];
+    const aarsrapporter = cvrData?.aarsrapporter || [];
+    const finansielleNoegletal = cvrData?.finansielleNoegletal || [];
+    
+    // Try to extract key financial figures
+    let financialKPIs: any = {};
+    
+    // Look through annual reports for financial data
+    if (regnskabstal.length > 0) {
+      const latest = regnskabstal[regnskabstal.length - 1];
+      financialKPIs = {
+        nettoomsaetning: latest.nettoomsaetning || latest.revenue || null,
+        bruttofortjeneste: latest.bruttofortjeneste || latest.grossProfit || null,
+        aaretsResultat: latest.aaretsResultat || latest.netIncome || null,
+        egenkapital: latest.egenkapital || latest.equity || null,
+        statusBalance: latest.statusBalance || latest.totalAssets || null,
+        periode: latest.periode || latest.year || null
+      };
+    }
+    
+    // Look in financial key figures
+    if (finansielleNoegletal.length > 0) {
+      const latest = finansielleNoegletal[finansielleNoegletal.length - 1];
+      financialKPIs = {
+        ...financialKPIs,
+        nettoomsaetning: financialKPIs.nettoomsaetning || latest.revenue || latest.turnover,
+        bruttofortjeneste: financialKPIs.bruttofortjeneste || latest.grossProfit,
+        aaretsResultat: financialKPIs.aaretsResultat || latest.netResult || latest.profit,
+        egenkapital: financialKPIs.egenkapital || latest.equity,
+        statusBalance: financialKPIs.statusBalance || latest.balance || latest.totalAssets,
+        periode: financialKPIs.periode || latest.year || latest.periode
+      };
+    }
+    
+    return financialKPIs;
+  };
+
+  const financialKPIs = getFinancialKPIs();
+
   return (
     <AccordionItem value="financial" className="border rounded-lg">
       <AccordionTrigger className="px-6 py-4 hover:no-underline">
         <div className="flex items-center gap-2">
           <TrendingUp className="h-5 w-5" />
-          <span className="text-lg font-semibold">Økonomi & Regnskaber</span>
+          <span className="text-lg font-semibold">Regnskaber & Finansielle data</span>
         </div>
       </AccordionTrigger>
       <AccordionContent className="px-6 pb-6">
         <div className="space-y-6">
+          {/* Key Financial Figures */}
+          {(financialKPIs.nettoomsaetning || financialKPIs.bruttofortjeneste || financialKPIs.aaretsResultat || financialKPIs.egenkapital || financialKPIs.statusBalance) && (
+            <div>
+              <h4 className="font-semibold mb-3 flex items-center gap-2">
+                <DollarSign className="h-4 w-4" />
+                Nøgletal
+                {financialKPIs.periode && (
+                  <span className="text-sm font-normal text-muted-foreground">({financialKPIs.periode})</span>
+                )}
+              </h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {financialKPIs.nettoomsaetning && (
+                  <div className="border rounded p-3">
+                    <div className="text-sm font-medium text-muted-foreground">Nettoomsætning</div>
+                    <div className="text-lg font-semibold">{financialKPIs.nettoomsaetning.toLocaleString('da-DK')} DKK</div>
+                  </div>
+                )}
+                {financialKPIs.bruttofortjeneste && (
+                  <div className="border rounded p-3">
+                    <div className="text-sm font-medium text-muted-foreground">Bruttofortjeneste</div>
+                    <div className="text-lg font-semibold">{financialKPIs.bruttofortjeneste.toLocaleString('da-DK')} DKK</div>
+                  </div>
+                )}
+                {financialKPIs.aaretsResultat && (
+                  <div className="border rounded p-3">
+                    <div className="text-sm font-medium text-muted-foreground">Årets resultat</div>
+                    <div className="text-lg font-semibold">{financialKPIs.aaretsResultat.toLocaleString('da-DK')} DKK</div>
+                  </div>
+                )}
+                {financialKPIs.egenkapital && (
+                  <div className="border rounded p-3">
+                    <div className="text-sm font-medium text-muted-foreground">Egenkapital i alt</div>
+                    <div className="text-lg font-semibold">{financialKPIs.egenkapital.toLocaleString('da-DK')} DKK</div>
+                  </div>
+                )}
+                {financialKPIs.statusBalance && (
+                  <div className="border rounded p-3">
+                    <div className="text-sm font-medium text-muted-foreground">Status balance</div>
+                    <div className="text-lg font-semibold">{financialKPIs.statusBalance.toLocaleString('da-DK')} DKK</div>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
           {/* Employment Data */}
           {yearlyEmployment.length > 0 && (
             <div>
