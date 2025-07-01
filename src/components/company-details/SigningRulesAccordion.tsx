@@ -9,23 +9,10 @@ interface SigningRulesAccordionProps {
 }
 
 const SigningRulesAccordion: React.FC<SigningRulesAccordionProps> = ({ cvrData }) => {
-  const signingData = extractSigningRulesData(cvrData);
+  console.log('SigningRulesAccordion - Raw CVR Data:', cvrData);
   
-  if (!signingData) {
-    return (
-      <AccordionItem value="signing-rules" className="border rounded-lg">
-        <AccordionTrigger className="px-6 py-4 hover:no-underline">
-          <div className="flex items-center gap-2">
-            <FileText className="h-5 w-5" />
-            <span className="text-lg font-semibold">Tegningsregel og personkreds</span>
-          </div>
-        </AccordionTrigger>
-        <AccordionContent className="px-6 pb-6">
-          <div className="text-muted-foreground">Ingen oplysninger om tegningsregler og personkreds tilgængelige</div>
-        </AccordionContent>
-      </AccordionItem>
-    );
-  }
+  const signingData = extractSigningRulesData(cvrData);
+  console.log('SigningRulesAccordion - Extracted Data:', signingData);
 
   const getPersonName = (deltager: any) => {
     if (!deltager) return 'Ukendt';
@@ -95,8 +82,6 @@ const SigningRulesAccordion: React.FC<SigningRulesAccordionProps> = ({ cvrData }
   };
 
   const renderPersons = (persons: any[], title: string, icon: JSX.Element) => {
-    if (persons.length === 0) return null;
-    
     return (
       <div className="mb-6">
         <h4 className="font-semibold mb-3 flex items-center gap-2">
@@ -104,32 +89,38 @@ const SigningRulesAccordion: React.FC<SigningRulesAccordionProps> = ({ cvrData }
           {title}
         </h4>
         <div className="space-y-3">
-          {persons.map((relation: any, index: number) => {
-            const personName = getPersonName(relation.deltager);
-            const personAddress = getPersonAddress(relation.deltager);
+          {persons && persons.length > 0 ? (
+            persons.map((relation: any, index: number) => {
+              const personName = getPersonName(relation.deltager);
+              const personAddress = getPersonAddress(relation.deltager);
 
-            return (
-              <div key={index} className="border-l-4 border-blue-200 pl-4 py-2">
-                <div className="font-semibold text-base">{personName}</div>
-                <div className="text-sm text-muted-foreground mb-2">{personAddress}</div>
-                
-                {relation.organisationer && relation.organisationer.map((org: any, orgIndex: number) => (
-                  <div key={orgIndex} className="text-sm">
-                    <div className="font-medium">
-                      {getRoleDisplayName(org.hovedtype, org.medlemsData?.[0])}
-                    </div>
-                    {org.medlemsData && org.medlemsData.map((medlem: any, medlemIndex: number) => (
-                      <div key={medlemIndex} className="text-xs text-muted-foreground mt-1">
-                        {medlem.periode && (
-                          <div>Periode: {formatPeriod(medlem.periode)}</div>
-                        )}
+              return (
+                <div key={index} className="border-l-4 border-blue-200 pl-4 py-2">
+                  <div className="font-semibold text-base">{personName}</div>
+                  <div className="text-sm text-muted-foreground mb-2">{personAddress}</div>
+                  
+                  {relation.organisationer && relation.organisationer.map((org: any, orgIndex: number) => (
+                    <div key={orgIndex} className="text-sm">
+                      <div className="font-medium">
+                        {getRoleDisplayName(org.hovedtype, org.medlemsData?.[0])}
                       </div>
-                    ))}
-                  </div>
-                ))}
-              </div>
-            );
-          })}
+                      {org.medlemsData && org.medlemsData.map((medlem: any, medlemIndex: number) => (
+                        <div key={medlemIndex} className="text-xs text-muted-foreground mt-1">
+                          {medlem.periode && (
+                            <div>Periode: {formatPeriod(medlem.periode)}</div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  ))}
+                </div>
+              );
+            })
+          ) : (
+            <div className="text-muted-foreground text-sm border-l-4 border-gray-200 pl-4 py-2">
+              Ingen oplysninger tilgængelige
+            </div>
+          )}
         </div>
       </div>
     );
@@ -146,34 +137,34 @@ const SigningRulesAccordion: React.FC<SigningRulesAccordionProps> = ({ cvrData }
       <AccordionContent className="px-6 pb-6">
         <div className="space-y-6">
           {/* Tegningsregel */}
-          {signingData.signingRules.length > 0 && (
-            <div>
-              <h4 className="font-semibold mb-3 flex items-center gap-2">
-                <FileText className="h-4 w-4" />
-                Tegningsregel
-              </h4>
-              <div className="space-y-2">
-                {signingData.signingRules.map((rule: string, index: number) => (
+          <div>
+            <h4 className="font-semibold mb-3 flex items-center gap-2">
+              <FileText className="h-4 w-4" />
+              Tegningsregel
+            </h4>
+            <div className="space-y-2">
+              {signingData?.signingRules && signingData.signingRules.length > 0 ? (
+                signingData.signingRules.map((rule: string, index: number) => (
                   <div key={index} className="border-l-4 border-green-200 pl-4 py-2">
                     <div className="font-medium text-sm">{rule}</div>
                   </div>
-                ))}
-              </div>
+                ))
+              ) : (
+                <div className="text-muted-foreground text-sm border-l-4 border-gray-200 pl-4 py-2">
+                  Ingen oplysninger om tegningsregler tilgængelige
+                </div>
+              )}
             </div>
-          )}
+          </div>
 
           {/* Direktion */}
-          {renderPersons(signingData.management, 'Direktion', <Crown className="h-4 w-4 text-amber-600" />)}
+          {renderPersons(signingData?.management || [], 'Direktion', <Crown className="h-4 w-4 text-amber-600" />)}
           
           {/* Bestyrelse */}
-          {renderPersons(signingData.board, 'Bestyrelse', <Shield className="h-4 w-4 text-blue-600" />)}
+          {renderPersons(signingData?.board || [], 'Bestyrelse', <Shield className="h-4 w-4 text-blue-600" />)}
           
           {/* Revisor */}
-          {renderPersons(signingData.auditors, 'Revisor', <UserCheck className="h-4 w-4 text-green-600" />)}
-
-          {signingData.management.length === 0 && signingData.board.length === 0 && signingData.auditors.length === 0 && signingData.signingRules.length === 0 && (
-            <div className="text-muted-foreground">Ingen oplysninger om tegningsregler og personkreds tilgængelige</div>
-          )}
+          {renderPersons(signingData?.auditors || [], 'Revisor', <UserCheck className="h-4 w-4 text-green-600" />)}
         </div>
       </AccordionContent>
     </AccordionItem>

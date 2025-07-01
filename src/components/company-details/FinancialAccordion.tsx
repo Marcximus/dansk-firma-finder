@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Button } from '@/components/ui/button';
@@ -14,7 +15,10 @@ const FinancialAccordion: React.FC<FinancialAccordionProps> = ({ cvr, cvrData })
   const [financialReports, setFinancialReports] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
+  console.log('FinancialAccordion - Raw CVR Data:', cvrData);
+  
   const financialData = extractFinancialData(cvrData);
+  console.log('FinancialAccordion - Extracted Data:', financialData);
 
   useEffect(() => {
     const fetchFinancialData = async () => {
@@ -31,22 +35,6 @@ const FinancialAccordion: React.FC<FinancialAccordionProps> = ({ cvr, cvrData })
     fetchFinancialData();
   }, [cvr]);
 
-  if (!financialData) {
-    return (
-      <AccordionItem value="financial" className="border rounded-lg">
-        <AccordionTrigger className="px-6 py-4 hover:no-underline">
-          <div className="flex items-center gap-2">
-            <TrendingUp className="h-5 w-5" />
-            <span className="text-lg font-semibold">Regnskaber & Finansielle data</span>
-          </div>
-        </AccordionTrigger>
-        <AccordionContent className="px-6 pb-6">
-          <div className="text-muted-foreground">Ingen finansielle data tilgængelige</div>
-        </AccordionContent>
-      </AccordionItem>
-    );
-  }
-
   return (
     <AccordionItem value="financial" className="border rounded-lg">
       <AccordionTrigger className="px-6 py-4 hover:no-underline">
@@ -57,62 +45,75 @@ const FinancialAccordion: React.FC<FinancialAccordionProps> = ({ cvr, cvrData })
       </AccordionTrigger>
       <AccordionContent className="px-6 pb-6">
         <div className="space-y-6">
-          {/* Key Financial Figures */}
-          {(financialData.financialKPIs.nettoomsaetning || financialData.financialKPIs.bruttofortjeneste || financialData.financialKPIs.aaretsResultat || financialData.financialKPIs.egenkapital || financialData.financialKPIs.statusBalance) && (
-            <div>
-              <h4 className="font-semibold mb-3 flex items-center gap-2">
-                <DollarSign className="h-4 w-4" />
-                Nøgletal
-                {financialData.financialKPIs.periode && (
-                  <span className="text-sm font-normal text-muted-foreground">({financialData.financialKPIs.periode})</span>
-                )}
-              </h4>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {/* Nettoomsætning */}
-                {financialData.financialKPIs.nettoomsaetning && (
-                  <div className="border rounded p-3">
-                    <div className="text-sm font-medium text-muted-foreground">Nettoomsætning</div>
-                    <div className="text-lg font-semibold">{financialData.financialKPIs.nettoomsaetning.toLocaleString('da-DK')} DKK</div>
-                  </div>
-                )}
-                
-                {/* Bruttofortjeneste */}
-                {financialData.financialKPIs.bruttofortjeneste && (
-                  <div className="border rounded p-3">
-                    <div className="text-sm font-medium text-muted-foreground">Bruttofortjeneste</div>
-                    <div className="text-lg font-semibold">{financialData.financialKPIs.bruttofortjeneste.toLocaleString('da-DK')} DKK</div>
-                  </div>
-                )}
-                
-                {/* Årets resultat */}
-                {financialData.financialKPIs.aaretsResultat && (
-                  <div className="border rounded p-3">
-                    <div className="text-sm font-medium text-muted-foreground">Årets resultat</div>
-                    <div className="text-lg font-semibold">{financialData.financialKPIs.aaretsResultat.toLocaleString('da-DK')} DKK</div>
-                  </div>
-                )}
-                
-                {/* Egenkapital i alt */}
-                {financialData.financialKPIs.egenkapital && (
-                  <div className="border rounded p-3">
-                    <div className="text-sm font-medium text-muted-foreground">Egenkapital i alt</div>
-                    <div className="text-lg font-semibold">{financialData.financialKPIs.egenkapital.toLocaleString('da-DK')} DKK</div>
-                  </div>
-                )}
-                
-                {/* Status balance */}
-                {financialData.financialKPIs.statusBalance && (
-                  <div className="border rounded p-3">
-                    <div className="text-sm font-medium text-muted-foreground">Status balance</div>
-                    <div className="text-lg font-semibold">{financialData.financialKPIs.statusBalance.toLocaleString('da-DK')} DKK</div>
-                  </div>
-                )}
+          {/* Key Financial Figures - Always show these */}
+          <div>
+            <h4 className="font-semibold mb-3 flex items-center gap-2">
+              <DollarSign className="h-4 w-4" />
+              Nøgletal
+              {financialData?.financialKPIs?.periode && (
+                <span className="text-sm font-normal text-muted-foreground">({financialData.financialKPIs.periode})</span>
+              )}
+            </h4>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {/* Nettoomsætning */}
+              <div className="border rounded p-3">
+                <div className="text-sm font-medium text-muted-foreground">Nettoomsætning</div>
+                <div className="text-lg font-semibold">
+                  {financialData?.financialKPIs?.nettoomsaetning ? 
+                    `${financialData.financialKPIs.nettoomsaetning.toLocaleString('da-DK')} DKK` : 
+                    'Ikke tilgængelig'
+                  }
+                </div>
+              </div>
+              
+              {/* Bruttofortjeneste */}
+              <div className="border rounded p-3">
+                <div className="text-sm font-medium text-muted-foreground">Bruttofortjeneste</div>
+                <div className="text-lg font-semibold">
+                  {financialData?.financialKPIs?.bruttofortjeneste ? 
+                    `${financialData.financialKPIs.bruttofortjeneste.toLocaleString('da-DK')} DKK` : 
+                    'Ikke tilgængelig'
+                  }
+                </div>
+              </div>
+              
+              {/* Årets resultat */}
+              <div className="border rounded p-3">
+                <div className="text-sm font-medium text-muted-foreground">Årets resultat</div>
+                <div className="text-lg font-semibold">
+                  {financialData?.financialKPIs?.aaretsResultat ? 
+                    `${financialData.financialKPIs.aaretsResultat.toLocaleString('da-DK')} DKK` : 
+                    'Ikke tilgængelig'
+                  }
+                </div>
+              </div>
+              
+              {/* Egenkapital i alt */}
+              <div className="border rounded p-3">
+                <div className="text-sm font-medium text-muted-foreground">Egenkapital i alt</div>
+                <div className="text-lg font-semibold">
+                  {financialData?.financialKPIs?.egenkapital ? 
+                    `${financialData.financialKPIs.egenkapital.toLocaleString('da-DK')} DKK` : 
+                    'Ikke tilgængelig'
+                  }
+                </div>
+              </div>
+              
+              {/* Status balance */}
+              <div className="border rounded p-3">
+                <div className="text-sm font-medium text-muted-foreground">Status balance</div>
+                <div className="text-lg font-semibold">
+                  {financialData?.financialKPIs?.statusBalance ? 
+                    `${financialData.financialKPIs.statusBalance.toLocaleString('da-DK')} DKK` : 
+                    'Ikke tilgængelig'
+                  }
+                </div>
               </div>
             </div>
-          )}
+          </div>
 
           {/* Employment Data */}
-          {financialData.yearlyEmployment.length > 0 && (
+          {financialData?.yearlyEmployment && financialData.yearlyEmployment.length > 0 && (
             <div>
               <h4 className="font-semibold mb-3 flex items-center gap-2">
                 <Users className="h-4 w-4" />
@@ -140,7 +141,7 @@ const FinancialAccordion: React.FC<FinancialAccordionProps> = ({ cvr, cvrData })
           )}
 
           {/* Capital Information */}
-          {financialData.kapitalforhold.length > 0 && (
+          {financialData?.kapitalforhold && financialData.kapitalforhold.length > 0 && (
             <div>
               <h4 className="font-semibold mb-3 flex items-center gap-2">
                 <DollarSign className="h-4 w-4" />
@@ -184,7 +185,7 @@ const FinancialAccordion: React.FC<FinancialAccordionProps> = ({ cvr, cvrData })
           )}
 
           {/* Accounting Period */}
-          {financialData.regnskabsperiode.length > 0 && (
+          {financialData?.regnskabsperiode && financialData.regnskabsperiode.length > 0 && (
             <div>
               <h4 className="font-semibold mb-3 flex items-center gap-2">
                 <Calendar className="h-4 w-4" />
@@ -266,7 +267,7 @@ const FinancialAccordion: React.FC<FinancialAccordionProps> = ({ cvr, cvrData })
           </div>
 
           {/* Quarterly Employment Data */}
-          {financialData.quarterlyEmployment.length > 0 && (
+          {financialData?.quarterlyEmployment && financialData.quarterlyEmployment.length > 0 && (
             <div>
               <h4 className="font-semibold mb-3 flex items-center gap-2">
                 <Users className="h-4 w-4" />

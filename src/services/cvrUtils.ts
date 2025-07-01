@@ -144,9 +144,15 @@ export const extractCvrDetails = (cvrData: any) => {
 
 // Helper functions for extracting specific data sections
 export const extractExtendedInfo = (cvrData: any) => {
-  if (!cvrData?.Vrvirksomhed) return null;
+  console.log('extractExtendedInfo - Input data:', cvrData);
+  
+  if (!cvrData?.Vrvirksomhed) {
+    console.log('No Vrvirksomhed data found');
+    return null;
+  }
   
   const vrvirksomhed = cvrData.Vrvirksomhed;
+  console.log('extractExtendedInfo - Vrvirksomhed:', vrvirksomhed);
   
   const getCurrentValue = (array: any[], fieldName: string) => {
     if (!array || array.length === 0) return null;
@@ -154,16 +160,62 @@ export const extractExtendedInfo = (cvrData: any) => {
     return current?.[fieldName] || array[array.length - 1]?.[fieldName] || null;
   };
 
-  return {
-    phone: getCurrentValue(vrvirksomhed.telefonNummer, 'kontaktoplysning'),
-    municipality: getCurrentValue(vrvirksomhed.beliggenhedsadresse, 'kommune'),
-    purpose: vrvirksomhed.formaal,
-    binavne: (vrvirksomhed.binavne || []).map((navn: any) => navn.navn).filter(Boolean),
-    secondaryIndustries: [
+  // Enhanced phone extraction
+  const getPhone = () => {
+    const telefonNummer = vrvirksomhed.telefonNummer || [];
+    const phone = getCurrentValue(telefonNummer, 'kontaktoplysning');
+    console.log('Phone extraction - telefonNummer:', telefonNummer, 'phone:', phone);
+    return phone;
+  };
+
+  // Enhanced municipality extraction
+  const getMunicipality = () => {
+    const beliggenhedsadresse = vrvirksomhed.beliggenhedsadresse || [];
+    const municipality = getCurrentValue(beliggenhedsadresse, 'kommune');
+    console.log('Municipality extraction - beliggenhedsadresse:', beliggenhedsadresse, 'municipality:', municipality);
+    return municipality;
+  };
+
+  // Enhanced purpose extraction
+  const getPurpose = () => {
+    const formaal = vrvirksomhed.formaal;
+    console.log('Purpose extraction - formaal:', formaal);
+    return formaal;
+  };
+
+  // Enhanced secondary industries extraction
+  const getSecondaryIndustries = () => {
+    const secondaryIndustries = [
       ...(vrvirksomhed.bibranche1 || []),
       ...(vrvirksomhed.bibranche2 || []),
       ...(vrvirksomhed.bibranche3 || [])
-    ].filter((branch: any) => !branch.periode?.gyldigTil),
+    ].filter((branch: any) => !branch.periode?.gyldigTil);
+    console.log('Secondary industries extraction:', secondaryIndustries);
+    return secondaryIndustries;
+  };
+
+  // Enhanced capital classes extraction
+  const getCapitalClasses = () => {
+    const kapitalforhold = (vrvirksomhed.kapitalforhold || []).filter((k: any) => !k.periode?.gyldigTil);
+    console.log('Capital classes extraction:', kapitalforhold);
+    return kapitalforhold;
+  };
+
+  // Enhanced registered capital extraction
+  const getRegisteredCapital = () => {
+    const kapitalforhold = vrvirksomhed.kapitalforhold || [];
+    const current = kapitalforhold.find((k: any) => !k.periode?.gyldigTil && k.kapitalbeloeb);
+    const registeredCapital = current?.kapitalbeloeb || vrvirksomhed.registreretKapital || null;
+    console.log('Registered capital extraction - kapitalforhold:', kapitalforhold, 'registeredCapital:', registeredCapital);
+    return registeredCapital;
+  };
+
+  const result = {
+    phone: getPhone(),
+    municipality: getMunicipality(),
+    purpose: getPurpose(),
+    binavne: (vrvirksomhed.binavne || []).map((navn: any) => navn.navn).filter(Boolean),
+    secondaryIndustries: getSecondaryIndustries(),
     isListed: vrvirksomhed.boersnoteret || false,
     accountingYear: (() => {
       const regnskabsperiode = vrvirksomhed.regnskabsperiode || [];
@@ -175,20 +227,25 @@ export const extractExtendedInfo = (cvrData: any) => {
       const latest = vedtaegter.find((v: any) => v.periode?.gyldigTil === null) || vedtaegter[vedtaegter.length - 1];
       return latest?.dato || null;
     })(),
-    capitalClasses: (vrvirksomhed.kapitalforhold || []).filter((k: any) => !k.periode?.gyldigTil),
-    registeredCapital: (() => {
-      const kapitalforhold = vrvirksomhed.kapitalforhold || [];
-      const current = kapitalforhold.find((k: any) => !k.periode?.gyldigTil && k.kapitalbeloeb);
-      return current?.kapitalbeloeb || vrvirksomhed.registreretKapital || null;
-    })()
+    capitalClasses: getCapitalClasses(),
+    registeredCapital: getRegisteredCapital()
   };
+
+  console.log('extractExtendedInfo - Final result:', result);
+  return result;
 };
 
 export const extractSigningRulesData = (cvrData: any) => {
-  if (!cvrData?.Vrvirksomhed) return null;
+  console.log('extractSigningRulesData - Input data:', cvrData);
+  
+  if (!cvrData?.Vrvirksomhed) {
+    console.log('No Vrvirksomhed data found');
+    return null;
+  }
   
   const vrvirksomhed = cvrData.Vrvirksomhed;
   const relations = vrvirksomhed.deltagerRelation || [];
+  console.log('extractSigningRulesData - relations:', relations);
 
   const getSigningRules = () => {
     const tegningsregler = vrvirksomhed.tegningsregler || [];
@@ -209,10 +266,11 @@ export const extractSigningRulesData = (cvrData: any) => {
       }
     });
     
+    console.log('Signing rules extraction:', signingRules);
     return signingRules;
   };
 
-  return {
+  const result = {
     signingRules: getSigningRules(),
     management: relations.filter((relation: any) => 
       relation.organisationer?.some((org: any) => org.hovedtype === 'DIREKTION')
@@ -224,10 +282,18 @@ export const extractSigningRulesData = (cvrData: any) => {
       relation.organisationer?.some((org: any) => org.hovedtype === 'REVISION')
     )
   };
+
+  console.log('extractSigningRulesData - Final result:', result);
+  return result;
 };
 
 export const extractOwnershipData = (cvrData: any) => {
-  if (!cvrData?.Vrvirksomhed) return null;
+  console.log('extractOwnershipData - Input data:', cvrData);
+  
+  if (!cvrData?.Vrvirksomhed) {
+    console.log('No Vrvirksomhed data found');
+    return null;
+  }
   
   const vrvirksomhed = cvrData.Vrvirksomhed;
 
@@ -248,6 +314,8 @@ export const extractOwnershipData = (cvrData: any) => {
 
   const getOwnershipFromRelations = () => {
     const relations = vrvirksomhed.deltagerRelation || [];
+    console.log('Ownership relations:', relations);
+    
     return relations.filter((relation: any) => 
       relation.organisationer?.some((org: any) => 
         org.hovedtype === 'EJER' || 
@@ -301,7 +369,11 @@ export const extractOwnershipData = (cvrData: any) => {
   const ownershipFromRelations = getOwnershipFromRelations();
   const rielleEjere = vrvirksomhed.rielleEjere || vrvirksomhed.beneficialOwners || [];
 
-  return {
+  console.log('Ownership data - legaleEjere:', legaleEjere);
+  console.log('Ownership data - ownershipFromRelations:', ownershipFromRelations);
+  console.log('Ownership data - rielleEjere:', rielleEjere);
+
+  const result = {
     currentOwners: [
       ...legaleEjere.filter((ejer: any) => !ejer.periode?.gyldigTil),
       ...ownershipFromRelations.filter((owner: any) => owner.isActive)
@@ -312,16 +384,27 @@ export const extractOwnershipData = (cvrData: any) => {
     ],
     rielleEjere
   };
+
+  console.log('extractOwnershipData - Final result:', result);
+  return result;
 };
 
 export const extractFinancialData = (cvrData: any) => {
-  if (!cvrData?.Vrvirksomhed) return null;
+  console.log('extractFinancialData - Input data:', cvrData);
+  
+  if (!cvrData?.Vrvirksomhed) {
+    console.log('No Vrvirksomhed data found');
+    return null;
+  }
   
   const vrvirksomhed = cvrData.Vrvirksomhed;
 
   const getFinancialKPIs = () => {
     const regnskabstal = vrvirksomhed.regnskabstal || [];
     const finansielleNoegletal = vrvirksomhed.finansielleNoegletal || [];
+    
+    console.log('Financial KPIs - regnskabstal:', regnskabstal);
+    console.log('Financial KPIs - finansielleNoegletal:', finansielleNoegletal);
     
     let financialKPIs: any = {};
     
@@ -350,14 +433,18 @@ export const extractFinancialData = (cvrData: any) => {
       };
     }
     
+    console.log('Financial KPIs result:', financialKPIs);
     return financialKPIs;
   };
 
-  return {
+  const result = {
     financialKPIs: getFinancialKPIs(),
     yearlyEmployment: vrvirksomhed.aarsbeskaeftigelse || [],
     quarterlyEmployment: vrvirksomhed.kvartalsbeskaeftigelse || [],
     kapitalforhold: vrvirksomhed.kapitalforhold || [],
     regnskabsperiode: vrvirksomhed.regnskabsperiode || []
   };
+
+  console.log('extractFinancialData - Final result:', result);
+  return result;
 };
