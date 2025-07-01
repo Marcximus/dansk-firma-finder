@@ -16,82 +16,6 @@ const ExtendedInfoAccordion: React.FC<ExtendedInfoAccordionProps> = ({ company, 
   const extendedInfo = extractExtendedInfo(cvrData);
   console.log('ExtendedInfoAccordion - Extracted Info:', extendedInfo);
 
-  const InfoCard = ({ icon: Icon, label, value, fullWidth = false }: {
-    icon: any;
-    label: string;
-    value: string | null;
-    fullWidth?: boolean;
-  }) => (
-    <div className={`bg-gray-50 rounded-lg p-4 ${fullWidth ? 'col-span-full' : ''}`}>
-      <div className="flex items-center gap-2 mb-2">
-        <Icon className="h-4 w-4 text-blue-600" />
-        <span className="text-sm font-medium text-gray-600">{label}</span>
-      </div>
-      <div className="font-semibold text-gray-900">
-        {value || 'Ikke tilgængelig'}
-      </div>
-    </div>
-  );
-
-  const ListCard = ({ icon: Icon, title, items }: {
-    icon: any;
-    title: string;
-    items: any[] | null;
-  }) => (
-    <div className="bg-gray-50 rounded-lg p-4 col-span-full">
-      <div className="flex items-center gap-2 mb-3">
-        <Icon className="h-4 w-4 text-blue-600" />
-        <span className="text-sm font-medium text-gray-600">{title}</span>
-      </div>
-      <div className="space-y-2">
-        {items && items.length > 0 ? (
-          items.map((item: any, index: number) => (
-            <div key={index} className="bg-white rounded p-3 border-l-4 border-blue-200">
-              {typeof item === 'string' ? (
-                <div className="font-medium text-sm">{item}</div>
-              ) : (
-                <div>
-                  <div className="font-medium text-sm">
-                    {item.branchekode} {item.branchetekst}
-                  </div>
-                </div>
-              )}
-            </div>
-          ))
-        ) : (
-          <div className="text-gray-500 text-sm">Ingen registreret</div>
-        )}
-      </div>
-    </div>
-  );
-
-  const CapitalCard = ({ items }: { items: any[] | null }) => (
-    <div className="bg-gray-50 rounded-lg p-4 col-span-full">
-      <div className="flex items-center gap-2 mb-3">
-        <DollarSign className="h-4 w-4 text-blue-600" />
-        <span className="text-sm font-medium text-gray-600">Kapitalklasser</span>
-      </div>
-      <div className="space-y-2">
-        {items && items.length > 0 ? (
-          items.map((kapital: any, index: number) => (
-            <div key={index} className="bg-white rounded p-3 border-l-4 border-green-200">
-              <div className="font-medium text-sm">
-                {kapital.kapitalklasse || 'Ukendt kapitalklasse'}
-              </div>
-              {kapital.kapitalbeloeb && (
-                <div className="text-gray-600 text-sm">
-                  {kapital.kapitalbeloeb.toLocaleString('da-DK')} {kapital.valuta || 'DKK'}
-                </div>
-              )}
-            </div>
-          ))
-        ) : (
-          <div className="text-gray-500 text-sm">Ingen registreret</div>
-        )}
-      </div>
-    </div>
-  );
-
   return (
     <AccordionItem value="extended" className="border rounded-lg">
       <AccordionTrigger className="px-6 py-4 hover:no-underline">
@@ -101,82 +25,151 @@ const ExtendedInfoAccordion: React.FC<ExtendedInfoAccordionProps> = ({ company, 
         </div>
       </AccordionTrigger>
       <AccordionContent className="px-6 pb-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {/* Basic Contact Info */}
-          <InfoCard
-            icon={Phone}
-            label="Telefon"
-            value={extendedInfo?.phone}
-          />
-
-          <InfoCard
-            icon={MapPin}
-            label="Kommune"
-            value={extendedInfo?.municipality?.kommuneNavn || extendedInfo?.municipality}
-          />
-
-          <InfoCard
-            icon={Briefcase}
-            label="Branchekode"
-            value={company.industry}
-          />
-
-          {/* Financial & Business Info */}
-          <InfoCard
-            icon={TrendingUp}
-            label="Børsnoteret"
-            value={extendedInfo?.isListed !== undefined ? (extendedInfo.isListed ? 'Ja' : 'Nej') : null}
-          />
-
-          <InfoCard
-            icon={Calendar}
-            label="Regnskabsår"
-            value={extendedInfo?.accountingYear}
-          />
-
-          <InfoCard
-            icon={FileText}
-            label="Seneste vedtægtsdato"
-            value={extendedInfo?.latestStatuteDate}
-          />
-
-          <InfoCard
-            icon={DollarSign}
-            label="Registreret kapital"
-            value={extendedInfo?.registeredCapital ? 
-              `${extendedInfo.registeredCapital.toLocaleString('da-DK')} DKK` : 
-              null
-            }
-            fullWidth
-          />
-
-          {/* Purpose - Full Width */}
-          <div className="bg-gray-50 rounded-lg p-4 col-span-full">
-            <div className="flex items-center gap-2 mb-3">
-              <Target className="h-4 w-4 text-blue-600" />
-              <span className="text-sm font-medium text-gray-600">Formål</span>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
+          {/* Telefon */}
+          <div className="flex items-start gap-3">
+            <Phone className="h-5 w-5 text-muted-foreground mt-0.5" />
+            <div>
+              <div className="font-medium text-sm text-muted-foreground mb-1">Telefon</div>
+              <div className="font-semibold">
+                {extendedInfo?.phone || 'Ikke tilgængelig'}
+              </div>
             </div>
-            <div className="bg-white rounded p-3 border-l-4 border-blue-200">
-              <div className="text-sm leading-relaxed">
+          </div>
+
+          {/* Kommune */}
+          <div className="flex items-start gap-3">
+            <MapPin className="h-5 w-5 text-muted-foreground mt-0.5" />
+            <div>
+              <div className="font-medium text-sm text-muted-foreground mb-1">Kommune</div>
+              <div className="font-semibold">
+                {extendedInfo?.municipality?.kommuneNavn || extendedInfo?.municipality || 'Ikke tilgængelig'}
+              </div>
+            </div>
+          </div>
+
+          {/* Branchekode */}
+          <div className="flex items-start gap-3">
+            <Briefcase className="h-5 w-5 text-muted-foreground mt-0.5" />
+            <div>
+              <div className="font-medium text-sm text-muted-foreground mb-1">Branchekode</div>
+              <div className="font-semibold">{company.industry || 'Ikke tilgængelig'}</div>
+            </div>
+          </div>
+
+          {/* Børsnoteret */}
+          <div className="flex items-start gap-3">
+            <TrendingUp className="h-5 w-5 text-muted-foreground mt-0.5" />
+            <div>
+              <div className="font-medium text-sm text-muted-foreground mb-1">Børsnoteret</div>
+              <div className="font-semibold">
+                {extendedInfo?.isListed !== undefined ? (extendedInfo.isListed ? 'Ja' : 'Nej') : 'Ikke tilgængelig'}
+              </div>
+            </div>
+          </div>
+
+          {/* Regnskabsår */}
+          <div className="flex items-start gap-3">
+            <Calendar className="h-5 w-5 text-muted-foreground mt-0.5" />
+            <div>
+              <div className="font-medium text-sm text-muted-foreground mb-1">Regnskabsår</div>
+              <div className="font-semibold">{extendedInfo?.accountingYear || 'Ikke tilgængelig'}</div>
+            </div>
+          </div>
+
+          {/* Seneste vedtægtsdato */}
+          <div className="flex items-start gap-3">
+            <FileText className="h-5 w-5 text-muted-foreground mt-0.5" />
+            <div>
+              <div className="font-medium text-sm text-muted-foreground mb-1">Seneste vedtægtsdato</div>
+              <div className="font-semibold">{extendedInfo?.latestStatuteDate || 'Ikke tilgængelig'}</div>
+            </div>
+          </div>
+
+          {/* Registreret kapital */}
+          <div className="flex items-start gap-3">
+            <DollarSign className="h-5 w-5 text-muted-foreground mt-0.5" />
+            <div>
+              <div className="font-medium text-sm text-muted-foreground mb-1">Registreret kapital</div>
+              <div className="font-semibold">
+                {extendedInfo?.registeredCapital ? 
+                  `${extendedInfo.registeredCapital.toLocaleString('da-DK')} DKK` : 
+                  'Ikke tilgængelig'
+                }
+              </div>
+            </div>
+          </div>
+
+          {/* Bibrancher */}
+          <div className="flex items-start gap-3 md:col-span-2">
+            <Briefcase className="h-5 w-5 text-muted-foreground mt-0.5" />
+            <div>
+              <div className="font-medium text-sm text-muted-foreground mb-2">Bibrancher</div>
+              <div className="space-y-1">
+                {extendedInfo?.secondaryIndustries && extendedInfo.secondaryIndustries.length > 0 ? (
+                  extendedInfo.secondaryIndustries.map((branch: any, index: number) => (
+                    <div key={index} className="font-medium text-sm">
+                      {branch.branchekode} {branch.branchetekst}
+                    </div>
+                  ))
+                ) : (
+                  <div className="font-semibold text-sm">Ingen bibrancher registreret</div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Formål */}
+          <div className="flex items-start gap-3 md:col-span-2">
+            <Target className="h-5 w-5 text-muted-foreground mt-0.5" />
+            <div>
+              <div className="font-medium text-sm text-muted-foreground mb-1">Formål</div>
+              <div className="font-semibold text-sm leading-relaxed">
                 {extendedInfo?.purpose || 'Ikke tilgængelig'}
               </div>
             </div>
           </div>
 
-          {/* Lists */}
-          <ListCard
-            icon={Info}
-            title="Binavne"
-            items={extendedInfo?.binavne}
-          />
+          {/* Binavne */}
+          <div className="flex items-start gap-3 md:col-span-2">
+            <Info className="h-5 w-5 text-muted-foreground mt-0.5" />
+            <div>
+              <div className="font-medium text-sm text-muted-foreground mb-2">Binavne</div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-1">
+                {extendedInfo?.binavne && extendedInfo.binavne.length > 0 ? (
+                  extendedInfo.binavne.map((navn: string, index: number) => (
+                    <div key={index} className="font-medium text-sm">{navn}</div>
+                  ))
+                ) : (
+                  <div className="font-semibold text-sm">Ingen binavne registreret</div>
+                )}
+              </div>
+            </div>
+          </div>
 
-          <ListCard
-            icon={Briefcase}
-            title="Bibrancher"
-            items={extendedInfo?.secondaryIndustries}
-          />
-
-          <CapitalCard items={extendedInfo?.capitalClasses} />
+          {/* Kapitalklasser */}
+          <div className="flex items-start gap-3 md:col-span-2">
+            <DollarSign className="h-5 w-5 text-muted-foreground mt-0.5" />
+            <div>
+              <div className="font-medium text-sm text-muted-foreground mb-2">Kapitalklasser</div>
+              <div className="space-y-2">
+                {extendedInfo?.capitalClasses && extendedInfo.capitalClasses.length > 0 ? (
+                  extendedInfo.capitalClasses.map((kapital: any, index: number) => (
+                    <div key={index} className="text-sm border-l-2 border-gray-200 pl-3">
+                      <div className="font-medium">{kapital.kapitalklasse || 'Ukendt kapitalklasse'}</div>
+                      {kapital.kapitalbeloeb && (
+                        <div className="text-muted-foreground">
+                          {kapital.kapitalbeloeb.toLocaleString('da-DK')} {kapital.valuta || 'DKK'}
+                        </div>
+                      )}
+                    </div>
+                  ))
+                ) : (
+                  <div className="font-semibold text-sm">Ingen kapitalklasser registreret</div>
+                )}
+              </div>
+            </div>
+          </div>
         </div>
       </AccordionContent>
     </AccordionItem>
