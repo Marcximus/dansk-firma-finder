@@ -16,7 +16,11 @@ export const extractExtendedInfo = (cvrData: any) => {
   // Enhanced phone extraction
   const getPhone = () => {
     const telefonNummer = vrvirksomhed.telefonNummer || [];
-    const phone = getCurrentValue(telefonNummer, 'kontaktoplysning');
+    if (telefonNummer.length === 0) return null;
+    
+    // Try current value first, then fall back to latest
+    const current = telefonNummer.find((t: any) => !t.periode?.gyldigTil);
+    const phone = current?.kontaktoplysning || telefonNummer[telefonNummer.length - 1]?.kontaktoplysning;
     console.log('Phone extraction - telefonNummer:', telefonNummer, 'phone:', phone);
     return phone;
   };
@@ -24,7 +28,12 @@ export const extractExtendedInfo = (cvrData: any) => {
   // Enhanced municipality extraction
   const getMunicipality = () => {
     const beliggenhedsadresse = vrvirksomhed.beliggenhedsadresse || [];
-    const municipality = getCurrentValue(beliggenhedsadresse, 'kommune');
+    if (beliggenhedsadresse.length === 0) return null;
+    
+    // Try current address first, then fall back to latest
+    const current = beliggenhedsadresse.find((addr: any) => !addr.periode?.gyldigTil);
+    const addr = current || beliggenhedsadresse[beliggenhedsadresse.length - 1];
+    const municipality = addr?.kommune || addr?.kommuneKode;
     console.log('Municipality extraction - beliggenhedsadresse:', beliggenhedsadresse, 'municipality:', municipality);
     return municipality;
   };
@@ -110,9 +119,23 @@ export const extractExtendedInfo = (cvrData: any) => {
 
   // Enhanced registered capital extraction
   const getRegisteredCapital = () => {
+    // Try multiple sources for capital information
     const kapitalforhold = vrvirksomhed.kapitalforhold || [];
     const current = kapitalforhold.find((k: any) => !k.periode?.gyldigTil && k.kapitalbeloeb);
-    const registeredCapital = current?.kapitalbeloeb || vrvirksomhed.registreretKapital || null;
+    let registeredCapital = current?.kapitalbeloeb || vrvirksomhed.registreretKapital;
+    
+    // Try alternative field names
+    if (!registeredCapital && kapitalforhold.length > 0) {
+      const latest = kapitalforhold[kapitalforhold.length - 1];
+      registeredCapital = latest?.kapitalbeloeb || latest?.amount || latest?.beloeb;
+    }
+    
+    // Try virksomhedsform for capital info
+    if (!registeredCapital && vrvirksomhed.virksomhedsform) {
+      const currentForm = vrvirksomhed.virksomhedsform.find((f: any) => !f.periode?.gyldigTil);
+      registeredCapital = currentForm?.kapital || vrvirksomhed.virksomhedsform[vrvirksomhed.virksomhedsform.length - 1]?.kapital;
+    }
+    
     console.log('Registered capital extraction - kapitalforhold:', kapitalforhold, 'registeredCapital:', registeredCapital);
     return registeredCapital;
   };
