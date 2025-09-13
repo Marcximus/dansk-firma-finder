@@ -580,17 +580,17 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             <div>
               <h3 className="text-lg font-semibold mb-4">Tjenester</h3>
               <ul className="space-y-2">
-                <li><a href="#" className="text-muted-foreground hover:text-primary">Virksomhedssøgning</a></li>
-                <li><a href="#" className="text-muted-foreground hover:text-primary">Virksomhedsrapporter</a></li>
-                <li><a href="#" className="text-muted-foreground hover:text-primary">Finansiel Analyse</a></li>
+                <li><Link to="/" className="text-muted-foreground hover:text-primary">Virksomhedssøgning</Link></li>
+                <li><Link to="/virksomhedsrapporter" className="text-muted-foreground hover:text-primary">Virksomhedsrapporter</Link></li>
+                <li><Link to="/datakilder" className="text-muted-foreground hover:text-primary">Datakilder</Link></li>
               </ul>
             </div>
             <div>
               <h3 className="text-lg font-semibold mb-4">Support</h3>
               <ul className="space-y-2">
-                <li><a href="#" className="text-muted-foreground hover:text-primary">Hjælpecenter</a></li>
-                <li><a href="#" className="text-muted-foreground hover:text-primary">Kontakt Os</a></li>
-                <li><a href="#" className="text-muted-foreground hover:text-primary">FAQ</a></li>
+                <li><Link to="/hjaelpecenter" className="text-muted-foreground hover:text-primary">Hjælpecenter</Link></li>
+                <li><Link to="/kontakt-os" className="text-muted-foreground hover:text-primary">Kontakt Os</Link></li>
+                <li><Link to="/faq" className="text-muted-foreground hover:text-primary">FAQ</Link></li>
               </ul>
             </div>
             <div>
