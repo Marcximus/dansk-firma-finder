@@ -33,7 +33,6 @@ const TrackFoelgPage: React.FC = () => {
                   </div>
                 </div>
                 <CardTitle className="text-xl mb-2">Standard</CardTitle>
-                <Badge variant="secondary" className="mb-2">Gratis</Badge>
                 <CardDescription className="text-sm">
                   Perfekt til at komme i gang
                 </CardDescription>
@@ -136,7 +135,6 @@ const TrackFoelgPage: React.FC = () => {
                   </div>
                 </div>
                 <CardTitle className="text-xl mb-2">Enterprise</CardTitle>
-                <Badge variant="outline" className="mb-2">Erhverv</Badge>
                 <CardDescription className="text-sm">
                   Til store organisationer
                 </CardDescription>
