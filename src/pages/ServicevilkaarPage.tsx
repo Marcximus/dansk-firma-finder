@@ -64,20 +64,106 @@ const ServicevilkaarPage: React.FC = () => {
           <section className="mb-8">
             <h2 className="text-xl font-semibold mb-4">3. Databrug og ansvar</h2>
             <p className="text-muted-foreground mb-4">
-              Alle oplysninger på Selskabsinfo stammer fra offentligt tilgængelige kilder. 
-              Vi bestræber os på at levere korrekte og opdaterede data, men kan ikke garantere 100% nøjagtighed.
+              Alle oplysninger på Selskabsinfo stammer fra offentligt tilgængelige kilder, primært CVR-registeret 
+              og andre officielle danske myndigheder. Vi behandler og præsenterer disse data i god tro, 
+              men kan ikke garantere fuldstændig nøjagtighed, aktualitet eller fuldstændighed.
             </p>
-            <div className="border-l-4 border-yellow-400 pl-4 bg-yellow-50 p-4 rounded-r-lg">
-              <h3 className="font-medium mb-2 text-yellow-800">Ansvarsfraskrivelse</h3>
-              <p className="text-yellow-800">
-                Selskabsinfo påtager sig ikke ansvar for fejl eller mangler i data, 
-                eller for tab der måtte opstå som følge af brug af vores tjenester.
+            
+            <div className="border-l-4 border-red-500 pl-4 bg-red-50 p-4 rounded-r-lg mb-6">
+              <h3 className="font-medium mb-3 text-red-800">VIGTIG ANSVARSFRASKRIVELSE</h3>
+              <p className="text-red-800 mb-3">
+                <strong>Selskabsinfo kan under ingen omstændigheder holdes ansvarspådragende</strong> hvis en virksomhed, 
+                organisation eller person træffer forretningsmæssige, juridiske eller finansielle beslutninger 
+                baseret på de oplysninger, der leveres gennem vores platform.
               </p>
+              <p className="text-red-800 mb-3">
+                Alle oplysninger leveret af Selskabsinfo skal betragtes som vejledende og må aldrig stå alene 
+                som grundlag for vigtige beslutninger. Vi fraråder kraftigt at træffe væsentlige forretningsmæssige 
+                eller juridiske beslutninger udelukkende baseret på vores data.
+              </p>
+              <p className="text-red-800">
+                <strong>Professionel rådgivning er påkrævet:</strong> Alle oplysninger bør altid verificeres og 
+                suppleres med professionel rådgivning fra kvalificerede eksperter inden anvendelse.
+              </p>
+            </div>
+
+            <div className="bg-gray-50 rounded-lg p-4 mb-4">
+              <h3 className="font-medium mb-2">Selskabsinfo påtager sig ikke ansvar for:</h3>
+              <ul className="list-disc pl-5 text-muted-foreground space-y-1">
+                <li>Fejl, unøjagtigheder eller mangler i præsenterede data</li>
+                <li>Forsinkelser i opdatering af oplysninger fra officielle kilder</li>
+                <li>Tab eller skader opstået som følge af brug af vores tjenester</li>
+                <li>Beslutninger truffet på baggrund af vores oplysninger</li>
+                <li>Tekniske fejl, nedetid eller utilgængelighed</li>
+                <li>Uautoriseret adgang til eller misbrug af data</li>
+                <li>Konsekvenser af tredjeparters handlinger baseret på vores data</li>
+              </ul>
+            </div>
+
+            <p className="text-muted-foreground">
+              Brugeren accepterer fuld ansvar for enhver brug af oplysningerne og erkender, 
+              at alle data leveres "som de er" uden nogen form for garanti eller løfte om egnethed til specifikke formål.
+            </p>
+          </section>
+
+          <section className="mb-8">
+            <h2 className="text-xl font-semibold mb-4">4. Krav om professionel verifikation</h2>
+            <div className="border-l-4 border-orange-400 pl-4 bg-orange-50 p-4 rounded-r-lg mb-4">
+              <h3 className="font-medium mb-2 text-orange-800">OBLIGATORISK PROFESSIONEL GENNEMGANG</h3>
+              <p className="text-orange-800">
+                <strong>Alle oplysninger fra Selskabsinfo SKAL altid gennemgås og verificeres af relevante, 
+                kvalificerede professionelle rådgivere før anvendelse til forretningsmæssige eller juridiske formål.</strong>
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+              <div className="border rounded-lg p-4">
+                <h3 className="font-medium mb-2 flex items-center gap-2">
+                  <Shield className="h-4 w-4 text-blue-600" />
+                  Påkrævet juridisk rådgivning
+                </h3>
+                <p className="text-muted-foreground mb-2">
+                  <strong>Alle selskabsretlige forhold SKAL verificeres af:</strong>
+                </p>
+                <ul className="list-disc pl-5 text-muted-foreground space-y-1">
+                  <li>Advokat med specialisering i selskabsret</li>
+                  <li>Juridisk rådgiver med CVR/selskabserfaring</li>
+                  <li>Statsautoriseret revisor for finansielle forhold</li>
+                </ul>
+              </div>
+              <div className="border rounded-lg p-4">
+                <h3 className="font-medium mb-2 flex items-center gap-2">
+                  <Shield className="h-4 w-4 text-green-600" />
+                  Påkrævet finansiel rådgivning  
+                </h3>
+                <p className="text-muted-foreground mb-2">
+                  <strong>Alle finansielle oplysninger SKAL verificeres af:</strong>
+                </p>
+                <ul className="list-disc pl-5 text-muted-foreground space-y-1">
+                  <li>Statsautoriseret revisor</li>
+                  <li>Registreret revisor med relevant erfaring</li>
+                  <li>Certificeret økonomisk rådgiver</li>
+                </ul>
+              </div>
+            </div>
+
+            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+              <h3 className="font-medium mb-2 text-yellow-800">Særlige forhold der kræver professionel verifikation:</h3>
+              <ul className="list-disc pl-5 text-yellow-800 space-y-1">
+                <li>Due diligence undersøgelser forud for opkøb eller fusioner</li>
+                <li>Kreditvurderinger og långivning</li>
+                <li>Investeringsbeslutninger og kapitalallokering</li>
+                <li>Juridiske procedurer og retssager</li>
+                <li>Kontraktuelle forhandlinger og aftaler</li>
+                <li>Compliance og regulatoriske forhold</li>
+                <li>Skattemæssige dispositioner</li>
+                <li>Forsikringsforhold og risikovurdering</li>
+              </ul>
             </div>
           </section>
 
           <section className="mb-8">
-            <h2 className="text-xl font-semibold mb-4">4. Brugerkonto og betaling</h2>
+            <h2 className="text-xl font-semibold mb-4">5. Brugerkonto og betaling</h2>
             <p className="text-muted-foreground mb-4">
               Grundlæggende søgning er gratis. Premium-funktioner kræver oprettelse af konto og betaling.
             </p>
@@ -103,19 +189,32 @@ const ServicevilkaarPage: React.FC = () => {
           </section>
 
           <section className="mb-8">
-            <h2 className="text-xl font-semibold mb-4">5. Forbud og begrænsninger</h2>
+            <h2 className="text-xl font-semibold mb-4">6. Forbud og begrænsninger</h2>
             <p className="text-muted-foreground mb-4">Ved brug af vores tjenester forpligter du dig til ikke at:</p>
-            <ul className="list-disc pl-5 text-muted-foreground space-y-2">
-              <li>Bruge data til ulovlige formål</li>
-              <li>Videresælge eller redistribuere data uden tilladelse</li>
-              <li>Forsøge at omgå tekniske begrænsninger</li>
-              <li>Overbelaste vores systemer med automatiserede opkald</li>
-              <li>Bruge data til spam eller uønsket markedsføring</li>
+            <ul className="list-disc pl-5 text-muted-foreground space-y-2 mb-4">
+              <li>Bruge data til ulovlige formål eller i strid med gældende lovgivning</li>
+              <li>Videresælge, redistribuere eller kommercielt udnytte data uden skriftlig tilladelse</li>
+              <li>Forsøge at omgå tekniske begrænsninger, sikkerhedsforanstaltninger eller adgangskontroller</li>
+              <li>Overbelaste vores systemer med automatiserede opkald, scraping eller DOS-angreb</li>
+              <li>Bruge data til spam, uønsket markedsføring eller krænkelse af privatlivets fred</li>
+              <li>Fremstille eller distribuere vildledende information baseret på vores data</li>
+              <li>Bruge tjenesten til konkurrerende eller skadelige formål</li>
+              <li>Overtræde immaterielle rettigheder tilhørende Selskabsinfo eller tredjeparter</li>
             </ul>
+            
+            <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+              <h3 className="font-medium mb-2 text-red-800">Særlige begrænsninger for forretningsmæssig brug:</h3>
+              <ul className="list-disc pl-5 text-red-800 space-y-1">
+                <li>Data må ikke bruges som eneste grundlag for kreditbeslutninger</li>
+                <li>Oplysninger må ikke videregives til offentlige myndigheder som dokumentation uden verifikation</li>
+                <li>Data må ikke bruges til automatisk beslutningstagning med juridiske konsekvenser</li>
+                <li>Oplysninger må ikke bruges til chikane eller forfølgelse af personer eller virksomheder</li>
+              </ul>
+            </div>
           </section>
 
           <section className="mb-8">
-            <h2 className="text-xl font-semibold mb-4">6. Privatlivsbeskyttelse</h2>
+            <h2 className="text-xl font-semibold mb-4">7. Privatlivsbeskyttelse</h2>
             <p className="text-muted-foreground">
               Vores behandling af personoplysninger er beskrevet i detaljer i vores{' '}
               <Link to="/privatlivspolitik" className="text-primary hover:underline">
@@ -126,7 +225,7 @@ const ServicevilkaarPage: React.FC = () => {
           </section>
 
           <section className="mb-8">
-            <h2 className="text-xl font-semibold mb-4">7. Opsigelse og suspension</h2>
+            <h2 className="text-xl font-semibold mb-4">8. Opsigelse og suspension</h2>
             <p className="text-muted-foreground mb-4">
               Vi forbeholder os ret til at suspendere eller opsige adgang til vores tjenester 
               ved overtrædelse af disse vilkår eller ved misbrug.
@@ -138,7 +237,7 @@ const ServicevilkaarPage: React.FC = () => {
           </section>
 
           <section className="mb-8">
-            <h2 className="text-xl font-semibold mb-4">8. Kontakt og klager</h2>
+            <h2 className="text-xl font-semibold mb-4">9. Kontakt og klager</h2>
             <p className="text-muted-foreground mb-4">
               Hvis du har spørgsmål til disse servicevilkår eller ønsker at indgive en klage, 
               kan du kontakte os:
