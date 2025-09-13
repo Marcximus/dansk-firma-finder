@@ -90,10 +90,10 @@ const VirksomhedsrapporterPage: React.FC = () => {
 
   const sampleReports = [
     {
-      company: 'Novo Nordisk A/S',
-      cvr: '24256790',
-      type: 'Premium',
-      date: '2025-01-15',
+      company: 'LEGO A/S',
+      cvr: '54562712',
+      type: 'Standard',
+      date: '2025-01-13',
       status: 'Klar'
     },
     {
@@ -104,10 +104,10 @@ const VirksomhedsrapporterPage: React.FC = () => {
       status: 'Klar'
     },
     {
-      company: 'LEGO A/S',
-      cvr: '54562712',
-      type: 'Standard',
-      date: '2025-01-13',
+      company: 'Novo Nordisk A/S',
+      cvr: '24256790',
+      type: 'Premium',
+      date: '2025-01-15',
       status: 'Klar'
     }
   ];
