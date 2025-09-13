@@ -25,7 +25,7 @@ const TrackFoelgPage: React.FC = () => {
         <div className="mb-12">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {/* Standard Package */}
-            <Card className="relative hover-scale transition-all duration-300 hover:shadow-lg">
+            <Card className="relative hover-scale transition-all duration-300 hover:shadow-lg flex flex-col h-full">
               <CardHeader className="text-center pb-4">
                 <div className="flex justify-center mb-3">
                   <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center">
@@ -37,12 +37,12 @@ const TrackFoelgPage: React.FC = () => {
                   Perfekt til at komme i gang
                 </CardDescription>
               </CardHeader>
-              <CardContent className="pt-4">
+              <CardContent className="pt-4 flex flex-col flex-grow">
                 <div className="text-center mb-6 pb-4 border-b border-border">
                   <div className="text-4xl font-bold mb-1">0,-</div>
                   <div className="text-sm text-muted-foreground">pr. måned</div>
                 </div>
-                <ul className="space-y-3 mb-8">
+                <ul className="space-y-3 mb-8 flex-grow">
                   <li className="flex items-center gap-3 text-sm">
                     <CheckCircle className="h-4 w-4 text-green-600 flex-shrink-0" />
                     <span>Følg 1 virksomhed</span>
@@ -57,7 +57,7 @@ const TrackFoelgPage: React.FC = () => {
                   </li>
                 </ul>
                 <Button 
-                  className="w-full" 
+                  className="w-full mt-auto" 
                   variant="outline"
                   size="lg"
                   asChild
@@ -70,7 +70,7 @@ const TrackFoelgPage: React.FC = () => {
             </Card>
 
             {/* Premium Package - Featured */}
-            <Card className="relative hover-scale transition-all duration-300 hover:shadow-xl border-primary shadow-lg scale-105">
+            <Card className="relative hover-scale transition-all duration-300 hover:shadow-xl border-primary shadow-lg scale-105 flex flex-col h-full">
               <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
                 <Badge className="bg-primary text-primary-foreground px-4 py-1 text-sm font-semibold">
                   Mest populær
@@ -87,12 +87,12 @@ const TrackFoelgPage: React.FC = () => {
                   Til små og mellemstore virksomheder
                 </CardDescription>
               </CardHeader>
-              <CardContent className="pt-4">
+              <CardContent className="pt-4 flex flex-col flex-grow">
                 <div className="text-center mb-6 pb-4 border-b border-border">
                   <div className="text-4xl font-bold text-primary mb-1">99,-</div>
                   <div className="text-sm text-muted-foreground">pr. måned</div>
                 </div>
-                <ul className="space-y-3 mb-8">
+                <ul className="space-y-3 mb-8 flex-grow">
                   <li className="flex items-center gap-3 text-sm">
                     <CheckCircle className="h-4 w-4 text-green-600 flex-shrink-0" />
                     <span>Følg op til 5 virksomheder</span>
@@ -115,7 +115,7 @@ const TrackFoelgPage: React.FC = () => {
                   </li>
                 </ul>
                 <Button 
-                  className="w-full bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg"
+                  className="w-full bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg mt-auto"
                   size="lg"
                   asChild
                 >
@@ -127,7 +127,7 @@ const TrackFoelgPage: React.FC = () => {
             </Card>
 
             {/* Enterprise Package */}
-            <Card className="relative hover-scale transition-all duration-300 hover:shadow-lg">
+            <Card className="relative hover-scale transition-all duration-300 hover:shadow-lg flex flex-col h-full">
               <CardHeader className="text-center pb-4">
                 <div className="flex justify-center mb-3">
                   <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center">
@@ -139,12 +139,12 @@ const TrackFoelgPage: React.FC = () => {
                   Til store organisationer
                 </CardDescription>
               </CardHeader>
-              <CardContent className="pt-4">
+              <CardContent className="pt-4 flex flex-col flex-grow">
                 <div className="text-center mb-6 pb-4 border-b border-border">
                   <div className="text-4xl font-bold mb-1">499,-</div>
                   <div className="text-sm text-muted-foreground">pr. måned</div>
                 </div>
-                <ul className="space-y-3 mb-8">
+                <ul className="space-y-3 mb-8 flex-grow">
                   <li className="flex items-center gap-3 text-sm">
                     <CheckCircle className="h-4 w-4 text-green-600 flex-shrink-0" />
                     <span>Følg op til 100 virksomheder</span>
@@ -175,7 +175,7 @@ const TrackFoelgPage: React.FC = () => {
                   </li>
                 </ul>
                 <Button 
-                  className="w-full" 
+                  className="w-full mt-auto" 
                   variant="secondary"
                   size="lg"
                   asChild
