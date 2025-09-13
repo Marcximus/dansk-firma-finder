@@ -400,7 +400,7 @@ const VirksomhedsrapporterPage: React.FC = () => {
               <Search className="w-4 h-4 mr-2" />
               Søg virksomhed
             </Button>
-            <Button size="lg" variant="outline" className="text-white border-white hover:bg-white hover:text-primary">
+            <Button size="lg" variant="outline" className="text-primary-foreground border-white hover:bg-white hover:text-primary bg-white/10">
               Se priser og features
             </Button>
           </div>
