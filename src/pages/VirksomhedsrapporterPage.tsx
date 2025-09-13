@@ -169,7 +169,7 @@ const VirksomhedsrapporterPage: React.FC = () => {
           <TabsContent value="types" className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {reportTypes.map((report) => (
-                <Card key={report.id} className="relative overflow-hidden">
+                <Card key={report.id} className="relative overflow-hidden h-full flex flex-col">
                   {report.badge && (
                     <div className="absolute top-4 right-4">
                       <Badge className={`${report.badgeColor} text-white`}>
@@ -184,8 +184,8 @@ const VirksomhedsrapporterPage: React.FC = () => {
                     <div className="text-2xl font-bold text-primary">{report.price}</div>
                   </CardHeader>
                   
-                  <CardContent className="space-y-4">
-                    <ul className="space-y-2">
+                  <CardContent className="space-y-4 flex-1 flex flex-col">
+                    <ul className="space-y-2 flex-1">
                       {report.features.map((feature, index) => (
                         <li key={index} className="flex items-start gap-2 text-sm">
                           <CheckCircle className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
@@ -194,7 +194,7 @@ const VirksomhedsrapporterPage: React.FC = () => {
                       ))}
                     </ul>
                     
-                    <Button className="w-full">
+                    <Button className="w-full bg-primary hover:bg-primary/90 shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 transition-all duration-300">
                       Bestil rapport
                     </Button>
                   </CardContent>
