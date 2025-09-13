@@ -191,8 +191,8 @@ const TrackFoelgPage: React.FC = () => {
 
         {/* How It Works */}
         <Card className="mb-12">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
+          <CardHeader className="text-center">
+            <CardTitle className="flex items-center justify-center gap-2">
               <Users className="h-5 w-5 text-primary" />
               Sådan fungerer det
             </CardTitle>
@@ -289,8 +289,8 @@ const TrackFoelgPage: React.FC = () => {
 
         {/* What You Can Track */}
         <Card className="mb-12">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
+          <CardHeader className="text-center">
+            <CardTitle className="flex items-center justify-center gap-2">
               <BarChart3 className="h-5 w-5 text-primary" />
               Hvad kan du følge?
             </CardTitle>
