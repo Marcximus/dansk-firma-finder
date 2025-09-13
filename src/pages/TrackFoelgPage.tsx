@@ -28,8 +28,8 @@ const TrackFoelgPage: React.FC = () => {
             <Card className="relative hover-scale transition-all duration-300 hover:shadow-lg flex flex-col h-full">
               <CardHeader className="text-center pb-4">
                 <div className="flex justify-center mb-3">
-                  <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center">
-                    <Target className="h-6 w-6 text-gray-600" />
+                  <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
+                    <Target className="h-6 w-6 text-green-600" />
                   </div>
                 </div>
                 <CardTitle className="text-xl mb-2">Standard</CardTitle>
