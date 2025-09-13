@@ -37,10 +37,10 @@ const CompanyHeader: React.FC<CompanyHeaderProps> = ({ company }) => {
   return (
     <div className="bg-white rounded-lg shadow-sm p-6 mb-6 relative">
       <div className="absolute top-4 right-4 text-center">
-        <Button variant="outline" size="sm" className="mb-2">
+        <Button variant="outline" size="sm" className="mb-2 bg-sky-100 border-sky-300 text-sky-700 hover:bg-sky-200">
           Track Dette Selskab
         </Button>
-        <p className="text-xs text-muted-foreground max-w-48 leading-tight">
+        <p className="text-xs text-muted-foreground max-w-48 leading-tight line-clamp-3">
           Få besked på mail når der er ændringer i selskabet, fx nye bestyrelsesmedlemmer, kapital eller regnskaber
         </p>
       </div>
