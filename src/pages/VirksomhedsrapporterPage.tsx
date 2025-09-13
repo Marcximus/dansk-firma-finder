@@ -22,6 +22,19 @@ import {
 const VirksomhedsrapporterPage: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
 
+  const getReportTypeColor = (type: string) => {
+    switch (type) {
+      case 'Premium':
+        return 'text-purple-600';
+      case 'Enterprise':
+        return 'text-blue-600';
+      case 'Standard':
+        return 'text-green-600';
+      default:
+        return 'text-muted-foreground';
+    }
+  };
+
   const reportTypes = [
     {
       id: 'standard',
@@ -271,9 +284,9 @@ const VirksomhedsrapporterPage: React.FC = () => {
                         <FileText className="h-8 w-8 text-primary" />
                         <div>
                           <div className="font-semibold">{report.company}</div>
-                          <div className="text-sm text-muted-foreground">
-                            CVR: {report.cvr} • {report.type} rapport
-                          </div>
+                           <div className="text-sm text-muted-foreground">
+                             CVR: {report.cvr} • <span className={getReportTypeColor(report.type)}>{report.type} rapport</span>
+                           </div>
                           <div className="flex items-center gap-2 text-xs text-muted-foreground">
                             <Calendar className="h-3 w-3" />
                             {report.date}
