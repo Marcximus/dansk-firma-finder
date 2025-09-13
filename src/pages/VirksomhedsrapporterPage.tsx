@@ -29,7 +29,7 @@ const VirksomhedsrapporterPage: React.FC = () => {
   const [searchResults, setSearchResults] = useState<Company[]>([]);
   const [showDropdown, setShowDropdown] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
-  const [selectedCompany, setSelectedCompany] = useState<Company | null>(null);
+  const [selectedCompanies, setSelectedCompanies] = useState<Company[]>([]);
   const [showOrderConfirmation, setShowOrderConfirmation] = useState(false);
   const [selectedReportType, setSelectedReportType] = useState<string>('');
   const searchRef = useRef<HTMLDivElement>(null);
@@ -104,15 +104,21 @@ const VirksomhedsrapporterPage: React.FC = () => {
   };
 
   const handleCompanySelect = (company: Company) => {
-    setSelectedCompany(company);
-    setSearchQuery(company.name);
+    // Check if company is already selected
+    if (selectedCompanies.find(c => c.cvr === company.cvr)) {
+      return; // Don't add duplicate
+    }
+    
+    // Add to selected companies
+    setSelectedCompanies(prev => [...prev, company]);
+    setSearchQuery('');
     setShowDropdown(false);
     setActiveTab('types');
     console.log('Selected company:', company);
   };
 
   const handleReportOrder = (reportId: string) => {
-    if (!selectedCompany) return;
+    if (selectedCompanies.length === 0) return;
     
     setSelectedReportType(reportId);
     setShowOrderConfirmation(true);
@@ -121,17 +127,27 @@ const VirksomhedsrapporterPage: React.FC = () => {
   const handleOrderConfirmation = () => {
     // Here you would implement the actual ordering logic
     // For now, we'll just show a success message
-    console.log('Ordering report:', selectedReportType, 'for company:', selectedCompany);
+    console.log('Ordering report:', selectedReportType, 'for companies:', selectedCompanies);
     setShowOrderConfirmation(false);
     setSelectedReportType('');
     // You could show a success toast or redirect to a confirmation page
   };
 
-  const clearSelection = () => {
-    setSelectedCompany(null);
+  const clearAllSelections = () => {
+    setSelectedCompanies([]);
     setSearchQuery('');
     setSelectedReportType('');
     setShowOrderConfirmation(false);
+  };
+
+  const removeCompany = (cvrToRemove: string) => {
+    setSelectedCompanies(prev => prev.filter(company => company.cvr !== cvrToRemove));
+  };
+
+  const addMoreCompanies = () => {
+    // Clear search and allow adding more companies
+    setSearchQuery('');
+    setShowDropdown(false);
   };
 
   const getReportTypeColor = (type: string) => {
@@ -245,36 +261,54 @@ const VirksomhedsrapporterPage: React.FC = () => {
               Bestil rapport
             </CardTitle>
             <CardDescription>
-              {selectedCompany ? 'Vælg rapporttype for den valgte virksomhed' : 'Søg efter den virksomhed du vil have en rapport om'}
+              {selectedCompanies.length > 0 ? 'Vælg rapporttype for dine valgte virksomheder' : 'Søg efter den virksomhed du vil have en rapport om'}
             </CardDescription>
           </CardHeader>
           <CardContent>
-            {selectedCompany ? (
+            {selectedCompanies.length > 0 ? (
               <div className="space-y-4">
-                <div className="flex items-center justify-between p-4 bg-primary/5 border border-primary/20 rounded-lg">
-                  <div className="flex items-center gap-3">
-                    <Building className="h-8 w-8 text-primary" />
-                    <div>
-                      <div className="font-semibold text-lg">{selectedCompany.name}</div>
-                      <div className="text-sm text-muted-foreground">
-                        CVR: {selectedCompany.cvr} • {selectedCompany.city}
-                      </div>
-                      {selectedCompany.industry && (
-                        <div className="text-sm text-muted-foreground">
-                          {selectedCompany.industry}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                  <Button variant="outline" size="sm" onClick={clearSelection}>
-                    Vælg anden virksomhed
-                  </Button>
-                </div>
-                
+                {/* Report selection text - moved to top */}
                 <div className="text-center">
                   <p className="text-muted-foreground mb-4">
-                    Vælg den type rapport du ønsker for <span className="font-medium">{selectedCompany.name}</span>
+                    Vælg den type rapport du ønsker for {selectedCompanies.length === 1 
+                      ? selectedCompanies[0].name 
+                      : `${selectedCompanies.length} virksomheder`}
                   </p>
+                </div>
+
+                {/* Selected companies grid */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {selectedCompanies.map((company) => (
+                    <div key={company.cvr} className="flex items-center justify-between p-4 bg-primary/5 border border-primary/20 rounded-lg">
+                      <div className="flex items-center gap-3">
+                        <Building className="h-6 w-6 text-primary" />
+                        <div>
+                          <div className="font-semibold">{company.name}</div>
+                          <div className="text-sm text-muted-foreground">
+                            CVR: {company.cvr} • {company.city}
+                          </div>
+                          {company.industry && (
+                            <div className="text-sm text-muted-foreground">
+                              {company.industry}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                      <Button variant="outline" size="sm" onClick={() => removeCompany(company.cvr)}>
+                        Fjern
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Action buttons - moved to bottom */}
+                <div className="flex flex-col sm:flex-row gap-2 justify-center">
+                  <Button variant="outline" size="sm" onClick={addMoreCompanies}>
+                    Vælg flere selskaber
+                  </Button>
+                  <Button variant="outline" size="sm" onClick={clearAllSelections}>
+                    Ryd alle valg
+                  </Button>
                 </div>
               </div>
             ) : (
@@ -300,27 +334,37 @@ const VirksomhedsrapporterPage: React.FC = () => {
                           </div>
                         ) : searchResults.length > 0 ? (
                           <div className="max-h-[240px] overflow-y-auto">
-                            {searchResults.slice(0, 3).map((company, index) => (
-                              <div
-                                key={company.cvr}
-                                className="p-3 hover:bg-accent cursor-pointer border-b border-border last:border-b-0 transition-colors"
-                                onClick={() => handleCompanySelect(company)}
-                              >
-                                <div className="flex items-start gap-3">
-                                  <Building className="h-4 w-4 text-muted-foreground mt-1 flex-shrink-0" />
-                                  <div className="flex-1 min-w-0">
-                                    <div className="font-medium text-sm truncate">{company.name}</div>
-                                    <div className="text-xs text-muted-foreground">
-                                      CVR: {company.cvr}
-                                    </div>
-                                    <div className="flex items-center gap-1 text-xs text-muted-foreground mt-1">
-                                      <MapPin className="h-3 w-3" />
-                                      {company.city}
+                            {searchResults.slice(0, 3).map((company, index) => {
+                              const isSelected = selectedCompanies.find(c => c.cvr === company.cvr);
+                              return (
+                                <div
+                                  key={company.cvr}
+                                  className={`p-3 ${isSelected ? 'bg-primary/10 border-l-2 border-l-primary cursor-default' : 'hover:bg-accent cursor-pointer'} border-b border-border last:border-b-0 transition-colors`}
+                                  onClick={() => !isSelected && handleCompanySelect(company)}
+                                >
+                                  <div className="flex items-start gap-3">
+                                    <Building className="h-4 w-4 text-muted-foreground mt-1 flex-shrink-0" />
+                                    <div className="flex-1 min-w-0">
+                                      <div className="font-medium text-sm truncate flex items-center gap-2">
+                                        {company.name}
+                                        {isSelected && (
+                                          <Badge variant="secondary" className="text-xs">
+                                            Valgt
+                                          </Badge>
+                                        )}
+                                      </div>
+                                      <div className="text-xs text-muted-foreground">
+                                        CVR: {company.cvr}
+                                      </div>
+                                      <div className="flex items-center gap-1 text-xs text-muted-foreground mt-1">
+                                        <MapPin className="h-3 w-3" />
+                                        {company.city}
+                                      </div>
                                     </div>
                                   </div>
                                 </div>
-                              </div>
-                            ))}
+                              );
+                            })}
                             
                             {searchResults.length > 3 && (
                               <div className="p-2 bg-muted/50 text-center">
@@ -381,9 +425,11 @@ const VirksomhedsrapporterPage: React.FC = () => {
                     
                     <Button 
                       className="w-full bg-primary hover:bg-primary/90 shadow-lg shadow-primary/30 hover:shadow-xl hover:shadow-primary/50 border border-primary/10 hover:border-primary/20 transition-all duration-700 hover:scale-[1.01] font-medium"
-                      onClick={() => selectedCompany ? handleReportOrder(report.id) : scrollToSearch()}
+                      onClick={() => selectedCompanies.length > 0 ? handleReportOrder(report.id) : scrollToSearch()}
                     >
-                      {selectedCompany ? `Bestil ${report.title.toLowerCase()} for ${selectedCompany.name}` : 'Vælg virksomhed først'}
+                      {selectedCompanies.length > 0 
+                        ? `Bestil ${report.title.toLowerCase()} for ${selectedCompanies.length} ${selectedCompanies.length === 1 ? 'virksomhed' : 'virksomheder'}` 
+                        : 'Vælg virksomhed først'}
                     </Button>
                   </CardContent>
                 </Card>
@@ -592,41 +638,54 @@ const VirksomhedsrapporterPage: React.FC = () => {
 
         {/* Order Confirmation Dialog */}
         <Dialog open={showOrderConfirmation} onOpenChange={setShowOrderConfirmation}>
-          <DialogContent className="sm:max-w-[425px]">
+          <DialogContent className="sm:max-w-[500px]">
             <DialogHeader>
               <DialogTitle>Bekræft bestilling</DialogTitle>
               <DialogDescription>
-                Du er ved at bestille en rapport for {selectedCompany?.name}
+                Du er ved at bestille rapporter for {selectedCompanies.length} {selectedCompanies.length === 1 ? 'virksomhed' : 'virksomheder'}
               </DialogDescription>
             </DialogHeader>
             
-            {selectedCompany && selectedReportType && (
+            {selectedCompanies.length > 0 && selectedReportType && (
               <div className="space-y-4">
                 <div className="p-4 bg-muted rounded-lg">
-                  <div className="flex items-center gap-3 mb-3">
-                    <Building className="h-5 w-5 text-primary" />
-                    <div>
-                      <div className="font-semibold">{selectedCompany.name}</div>
-                      <div className="text-sm text-muted-foreground">CVR: {selectedCompany.cvr}</div>
-                    </div>
+                  <h4 className="font-semibold mb-3">Valgte virksomheder:</h4>
+                  <div className="space-y-2 max-h-32 overflow-y-auto">
+                    {selectedCompanies.map((company) => (
+                      <div key={company.cvr} className="flex items-center gap-3">
+                        <Building className="h-4 w-4 text-primary flex-shrink-0" />
+                        <div className="flex-1 min-w-0">
+                          <div className="font-medium text-sm truncate">{company.name}</div>
+                          <div className="text-xs text-muted-foreground">CVR: {company.cvr}</div>
+                        </div>
+                      </div>
+                    ))}
                   </div>
                   
-                  <div className="border-t pt-3">
+                  <div className="border-t pt-3 mt-3">
                     {(() => {
                       const report = reportTypes.find(r => r.id === selectedReportType);
-                      return report ? (
+                      if (!report) return null;
+                      
+                      const totalPrice = report.price === 'Gratis' ? 'Gratis' : 
+                        `${parseInt(report.price.replace(/\D/g, '')) * selectedCompanies.length} kr.`;
+                      
+                      return (
                         <div>
                           <div className="font-semibold">{report.title}</div>
                           <div className="text-sm text-muted-foreground mb-2">{report.description}</div>
-                          <div className="text-lg font-bold text-primary">{report.price}</div>
+                          <div className="flex justify-between items-center">
+                            <span className="text-sm">Total pris:</span>
+                            <span className="text-lg font-bold text-primary">{totalPrice}</span>
+                          </div>
                         </div>
-                      ) : null;
+                      );
                     })()}
                   </div>
                 </div>
                 
                 <div className="text-sm text-muted-foreground">
-                  Rapporten vil være klar til download inden for 24 timer og sendes til din email.
+                  Rapporterne vil være klar til download inden for 24 timer og sendes til din email.
                 </div>
               </div>
             )}
