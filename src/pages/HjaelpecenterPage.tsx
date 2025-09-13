@@ -6,10 +6,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Link } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-
 const HjaelpecenterPage: React.FC = () => {
-  return (
-    <Layout>
+  return <Layout>
       <div className="py-8 max-w-6xl mx-auto px-4">
         <div className="text-center mb-8">
           <div className="flex items-center justify-center gap-2 mb-4">
@@ -23,10 +21,7 @@ const HjaelpecenterPage: React.FC = () => {
           <div className="max-w-md mx-auto">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              <Input 
-                className="pl-10"
-                placeholder="Søg efter hjælp..." 
-              />
+              <Input className="pl-10" placeholder="Søg efter hjælp..." />
             </div>
           </div>
         </div>
@@ -39,13 +34,11 @@ const HjaelpecenterPage: React.FC = () => {
                 <Book className="h-5 w-5" />
                 Guide til søgning
               </CardTitle>
-              <CardDescription>
-                Lær hvordan du finder de virksomheder du leder efter
-              </CardDescription>
+              <CardDescription>Lær hvordan du finder og tracker virksomheder</CardDescription>
             </CardHeader>
             <CardContent>
               <Button asChild className="w-full">
-                <Link to="/soegeguide">Se guide</Link>
+                <Link to="#search-guide">Se guide</Link>
               </Button>
             </CardContent>
           </Card>
@@ -299,8 +292,6 @@ const HjaelpecenterPage: React.FC = () => {
           </div>
         </div>
       </div>
-    </Layout>
-  );
+    </Layout>;
 };
-
 export default HjaelpecenterPage;
