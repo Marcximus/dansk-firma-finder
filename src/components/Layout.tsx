@@ -582,7 +582,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
               <ul className="space-y-2">
                 <li><Link to="/" className="text-muted-foreground hover:text-primary">Virksomhedssøgning</Link></li>
                 <li><Link to="/virksomhedsrapporter" className="text-muted-foreground hover:text-primary">Virksomhedsrapporter</Link></li>
-                <li><Link to="/datakilder" className="text-muted-foreground hover:text-primary">Datakilder</Link></li>
+                <li><Link to="/track-foelg" className="text-muted-foreground hover:text-primary">Track & Følg</Link></li>
               </ul>
             </div>
             <div>
@@ -598,6 +598,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
               <ul className="space-y-2">
                 <li><Link to="/servicevilkaar" className="text-muted-foreground hover:text-primary">Servicevilkår</Link></li>
                 <li><Link to="/privatlivspolitik" className="text-muted-foreground hover:text-primary">Privatlivspolitik</Link></li>
+                <li><Link to="/datakilder" className="text-muted-foreground hover:text-primary">Datakilder</Link></li>
               </ul>
             </div>
           </div>
