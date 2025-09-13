@@ -11,6 +11,7 @@ import ServicevilkaarPage from "./pages/ServicevilkaarPage";
 import PrivatlivspolitikPage from "./pages/PrivatlivspolitikPage";
 import HjaelpecenterPage from "./pages/HjaelpecenterPage";
 import SearchGuidePage from "./pages/SearchGuidePage";
+import DatabehandlingPage from "./pages/DatabehandlingPage";
 import KontaktOsPage from "./pages/KontaktOsPage";
 import VirksomhedsrapporterPage from "./pages/VirksomhedsrapporterPage";
 import DatakilderPage from "./pages/DatakilderPage";
@@ -32,6 +33,7 @@ const App = () => (
           <Route path="/privatlivspolitik" element={<PrivatlivspolitikPage />} />
           <Route path="/hjaelpecenter" element={<HjaelpecenterPage />} />
           <Route path="/soegeguide" element={<SearchGuidePage />} />
+          <Route path="/databehandling" element={<DatabehandlingPage />} />
           <Route path="/kontakt-os" element={<KontaktOsPage />} />
           <Route path="/virksomhedsrapporter" element={<VirksomhedsrapporterPage />} />
           <Route path="/datakilder" element={<DatakilderPage />} />
