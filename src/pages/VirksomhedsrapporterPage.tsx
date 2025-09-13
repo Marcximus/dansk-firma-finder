@@ -21,6 +21,30 @@ import {
 
 const VirksomhedsrapporterPage: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
+  const [activeTab, setActiveTab] = useState('types');
+
+  const scrollToSearch = () => {
+    const searchElement = document.querySelector('[data-search-section]');
+    if (searchElement) {
+      searchElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      // Focus on the search input after scrolling
+      setTimeout(() => {
+        const searchInput = document.querySelector('input[placeholder*="Indtast virksomhedsnavn"]') as HTMLInputElement;
+        if (searchInput) {
+          searchInput.focus();
+        }
+      }, 500);
+    }
+  };
+
+  const switchToReportTypes = () => {
+    setActiveTab('types');
+    // Scroll to the tabs section
+    const tabsElement = document.querySelector('[data-tabs-section]');
+    if (tabsElement) {
+      tabsElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
 
   const getReportTypeColor = (type: string) => {
     switch (type) {
@@ -132,7 +156,7 @@ const VirksomhedsrapporterPage: React.FC = () => {
         </div>
 
         {/* Search Section */}
-        <Card className="mb-8">
+        <Card className="mb-8" data-search-section>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Search className="h-5 w-5" />
@@ -159,7 +183,7 @@ const VirksomhedsrapporterPage: React.FC = () => {
           </CardContent>
         </Card>
 
-        <Tabs defaultValue="types" className="w-full">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full" data-tabs-section>
           <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="types">Rapporttyper</TabsTrigger>
             <TabsTrigger value="samples">Eksempelrapporter</TabsTrigger>
@@ -409,11 +433,11 @@ const VirksomhedsrapporterPage: React.FC = () => {
             Begynd med en gratis Standard rapport eller få en omfattende analyse med vores Premium og Enterprise rapporter.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button size="lg" variant="secondary">
+            <Button size="lg" variant="secondary" onClick={scrollToSearch}>
               <Search className="w-4 h-4 mr-2" />
               Søg virksomhed
             </Button>
-            <Button size="lg" variant="outline" className="text-primary-foreground border-white hover:bg-white hover:text-primary bg-white/10">
+            <Button size="lg" variant="outline" className="text-primary-foreground border-white hover:bg-white hover:text-primary bg-white/10" onClick={switchToReportTypes}>
               Se priser og features
             </Button>
           </div>
