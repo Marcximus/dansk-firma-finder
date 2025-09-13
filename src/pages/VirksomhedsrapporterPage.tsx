@@ -251,6 +251,12 @@ const VirksomhedsrapporterPage: React.FC = () => {
           <CardContent>
             {selectedCompany ? (
               <div className="space-y-4">
+                <div className="text-center">
+                  <p className="text-muted-foreground mb-4">
+                    Vælg den type rapport du ønsker for <span className="font-medium">{selectedCompany.name}</span>
+                  </p>
+                </div>
+                
                 <div className="flex items-center justify-between p-4 bg-primary/5 border border-primary/20 rounded-lg">
                   <div className="flex items-center gap-3">
                     <Building className="h-8 w-8 text-primary" />
@@ -269,12 +275,6 @@ const VirksomhedsrapporterPage: React.FC = () => {
                   <Button variant="outline" size="sm" onClick={clearSelection}>
                     Vælg anden virksomhed
                   </Button>
-                </div>
-                
-                <div className="text-center">
-                  <p className="text-muted-foreground mb-4">
-                    Vælg den type rapport du ønsker for <span className="font-medium">{selectedCompany.name}</span>
-                  </p>
                 </div>
               </div>
             ) : (
