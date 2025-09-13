@@ -45,7 +45,7 @@ const HjaelpecenterPage: React.FC = () => {
             </CardHeader>
             <CardContent>
               <Button asChild className="w-full">
-                <Link to="#search-guide">Se guide</Link>
+                <Link to="/soegeguide">Se guide</Link>
               </Button>
             </CardContent>
           </Card>
