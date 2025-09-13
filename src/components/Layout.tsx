@@ -598,7 +598,6 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
               <ul className="space-y-2">
                 <li><Link to="/servicevilkaar" className="text-muted-foreground hover:text-primary">Servicevilkår</Link></li>
                 <li><Link to="/privatlivspolitik" className="text-muted-foreground hover:text-primary">Privatlivspolitik</Link></li>
-                <li><Link to="/databehandling" className="text-muted-foreground hover:text-primary">Databehandling</Link></li>
               </ul>
             </div>
           </div>
