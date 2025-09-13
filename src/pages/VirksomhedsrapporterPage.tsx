@@ -34,6 +34,7 @@ const VirksomhedsrapporterPage: React.FC = () => {
   const [selectedReportType, setSelectedReportType] = useState<string>('');
   const [showSearchInput, setShowSearchInput] = useState(true);
   const searchRef = useRef<HTMLDivElement>(null);
+  const searchInputRef = useRef<HTMLInputElement>(null);
   const debouncedSearchQuery = useDebounce(searchQuery, 300);
 
   // Handle search results
@@ -78,9 +79,8 @@ const VirksomhedsrapporterPage: React.FC = () => {
       searchElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
       // Focus on the search input after scrolling
       setTimeout(() => {
-        const searchInput = document.querySelector('input[placeholder*="Indtast virksomhedsnavn"]') as HTMLInputElement;
-        if (searchInput) {
-          searchInput.focus();
+        if (searchInputRef.current) {
+          searchInputRef.current.focus();
         }
       }, 500);
     }
@@ -348,6 +348,7 @@ const VirksomhedsrapporterPage: React.FC = () => {
                   <form onSubmit={handleSearch} className="flex gap-2">
                     <div className="flex-1 relative">
                       <Input
+                        ref={searchInputRef}
                         placeholder="Indtast virksomhedsnavn eller CVR-nummer..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
