@@ -19,6 +19,7 @@ import {
   CheckCircle,
   MapPin
 } from 'lucide-react';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { searchCompanies, Company } from '@/services/companyAPI';
 import { useDebounce } from '@/hooks/useDebounce';
 
@@ -28,6 +29,9 @@ const VirksomhedsrapporterPage: React.FC = () => {
   const [searchResults, setSearchResults] = useState<Company[]>([]);
   const [showDropdown, setShowDropdown] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
+  const [selectedCompany, setSelectedCompany] = useState<Company | null>(null);
+  const [showOrderConfirmation, setShowOrderConfirmation] = useState(false);
+  const [selectedReportType, setSelectedReportType] = useState<string>('');
   const searchRef = useRef<HTMLDivElement>(null);
   const debouncedSearchQuery = useDebounce(searchQuery, 300);
 
@@ -100,10 +104,34 @@ const VirksomhedsrapporterPage: React.FC = () => {
   };
 
   const handleCompanySelect = (company: Company) => {
+    setSelectedCompany(company);
     setSearchQuery(company.name);
     setShowDropdown(false);
-    // Here you could navigate to company details or handle selection
+    setActiveTab('types');
     console.log('Selected company:', company);
+  };
+
+  const handleReportOrder = (reportId: string) => {
+    if (!selectedCompany) return;
+    
+    setSelectedReportType(reportId);
+    setShowOrderConfirmation(true);
+  };
+
+  const handleOrderConfirmation = () => {
+    // Here you would implement the actual ordering logic
+    // For now, we'll just show a success message
+    console.log('Ordering report:', selectedReportType, 'for company:', selectedCompany);
+    setShowOrderConfirmation(false);
+    setSelectedReportType('');
+    // You could show a success toast or redirect to a confirmation page
+  };
+
+  const clearSelection = () => {
+    setSelectedCompany(null);
+    setSearchQuery('');
+    setSelectedReportType('');
+    setShowOrderConfirmation(false);
   };
 
   const getReportTypeColor = (type: string) => {
@@ -217,72 +245,102 @@ const VirksomhedsrapporterPage: React.FC = () => {
               Bestil rapport
             </CardTitle>
             <CardDescription>
-              Søg efter den virksomhed du vil have en rapport om
+              {selectedCompany ? 'Vælg rapporttype for den valgte virksomhed' : 'Søg efter den virksomhed du vil have en rapport om'}
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="relative" ref={searchRef}>
-              <form onSubmit={handleSearch} className="flex gap-2">
-                <div className="flex-1 relative">
-                  <Input
-                    placeholder="Indtast virksomhedsnavn eller CVR-nummer..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    onFocus={() => searchResults.length > 0 && setShowDropdown(true)}
-                  />
-                  
-                  {/* Search Results Dropdown */}
-                  {showDropdown && (searchResults.length > 0 || isSearching) && (
-                    <div className="absolute top-full left-0 right-0 z-50 mt-1 bg-background border border-border rounded-lg shadow-lg max-h-[240px] overflow-hidden">
-                      {isSearching ? (
-                        <div className="p-4 text-center text-muted-foreground">
-                          <div className="flex items-center justify-center gap-2">
-                            <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
-                            Søger...
-                          </div>
+            {selectedCompany ? (
+              <div className="space-y-4">
+                <div className="flex items-center justify-between p-4 bg-primary/5 border border-primary/20 rounded-lg">
+                  <div className="flex items-center gap-3">
+                    <Building className="h-8 w-8 text-primary" />
+                    <div>
+                      <div className="font-semibold text-lg">{selectedCompany.name}</div>
+                      <div className="text-sm text-muted-foreground">
+                        CVR: {selectedCompany.cvr} • {selectedCompany.city}
+                      </div>
+                      {selectedCompany.industry && (
+                        <div className="text-sm text-muted-foreground">
+                          {selectedCompany.industry}
                         </div>
-                      ) : searchResults.length > 0 ? (
-                        <div className="max-h-[240px] overflow-y-auto">
-                          {searchResults.slice(0, 3).map((company, index) => (
-                            <div
-                              key={company.cvr}
-                              className="p-3 hover:bg-accent cursor-pointer border-b border-border last:border-b-0 transition-colors"
-                              onClick={() => handleCompanySelect(company)}
-                            >
-                              <div className="flex items-start gap-3">
-                                <Building className="h-4 w-4 text-muted-foreground mt-1 flex-shrink-0" />
-                                <div className="flex-1 min-w-0">
-                                  <div className="font-medium text-sm truncate">{company.name}</div>
-                                  <div className="text-xs text-muted-foreground">
-                                    CVR: {company.cvr}
-                                  </div>
-                                  <div className="flex items-center gap-1 text-xs text-muted-foreground mt-1">
-                                    <MapPin className="h-3 w-3" />
-                                    {company.city}
+                      )}
+                    </div>
+                  </div>
+                  <Button variant="outline" size="sm" onClick={clearSelection}>
+                    Vælg anden virksomhed
+                  </Button>
+                </div>
+                
+                <div className="text-center">
+                  <p className="text-muted-foreground mb-4">
+                    Vælg den type rapport du ønsker for <span className="font-medium">{selectedCompany.name}</span>
+                  </p>
+                </div>
+              </div>
+            ) : (
+              <div className="relative" ref={searchRef}>
+                <form onSubmit={handleSearch} className="flex gap-2">
+                  <div className="flex-1 relative">
+                    <Input
+                      placeholder="Indtast virksomhedsnavn eller CVR-nummer..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      onFocus={() => searchResults.length > 0 && setShowDropdown(true)}
+                    />
+                    
+                    {/* Search Results Dropdown */}
+                    {showDropdown && (searchResults.length > 0 || isSearching) && (
+                      <div className="absolute top-full left-0 right-0 z-50 mt-1 bg-background border border-border rounded-lg shadow-lg max-h-[240px] overflow-hidden">
+                        {isSearching ? (
+                          <div className="p-4 text-center text-muted-foreground">
+                            <div className="flex items-center justify-center gap-2">
+                              <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
+                              Søger...
+                            </div>
+                          </div>
+                        ) : searchResults.length > 0 ? (
+                          <div className="max-h-[240px] overflow-y-auto">
+                            {searchResults.slice(0, 3).map((company, index) => (
+                              <div
+                                key={company.cvr}
+                                className="p-3 hover:bg-accent cursor-pointer border-b border-border last:border-b-0 transition-colors"
+                                onClick={() => handleCompanySelect(company)}
+                              >
+                                <div className="flex items-start gap-3">
+                                  <Building className="h-4 w-4 text-muted-foreground mt-1 flex-shrink-0" />
+                                  <div className="flex-1 min-w-0">
+                                    <div className="font-medium text-sm truncate">{company.name}</div>
+                                    <div className="text-xs text-muted-foreground">
+                                      CVR: {company.cvr}
+                                    </div>
+                                    <div className="flex items-center gap-1 text-xs text-muted-foreground mt-1">
+                                      <MapPin className="h-3 w-3" />
+                                      {company.city}
+                                    </div>
                                   </div>
                                 </div>
                               </div>
-                            </div>
-                          ))}
-                          
-                          {searchResults.length > 3 && (
-                            <div className="p-2 bg-muted/50 text-center">
-                              <span className="text-xs text-muted-foreground">
-                                Scroll for flere resultater ({searchResults.length - 3} mere)
-                              </span>
-                            </div>
-                          )}
-                        </div>
-                      ) : null}
-                    </div>
-                  )}
-                </div>
-                <Button type="submit">
-                  <Search className="w-4 h-4 mr-2" />
-                  Søg
-                </Button>
-              </form>
-            </div>
+                            ))}
+                            
+                            {searchResults.length > 3 && (
+                              <div className="p-2 bg-muted/50 text-center">
+                                <span className="text-xs text-muted-foreground">
+                                  Scroll for flere resultater ({searchResults.length - 3} mere)
+                                </span>
+                              </div>
+                            )}
+                          </div>
+                        ) : null}
+                      </div>
+                    )}
+                  </div>
+                  <Button type="submit">
+                    <Search className="w-4 h-4 mr-2" />
+                    Søg
+                  </Button>
+                </form>
+              </div>
+            )}
           </CardContent>
         </Card>
 
@@ -321,8 +379,11 @@ const VirksomhedsrapporterPage: React.FC = () => {
                       ))}
                     </ul>
                     
-                    <Button className="w-full bg-primary hover:bg-primary/90 shadow-lg shadow-primary/30 hover:shadow-xl hover:shadow-primary/50 border border-primary/10 hover:border-primary/20 transition-all duration-700 hover:scale-[1.01] font-medium">
-                      Bestil rapport
+                    <Button 
+                      className="w-full bg-primary hover:bg-primary/90 shadow-lg shadow-primary/30 hover:shadow-xl hover:shadow-primary/50 border border-primary/10 hover:border-primary/20 transition-all duration-700 hover:scale-[1.01] font-medium"
+                      onClick={() => selectedCompany ? handleReportOrder(report.id) : scrollToSearch()}
+                    >
+                      {selectedCompany ? `Bestil ${report.title.toLowerCase()} for ${selectedCompany.name}` : 'Vælg virksomhed først'}
                     </Button>
                   </CardContent>
                 </Card>
@@ -528,6 +589,58 @@ const VirksomhedsrapporterPage: React.FC = () => {
             </div>
           </TabsContent>
         </Tabs>
+
+        {/* Order Confirmation Dialog */}
+        <Dialog open={showOrderConfirmation} onOpenChange={setShowOrderConfirmation}>
+          <DialogContent className="sm:max-w-[425px]">
+            <DialogHeader>
+              <DialogTitle>Bekræft bestilling</DialogTitle>
+              <DialogDescription>
+                Du er ved at bestille en rapport for {selectedCompany?.name}
+              </DialogDescription>
+            </DialogHeader>
+            
+            {selectedCompany && selectedReportType && (
+              <div className="space-y-4">
+                <div className="p-4 bg-muted rounded-lg">
+                  <div className="flex items-center gap-3 mb-3">
+                    <Building className="h-5 w-5 text-primary" />
+                    <div>
+                      <div className="font-semibold">{selectedCompany.name}</div>
+                      <div className="text-sm text-muted-foreground">CVR: {selectedCompany.cvr}</div>
+                    </div>
+                  </div>
+                  
+                  <div className="border-t pt-3">
+                    {(() => {
+                      const report = reportTypes.find(r => r.id === selectedReportType);
+                      return report ? (
+                        <div>
+                          <div className="font-semibold">{report.title}</div>
+                          <div className="text-sm text-muted-foreground mb-2">{report.description}</div>
+                          <div className="text-lg font-bold text-primary">{report.price}</div>
+                        </div>
+                      ) : null;
+                    })()}
+                  </div>
+                </div>
+                
+                <div className="text-sm text-muted-foreground">
+                  Rapporten vil være klar til download inden for 24 timer og sendes til din email.
+                </div>
+              </div>
+            )}
+            
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setShowOrderConfirmation(false)}>
+                Annuller
+              </Button>
+              <Button onClick={handleOrderConfirmation}>
+                Bekræft bestilling
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
 
         {/* Call to Action */}
         <div className="mt-12 text-center bg-gradient-to-br from-primary to-primary/80 text-white rounded-lg p-8">
