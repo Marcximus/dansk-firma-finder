@@ -32,6 +32,7 @@ const VirksomhedsrapporterPage: React.FC = () => {
   const [selectedCompanies, setSelectedCompanies] = useState<Company[]>([]);
   const [showOrderConfirmation, setShowOrderConfirmation] = useState(false);
   const [selectedReportType, setSelectedReportType] = useState<string>('');
+  const [showSearchInput, setShowSearchInput] = useState(true);
   const searchRef = useRef<HTMLDivElement>(null);
   const debouncedSearchQuery = useDebounce(searchQuery, 300);
 
@@ -113,6 +114,7 @@ const VirksomhedsrapporterPage: React.FC = () => {
     setSelectedCompanies(prev => [...prev, company]);
     setSearchQuery('');
     setShowDropdown(false);
+    setShowSearchInput(false); // Hide search input after selecting
     setActiveTab('types');
     console.log('Selected company:', company);
   };
@@ -138,14 +140,22 @@ const VirksomhedsrapporterPage: React.FC = () => {
     setSearchQuery('');
     setSelectedReportType('');
     setShowOrderConfirmation(false);
+    setShowSearchInput(true); // Show search input when clearing
   };
 
   const removeCompany = (cvrToRemove: string) => {
-    setSelectedCompanies(prev => prev.filter(company => company.cvr !== cvrToRemove));
+    const newCompanies = selectedCompanies.filter(company => company.cvr !== cvrToRemove);
+    setSelectedCompanies(newCompanies);
+    
+    // If no companies left, show search input again
+    if (newCompanies.length === 0) {
+      setShowSearchInput(true);
+    }
   };
 
   const addMoreCompanies = () => {
-    // Clear search and allow adding more companies
+    // Show search input to allow adding more companies
+    setShowSearchInput(true);
     setSearchQuery('');
     setShowDropdown(false);
   };
@@ -265,7 +275,7 @@ const VirksomhedsrapporterPage: React.FC = () => {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            {selectedCompanies.length > 0 ? (
+            {selectedCompanies.length > 0 && !showSearchInput ? (
               <div className="space-y-4">
                 {/* Report selection text - moved to top */}
                 <div className="text-center">
@@ -312,77 +322,108 @@ const VirksomhedsrapporterPage: React.FC = () => {
                 </div>
               </div>
             ) : (
-              <div className="relative" ref={searchRef}>
-                <form onSubmit={handleSearch} className="flex gap-2">
-                  <div className="flex-1 relative">
-                    <Input
-                      placeholder="Indtast virksomhedsnavn eller CVR-nummer..."
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      onFocus={() => searchResults.length > 0 && setShowDropdown(true)}
-                    />
-                    
-                    {/* Search Results Dropdown */}
-                    {showDropdown && (searchResults.length > 0 || isSearching) && (
-                      <div className="absolute top-full left-0 right-0 z-50 mt-1 bg-background border border-border rounded-lg shadow-lg max-h-[240px] overflow-hidden">
-                        {isSearching ? (
-                          <div className="p-4 text-center text-muted-foreground">
-                            <div className="flex items-center justify-center gap-2">
-                              <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
-                              Søger...
-                            </div>
+              <div className="space-y-4">
+                {/* Show selected companies if any exist, even when adding more */}
+                {selectedCompanies.length > 0 && (
+                  <div className="space-y-3">
+                    <h4 className="font-medium text-sm">Valgte virksomheder:</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      {selectedCompanies.map((company) => (
+                        <div key={company.cvr} className="flex items-center justify-between p-3 bg-primary/5 border border-primary/20 rounded-lg text-sm">
+                          <div className="flex items-center gap-2">
+                            <Building className="h-4 w-4 text-primary" />
+                            <span className="font-medium">{company.name}</span>
                           </div>
-                        ) : searchResults.length > 0 ? (
-                          <div className="max-h-[240px] overflow-y-auto">
-                            {searchResults.slice(0, 3).map((company, index) => {
-                              const isSelected = selectedCompanies.find(c => c.cvr === company.cvr);
-                              return (
-                                <div
-                                  key={company.cvr}
-                                  className={`p-3 ${isSelected ? 'bg-primary/10 border-l-2 border-l-primary cursor-default' : 'hover:bg-accent cursor-pointer'} border-b border-border last:border-b-0 transition-colors`}
-                                  onClick={() => !isSelected && handleCompanySelect(company)}
-                                >
-                                  <div className="flex items-start gap-3">
-                                    <Building className="h-4 w-4 text-muted-foreground mt-1 flex-shrink-0" />
-                                    <div className="flex-1 min-w-0">
-                                      <div className="font-medium text-sm truncate flex items-center gap-2">
-                                        {company.name}
-                                        {isSelected && (
-                                          <Badge variant="secondary" className="text-xs">
-                                            Valgt
-                                          </Badge>
-                                        )}
-                                      </div>
-                                      <div className="text-xs text-muted-foreground">
-                                        CVR: {company.cvr}
-                                      </div>
-                                      <div className="flex items-center gap-1 text-xs text-muted-foreground mt-1">
-                                        <MapPin className="h-3 w-3" />
-                                        {company.city}
+                          <Button variant="outline" size="sm" onClick={() => removeCompany(company.cvr)}>
+                            Fjern
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Search input */}
+                <div className="relative" ref={searchRef}>
+                  <form onSubmit={handleSearch} className="flex gap-2">
+                    <div className="flex-1 relative">
+                      <Input
+                        placeholder="Indtast virksomhedsnavn eller CVR-nummer..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        onFocus={() => searchResults.length > 0 && setShowDropdown(true)}
+                      />
+                      
+                      {/* Search Results Dropdown */}
+                      {showDropdown && (searchResults.length > 0 || isSearching) && (
+                        <div className="absolute top-full left-0 right-0 z-50 mt-1 bg-background border border-border rounded-lg shadow-lg max-h-[240px] overflow-hidden">
+                          {isSearching ? (
+                            <div className="p-4 text-center text-muted-foreground">
+                              <div className="flex items-center justify-center gap-2">
+                                <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
+                                Søger...
+                              </div>
+                            </div>
+                          ) : searchResults.length > 0 ? (
+                            <div className="max-h-[240px] overflow-y-auto">
+                              {searchResults.slice(0, 3).map((company, index) => {
+                                const isSelected = selectedCompanies.find(c => c.cvr === company.cvr);
+                                return (
+                                  <div
+                                    key={company.cvr}
+                                    className={`p-3 ${isSelected ? 'bg-primary/10 border-l-2 border-l-primary cursor-default' : 'hover:bg-accent cursor-pointer'} border-b border-border last:border-b-0 transition-colors`}
+                                    onClick={() => !isSelected && handleCompanySelect(company)}
+                                  >
+                                    <div className="flex items-start gap-3">
+                                      <Building className="h-4 w-4 text-muted-foreground mt-1 flex-shrink-0" />
+                                      <div className="flex-1 min-w-0">
+                                        <div className="font-medium text-sm truncate flex items-center gap-2">
+                                          {company.name}
+                                          {isSelected && (
+                                            <Badge variant="secondary" className="text-xs">
+                                              Valgt
+                                            </Badge>
+                                          )}
+                                        </div>
+                                        <div className="text-xs text-muted-foreground">
+                                          CVR: {company.cvr}
+                                        </div>
+                                        <div className="flex items-center gap-1 text-xs text-muted-foreground mt-1">
+                                          <MapPin className="h-3 w-3" />
+                                          {company.city}
+                                        </div>
                                       </div>
                                     </div>
                                   </div>
+                                );
+                              })}
+                              
+                              {searchResults.length > 3 && (
+                                <div className="p-2 bg-muted/50 text-center">
+                                  <span className="text-xs text-muted-foreground">
+                                    Scroll for flere resultater ({searchResults.length - 3} mere)
+                                  </span>
                                 </div>
-                              );
-                            })}
-                            
-                            {searchResults.length > 3 && (
-                              <div className="p-2 bg-muted/50 text-center">
-                                <span className="text-xs text-muted-foreground">
-                                  Scroll for flere resultater ({searchResults.length - 3} mere)
-                                </span>
-                              </div>
-                            )}
-                          </div>
-                        ) : null}
-                      </div>
-                    )}
+                              )}
+                            </div>
+                          ) : null}
+                        </div>
+                      )}
+                    </div>
+                    <Button type="submit">
+                      <Search className="w-4 h-4 mr-2" />
+                      Søg
+                    </Button>
+                  </form>
+                </div>
+                
+                {selectedCompanies.length > 0 && (
+                  <div className="flex justify-center">
+                    <Button variant="outline" size="sm" onClick={() => setShowSearchInput(false)}>
+                      Færdig med at vælge virksomheder
+                    </Button>
                   </div>
-                  <Button type="submit">
-                    <Search className="w-4 h-4 mr-2" />
-                    Søg
-                  </Button>
-                </form>
+                )}
               </div>
             )}
           </CardContent>
