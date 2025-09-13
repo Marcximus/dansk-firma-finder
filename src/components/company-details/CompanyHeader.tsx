@@ -40,7 +40,7 @@ const CompanyHeader: React.FC<CompanyHeaderProps> = ({ company }) => {
         <Button variant="outline" size="sm" className="mb-2 bg-sky-100 border-sky-300 text-sky-700 hover:bg-sky-200">
           Track Dette Selskab
         </Button>
-        <p className="text-xs text-muted-foreground max-w-48 leading-tight line-clamp-3">
+        <p className="text-xs text-muted-foreground max-w-52 leading-tight">
           Få besked på mail når der er ændringer i selskabet, fx nye bestyrelsesmedlemmer, kapital eller regnskaber
         </p>
       </div>
