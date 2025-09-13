@@ -84,7 +84,7 @@ const TrackFoelgPage: React.FC = () => {
                 </div>
                 <CardTitle className="text-xl mb-2">Premium</CardTitle>
                 <CardDescription className="text-sm">
-                  Til små og mellemstore virksomheder
+                  Til professionelle og virksomheder
                 </CardDescription>
               </CardHeader>
               <CardContent className="pt-4 flex flex-col flex-grow">
