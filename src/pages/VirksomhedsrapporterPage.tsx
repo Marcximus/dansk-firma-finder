@@ -76,11 +76,19 @@ const VirksomhedsrapporterPage: React.FC = () => {
   const scrollToSearch = () => {
     const searchElement = document.querySelector('[data-search-section]');
     if (searchElement) {
-      searchElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      // Focus on the search input after scrolling
+      searchElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      // Focus on the search input after scrolling and add glow animation
       setTimeout(() => {
         if (searchInputRef.current) {
           searchInputRef.current.focus();
+          // Add glow animation class
+          searchInputRef.current.classList.add('animate-glow-twice');
+          // Remove the animation class after it completes
+          setTimeout(() => {
+            if (searchInputRef.current) {
+              searchInputRef.current.classList.remove('animate-glow-twice');
+            }
+          }, 2000);
         }
       }, 500);
     }
