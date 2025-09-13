@@ -428,7 +428,7 @@ const VirksomhedsrapporterPage: React.FC = () => {
                       onClick={() => selectedCompanies.length > 0 ? handleReportOrder(report.id) : scrollToSearch()}
                     >
                       {selectedCompanies.length > 0 
-                        ? `Bestil ${report.title.toLowerCase()} for ${selectedCompanies.length} ${selectedCompanies.length === 1 ? 'virksomhed' : 'virksomheder'}` 
+                        ? `Bestil ${report.title.toLowerCase()}` 
                         : 'Vælg virksomhed først'}
                     </Button>
                   </CardContent>
