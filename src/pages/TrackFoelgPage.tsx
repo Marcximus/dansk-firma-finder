@@ -239,6 +239,17 @@ const TrackFoelgPage: React.FC = () => {
                     <span>Email alerts</span>
                   </li>
                 </ul>
+                <div className="mt-6">
+                  <Button 
+                    className="w-full" 
+                    variant="outline"
+                    asChild
+                  >
+                    <Link to="/checkout?package=standard">
+                      Vælg Standard
+                    </Link>
+                  </Button>
+                </div>
               </CardContent>
             </Card>
 
@@ -280,6 +291,16 @@ const TrackFoelgPage: React.FC = () => {
                     <span>Historisk data</span>
                   </li>
                 </ul>
+                <div className="mt-6">
+                  <Button 
+                    className="w-full"
+                    asChild
+                  >
+                    <Link to="/checkout?package=premium">
+                      Vælg Premium
+                    </Link>
+                  </Button>
+                </div>
               </CardContent>
             </Card>
 
@@ -329,6 +350,17 @@ const TrackFoelgPage: React.FC = () => {
                     <span>Dedikeret support</span>
                   </li>
                 </ul>
+                <div className="mt-6">
+                  <Button 
+                    className="w-full" 
+                    variant="secondary"
+                    asChild
+                  >
+                    <Link to="/checkout?package=enterprise">
+                      Vælg Enterprise
+                    </Link>
+                  </Button>
+                </div>
               </CardContent>
             </Card>
           </div>

@@ -12,6 +12,7 @@ import PrivatlivspolitikPage from "./pages/PrivatlivspolitikPage";
 import HjaelpecenterPage from "./pages/HjaelpecenterPage";
 import SearchGuidePage from "./pages/SearchGuidePage";
 import TrackFoelgPage from "./pages/TrackFoelgPage";
+import CheckoutPage from "./pages/CheckoutPage";
 import KontaktOsPage from "./pages/KontaktOsPage";
 import VirksomhedsrapporterPage from "./pages/VirksomhedsrapporterPage";
 import DatakilderPage from "./pages/DatakilderPage";
@@ -34,6 +35,7 @@ const App = () => (
           <Route path="/hjaelpecenter" element={<HjaelpecenterPage />} />
           <Route path="/soegeguide" element={<SearchGuidePage />} />
           <Route path="/track-foelg" element={<TrackFoelgPage />} />
+          <Route path="/checkout" element={<CheckoutPage />} />
           <Route path="/kontakt-os" element={<KontaktOsPage />} />
           <Route path="/virksomhedsrapporter" element={<VirksomhedsrapporterPage />} />
           <Route path="/datakilder" element={<DatakilderPage />} />
