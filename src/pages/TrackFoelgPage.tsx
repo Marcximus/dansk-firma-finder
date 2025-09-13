@@ -21,6 +21,171 @@ const TrackFoelgPage: React.FC = () => {
           </p>
         </div>
 
+        {/* Pricing Packages */}
+        <div className="mb-12">
+          <div className="text-center mb-8">
+            <h2 className="text-2xl font-bold mb-2">Vælg din pakke</h2>
+            <p className="text-muted-foreground">Find den løsning der passer til dine behov</p>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {/* Standard Package */}
+            <Card className="relative">
+              <CardHeader>
+                <CardTitle className="flex items-center justify-between">
+                  <span>Standard</span>
+                  <Badge variant="secondary">Gratis</Badge>
+                </CardTitle>
+                <CardDescription>
+                  Perfekt til at komme i gang
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="text-center mb-6">
+                  <div className="text-3xl font-bold">0,-</div>
+                  <div className="text-sm text-muted-foreground">pr. måned</div>
+                </div>
+                <ul className="space-y-2 text-sm">
+                  <li className="flex items-center gap-2">
+                    <CheckCircle className="h-4 w-4 text-green-600" />
+                    <span>Følg 1 virksomhed</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle className="h-4 w-4 text-green-600" />
+                    <span>Grundlæggende notifikationer</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle className="h-4 w-4 text-green-600" />
+                    <span>Email alerts</span>
+                  </li>
+                </ul>
+                <div className="mt-6">
+                  <Button 
+                    className="w-full" 
+                    variant="outline"
+                    asChild
+                  >
+                    <Link to="/checkout?package=standard">
+                      Vælg Standard
+                    </Link>
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Premium Package */}
+            <Card className="relative border-primary">
+              <CardHeader>
+                <CardTitle className="flex items-center justify-between">
+                  <span>Premium</span>
+                  <Badge className="bg-primary text-primary-foreground">Populær</Badge>
+                </CardTitle>
+                <CardDescription>
+                  Til små og mellemstore virksomheder
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="text-center mb-6">
+                  <div className="text-3xl font-bold">99,-</div>
+                  <div className="text-sm text-muted-foreground">pr. måned</div>
+                </div>
+                <ul className="space-y-2 text-sm">
+                  <li className="flex items-center gap-2">
+                    <CheckCircle className="h-4 w-4 text-green-600" />
+                    <span>Følg op til 5 virksomheder</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle className="h-4 w-4 text-green-600" />
+                    <span>Daglige notifikationer</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle className="h-4 w-4 text-green-600" />
+                    <span>Email og SMS alerts</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle className="h-4 w-4 text-green-600" />
+                    <span>Avancerede filtre</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle className="h-4 w-4 text-green-600" />
+                    <span>Historisk data</span>
+                  </li>
+                </ul>
+                <div className="mt-6">
+                  <Button 
+                    className="w-full"
+                    asChild
+                  >
+                    <Link to="/checkout?package=premium">
+                      Vælg Premium
+                    </Link>
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Enterprise Package */}
+            <Card className="relative">
+              <CardHeader>
+                <CardTitle className="flex items-center justify-between">
+                  <span>Enterprise</span>
+                  <Badge variant="outline">Erhverv</Badge>
+                </CardTitle>
+                <CardDescription>
+                  Til store organisationer
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="text-center mb-6">
+                  <div className="text-3xl font-bold">499,-</div>
+                  <div className="text-sm text-muted-foreground">pr. måned</div>
+                </div>
+                <ul className="space-y-2 text-sm">
+                  <li className="flex items-center gap-2">
+                    <CheckCircle className="h-4 w-4 text-green-600" />
+                    <span>Følg op til 100 virksomheder</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle className="h-4 w-4 text-green-600" />
+                    <span>Realtids notifikationer</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle className="h-4 w-4 text-green-600" />
+                    <span>Alle kommunikationskanaler</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle className="h-4 w-4 text-green-600" />
+                    <span>Tilpassede alerts</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle className="h-4 w-4 text-green-600" />
+                    <span>Fuld historisk database</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle className="h-4 w-4 text-green-600" />
+                    <span>Export til Excel/PDF</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle className="h-4 w-4 text-green-600" />
+                    <span>Dedikeret support</span>
+                  </li>
+                </ul>
+                <div className="mt-6">
+                  <Button 
+                    className="w-full" 
+                    variant="secondary"
+                    asChild
+                  >
+                    <Link to="/checkout?package=enterprise">
+                      Vælg Enterprise
+                    </Link>
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+
         {/* Key Features */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
           <Card>
@@ -201,170 +366,6 @@ const TrackFoelgPage: React.FC = () => {
           </CardContent>
         </Card>
 
-        {/* Pricing Packages */}
-        <div className="mb-12">
-          <div className="text-center mb-8">
-            <h2 className="text-2xl font-bold mb-2">Vælg din pakke</h2>
-            <p className="text-muted-foreground">Find den løsning der passer til dine behov</p>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {/* Standard Package */}
-            <Card className="relative">
-              <CardHeader>
-                <CardTitle className="flex items-center justify-between">
-                  <span>Standard</span>
-                  <Badge variant="secondary">Gratis</Badge>
-                </CardTitle>
-                <CardDescription>
-                  Perfekt til at komme i gang
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="text-center mb-6">
-                  <div className="text-3xl font-bold">0,-</div>
-                  <div className="text-sm text-muted-foreground">pr. måned</div>
-                </div>
-                <ul className="space-y-2 text-sm">
-                  <li className="flex items-center gap-2">
-                    <CheckCircle className="h-4 w-4 text-green-600" />
-                    <span>Følg 1 virksomhed</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <CheckCircle className="h-4 w-4 text-green-600" />
-                    <span>Grundlæggende notifikationer</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <CheckCircle className="h-4 w-4 text-green-600" />
-                    <span>Email alerts</span>
-                  </li>
-                </ul>
-                <div className="mt-6">
-                  <Button 
-                    className="w-full" 
-                    variant="outline"
-                    asChild
-                  >
-                    <Link to="/checkout?package=standard">
-                      Vælg Standard
-                    </Link>
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Premium Package */}
-            <Card className="relative border-primary">
-              <CardHeader>
-                <CardTitle className="flex items-center justify-between">
-                  <span>Premium</span>
-                  <Badge className="bg-primary text-primary-foreground">Populær</Badge>
-                </CardTitle>
-                <CardDescription>
-                  Til små og mellemstore virksomheder
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="text-center mb-6">
-                  <div className="text-3xl font-bold">99,-</div>
-                  <div className="text-sm text-muted-foreground">pr. måned</div>
-                </div>
-                <ul className="space-y-2 text-sm">
-                  <li className="flex items-center gap-2">
-                    <CheckCircle className="h-4 w-4 text-green-600" />
-                    <span>Følg op til 5 virksomheder</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <CheckCircle className="h-4 w-4 text-green-600" />
-                    <span>Daglige notifikationer</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <CheckCircle className="h-4 w-4 text-green-600" />
-                    <span>Email og SMS alerts</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <CheckCircle className="h-4 w-4 text-green-600" />
-                    <span>Avancerede filtre</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <CheckCircle className="h-4 w-4 text-green-600" />
-                    <span>Historisk data</span>
-                  </li>
-                </ul>
-                <div className="mt-6">
-                  <Button 
-                    className="w-full"
-                    asChild
-                  >
-                    <Link to="/checkout?package=premium">
-                      Vælg Premium
-                    </Link>
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Enterprise Package */}
-            <Card className="relative">
-              <CardHeader>
-                <CardTitle className="flex items-center justify-between">
-                  <span>Enterprise</span>
-                  <Badge variant="outline">Erhverv</Badge>
-                </CardTitle>
-                <CardDescription>
-                  Til store organisationer
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="text-center mb-6">
-                  <div className="text-3xl font-bold">499,-</div>
-                  <div className="text-sm text-muted-foreground">pr. måned</div>
-                </div>
-                <ul className="space-y-2 text-sm">
-                  <li className="flex items-center gap-2">
-                    <CheckCircle className="h-4 w-4 text-green-600" />
-                    <span>Følg op til 100 virksomheder</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <CheckCircle className="h-4 w-4 text-green-600" />
-                    <span>Realtids notifikationer</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <CheckCircle className="h-4 w-4 text-green-600" />
-                    <span>Alle kommunikationskanaler</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <CheckCircle className="h-4 w-4 text-green-600" />
-                    <span>Tilpassede alerts</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <CheckCircle className="h-4 w-4 text-green-600" />
-                    <span>Fuld historisk database</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <CheckCircle className="h-4 w-4 text-green-600" />
-                    <span>Export til Excel/PDF</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <CheckCircle className="h-4 w-4 text-green-600" />
-                    <span>Dedikeret support</span>
-                  </li>
-                </ul>
-                <div className="mt-6">
-                  <Button 
-                    className="w-full" 
-                    variant="secondary"
-                    asChild
-                  >
-                    <Link to="/checkout?package=enterprise">
-                      Vælg Enterprise
-                    </Link>
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
 
         {/* CTA and Back Button */}
         <div className="text-center space-y-4">
