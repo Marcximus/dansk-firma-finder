@@ -194,7 +194,7 @@ const VirksomhedsrapporterPage: React.FC = () => {
                       ))}
                     </ul>
                     
-                    <Button className="w-full bg-primary hover:bg-primary/90 shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 transition-all duration-300">
+                    <Button className="w-full bg-primary hover:bg-primary/90 shadow-2xl shadow-primary/40 hover:shadow-[0_0_30px_rgba(59,130,246,0.6)] border border-primary/20 hover:border-primary/40 transition-all duration-500 animate-pulse hover:animate-none hover:scale-[1.02] font-semibold">
                       Bestil rapport
                     </Button>
                   </CardContent>
