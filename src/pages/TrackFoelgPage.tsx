@@ -102,7 +102,7 @@ const TrackFoelgPage: React.FC = () => {
                   </li>
                   <li className="flex items-center gap-3 text-sm">
                     <CheckCircle className="h-4 w-4 text-green-600 flex-shrink-0" />
-                    <span>Daglige notifikationer</span>
+                    <span>Realtids notifikationer</span>
                   </li>
                   <li className="flex items-center gap-3 text-sm">
                     <CheckCircle className="h-4 w-4 text-green-600 flex-shrink-0" />
