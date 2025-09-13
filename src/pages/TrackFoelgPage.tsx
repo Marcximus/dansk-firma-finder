@@ -89,8 +89,10 @@ const TrackFoelgPage: React.FC = () => {
               </CardHeader>
               <CardContent className="pt-4 flex flex-col flex-grow">
                 <div className="text-center mb-6 pb-4 border-b border-border">
-                  <div className="text-sm text-muted-foreground line-through mb-1">199,-</div>
-                  <div className="text-4xl font-bold text-primary mb-1">99,-</div>
+                  <div className="flex items-center justify-center gap-2 mb-1">
+                    <div className="text-sm text-muted-foreground line-through">199,-</div>
+                    <div className="text-4xl font-bold text-primary">99,-</div>
+                  </div>
                   <div className="text-sm text-muted-foreground">pr. måned</div>
                 </div>
                 <ul className="space-y-3 mb-8 flex-grow">
