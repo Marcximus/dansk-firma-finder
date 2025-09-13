@@ -596,9 +596,8 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             <div>
               <h3 className="text-lg font-semibold mb-4">Juridisk</h3>
               <ul className="space-y-2">
-                <li><a href="#" className="text-muted-foreground hover:text-primary">Servicevilkår</a></li>
-                <li><a href="#" className="text-muted-foreground hover:text-primary">Privatlivspolitik</a></li>
-                <li><a href="#" className="text-muted-foreground hover:text-primary">Datakilder</a></li>
+                <li><Link to="/servicevilkaar" className="text-muted-foreground hover:text-primary">Servicevilkår</Link></li>
+                <li><Link to="/privatlivspolitik" className="text-muted-foreground hover:text-primary">Privatlivspolitik</Link></li>
               </ul>
             </div>
           </div>
