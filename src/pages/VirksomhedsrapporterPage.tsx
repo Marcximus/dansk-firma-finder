@@ -295,7 +295,7 @@ const VirksomhedsrapporterPage: React.FC = () => {
                       </div>
                       
                       <div className="flex items-center gap-3">
-                        <Badge variant="outline" className="text-green-600">
+                        <Badge variant="outline" className="text-green-600 animate-pulse bg-green-50 border-green-300 shadow-sm shadow-green-200">
                           {report.status}
                         </Badge>
                         <Button size="sm" variant="outline">
