@@ -189,6 +189,59 @@ const TrackFoelgPage: React.FC = () => {
           </div>
         </div>
 
+        {/* How It Works */}
+        <Card className="mb-12">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Users className="h-5 w-5 text-primary" />
+              Sådan fungerer det
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+              <div className="text-center">
+                <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <span className="text-xl font-bold text-blue-600">1</span>
+                </div>
+                <h4 className="font-semibold mb-2">Søg og find</h4>
+                <p className="text-sm text-muted-foreground">
+                  Find de virksomheder du vil følge via vores søgefunktion
+                </p>
+              </div>
+              
+              <div className="text-center">
+                <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <span className="text-xl font-bold text-green-600">2</span>
+                </div>
+                <h4 className="font-semibold mb-2">Tilføj til favoritter</h4>
+                <p className="text-sm text-muted-foreground">
+                  Klik på stjernen for at tilføje virksomheden til din liste
+                </p>
+              </div>
+              
+              <div className="text-center">
+                <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <span className="text-xl font-bold text-purple-600">3</span>
+                </div>
+                <h4 className="font-semibold mb-2">Sæt præferencer</h4>
+                <p className="text-sm text-muted-foreground">
+                  Vælg hvilke typer ændringer du vil have besked om
+                </p>
+              </div>
+              
+              <div className="text-center">
+                <div className="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <span className="text-xl font-bold text-orange-600">4</span>
+                </div>
+                <h4 className="font-semibold mb-2">Få notifikationer</h4>
+                <p className="text-sm text-muted-foreground">
+                  Modtag automatiske opdateringer via email eller SMS
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
         {/* Key Features */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
           <Card>
@@ -316,58 +369,6 @@ const TrackFoelgPage: React.FC = () => {
           </CardContent>
         </Card>
 
-        {/* How It Works */}
-        <Card className="mb-12">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Users className="h-5 w-5 text-primary" />
-              Sådan fungerer det
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-              <div className="text-center">
-                <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <span className="text-xl font-bold text-blue-600">1</span>
-                </div>
-                <h4 className="font-semibold mb-2">Søg og find</h4>
-                <p className="text-sm text-muted-foreground">
-                  Find de virksomheder du vil følge via vores søgefunktion
-                </p>
-              </div>
-              
-              <div className="text-center">
-                <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <span className="text-xl font-bold text-green-600">2</span>
-                </div>
-                <h4 className="font-semibold mb-2">Tilføj til favoritter</h4>
-                <p className="text-sm text-muted-foreground">
-                  Klik på stjernen for at tilføje virksomheden til din liste
-                </p>
-              </div>
-              
-              <div className="text-center">
-                <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <span className="text-xl font-bold text-purple-600">3</span>
-                </div>
-                <h4 className="font-semibold mb-2">Sæt præferencer</h4>
-                <p className="text-sm text-muted-foreground">
-                  Vælg hvilke typer ændringer du vil have besked om
-                </p>
-              </div>
-              
-              <div className="text-center">
-                <div className="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <span className="text-xl font-bold text-orange-600">4</span>
-                </div>
-                <h4 className="font-semibold mb-2">Få notifikationer</h4>
-                <p className="text-sm text-muted-foreground">
-                  Modtag automatiske opdateringer via email eller SMS
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
 
 
         {/* CTA and Back Button */}
