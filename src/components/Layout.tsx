@@ -114,7 +114,10 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       {/* Header */}
       <header className="bg-white border-b sticky top-0 z-10">
         <div className="container mx-auto py-3 px-4 flex flex-col md:flex-row items-center gap-4">
-          <Link to="/" className="text-2xl font-bold text-primary">Selskabsinfo</Link>
+          <div className="flex items-center gap-6">
+            <Link to="/" className="text-2xl font-bold text-primary">Selskabsinfo</Link>
+            <Link to="/faq" className="text-sm text-muted-foreground hover:text-primary">FAQ</Link>
+          </div>
           
           <form onSubmit={handleHeaderSearch} className="flex-1 w-full md:w-auto">
             <div className="relative">
