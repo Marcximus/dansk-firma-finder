@@ -3,6 +3,7 @@ import React from 'react';
 import { Company } from '@/services/companyAPI';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Calendar, FileText, Map, Download, Share2 } from 'lucide-react';
 
 interface CompanyHeaderProps {
@@ -35,46 +36,52 @@ const CompanyHeader: React.FC<CompanyHeaderProps> = ({ company }) => {
   const statusDisplay = getStatusDisplay(company.status);
 
   return (
-    <div className="bg-white rounded-lg shadow-sm p-6 mb-6 relative">
-      <div className="absolute top-4 right-4 text-center">
-        <Button variant="outline" size="sm" className="mb-2 bg-sky-100 border-sky-300 text-sky-700 hover:bg-sky-200">
-          Track Dette Selskab
-        </Button>
-        <p className="text-xs text-muted-foreground max-w-52 leading-tight">
-          Få besked på mail når der er ændringer i selskabet, fx nye bestyrelsesmedlemmer, kapital eller regnskaber
-        </p>
-      </div>
-      <h1 className="text-2xl md:text-3xl font-bold mb-2 pr-52">{company.name}</h1>
-      <div className="flex flex-wrap gap-4 text-muted-foreground mb-4">
-        {company.yearFounded && (
+    <TooltipProvider>
+      <div className="bg-white rounded-lg shadow-sm p-6 mb-6 relative">
+        <div className="absolute top-4 right-4 text-center">
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button variant="outline" size="sm" className="bg-sky-100 border-sky-300 text-sky-700 hover:bg-sky-200">
+                Track Dette Selskab
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p className="max-w-64">Få besked på mail når der er ændringer i selskabet, fx nye bestyrelsesmedlemmer, kapital eller regnskaber</p>
+            </TooltipContent>
+          </Tooltip>
+        </div>
+        <h1 className="text-2xl md:text-3xl font-bold mb-2 pr-52">{company.name}</h1>
+        <div className="flex flex-wrap gap-4 text-muted-foreground mb-4">
+          {company.yearFounded && (
+            <div className="flex items-center gap-1.5">
+              <Calendar className="h-4 w-4" />
+              <span>Etableret: {company.yearFounded}</span>
+            </div>
+          )}
           <div className="flex items-center gap-1.5">
-            <Calendar className="h-4 w-4" />
-            <span>Etableret: {company.yearFounded}</span>
+            <FileText className="h-4 w-4" />
+            <span>CVR: {company.cvr}</span>
           </div>
-        )}
-        <div className="flex items-center gap-1.5">
-          <FileText className="h-4 w-4" />
-          <span>CVR: {company.cvr}</span>
+          <div className="flex items-center gap-1.5">
+            <Map className="h-4 w-4" />
+            <span>{company.city}</span>
+          </div>
+          <Badge className={`${statusDisplay.color} text-white`}>
+            {statusDisplay.text}
+          </Badge>
         </div>
-        <div className="flex items-center gap-1.5">
-          <Map className="h-4 w-4" />
-          <span>{company.city}</span>
+        <div className="flex flex-wrap gap-2">
+          <Button variant="outline" size="sm" className="flex gap-1">
+            <Download size={16} />
+            Download PDF
+          </Button>
+          <Button variant="outline" size="sm" className="flex gap-1">
+            <Share2 size={16} />
+            Del
+          </Button>
         </div>
-        <Badge className={`${statusDisplay.color} text-white`}>
-          {statusDisplay.text}
-        </Badge>
       </div>
-      <div className="flex flex-wrap gap-2">
-        <Button variant="outline" size="sm" className="flex gap-1">
-          <Download size={16} />
-          Download PDF
-        </Button>
-        <Button variant="outline" size="sm" className="flex gap-1">
-          <Share2 size={16} />
-          Del
-        </Button>
-      </div>
-    </div>
+    </TooltipProvider>
   );
 };
 
