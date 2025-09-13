@@ -22,7 +22,7 @@ const TrackFoelgPage: React.FC = () => {
         </div>
 
         {/* Pricing Packages */}
-        <div className="mb-12">
+        <div className="mb-16">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {/* Standard Package */}
             <Card className="relative hover-scale transition-all duration-300 hover:shadow-lg flex flex-col h-full">
@@ -190,7 +190,7 @@ const TrackFoelgPage: React.FC = () => {
         </div>
 
         {/* How It Works */}
-        <Card className="mb-12">
+        <Card className="mb-16">
           <CardHeader className="text-center">
             <CardTitle className="flex items-center justify-center gap-2">
               <Users className="h-5 w-5 text-primary" />
@@ -243,7 +243,7 @@ const TrackFoelgPage: React.FC = () => {
         </Card>
 
         {/* Key Features */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-16">
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -288,7 +288,7 @@ const TrackFoelgPage: React.FC = () => {
         </div>
 
         {/* What You Can Track */}
-        <Card className="mb-12">
+        <Card className="mb-16">
           <CardHeader className="text-center">
             <CardTitle className="flex items-center justify-center gap-2">
               <BarChart3 className="h-5 w-5 text-primary" />
