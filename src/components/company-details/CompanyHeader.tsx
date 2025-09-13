@@ -35,8 +35,16 @@ const CompanyHeader: React.FC<CompanyHeaderProps> = ({ company }) => {
   const statusDisplay = getStatusDisplay(company.status);
 
   return (
-    <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
-      <h1 className="text-2xl md:text-3xl font-bold mb-2">{company.name}</h1>
+    <div className="bg-white rounded-lg shadow-sm p-6 mb-6 relative">
+      <div className="absolute top-4 right-4 text-center">
+        <Button variant="outline" size="sm" className="mb-2">
+          Track Dette Selskab
+        </Button>
+        <p className="text-xs text-muted-foreground max-w-48 leading-tight">
+          Få besked på mail når der er ændringer i selskabet, fx nye bestyrelsesmedlemmer, kapital eller regnskaber
+        </p>
+      </div>
+      <h1 className="text-2xl md:text-3xl font-bold mb-2 pr-52">{company.name}</h1>
       <div className="flex flex-wrap gap-4 text-muted-foreground mb-4">
         {company.yearFounded && (
           <div className="flex items-center gap-1.5">
