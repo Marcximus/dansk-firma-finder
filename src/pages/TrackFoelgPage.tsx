@@ -23,11 +23,6 @@ const TrackFoelgPage: React.FC = () => {
 
         {/* Pricing Packages */}
         <div className="mb-12">
-          <div className="text-center mb-8">
-            <h2 className="text-2xl font-bold mb-2">Vælg din pakke</h2>
-            <p className="text-muted-foreground">Find den løsning der passer til dine behov</p>
-          </div>
-          
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {/* Standard Package */}
             <Card className="relative">
