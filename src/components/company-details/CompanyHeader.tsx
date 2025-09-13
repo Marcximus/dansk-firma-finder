@@ -41,7 +41,7 @@ const CompanyHeader: React.FC<CompanyHeaderProps> = ({ company }) => {
         <div className="absolute top-4 right-4 text-center">
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button variant="outline" size="sm" className="bg-sky-100 border-sky-300 text-sky-700 hover:bg-sky-200">
+              <Button variant="outline" className="bg-sky-100 border-sky-300 text-sky-700 hover:bg-sky-200 px-6 py-3">
                 Track Dette Selskab
               </Button>
             </TooltipTrigger>
