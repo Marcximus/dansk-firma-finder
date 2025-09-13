@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Layout from '@/components/Layout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -16,12 +16,56 @@ import {
   Star,
   Shield,
   Clock,
-  CheckCircle
+  CheckCircle,
+  MapPin
 } from 'lucide-react';
+import { searchCompanies, Company } from '@/services/companyAPI';
+import { useDebounce } from '@/hooks/useDebounce';
 
 const VirksomhedsrapporterPage: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState('types');
+  const [searchResults, setSearchResults] = useState<Company[]>([]);
+  const [showDropdown, setShowDropdown] = useState(false);
+  const [isSearching, setIsSearching] = useState(false);
+  const searchRef = useRef<HTMLDivElement>(null);
+  const debouncedSearchQuery = useDebounce(searchQuery, 300);
+
+  // Handle search results
+  useEffect(() => {
+    const performSearch = async () => {
+      if (debouncedSearchQuery.trim().length > 0) {
+        setIsSearching(true);
+        try {
+          const results = await searchCompanies(debouncedSearchQuery);
+          setSearchResults(results.slice(0, 9)); // Get 9 results to show 3 at a time with scroll
+          setShowDropdown(true);
+        } catch (error) {
+          console.error('Search error:', error);
+          setSearchResults([]);
+        } finally {
+          setIsSearching(false);
+        }
+      } else {
+        setSearchResults([]);
+        setShowDropdown(false);
+      }
+    };
+
+    performSearch();
+  }, [debouncedSearchQuery]);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
+        setShowDropdown(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   const scrollToSearch = () => {
     const searchElement = document.querySelector('[data-search-section]');
@@ -44,6 +88,22 @@ const VirksomhedsrapporterPage: React.FC = () => {
     if (tabsElement) {
       tabsElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
+  };
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    // Implement search logic here or redirect to search results
+    if (searchQuery.trim()) {
+      console.log('Searching for:', searchQuery);
+      // You could navigate to a search results page or show results inline
+    }
+  };
+
+  const handleCompanySelect = (company: Company) => {
+    setSearchQuery(company.name);
+    setShowDropdown(false);
+    // Here you could navigate to company details or handle selection
+    console.log('Selected company:', company);
   };
 
   const getReportTypeColor = (type: string) => {
@@ -136,12 +196,6 @@ const VirksomhedsrapporterPage: React.FC = () => {
     }
   ];
 
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    // Implement search logic here
-    console.log('Searching for:', searchQuery);
-  };
-
   return (
     <Layout>
       <div className="py-8 max-w-6xl mx-auto px-4">
@@ -167,19 +221,68 @@ const VirksomhedsrapporterPage: React.FC = () => {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleSearch} className="flex gap-2">
-              <div className="flex-1">
-                <Input
-                  placeholder="Indtast virksomhedsnavn eller CVR-nummer..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                />
-              </div>
-              <Button type="submit">
-                <Search className="w-4 h-4 mr-2" />
-                Søg
-              </Button>
-            </form>
+            <div className="relative" ref={searchRef}>
+              <form onSubmit={handleSearch} className="flex gap-2">
+                <div className="flex-1 relative">
+                  <Input
+                    placeholder="Indtast virksomhedsnavn eller CVR-nummer..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    onFocus={() => searchResults.length > 0 && setShowDropdown(true)}
+                  />
+                  
+                  {/* Search Results Dropdown */}
+                  {showDropdown && (searchResults.length > 0 || isSearching) && (
+                    <div className="absolute top-full left-0 right-0 z-50 mt-1 bg-background border border-border rounded-lg shadow-lg max-h-[240px] overflow-hidden">
+                      {isSearching ? (
+                        <div className="p-4 text-center text-muted-foreground">
+                          <div className="flex items-center justify-center gap-2">
+                            <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
+                            Søger...
+                          </div>
+                        </div>
+                      ) : searchResults.length > 0 ? (
+                        <div className="max-h-[240px] overflow-y-auto">
+                          {searchResults.slice(0, 3).map((company, index) => (
+                            <div
+                              key={company.cvr}
+                              className="p-3 hover:bg-accent cursor-pointer border-b border-border last:border-b-0 transition-colors"
+                              onClick={() => handleCompanySelect(company)}
+                            >
+                              <div className="flex items-start gap-3">
+                                <Building className="h-4 w-4 text-muted-foreground mt-1 flex-shrink-0" />
+                                <div className="flex-1 min-w-0">
+                                  <div className="font-medium text-sm truncate">{company.name}</div>
+                                  <div className="text-xs text-muted-foreground">
+                                    CVR: {company.cvr}
+                                  </div>
+                                  <div className="flex items-center gap-1 text-xs text-muted-foreground mt-1">
+                                    <MapPin className="h-3 w-3" />
+                                    {company.city}
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                          
+                          {searchResults.length > 3 && (
+                            <div className="p-2 bg-muted/50 text-center">
+                              <span className="text-xs text-muted-foreground">
+                                Scroll for flere resultater ({searchResults.length - 3} mere)
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                      ) : null}
+                    </div>
+                  )}
+                </div>
+                <Button type="submit">
+                  <Search className="w-4 h-4 mr-2" />
+                  Søg
+                </Button>
+              </form>
+            </div>
           </CardContent>
         </Card>
 
