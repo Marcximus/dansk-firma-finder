@@ -140,12 +140,12 @@ const FAQPage: React.FC = () => {
             <AccordionTrigger className="px-6 py-4 hover:no-underline">
               <div className="flex items-center gap-2">
                 <Users className="h-5 w-5" />
-                <span className="text-left">Hvad betyder "Track Dette Selskab"?</span>
+                <span className="text-left">Hvad betyder "Track & Følg Dette Selskab"?</span>
               </div>
             </AccordionTrigger>
             <AccordionContent className="px-6 pb-6">
               <p className="text-muted-foreground">
-                Når du klikker på "Track Dette Selskab", kan du få automatiske opdateringer om virksomheden via email. 
+                Når du klikker på "Track & Følg Dette Selskab", kan du få automatiske opdateringer om virksomheden via email. 
                 Du vil få besked, når der sker ændringer i selskabet, såsom:
               </p>
               <ul className="list-disc pl-5 text-muted-foreground space-y-1 mt-3">

@@ -203,7 +203,7 @@ const HjaelpecenterPage: React.FC = () => {
                     <h4 className="font-semibold mb-2">Sådan starter du tracking:</h4>
                     <ol className="list-decimal pl-5 text-muted-foreground space-y-1">
                       <li>Find den virksomhed du vil følge</li>
-                      <li>Klik på "Track Dette Selskab" knappen</li>
+                      <li>Klik på "Track & Følg Dette Selskab" knappen</li>
                       <li>Opret en konto hvis du ikke allerede har en</li>
                       <li>Vælg hvilke typer ændringer du vil have besked om</li>
                     </ol>
