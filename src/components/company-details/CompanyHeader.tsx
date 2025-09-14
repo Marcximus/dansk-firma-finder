@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Company } from '@/services/companyAPI';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -11,6 +12,14 @@ interface CompanyHeaderProps {
 }
 
 const CompanyHeader: React.FC<CompanyHeaderProps> = ({ company }) => {
+  const navigate = useNavigate();
+
+  const handleReportClick = () => {
+    navigate('/virksomhedsrapporter', { 
+      state: { preloadedCompany: company }
+    });
+  };
+
   // Function to get appropriate color and display text for status
   const getStatusDisplay = (status: string) => {
     switch (status) {
@@ -39,7 +48,12 @@ const CompanyHeader: React.FC<CompanyHeaderProps> = ({ company }) => {
     <TooltipProvider>
       <div className="bg-white rounded-lg shadow-sm p-6 relative">
         <div className="absolute top-4 right-4 text-center flex gap-3">
-          <Button variant="default" size="lg" className="px-8 py-4 text-lg">
+          <Button 
+            variant="default" 
+            size="lg" 
+            className="px-8 py-4 text-lg"
+            onClick={handleReportClick}
+          >
             Virksomhedsrapport med kreditvurdering
           </Button>
           <Tooltip>

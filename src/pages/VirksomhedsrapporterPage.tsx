@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useLocation } from 'react-router-dom';
 import Layout from '@/components/Layout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -26,6 +27,7 @@ import { useDebounce } from '@/hooks/useDebounce';
 import { supabase } from '@/integrations/supabase/client';
 
 const VirksomhedsrapporterPage: React.FC = () => {
+  const location = useLocation();
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState('types');
   const [searchResults, setSearchResults] = useState<Company[]>([]);
@@ -39,6 +41,18 @@ const VirksomhedsrapporterPage: React.FC = () => {
   const searchRef = useRef<HTMLDivElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const debouncedSearchQuery = useDebounce(searchQuery, 300);
+
+  // Handle preloaded company from navigation state
+  useEffect(() => {
+    const state = location.state as { preloadedCompany?: Company };
+    if (state?.preloadedCompany) {
+      setSelectedCompanies([state.preloadedCompany]);
+      setShowSearchInput(false);
+      setActiveTab('types');
+      // Clear the state to prevent re-adding on subsequent renders
+      window.history.replaceState({}, document.title);
+    }
+  }, [location.state]);
 
   // Handle search results
   useEffect(() => {
