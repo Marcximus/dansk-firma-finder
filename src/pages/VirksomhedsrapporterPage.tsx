@@ -23,6 +23,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { searchCompanies, Company } from '@/services/companyAPI';
 import { useDebounce } from '@/hooks/useDebounce';
+import { supabase } from '@/integrations/supabase/client';
 
 const VirksomhedsrapporterPage: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -142,13 +143,72 @@ const VirksomhedsrapporterPage: React.FC = () => {
     setShowOrderConfirmation(true);
   };
 
-  const handleOrderConfirmation = () => {
-    // Here you would implement the actual ordering logic
-    console.log('Ordering reports:', companyReportTypes, 'for companies:', selectedCompanies);
-    setShowOrderConfirmation(false);
-    setSelectedReportType('');
-    setCompanyReportTypes({});
-    // You could show a success toast or redirect to a confirmation page
+  const handleOrderConfirmation = async () => {
+    try {
+      // Check if any companies need paid reports
+      const paidReports = Object.entries(companyReportTypes).filter(([cvr, reportType]) => {
+        return reportType === 'premium' || reportType === 'enterprise';
+      });
+
+      if (paidReports.length === 0) {
+        // All reports are free (Standard), handle directly
+        console.log('Ordering free reports:', companyReportTypes, 'for companies:', selectedCompanies);
+        setShowOrderConfirmation(false);
+        setSelectedReportType('');
+        setCompanyReportTypes({});
+        // Show success message for free reports
+        return;
+      }
+
+      // Group companies by report type for Stripe checkout
+      const premiumCompanies = selectedCompanies.filter(company => 
+        companyReportTypes[company.cvr] === 'premium'
+      );
+      const enterpriseCompanies = selectedCompanies.filter(company => 
+        companyReportTypes[company.cvr] === 'enterprise'
+      );
+
+      // Create payments for each report type
+      if (premiumCompanies.length > 0) {
+        const { data, error } = await supabase.functions.invoke('create-payment', {
+          body: {
+            reportType: 'premium',
+            companies: premiumCompanies
+          }
+        });
+
+        if (error) throw error;
+
+        // Redirect to Stripe checkout
+        if (data?.url) {
+          window.open(data.url, '_blank');
+        }
+      }
+
+      if (enterpriseCompanies.length > 0) {
+        const { data, error } = await supabase.functions.invoke('create-payment', {
+          body: {
+            reportType: 'enterprise',
+            companies: enterpriseCompanies
+          }
+        });
+
+        if (error) throw error;
+
+        // Redirect to Stripe checkout
+        if (data?.url) {
+          window.open(data.url, '_blank');
+        }
+      }
+
+      // Close the confirmation dialog
+      setShowOrderConfirmation(false);
+      setSelectedReportType('');
+      setCompanyReportTypes({});
+    } catch (error) {
+      console.error('Error creating payment:', error);
+      // You could show an error toast here
+    }
   };
 
   const clearAllSelections = () => {
