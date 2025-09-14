@@ -1,89 +1,32 @@
-import React, { useEffect, useState } from 'react';
-import { useSearchParams, Link } from 'react-router-dom';
+import React from 'react';
+import { useSearchParams, Link, Navigate } from 'react-router-dom';
 import Layout from '@/components/Layout';
 import { ArrowLeft, CheckCircle, CreditCard, Lock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-
-interface PackageInfo {
-  name: string;
-  price: number;
-  features: string[];
-  description: string;
-}
-
-const packages: Record<string, PackageInfo> = {
-  standard: {
-    name: 'Standard',
-    price: 0,
-    description: 'Perfekt til at komme i gang',
-    features: [
-      'Følg 1 virksomhed',
-      'Grundlæggende notifikationer',
-      'Email alerts'
-    ]
-  },
-  premium: {
-    name: 'Premium',
-    price: 99,
-    description: 'Til små og mellemstore virksomheder',
-    features: [
-      'Følg op til 5 virksomheder',
-      'Daglige notifikationer',
-      'Email og SMS alerts',
-      'Avancerede filtre',
-      'Historisk data'
-    ]
-  },
-  enterprise: {
-    name: 'Enterprise',
-    price: 499,
-    description: 'Til store organisationer',
-    features: [
-      'Følg op til 100 virksomheder',
-      'Realtids notifikationer',
-      'Alle kommunikationskanaler',
-      'Tilpassede alerts',
-      'Fuld historisk database',
-      'Export til Excel/PDF',
-      'Dedikeret support'
-    ]
-  }
-};
+import { useSubscription } from '@/contexts/SubscriptionContext';
+import { SUBSCRIPTION_TIERS, SubscriptionTier } from '@/constants/subscriptions';
 
 const CheckoutPage: React.FC = () => {
   const [searchParams] = useSearchParams();
-  const [selectedPackage, setSelectedPackage] = useState<PackageInfo | null>(null);
-  const packageParam = searchParams.get('package') || 'standard';
+  const packageParam = searchParams.get('package') as SubscriptionTier | null;
+  const { createCheckout, subscribed, subscriptionTier } = useSubscription();
 
-  useEffect(() => {
-    const pkg = packages[packageParam];
-    if (pkg) {
-      setSelectedPackage(pkg);
-    }
-  }, [packageParam]);
-
-  if (!selectedPackage) {
-    return (
-      <Layout>
-        <div className="py-8 max-w-2xl mx-auto px-4 text-center">
-          <h1 className="text-2xl font-bold mb-4">Pakke ikke fundet</h1>
-          <Button asChild>
-            <Link to="/track-foelg">Tilbage til pakkeoversigt</Link>
-          </Button>
-        </div>
-      </Layout>
-    );
+  // Redirect if no package specified or invalid package
+  if (!packageParam || !(packageParam in SUBSCRIPTION_TIERS)) {
+    return <Navigate to="/track-foelg" replace />
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    // Handle payment processing here
-    console.log('Processing payment for:', selectedPackage.name);
+  const selectedPackage = SUBSCRIPTION_TIERS[packageParam];
+
+  // If user already has this subscription tier, redirect to track-foelg
+  if (subscribed && subscriptionTier === packageParam) {
+    return <Navigate to="/track-foelg" replace />
+  }
+
+  const handleSubscribe = async () => {
+    await createCheckout(selectedPackage.price_id);
   };
 
   return (
@@ -111,7 +54,7 @@ const CheckoutPage: React.FC = () => {
           <div className="order-2 lg:order-1">
             <Card>
               <CardHeader>
-                <CardTitle>Ordresammendrag</CardTitle>
+                <CardTitle>Abonnement Sammendrag</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
@@ -119,16 +62,14 @@ const CheckoutPage: React.FC = () => {
                     <div>
                       <h4 className="font-semibold">{selectedPackage.name}</h4>
                       <p className="text-sm text-muted-foreground">
-                        {selectedPackage.description}
+                        Månedligt abonnement
                       </p>
                     </div>
                     <div className="text-right">
                       <div className="font-bold">
-                        {selectedPackage.price === 0 ? 'Gratis' : `${selectedPackage.price},-`}
+                        {selectedPackage.price} {selectedPackage.currency}
                       </div>
-                      {selectedPackage.price > 0 && (
-                        <div className="text-sm text-muted-foreground">pr. måned</div>
-                      )}
+                      <div className="text-sm text-muted-foreground">pr. måned</div>
                     </div>
                   </div>
                   
@@ -147,124 +88,70 @@ const CheckoutPage: React.FC = () => {
                   <Separator />
                   
                   <div className="flex items-center justify-between font-bold text-lg">
-                    <span>Total</span>
-                    <span>
-                      {selectedPackage.price === 0 ? 'Gratis' : `${selectedPackage.price},- DKK`}
-                    </span>
+                    <span>Total pr. måned</span>
+                    <span>{selectedPackage.price} {selectedPackage.currency}</span>
                   </div>
                 </div>
               </CardContent>
             </Card>
           </div>
 
-          {/* Payment Form */}
+          {/* Subscription Info */}
           <div className="order-1 lg:order-2">
-            {selectedPackage.price === 0 ? (
-              <Card>
-                <CardHeader>
-                  <CardTitle>Gratis tilmelding</CardTitle>
-                  <CardDescription>
-                    Opret din gratis konto og kom i gang med det samme
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <form onSubmit={handleSubmit} className="space-y-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="email">Email</Label>
-                      <Input id="email" type="email" placeholder="din@email.dk" required />
-                    </div>
-                    
-                    <div className="space-y-2">
-                      <Label htmlFor="name">Fuldt navn</Label>
-                      <Input id="name" type="text" placeholder="Dit fulde navn" required />
-                    </div>
-                    
-                    <div className="space-y-2">
-                      <Label htmlFor="company">Virksomhed (valgfri)</Label>
-                      <Input id="company" type="text" placeholder="Din virksomhed" />
-                    </div>
-                    
-                    <Button type="submit" className="w-full" size="lg">
-                      Opret gratis konto
-                    </Button>
-                  </form>
-                </CardContent>
-              </Card>
-            ) : (
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <CreditCard className="h-5 w-5" />
-                    Betalingsoplysninger
-                  </CardTitle>
-                  <CardDescription>
-                    Sikker betaling med SSL-kryptering
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <form onSubmit={handleSubmit} className="space-y-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="email">Email</Label>
-                      <Input id="email" type="email" placeholder="din@email.dk" required />
-                    </div>
-                    
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="firstName">Fornavn</Label>
-                        <Input id="firstName" type="text" placeholder="Fornavn" required />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="lastName">Efternavn</Label>
-                        <Input id="lastName" type="text" placeholder="Efternavn" required />
-                      </div>
-                    </div>
-                    
-                    <div className="space-y-2">
-                      <Label htmlFor="company">Virksomhed</Label>
-                      <Input id="company" type="text" placeholder="Din virksomhed" required />
-                    </div>
-                    
-                    <Separator />
-                    
-                    <div className="space-y-2">
-                      <Label htmlFor="cardNumber">Kortnummer</Label>
-                      <Input 
-                        id="cardNumber" 
-                        type="text" 
-                        placeholder="1234 5678 9012 3456" 
-                        required 
-                      />
-                    </div>
-                    
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="expiry">Udløb (MM/ÅÅ)</Label>
-                        <Input id="expiry" type="text" placeholder="12/28" required />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="cvc">CVC</Label>
-                        <Input id="cvc" type="text" placeholder="123" required />
-                      </div>
-                    </div>
-                    
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <Lock className="h-4 w-4" />
-                      <span>Dine oplysninger er sikre og krypterede</span>
-                    </div>
-                    
-                    <Button type="submit" className="w-full" size="lg">
-                      Betal {selectedPackage.price},- DKK
-                    </Button>
-                  </form>
-                </CardContent>
-              </Card>
-            )}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <CreditCard className="h-5 w-5" />
+                  Secure Stripe Checkout
+                </CardTitle>
+                <CardDescription>
+                  Du vil blive omdirigeret til Stripe for sikker betaling
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="space-y-4">
+                  <div className="flex items-center gap-2 text-sm">
+                    <CheckCircle className="h-4 w-4 text-green-600" />
+                    <span>SSL-kryptering og sikker betaling</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-sm">
+                    <CheckCircle className="h-4 w-4 text-green-600" />
+                    <span>Administrer dit abonnement når som helst</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-sm">
+                    <CheckCircle className="h-4 w-4 text-green-600" />
+                    <span>Opsig dit abonnement når som helst</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-sm">
+                    <CheckCircle className="h-4 w-4 text-green-600" />
+                    <span>Understøtter alle gængse betalingskort</span>
+                  </div>
+                </div>
+                
+                <Separator />
+                
+                <Button 
+                  onClick={handleSubscribe}
+                  className="w-full bg-primary hover:bg-primary/90" 
+                  size="lg"
+                >
+                  Fortsæt til Stripe Checkout
+                </Button>
+                
+                <div className="text-center">
+                  <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
+                    <Lock className="h-4 w-4" />
+                    <span>Sikret af Stripe - Branchens standard for betalinger</span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           </div>
         </div>
 
         {/* Trust indicators */}
         <div className="mt-8 text-center">
-          <div className="flex items-center justify-center gap-4 text-sm text-muted-foreground">
+          <div className="flex items-center justify-center gap-6 text-sm text-muted-foreground">
             <div className="flex items-center gap-1">
               <Lock className="h-4 w-4" />
               <span>SSL-sikret</span>

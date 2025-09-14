@@ -1,12 +1,50 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import Layout from '@/components/Layout';
-import { Target, Bell, Star, TrendingUp, ArrowLeft, CheckCircle, Users, BarChart3 } from 'lucide-react';
+import { Target, Bell, Star, TrendingUp, ArrowLeft, CheckCircle, Users, BarChart3, Settings } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { useSubscription } from '@/contexts/SubscriptionContext';
+import { useToast } from '@/hooks/use-toast';
+import { SUBSCRIPTION_TIERS } from '@/constants/subscriptions';
 
 const TrackFoelgPage: React.FC = () => {
+  const [searchParams] = useSearchParams();
+  const { subscribed, subscriptionTier, createCheckout, openCustomerPortal, checkSubscription, loading } = useSubscription();
+  const { toast } = useToast();
+
+  // Check for success/canceled params from Stripe redirect
+  useEffect(() => {
+    const success = searchParams.get('success');
+    const canceled = searchParams.get('canceled');
+
+    if (success === 'true') {
+      toast({
+        title: "Betaling gennemført!",
+        description: "Dit abonnement er nu aktivt. Du kan begynde at følge virksomheder.",
+      });
+      // Refresh subscription status
+      checkSubscription();
+    } else if (canceled === 'true') {
+      toast({
+        title: "Betaling annulleret",
+        description: "Du kan altid vende tilbage for at gennemføre dit køb.",
+        variant: "destructive",
+      });
+    }
+  }, [searchParams, toast, checkSubscription]);
+
+  const handleSubscribe = async (tier: keyof typeof SUBSCRIPTION_TIERS) => {
+    await createCheckout(SUBSCRIPTION_TIERS[tier].price_id);
+  };
+
+  const getCurrentTierInfo = () => {
+    if (!subscribed || !subscriptionTier) return null;
+    return SUBSCRIPTION_TIERS[subscriptionTier as keyof typeof SUBSCRIPTION_TIERS];
+  };
+
+  const currentTier = getCurrentTierInfo();
   return (
     <Layout>
       <div className="py-8 max-w-6xl mx-auto px-4">
@@ -21,18 +59,62 @@ const TrackFoelgPage: React.FC = () => {
           </p>
         </div>
 
+        {/* Current Subscription Status */}
+        {subscribed && currentTier && (
+          <Card className="mb-8 border-primary bg-primary/5">
+            <CardHeader>
+              <CardTitle className="flex items-center justify-between">
+                <span className="flex items-center gap-2">
+                  <CheckCircle className="h-5 w-5 text-green-600" />
+                  Dit aktive abonnement
+                </span>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={openCustomerPortal}
+                >
+                  <Settings className="h-4 w-4 mr-2" />
+                  Administrer
+                </Button>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="font-semibold text-lg">{currentTier.name}</h3>
+                  <p className="text-muted-foreground">
+                    {currentTier.price} {currentTier.currency} pr. måned
+                  </p>
+                </div>
+                <Badge variant="secondary" className="bg-green-100 text-green-800">
+                  Aktiv
+                </Badge>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Pricing Packages */}
         <div className="mb-16">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {/* Standard Package */}
-            <Card className="relative hover-scale transition-all duration-300 hover:shadow-lg flex flex-col h-full">
+            <Card className={`relative hover-scale transition-all duration-300 hover:shadow-lg flex flex-col h-full ${
+              subscriptionTier === 'standard' ? 'border-primary bg-primary/5' : ''
+            }`}>
+              {subscriptionTier === 'standard' && (
+                <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
+                  <Badge className="bg-green-600 text-white px-4 py-1 text-sm font-semibold">
+                    Dit plan
+                  </Badge>
+                </div>
+              )}
               <CardHeader className="text-center pb-4">
                 <div className="flex justify-center mb-3">
                   <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
                     <Target className="h-6 w-6 text-green-600" />
                   </div>
                 </div>
-                <CardTitle className="text-xl mb-2">Standard</CardTitle>
+                <CardTitle className="text-xl mb-2">{SUBSCRIPTION_TIERS.standard.name}</CardTitle>
                 <CardDescription className="text-sm">
                   Perfekt til at komme i gang
                 </CardDescription>
@@ -40,52 +122,54 @@ const TrackFoelgPage: React.FC = () => {
               <CardContent className="pt-4 flex flex-col flex-grow">
                 <div className="text-center mb-6 pb-4 border-b border-border">
                   <div className="flex items-center justify-center gap-2 mb-1">
-                    <div className="text-sm text-muted-foreground line-through">49,-</div>
-                    <div className="text-4xl font-bold">0,-</div>
+                    <div className="text-4xl font-bold">{SUBSCRIPTION_TIERS.standard.price},-</div>
                   </div>
                   <div className="text-sm text-muted-foreground">pr. måned</div>
                 </div>
                 <ul className="space-y-3 mb-8 flex-grow">
-                  <li className="flex items-center gap-3 text-sm">
-                    <CheckCircle className="h-4 w-4 text-green-600 flex-shrink-0" />
-                    <span>Følg 1 virksomhed</span>
-                  </li>
-                  <li className="flex items-center gap-3 text-sm">
-                    <CheckCircle className="h-4 w-4 text-green-600 flex-shrink-0" />
-                    <span>Grundlæggende notifikationer</span>
-                  </li>
-                  <li className="flex items-center gap-3 text-sm">
-                    <CheckCircle className="h-4 w-4 text-green-600 flex-shrink-0" />
-                    <span>Email alerts</span>
-                  </li>
+                  {SUBSCRIPTION_TIERS.standard.features.map((feature, index) => (
+                    <li key={index} className="flex items-center gap-3 text-sm">
+                      <CheckCircle className="h-4 w-4 text-green-600 flex-shrink-0" />
+                      <span>{feature}</span>
+                    </li>
+                  ))}
                 </ul>
                 <Button 
                   className="w-full mt-auto" 
-                  variant="outline"
+                  variant={subscriptionTier === 'standard' ? 'secondary' : 'outline'}
                   size="lg"
-                  asChild
+                  onClick={() => subscriptionTier === 'standard' ? openCustomerPortal() : handleSubscribe('standard')}
+                  disabled={loading}
                 >
-                  <Link to="/checkout?package=standard" className="animate-fade-in">
-                    Vælg Standard
-                  </Link>
+                  {subscriptionTier === 'standard' ? 'Administrer' : 'Vælg Standard'}
                 </Button>
               </CardContent>
             </Card>
 
             {/* Premium Package - Featured */}
-            <Card className="relative hover-scale transition-all duration-300 hover:shadow-xl border-primary shadow-lg scale-105 flex flex-col h-full">
-              <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
-                <Badge className="bg-primary text-primary-foreground px-4 py-1 text-sm font-semibold">
-                  Mest populær
-                </Badge>
-              </div>
+            <Card className={`relative hover-scale transition-all duration-300 hover:shadow-xl border-primary shadow-lg scale-105 flex flex-col h-full ${
+              subscriptionTier === 'premium' ? 'bg-primary/5' : ''
+            }`}>
+              {subscriptionTier === 'premium' ? (
+                <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
+                  <Badge className="bg-green-600 text-white px-4 py-1 text-sm font-semibold">
+                    Dit plan
+                  </Badge>
+                </div>
+              ) : (
+                <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
+                  <Badge className="bg-primary text-primary-foreground px-4 py-1 text-sm font-semibold">
+                    Mest populær
+                  </Badge>
+                </div>
+              )}
               <CardHeader className="text-center pb-4 pt-6">
                 <div className="flex justify-center mb-3">
                   <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center">
                     <Star className="h-6 w-6 text-primary" />
                   </div>
                 </div>
-                <CardTitle className="text-xl mb-2">Premium</CardTitle>
+                <CardTitle className="text-xl mb-2">{SUBSCRIPTION_TIERS.premium.name}</CardTitle>
                 <CardDescription className="text-sm">
                   Til professionelle og virksomheder
                 </CardDescription>
@@ -93,54 +177,47 @@ const TrackFoelgPage: React.FC = () => {
               <CardContent className="pt-4 flex flex-col flex-grow">
                 <div className="text-center mb-6 pb-4 border-b border-border">
                   <div className="flex items-center justify-center gap-2 mb-1">
-                    <div className="text-sm text-muted-foreground line-through">199,-</div>
-                    <div className="text-4xl font-bold text-primary">99,-</div>
+                    <div className="text-4xl font-bold text-primary">{SUBSCRIPTION_TIERS.premium.price},-</div>
                   </div>
                   <div className="text-sm text-muted-foreground">pr. måned</div>
                 </div>
                 <ul className="space-y-3 mb-8 flex-grow">
-                  <li className="flex items-center gap-3 text-sm">
-                    <CheckCircle className="h-4 w-4 text-green-600 flex-shrink-0" />
-                    <span>Følg op til 5 virksomheder</span>
-                  </li>
-                  <li className="flex items-center gap-3 text-sm">
-                    <CheckCircle className="h-4 w-4 text-green-600 flex-shrink-0" />
-                    <span>Realtids notifikationer</span>
-                  </li>
-                  <li className="flex items-center gap-3 text-sm">
-                    <CheckCircle className="h-4 w-4 text-green-600 flex-shrink-0" />
-                    <span>Email og SMS alerts</span>
-                  </li>
-                  <li className="flex items-center gap-3 text-sm">
-                    <CheckCircle className="h-4 w-4 text-green-600 flex-shrink-0" />
-                    <span>Avancerede filtre</span>
-                  </li>
-                  <li className="flex items-center gap-3 text-sm">
-                    <CheckCircle className="h-4 w-4 text-green-600 flex-shrink-0" />
-                    <span>Historisk data</span>
-                  </li>
+                  {SUBSCRIPTION_TIERS.premium.features.map((feature, index) => (
+                    <li key={index} className="flex items-center gap-3 text-sm">
+                      <CheckCircle className="h-4 w-4 text-green-600 flex-shrink-0" />
+                      <span>{feature}</span>
+                    </li>
+                  ))}
                 </ul>
                 <Button 
-                  className="w-full bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg mt-auto"
+                  className={`w-full mt-auto ${subscriptionTier === 'premium' ? 'bg-green-600 hover:bg-green-700' : 'bg-primary hover:bg-primary/90'} text-white shadow-lg`}
                   size="lg"
-                  asChild
+                  onClick={() => subscriptionTier === 'premium' ? openCustomerPortal() : handleSubscribe('premium')}
+                  disabled={loading}
                 >
-                  <Link to="/checkout?package=premium" className="animate-fade-in">
-                    Vælg Premium
-                  </Link>
+                  {subscriptionTier === 'premium' ? 'Administrer' : 'Vælg Premium'}
                 </Button>
               </CardContent>
             </Card>
 
             {/* Enterprise Package */}
-            <Card className="relative hover-scale transition-all duration-300 hover:shadow-lg flex flex-col h-full">
+            <Card className={`relative hover-scale transition-all duration-300 hover:shadow-lg flex flex-col h-full ${
+              subscriptionTier === 'enterprise' ? 'border-primary bg-primary/5' : ''
+            }`}>
+              {subscriptionTier === 'enterprise' && (
+                <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
+                  <Badge className="bg-green-600 text-white px-4 py-1 text-sm font-semibold">
+                    Dit plan
+                  </Badge>
+                </div>
+              )}
               <CardHeader className="text-center pb-4">
                 <div className="flex justify-center mb-3">
                   <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center">
                     <Users className="h-6 w-6 text-purple-600" />
                   </div>
                 </div>
-                <CardTitle className="text-xl mb-2">Enterprise</CardTitle>
+                <CardTitle className="text-xl mb-2">{SUBSCRIPTION_TIERS.enterprise.name}</CardTitle>
                 <CardDescription className="text-sm">
                   Til store organisationer
                 </CardDescription>
@@ -148,50 +225,26 @@ const TrackFoelgPage: React.FC = () => {
               <CardContent className="pt-4 flex flex-col flex-grow">
                 <div className="text-center mb-6 pb-4 border-b border-border">
                   <div className="flex items-center justify-center gap-2 mb-1">
-                    <div className="text-sm text-muted-foreground line-through">899,-</div>
-                    <div className="text-4xl font-bold">499,-</div>
+                    <div className="text-4xl font-bold">{SUBSCRIPTION_TIERS.enterprise.price},-</div>
                   </div>
                   <div className="text-sm text-muted-foreground">pr. måned</div>
                 </div>
                 <ul className="space-y-3 mb-8 flex-grow">
-                  <li className="flex items-center gap-3 text-sm">
-                    <CheckCircle className="h-4 w-4 text-green-600 flex-shrink-0" />
-                    <span>Følg op til 100 virksomheder</span>
-                  </li>
-                  <li className="flex items-center gap-3 text-sm">
-                    <CheckCircle className="h-4 w-4 text-green-600 flex-shrink-0" />
-                    <span>Realtids notifikationer</span>
-                  </li>
-                  <li className="flex items-center gap-3 text-sm">
-                    <CheckCircle className="h-4 w-4 text-green-600 flex-shrink-0" />
-                    <span>Alle kommunikationskanaler</span>
-                  </li>
-                  <li className="flex items-center gap-3 text-sm">
-                    <CheckCircle className="h-4 w-4 text-green-600 flex-shrink-0" />
-                    <span>Tilpassede alerts</span>
-                  </li>
-                  <li className="flex items-center gap-3 text-sm">
-                    <CheckCircle className="h-4 w-4 text-green-600 flex-shrink-0" />
-                    <span>Fuld historisk database</span>
-                  </li>
-                  <li className="flex items-center gap-3 text-sm">
-                    <CheckCircle className="h-4 w-4 text-green-600 flex-shrink-0" />
-                    <span>Export til Excel/PDF</span>
-                  </li>
-                  <li className="flex items-center gap-3 text-sm">
-                    <CheckCircle className="h-4 w-4 text-green-600 flex-shrink-0" />
-                    <span>Dedikeret support</span>
-                  </li>
+                  {SUBSCRIPTION_TIERS.enterprise.features.map((feature, index) => (
+                    <li key={index} className="flex items-center gap-3 text-sm">
+                      <CheckCircle className="h-4 w-4 text-green-600 flex-shrink-0" />
+                      <span>{feature}</span>
+                    </li>
+                  ))}
                 </ul>
                 <Button 
                   className="w-full mt-auto" 
-                  variant="secondary"
+                  variant={subscriptionTier === 'enterprise' ? 'secondary' : 'secondary'}
                   size="lg"
-                  asChild
+                  onClick={() => subscriptionTier === 'enterprise' ? openCustomerPortal() : handleSubscribe('enterprise')}
+                  disabled={loading}
                 >
-                  <Link to="/checkout?package=enterprise" className="animate-fade-in">
-                    Vælg Enterprise
-                  </Link>
+                  {subscriptionTier === 'enterprise' ? 'Administrer' : 'Vælg Enterprise'}
                 </Button>
               </CardContent>
             </Card>
