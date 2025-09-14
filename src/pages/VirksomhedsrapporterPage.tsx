@@ -47,7 +47,7 @@ const VirksomhedsrapporterPage: React.FC = () => {
         setIsSearching(true);
         try {
           const results = await searchCompanies(debouncedSearchQuery);
-          setSearchResults(results.slice(0, 9)); // Get 9 results to show 3 at a time with scroll
+          setSearchResults(results); // Keep all results for scrolling
           setShowDropdown(true);
         } catch (error) {
           console.error('Search error:', error);
@@ -446,8 +446,8 @@ const VirksomhedsrapporterPage: React.FC = () => {
                               </div>
                             </div>
                           ) : searchResults.length > 0 ? (
-                            <div className="max-h-[240px] overflow-y-auto">
-                              {searchResults.slice(0, 3).map((company, index) => {
+                            <div className="max-h-[300px] overflow-y-auto">
+                              {searchResults.map((company, index) => {
                                 const isSelected = selectedCompanies.find(c => c.cvr === company.cvr);
                                 return (
                                   <div
@@ -478,14 +478,6 @@ const VirksomhedsrapporterPage: React.FC = () => {
                                   </div>
                                 );
                               })}
-                              
-                              {searchResults.length > 3 && (
-                                <div className="p-2 bg-muted/50 text-center">
-                                  <span className="text-xs text-muted-foreground">
-                                    Scroll for flere resultater ({searchResults.length - 3} mere)
-                                  </span>
-                                </div>
-                              )}
                             </div>
                           ) : null}
                         </div>
