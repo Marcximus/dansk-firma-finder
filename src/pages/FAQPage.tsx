@@ -315,11 +315,11 @@ const FAQPage: React.FC = () => {
                 </div>
                 <div className="flex justify-between items-center p-3 bg-gray-50 rounded">
                   <span className="font-medium">Premium rapport:</span>
-                  <span className="text-blue-600 font-semibold">2-5 minutter</span>
+                  <span className="text-blue-600 font-semibold">2-5 timer</span>
                 </div>
                 <div className="flex justify-between items-center p-3 bg-gray-50 rounded">
                   <span className="font-medium">Enterprise rapport:</span>
-                  <span className="text-purple-600 font-semibold">5-15 minutter</span>
+                  <span className="text-purple-600 font-semibold">5-15 timer</span>
                 </div>
               </div>
               <p className="text-muted-foreground mt-3 text-sm">

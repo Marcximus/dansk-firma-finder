@@ -625,11 +625,11 @@ const VirksomhedsrapporterPage: React.FC = () => {
                   </div>
                   <div className="flex justify-between">
                     <span>Premium rapport:</span>
-                    <span className="font-medium">2-5 minutter</span>
+                    <span className="font-medium">2-5 timer</span>
                   </div>
                   <div className="flex justify-between">
                     <span>Enterprise rapport:</span>
-                    <span className="font-medium">5-15 minutter</span>
+                    <span className="font-medium">5-15 timer</span>
                   </div>
                 </CardContent>
               </Card>
