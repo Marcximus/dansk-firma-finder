@@ -36,11 +36,13 @@ serve(async (req) => {
     // Create line items for each company report
     const lineItems = companyReports.map((report: any) => {
       const reportTypeNames = {
+        standard: "Standard virksomhedsrapport",
         premium: "Premium virksomhedsrapport",
         enterprise: "Enterprise virksomhedsrapport"
       };
 
       const unitAmounts = {
+        standard: 4900, // 49 DKK in øre
         premium: 19900, // 199 DKK in øre
         enterprise: 49900 // 499 DKK in øre
       };

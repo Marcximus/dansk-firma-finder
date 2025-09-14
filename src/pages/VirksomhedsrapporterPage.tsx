@@ -147,7 +147,7 @@ const VirksomhedsrapporterPage: React.FC = () => {
     try {
       // Check if any companies need paid reports
       const paidReports = Object.entries(companyReportTypes).filter(([cvr, reportType]) => {
-        return reportType === 'premium' || reportType === 'enterprise';
+        return reportType === 'standard' || reportType === 'premium' || reportType === 'enterprise';
       });
 
       if (paidReports.length === 0) {
@@ -256,7 +256,7 @@ const VirksomhedsrapporterPage: React.FC = () => {
       title: 'Standard virksomhedsrapport',
       description: 'Omfattende rapport med grundlæggende virksomhedsoplysninger',
       originalPrice: '149,-',
-      currentPrice: '0,-',
+      currentPrice: '49,-',
       features: [
         'CVR-oplysninger og kontaktdata',
         'Grundlæggende finansielle nøgletal',
