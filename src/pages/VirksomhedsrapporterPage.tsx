@@ -160,45 +160,27 @@ const VirksomhedsrapporterPage: React.FC = () => {
         return;
       }
 
-      // Group companies by report type for Stripe checkout
-      const premiumCompanies = selectedCompanies.filter(company => 
-        companyReportTypes[company.cvr] === 'premium'
-      );
-      const enterpriseCompanies = selectedCompanies.filter(company => 
-        companyReportTypes[company.cvr] === 'enterprise'
-      );
+      // Create array of company reports for payment
+      const companyReports = paidReports.map(([cvr, reportType]) => {
+        const company = selectedCompanies.find(c => c.cvr === cvr);
+        return {
+          company,
+          reportType
+        };
+      });
 
-      // Create payments for each report type
-      if (premiumCompanies.length > 0) {
-        const { data, error } = await supabase.functions.invoke('create-payment', {
-          body: {
-            reportType: 'premium',
-            companies: premiumCompanies
-          }
-        });
-
-        if (error) throw error;
-
-        // Redirect to Stripe checkout
-        if (data?.url) {
-          window.open(data.url, '_blank');
+      // Create single payment for all reports
+      const { data, error } = await supabase.functions.invoke('create-payment', {
+        body: {
+          companyReports
         }
-      }
+      });
 
-      if (enterpriseCompanies.length > 0) {
-        const { data, error } = await supabase.functions.invoke('create-payment', {
-          body: {
-            reportType: 'enterprise',
-            companies: enterpriseCompanies
-          }
-        });
+      if (error) throw error;
 
-        if (error) throw error;
-
-        // Redirect to Stripe checkout
-        if (data?.url) {
-          window.open(data.url, '_blank');
-        }
+      // Redirect to Stripe checkout in same window
+      if (data?.url) {
+        window.location.href = data.url;
       }
 
       // Close the confirmation dialog

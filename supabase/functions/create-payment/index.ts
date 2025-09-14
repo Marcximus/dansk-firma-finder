@@ -20,42 +20,43 @@ serve(async (req) => {
   );
 
   try {
-    const { reportType, companies } = await req.json();
+    const { companyReports } = await req.json();
 
-    if (!reportType || !companies || companies.length === 0) {
-      throw new Error("Missing required parameters: reportType and companies");
+    if (!companyReports || companyReports.length === 0) {
+      throw new Error("Missing required parameter: companyReports");
     }
 
-    console.log("Creating payment for:", { reportType, companiesCount: companies.length });
+    console.log("Creating payment for:", { reportsCount: companyReports.length });
 
     // Initialize Stripe
     const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", {
       apiVersion: "2025-08-27.basil",
     });
 
-    // Map report types to Stripe price IDs
-    const priceMap = {
-      premium: "price_1S7Ea3CiBj9ds2dSou6BX6MD", // 199 DKK
-      enterprise: "price_1S7EaMCiBj9ds2dSirZlnofG", // 499 DKK
-    };
+    // Create line items for each company report
+    const lineItems = companyReports.map((report: any) => {
+      const reportTypeNames = {
+        premium: "Premium virksomhedsrapport",
+        enterprise: "Enterprise virksomhedsrapport"
+      };
 
-    const priceId = priceMap[reportType as keyof typeof priceMap];
-    if (!priceId) {
-      throw new Error(`Invalid report type: ${reportType}`);
-    }
+      const unitAmounts = {
+        premium: 19900, // 199 DKK in øre
+        enterprise: 49900 // 499 DKK in øre
+      };
 
-    // Create line items for each company
-    const lineItems = companies.map((company: any) => ({
-      price_data: {
-        currency: "dkk",
-        product_data: {
-          name: `${reportType.charAt(0).toUpperCase() + reportType.slice(1)} virksomhedsrapport`,
-          description: `Rapport for ${company.name} (CVR: ${company.cvr})`,
+      return {
+        price_data: {
+          currency: "dkk",
+          product_data: {
+            name: reportTypeNames[report.reportType as keyof typeof reportTypeNames],
+            description: `Rapport for ${report.company.name} (CVR: ${report.company.cvr})`,
+          },
+          unit_amount: unitAmounts[report.reportType as keyof typeof unitAmounts],
         },
-        unit_amount: reportType === "premium" ? 19900 : 49900, // Amount in øre
-      },
-      quantity: 1,
-    }));
+        quantity: 1,
+      };
+    });
 
     // Create a one-time payment session
     const session = await stripe.checkout.sessions.create({
@@ -64,8 +65,11 @@ serve(async (req) => {
       success_url: `${req.headers.get("origin")}/payment-success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${req.headers.get("origin")}/virksomhedsrapporter`,
       metadata: {
-        reportType,
-        companies: JSON.stringify(companies.map((c: any) => ({ name: c.name, cvr: c.cvr }))),
+        companyReports: JSON.stringify(companyReports.map((report: any) => ({ 
+          companyName: report.company.name, 
+          cvr: report.company.cvr, 
+          reportType: report.reportType 
+        }))),
       },
     });
 
