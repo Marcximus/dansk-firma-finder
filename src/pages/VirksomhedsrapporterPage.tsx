@@ -694,63 +694,140 @@ const VirksomhedsrapporterPage: React.FC = () => {
 
         {/* Order Confirmation Dialog */}
         <Dialog open={showOrderConfirmation} onOpenChange={setShowOrderConfirmation}>
-          <DialogContent className="sm:max-w-[500px]">
-            <DialogHeader>
-              <DialogTitle>Bekræft bestilling</DialogTitle>
-              <DialogDescription>
-                Du er ved at bestille rapporter for {selectedCompanies.length} {selectedCompanies.length === 1 ? 'virksomhed' : 'virksomheder'}
+          <DialogContent className="sm:max-w-[700px] max-h-[80vh] overflow-y-auto">
+            <DialogHeader className="space-y-3 pb-6">
+              <DialogTitle className="text-2xl flex items-center gap-3">
+                <CheckCircle className="h-6 w-6 text-green-500" />
+                Bekræft bestilling
+              </DialogTitle>
+              <DialogDescription className="text-base">
+                Du er ved at bestille rapporter for <span className="font-semibold">{selectedCompanies.length}</span> {selectedCompanies.length === 1 ? 'virksomhed' : 'virksomheder'}
               </DialogDescription>
             </DialogHeader>
             
             {selectedCompanies.length > 0 && selectedReportType && (
-              <div className="space-y-4">
-                <div className="p-4 bg-muted rounded-lg">
-                  <h4 className="font-semibold mb-3">Valgte virksomheder:</h4>
-                  <div className="space-y-2 max-h-32 overflow-y-auto">
+              <div className="space-y-6">
+                {/* Selected Companies Section */}
+                <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-6">
+                  <h4 className="font-bold text-lg mb-4 flex items-center gap-2 text-blue-800">
+                    <Building className="h-5 w-5" />
+                    Valgte virksomheder
+                  </h4>
+                  <div className="space-y-3 max-h-48 overflow-y-auto">
                     {selectedCompanies.map((company) => (
-                      <div key={company.cvr} className="flex items-center gap-3">
-                        <Building className="h-4 w-4 text-primary flex-shrink-0" />
-                        <div className="flex-1 min-w-0">
-                          <div className="font-medium text-sm truncate">{company.name}</div>
-                          <div className="text-xs text-muted-foreground">CVR: {company.cvr}</div>
+                      <div key={company.cvr} className="bg-white border border-blue-100 rounded-lg p-4 shadow-sm">
+                        <div className="flex items-start gap-3">
+                          <div className="p-2 bg-blue-100 rounded-lg">
+                            <Building className="h-4 w-4 text-blue-600" />
+                          </div>
+                          <div className="flex-1">
+                            <div className="font-semibold text-gray-900">{company.name}</div>
+                            <div className="text-sm text-gray-600 flex items-center gap-4 mt-1">
+                              <span>CVR: {company.cvr}</span>
+                              {company.city && (
+                                <>
+                                  <span>•</span>
+                                  <span className="flex items-center gap-1">
+                                    <MapPin className="h-3 w-3" />
+                                    {company.city}
+                                  </span>
+                                </>
+                              )}
+                            </div>
+                          </div>
                         </div>
                       </div>
                     ))}
                   </div>
-                  
-                  <div className="border-t pt-3 mt-3">
-                    {(() => {
-                      const report = reportTypes.find(r => r.id === selectedReportType);
-                      if (!report) return null;
-                      
-                      const totalPrice = report.currentPrice === '0,-' ? 'Gratis' : 
-                        `${parseInt(report.currentPrice.replace(/\D/g, '')) * selectedCompanies.length},-`;
-                      
-                      return (
-                        <div>
-                          <div className="font-semibold">{report.title}</div>
-                          <div className="text-sm text-muted-foreground mb-2">{report.description}</div>
-                          <div className="flex justify-between items-center">
-                            <span className="text-sm">Total pris:</span>
-                            <span className="text-lg font-bold text-primary">{totalPrice}</span>
+                </div>
+
+                {/* Report Details Section */}
+                <div className="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-xl p-6">
+                  {(() => {
+                    const report = reportTypes.find(r => r.id === selectedReportType);
+                    if (!report) return null;
+                    
+                    const totalPrice = report.currentPrice === '0,-' ? 'Gratis' : 
+                      `${parseInt(report.currentPrice.replace(/\D/g, '')) * selectedCompanies.length},-`;
+                    
+                    return (
+                      <div className="space-y-4">
+                        <h4 className="font-bold text-lg flex items-center gap-2 text-green-800">
+                          <FileText className="h-5 w-5" />
+                          Rapport detaljer
+                        </h4>
+                        
+                        <div className="bg-white border border-green-100 rounded-lg p-4 shadow-sm">
+                          <div className="flex items-start justify-between">
+                            <div className="flex-1">
+                              <h5 className="font-bold text-lg text-gray-900">{report.title}</h5>
+                              <p className="text-gray-600 mt-1">{report.description}</p>
+                              
+                              {/* Pricing with strikethrough if applicable */}
+                              <div className="mt-3 flex items-center gap-3">
+                                {report.originalPrice !== report.currentPrice && (
+                                  <span className="text-sm text-gray-500 line-through">
+                                    {report.originalPrice}
+                                  </span>
+                                )}
+                                <span className="text-sm text-gray-600">Pris per rapport:</span>
+                                <span className="font-bold text-lg text-green-600">{report.currentPrice}</span>
+                              </div>
+                            </div>
+                            
+                            <div className="text-right">
+                              <div className="text-sm text-gray-600 mb-1">Total pris</div>
+                              <div className="text-2xl font-bold text-green-600">{totalPrice}</div>
+                            </div>
                           </div>
                         </div>
-                      );
-                    })()}
-                  </div>
+                      </div>
+                    );
+                  })()}
                 </div>
                 
-                <div className="text-sm text-muted-foreground">
-                  Rapporterne vil være klar til download inden for 24 timer og sendes til din email.
+                {/* Delivery Information */}
+                <div className="bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-xl p-6">
+                  <h4 className="font-bold text-lg flex items-center gap-2 text-amber-800 mb-3">
+                    <Clock className="h-5 w-5" />
+                    Leveringsinformation
+                  </h4>
+                  <div className="bg-white border border-amber-100 rounded-lg p-4 shadow-sm">
+                    <div className="flex items-start gap-3">
+                      <div className="p-2 bg-amber-100 rounded-lg">
+                        <Calendar className="h-4 w-4 text-amber-600" />
+                      </div>
+                      <div>
+                        <p className="font-medium text-gray-900">Rapporterne sendes til din email</p>
+                        <p className="text-sm text-gray-600 mt-1">
+                          {(() => {
+                            const report = reportTypes.find(r => r.id === selectedReportType);
+                            if (report?.id === 'standard') return 'Standard rapporter leveres øjeblikkeligt';
+                            if (report?.id === 'premium') return 'Premium rapporter klar inden for 2-5 timer';
+                            if (report?.id === 'enterprise') return 'Enterprise rapporter klar inden for 5-15 timer';
+                            return 'Rapporter klar inden for 24 timer';
+                          })()}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
             )}
             
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setShowOrderConfirmation(false)}>
+            <DialogFooter className="pt-6 gap-3">
+              <Button 
+                variant="outline" 
+                onClick={() => setShowOrderConfirmation(false)}
+                className="px-6"
+              >
                 Annuller
               </Button>
-              <Button onClick={handleOrderConfirmation}>
+              <Button 
+                onClick={handleOrderConfirmation}
+                className="px-8 bg-green-600 hover:bg-green-700 text-white shadow-lg"
+              >
+                <CheckCircle className="w-4 h-4 mr-2" />
                 Bekræft bestilling
               </Button>
             </DialogFooter>
