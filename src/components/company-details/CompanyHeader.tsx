@@ -38,7 +38,10 @@ const CompanyHeader: React.FC<CompanyHeaderProps> = ({ company }) => {
   return (
     <TooltipProvider>
       <div className="bg-white rounded-lg shadow-sm p-6 mb-6 relative">
-        <div className="absolute top-4 right-4 text-center">
+        <div className="absolute top-4 right-4 text-center flex gap-3">
+          <Button variant="default" size="lg" className="px-8 py-4 text-lg">
+            Virksomhedsrapport med kreditvurdering
+          </Button>
           <Tooltip>
             <TooltipTrigger asChild>
               <Button variant="outline" size="lg" className="bg-sky-100 border-sky-300 text-sky-700 hover:bg-sky-200 px-8 py-4 text-lg">
