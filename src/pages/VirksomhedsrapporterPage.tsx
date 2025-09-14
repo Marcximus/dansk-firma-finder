@@ -254,7 +254,7 @@ const VirksomhedsrapporterPage: React.FC = () => {
     {
       id: 'standard',
       title: 'Standard virksomhedsrapport',
-      description: 'Omfattende rapport med grundlæggende virksomhedsoplysninger',
+      description: 'Omfattende rapport med grundlæggende virksomhedsoplysninger og nøgletal',
       originalPrice: '149,-',
       currentPrice: '49,-',
       features: [
