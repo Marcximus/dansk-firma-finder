@@ -186,7 +186,8 @@ const VirksomhedsrapporterPage: React.FC = () => {
       id: 'standard',
       title: 'Standard virksomhedsrapport',
       description: 'Omfattende rapport med grundlæggende virksomhedsoplysninger',
-      price: '0,-',
+      originalPrice: '149,-',
+      currentPrice: '0,-',
       features: [
         'CVR-oplysninger og kontaktdata',
         'Grundlæggende finansielle nøgletal',
@@ -201,7 +202,8 @@ const VirksomhedsrapporterPage: React.FC = () => {
       id: 'premium',
       title: 'Premium virksomhedsrapport',
       description: 'Detaljeret analyse med finansielle trends og kreditvurdering',
-      price: '199,-',
+      originalPrice: '499,-',
+      currentPrice: '199,-',
       features: [
         'Alt fra Standard rapport',
         'Detaljeret finansiel analyse',
@@ -218,7 +220,8 @@ const VirksomhedsrapporterPage: React.FC = () => {
       id: 'enterprise',
       title: 'Enterprise virksomhedsrapport',
       description: 'Komplet due diligence rapport til professionelle formål',
-      price: '499,-',
+      originalPrice: '899,-',
+      currentPrice: '499,-',
       features: [
         'Alt fra Premium rapport',
         'Koncernstruktur og tilknyttede selskaber',
@@ -460,7 +463,10 @@ const VirksomhedsrapporterPage: React.FC = () => {
                   <CardHeader>
                     <CardTitle className="pr-20">{report.title}</CardTitle>
                     <CardDescription>{report.description}</CardDescription>
-                    <div className="text-2xl font-bold text-primary">{report.price}</div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm text-muted-foreground line-through">{report.originalPrice}</span>
+                      <span className="text-2xl font-bold text-primary">{report.currentPrice}</span>
+                    </div>
                   </CardHeader>
                   
                   <CardContent className="space-y-4 flex-1 flex flex-col">
@@ -717,8 +723,8 @@ const VirksomhedsrapporterPage: React.FC = () => {
                       const report = reportTypes.find(r => r.id === selectedReportType);
                       if (!report) return null;
                       
-                      const totalPrice = report.price === 'Gratis' ? 'Gratis' : 
-                        `${parseInt(report.price.replace(/\D/g, '')) * selectedCompanies.length} kr.`;
+                      const totalPrice = report.currentPrice === '0,-' ? 'Gratis' : 
+                        `${parseInt(report.currentPrice.replace(/\D/g, '')) * selectedCompanies.length},-`;
                       
                       return (
                         <div>
