@@ -186,7 +186,7 @@ const VirksomhedsrapporterPage: React.FC = () => {
       id: 'standard',
       title: 'Standard virksomhedsrapport',
       description: 'Omfattende rapport med grundlæggende virksomhedsoplysninger',
-      price: 'Gratis',
+      price: '0,-',
       features: [
         'CVR-oplysninger og kontaktdata',
         'Grundlæggende finansielle nøgletal',
@@ -201,7 +201,7 @@ const VirksomhedsrapporterPage: React.FC = () => {
       id: 'premium',
       title: 'Premium virksomhedsrapport',
       description: 'Detaljeret analyse med finansielle trends og kreditvurdering',
-      price: '199 kr.',
+      price: '199,-',
       features: [
         'Alt fra Standard rapport',
         'Detaljeret finansiel analyse',
@@ -218,7 +218,7 @@ const VirksomhedsrapporterPage: React.FC = () => {
       id: 'enterprise',
       title: 'Enterprise virksomhedsrapport',
       description: 'Komplet due diligence rapport til professionelle formål',
-      price: '499 kr.',
+      price: '499,-',
       features: [
         'Alt fra Premium rapport',
         'Koncernstruktur og tilknyttede selskaber',
