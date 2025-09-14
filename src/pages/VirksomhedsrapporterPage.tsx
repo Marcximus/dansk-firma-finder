@@ -339,7 +339,7 @@ const VirksomhedsrapporterPage: React.FC = () => {
             <h1 className="text-3xl font-bold">Virksomhedsrapporter</h1>
           </div>
           <p className="text-lg text-muted-foreground">
-            Få detaljerede rapporter om danske virksomheder - fra grundlæggende oplysninger til omfattende analyser
+            detaljerede rapporter om danske virksomheder - fra grundlæggende oplysninger til omfattende analyser om økonomi- og kreditværdighed
           </p>
         </div>
 
