@@ -20,6 +20,7 @@ import {
   MapPin
 } from 'lucide-react';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { searchCompanies, Company } from '@/services/companyAPI';
 import { useDebounce } from '@/hooks/useDebounce';
 
@@ -32,6 +33,7 @@ const VirksomhedsrapporterPage: React.FC = () => {
   const [selectedCompanies, setSelectedCompanies] = useState<Company[]>([]);
   const [showOrderConfirmation, setShowOrderConfirmation] = useState(false);
   const [selectedReportType, setSelectedReportType] = useState<string>('');
+  const [companyReportTypes, setCompanyReportTypes] = useState<Record<string, string>>({});
   const [showSearchInput, setShowSearchInput] = useState(true);
   const searchRef = useRef<HTMLDivElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
@@ -130,16 +132,22 @@ const VirksomhedsrapporterPage: React.FC = () => {
   const handleReportOrder = (reportId: string) => {
     if (selectedCompanies.length === 0) return;
     
+    // Initialize all companies with the selected report type
+    const initialReportTypes: Record<string, string> = {};
+    selectedCompanies.forEach(company => {
+      initialReportTypes[company.cvr] = reportId;
+    });
+    setCompanyReportTypes(initialReportTypes);
     setSelectedReportType(reportId);
     setShowOrderConfirmation(true);
   };
 
   const handleOrderConfirmation = () => {
     // Here you would implement the actual ordering logic
-    // For now, we'll just show a success message
-    console.log('Ordering report:', selectedReportType, 'for companies:', selectedCompanies);
+    console.log('Ordering reports:', companyReportTypes, 'for companies:', selectedCompanies);
     setShowOrderConfirmation(false);
     setSelectedReportType('');
+    setCompanyReportTypes({});
     // You could show a success toast or redirect to a confirmation page
   };
 
@@ -147,6 +155,7 @@ const VirksomhedsrapporterPage: React.FC = () => {
     setSelectedCompanies([]);
     setSearchQuery('');
     setSelectedReportType('');
+    setCompanyReportTypes({});
     setShowOrderConfirmation(false);
     setShowSearchInput(true); // Show search input when clearing
   };
@@ -179,6 +188,24 @@ const VirksomhedsrapporterPage: React.FC = () => {
       default:
         return 'text-muted-foreground';
     }
+  };
+
+  const updateCompanyReportType = (cvr: string, reportType: string) => {
+    setCompanyReportTypes(prev => ({
+      ...prev,
+      [cvr]: reportType
+    }));
+  };
+
+  const calculateTotal = () => {
+    let total = 0;
+    Object.entries(companyReportTypes).forEach(([cvr, reportType]) => {
+      const report = reportTypes.find(r => r.id === reportType);
+      if (report && report.currentPrice !== '0,-') {
+        total += parseInt(report.currentPrice.replace(/\D/g, ''));
+      }
+    });
+    return total === 0 ? 'Gratis' : `${total},-`;
   };
 
   const reportTypes = [
@@ -694,123 +721,156 @@ const VirksomhedsrapporterPage: React.FC = () => {
 
         {/* Order Confirmation Dialog */}
         <Dialog open={showOrderConfirmation} onOpenChange={setShowOrderConfirmation}>
-          <DialogContent className="sm:max-w-[700px] max-h-[80vh] overflow-y-auto">
+          <DialogContent className="sm:max-w-[800px] max-h-[85vh] overflow-y-auto">
             <DialogHeader className="space-y-3 pb-6">
               <DialogTitle className="text-2xl flex items-center gap-3">
                 <CheckCircle className="h-6 w-6 text-green-500" />
                 Bekræft bestilling
               </DialogTitle>
               <DialogDescription className="text-base">
-                Du er ved at bestille rapporter for <span className="font-semibold">{selectedCompanies.length}</span> {selectedCompanies.length === 1 ? 'virksomhed' : 'virksomheder'}
+                Vælg rapporttype for hver virksomhed og bekræft din bestilling
               </DialogDescription>
             </DialogHeader>
             
-            {selectedCompanies.length > 0 && selectedReportType && (
+            {selectedCompanies.length > 0 && (
               <div className="space-y-6">
-                {/* Selected Companies Section */}
-                <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-6">
-                  <h4 className="font-bold text-lg mb-4 flex items-center gap-2 text-blue-800">
-                    <Building className="h-5 w-5" />
-                    Valgte virksomheder
-                  </h4>
-                  <div className="space-y-3 max-h-48 overflow-y-auto">
-                    {selectedCompanies.map((company) => (
-                      <div key={company.cvr} className="bg-white border border-blue-100 rounded-lg p-4 shadow-sm">
-                        <div className="flex items-start gap-3">
-                          <div className="p-2 bg-blue-100 rounded-lg">
-                            <Building className="h-4 w-4 text-blue-600" />
-                          </div>
-                          <div className="flex-1">
-                            <div className="font-semibold text-gray-900">{company.name}</div>
-                            <div className="text-sm text-gray-600 flex items-center gap-4 mt-1">
-                              <span>CVR: {company.cvr}</span>
-                              {company.city && (
-                                <>
-                                  <span>•</span>
-                                  <span className="flex items-center gap-1">
-                                    <MapPin className="h-3 w-3" />
-                                    {company.city}
-                                  </span>
-                                </>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
+                {/* Companies with Report Selection */}
+                <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
+                  <div className="bg-gradient-to-r from-blue-500 to-blue-600 text-white p-4">
+                    <h4 className="font-bold text-lg flex items-center gap-2">
+                      <Building className="h-5 w-5" />
+                      Virksomheder og rapporter ({selectedCompanies.length})
+                    </h4>
                   </div>
-                </div>
-
-                {/* Report Details Section */}
-                <div className="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-xl p-6">
-                  {(() => {
-                    const report = reportTypes.find(r => r.id === selectedReportType);
-                    if (!report) return null;
-                    
-                    const totalPrice = report.currentPrice === '0,-' ? 'Gratis' : 
-                      `${parseInt(report.currentPrice.replace(/\D/g, '')) * selectedCompanies.length},-`;
-                    
-                    return (
-                      <div className="space-y-4">
-                        <h4 className="font-bold text-lg flex items-center gap-2 text-green-800">
-                          <FileText className="h-5 w-5" />
-                          Rapport detaljer
-                        </h4>
-                        
-                        <div className="bg-white border border-green-100 rounded-lg p-4 shadow-sm">
-                          <div className="flex items-start justify-between">
-                            <div className="flex-1">
-                              <h5 className="font-bold text-lg text-gray-900">{report.title}</h5>
-                              <p className="text-gray-600 mt-1">{report.description}</p>
-                              
-                              {/* Pricing with strikethrough if applicable */}
-                              <div className="mt-3 flex items-center gap-3">
-                                {report.originalPrice !== report.currentPrice && (
-                                  <span className="text-sm text-gray-500 line-through">
-                                    {report.originalPrice}
-                                  </span>
-                                )}
-                                <span className="text-sm text-gray-600">Pris per rapport:</span>
-                                <span className="font-bold text-lg text-green-600">{report.currentPrice}</span>
+                  
+                  <div className="divide-y divide-gray-100">
+                    {selectedCompanies.map((company, index) => {
+                      const selectedReport = companyReportTypes[company.cvr] 
+                        ? reportTypes.find(r => r.id === companyReportTypes[company.cvr])
+                        : null;
+                      
+                      return (
+                        <div key={company.cvr} className="p-6 hover:bg-gray-50/50 transition-colors">
+                          <div className="flex items-start justify-between gap-6">
+                            {/* Company Info */}
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-start gap-3">
+                                <div className="p-2 bg-blue-100 rounded-lg mt-1">
+                                  <Building className="h-4 w-4 text-blue-600" />
+                                </div>
+                                <div className="flex-1">
+                                  <h5 className="font-bold text-lg text-gray-900 mb-1">{company.name}</h5>
+                                  <div className="flex items-center gap-4 text-sm text-gray-600">
+                                    <span className="font-medium">CVR: {company.cvr}</span>
+                                    {company.city && (
+                                      <>
+                                        <span>•</span>
+                                        <span className="flex items-center gap-1">
+                                          <MapPin className="h-3 w-3" />
+                                          {company.city}
+                                        </span>
+                                      </>
+                                    )}
+                                  </div>
+                                </div>
                               </div>
                             </div>
                             
-                            <div className="text-right">
-                              <div className="text-sm text-gray-600 mb-1">Total pris</div>
-                              <div className="text-2xl font-bold text-green-600">{totalPrice}</div>
+                            {/* Report Selection */}
+                            <div className="flex items-center gap-4 min-w-[300px]">
+                              <div className="flex-1">
+                                <label className="text-sm font-medium text-gray-700 mb-2 block">
+                                  Rapporttype:
+                                </label>
+                                <Select 
+                                  value={companyReportTypes[company.cvr] || ''} 
+                                  onValueChange={(value) => updateCompanyReportType(company.cvr, value)}
+                                >
+                                  <SelectTrigger className="w-full border-2 border-gray-300 hover:border-blue-400 focus:border-blue-500">
+                                    <SelectValue placeholder="Vælg rapport" />
+                                  </SelectTrigger>
+                                  <SelectContent className="z-50 bg-white shadow-lg">
+                                    {reportTypes.map((report) => (
+                                      <SelectItem key={report.id} value={report.id}>
+                                        {report.title} - {report.currentPrice}
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                              
+                              {/* Price Display */}
+                              <div className="text-right min-w-[100px]">
+                                <div className="text-xs text-gray-500 mb-1">Pris</div>
+                                {selectedReport ? (
+                                  <div className="flex flex-col items-end gap-1">
+                                    {selectedReport.originalPrice !== selectedReport.currentPrice && (
+                                      <span className="text-sm text-gray-400 line-through">
+                                        {selectedReport.originalPrice}
+                                      </span>
+                                    )}
+                                    <span className="text-lg font-bold text-green-600">
+                                      {selectedReport.currentPrice}
+                                    </span>
+                                  </div>
+                                ) : (
+                                  <span className="text-gray-400">-</span>
+                                )}
+                              </div>
                             </div>
                           </div>
+                          
+                          {/* Report Description */}
+                          {selectedReport && (
+                            <div className="mt-4 ml-11 p-3 bg-blue-50 rounded-lg border border-blue-100">
+                              <p className="text-sm text-blue-800">{selectedReport.description}</p>
+                            </div>
+                          )}
                         </div>
-                      </div>
-                    );
-                  })()}
+                      );
+                    })}
+                  </div>
+                </div>
+                
+                {/* Total Section */}
+                <div className="bg-gradient-to-r from-green-500 to-green-600 text-white rounded-xl p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h4 className="font-bold text-xl mb-1">Total bestilling</h4>
+                      <p className="text-green-100 text-sm">
+                        {Object.keys(companyReportTypes).length} af {selectedCompanies.length} virksomheder har valgt rapport
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-green-100 text-sm mb-1">Total pris</div>
+                      <div className="text-3xl font-bold">{calculateTotal()}</div>
+                    </div>
+                  </div>
                 </div>
                 
                 {/* Delivery Information */}
-                <div className="bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-xl p-6">
+                <div className="bg-amber-50 border border-amber-200 rounded-xl p-6">
                   <h4 className="font-bold text-lg flex items-center gap-2 text-amber-800 mb-3">
                     <Clock className="h-5 w-5" />
                     Leveringsinformation
                   </h4>
-                  <div className="bg-white border border-amber-100 rounded-lg p-4 shadow-sm">
-                    <div className="flex items-start gap-3">
-                      <div className="p-2 bg-amber-100 rounded-lg">
-                        <Calendar className="h-4 w-4 text-amber-600" />
-                      </div>
-                      <div>
-                        <p className="font-medium text-gray-900">Rapporterne sendes til din email</p>
-                        <p className="text-sm text-gray-600 mt-1">
-                          {(() => {
-                            const report = reportTypes.find(r => r.id === selectedReportType);
-                            if (report?.id === 'standard') return 'Standard rapporter leveres øjeblikkeligt';
-                            if (report?.id === 'premium') return 'Premium rapporter klar inden for 2-5 timer';
-                            if (report?.id === 'enterprise') return 'Enterprise rapporter klar inden for 5-15 timer';
-                            return 'Rapporter klar inden for 24 timer';
-                          })()}
-                        </p>
-                      </div>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="text-center p-3 bg-white rounded-lg border border-amber-100">
+                      <div className="font-medium text-green-600">Standard</div>
+                      <div className="text-sm text-gray-600">Øjeblikkeligt</div>
+                    </div>
+                    <div className="text-center p-3 bg-white rounded-lg border border-amber-100">
+                      <div className="font-medium text-blue-600">Premium</div>
+                      <div className="text-sm text-gray-600">2-5 timer</div>
+                    </div>
+                    <div className="text-center p-3 bg-white rounded-lg border border-amber-100">
+                      <div className="font-medium text-purple-600">Enterprise</div>
+                      <div className="text-sm text-gray-600">5-15 timer</div>
                     </div>
                   </div>
+                  <p className="text-sm text-amber-700 mt-3 text-center">
+                    Alle rapporter sendes til din email når de er klar
+                  </p>
                 </div>
               </div>
             )}
@@ -825,10 +885,11 @@ const VirksomhedsrapporterPage: React.FC = () => {
               </Button>
               <Button 
                 onClick={handleOrderConfirmation}
-                className="px-8 bg-green-600 hover:bg-green-700 text-white shadow-lg"
+                disabled={Object.keys(companyReportTypes).length === 0}
+                className="px-8 bg-green-600 hover:bg-green-700 text-white shadow-lg disabled:bg-gray-400"
               >
                 <CheckCircle className="w-4 h-4 mr-2" />
-                Bekræft bestilling
+                Bekræft bestilling ({Object.keys(companyReportTypes).length})
               </Button>
             </DialogFooter>
           </DialogContent>
