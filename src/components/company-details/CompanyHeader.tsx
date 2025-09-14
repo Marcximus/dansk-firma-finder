@@ -4,7 +4,7 @@ import { Company } from '@/services/companyAPI';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { Calendar, FileText, Map, Download, Share2 } from 'lucide-react';
+import { Calendar, FileText, Map } from 'lucide-react';
 
 interface CompanyHeaderProps {
   company: Company;
@@ -72,16 +72,6 @@ const CompanyHeader: React.FC<CompanyHeaderProps> = ({ company }) => {
           <Badge className={`${statusDisplay.color} text-white`}>
             {statusDisplay.text}
           </Badge>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          <Button variant="outline" size="sm" className="flex gap-1">
-            <Download size={16} />
-            Download PDF
-          </Button>
-          <Button variant="outline" size="sm" className="flex gap-1">
-            <Share2 size={16} />
-            Del
-          </Button>
         </div>
       </div>
     </TooltipProvider>
