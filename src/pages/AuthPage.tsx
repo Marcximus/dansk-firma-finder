@@ -106,7 +106,7 @@ const AuthPage: React.FC = () => {
     }
   };
 
-  const handleSocialLogin = async (provider: 'google' | 'github') => {
+  const handleSocialLogin = async (provider: 'google' | 'github' | 'apple' | 'facebook' | 'azure') => {
     try {
       const { error } = await supabase.auth.signInWithOAuth({
         provider,
@@ -236,7 +236,7 @@ const AuthPage: React.FC = () => {
                 <Button
                   variant="outline"
                   onClick={() => handleSocialLogin('google')}
-                  className="w-full"
+                  className="w-full h-9"
                   disabled={loading}
                 >
                   <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24">
@@ -261,8 +261,44 @@ const AuthPage: React.FC = () => {
                 </Button>
                 <Button
                   variant="outline"
+                  onClick={() => handleSocialLogin('apple')}
+                  className="w-full h-9"
+                  disabled={loading}
+                >
+                  <svg className="mr-2 h-4 w-4" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M12.152 6.896c-.948 0-2.415-1.078-3.96-1.04-2.04.027-3.91 1.183-4.961 3.014-2.117 3.675-.546 9.103 1.519 12.09 1.013 1.454 2.208 3.09 3.792 3.039 1.52-.065 2.09-.987 3.935-.987 1.831 0 2.35.987 3.96.948 1.637-.026 2.676-1.48 3.676-2.948 1.156-1.688 1.636-3.325 1.662-3.415-.039-.013-3.182-1.221-3.22-4.857-.026-3.04 2.48-4.494 2.597-4.559-1.429-2.09-3.623-2.324-4.39-2.376-2-.156-3.675 1.09-4.61 1.09zM15.53 3.83c.843-1.012 1.4-2.427 1.245-3.83-1.207.052-2.662.805-3.532 1.818-.78.896-1.454 2.338-1.273 3.714 1.338.104 2.715-.688 3.559-1.701"/>
+                  </svg>
+                  Fortsæt med Apple
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => handleSocialLogin('facebook')}
+                  className="w-full h-9"
+                  disabled={loading}
+                >
+                  <svg className="mr-2 h-4 w-4" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                  </svg>
+                  Fortsæt med Facebook
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => handleSocialLogin('azure')}
+                  className="w-full h-9"
+                  disabled={loading}
+                >
+                  <svg className="mr-2 h-4 w-4" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M21.53 12.1H12.4v3.22h5.14c-.22 1.17-.86 2.16-1.82 2.82v2.34h2.93c1.72-1.58 2.71-3.91 2.71-6.67 0-.63-.06-1.25-.17-1.85l.17.14z"/>
+                    <path d="M12.4 22c2.46 0 4.52-.81 6.03-2.19l-2.93-2.34c-.82.55-1.87.87-3.1.87-2.38 0-4.4-1.61-5.12-3.78H4.28v2.42C5.77 19.23 8.84 22 12.4 22z"/>
+                    <path d="M7.28 14.56c-.18-.55-.28-1.13-.28-1.73s.1-1.18.28-1.73V8.68H4.28C3.46 10.3 3 12.11 3 14.06s.46 3.76 1.28 5.38l3-2.38z"/>
+                    <path d="M12.4 6.38c1.34 0 2.54.46 3.49 1.36l2.61-2.61C16.91 3.57 14.85 2.76 12.4 2.76 8.84 2.76 5.77 5.53 4.28 8.78l3 2.38c.72-2.17 2.74-3.78 5.12-3.78z"/>
+                  </svg>
+                  Fortsæt med Microsoft
+                </Button>
+                <Button
+                  variant="outline"
                   onClick={() => handleSocialLogin('github')}
-                  className="w-full"
+                  className="w-full h-9"
                   disabled={loading}
                 >
                   <svg className="mr-2 h-4 w-4" fill="currentColor" viewBox="0 0 24 24">
