@@ -54,7 +54,7 @@ const CompanyHeader: React.FC<CompanyHeaderProps> = ({ company }) => {
           </Tooltip>
         </div>
         <h1 className="text-2xl md:text-3xl font-bold mb-2 pr-52">{company.name}</h1>
-        <div className="flex flex-wrap gap-4 text-muted-foreground mb-4">
+        <div className="flex flex-wrap gap-4 text-muted-foreground">
           {company.yearFounded && (
             <div className="flex items-center gap-1.5">
               <Calendar className="h-4 w-4" />
