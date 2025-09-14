@@ -219,7 +219,7 @@ const VirksomhedsrapporterPage: React.FC = () => {
     {
       id: 'enterprise',
       title: 'Enterprise virksomhedsrapport',
-      description: 'Komplet due diligence rapport til professionelle formål',
+      description: 'Komplet "Outside-In" due diligence rapport til professionelle formål',
       originalPrice: '899,-',
       currentPrice: '499,-',
       features: [
