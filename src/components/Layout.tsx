@@ -15,7 +15,7 @@ import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Textarea } from '@/components/ui/textarea';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import UserMenu from '@/components/UserMenu';
 
 interface LayoutProps {
   children: ReactNode;
@@ -25,7 +25,6 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   const [headerSearchQuery, setHeaderSearchQuery] = useState('');
   const [isJuridiskDialogOpen, setIsJuridiskDialogOpen] = useState(false);
   const [isRegnskabDialogOpen, setIsRegnskabDialogOpen] = useState(false);
-  const [isAuthDialogOpen, setIsAuthDialogOpen] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -131,80 +130,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           </form>
           
           <div className="flex items-center gap-2">
-            <Dialog open={isAuthDialogOpen} onOpenChange={setIsAuthDialogOpen}>
-              <DialogTrigger asChild>
-                <Button variant="outline">Log Ind / Tilmeld</Button>
-              </DialogTrigger>
-              <DialogContent className="sm:max-w-[400px]">
-                <DialogHeader>
-                  <DialogTitle>Log ind eller tilmeld dig</DialogTitle>
-                </DialogHeader>
-                <Tabs defaultValue="login" className="w-full">
-                  <TabsList className="grid w-full grid-cols-2">
-                    <TabsTrigger value="login">Log Ind</TabsTrigger>
-                    <TabsTrigger value="register">Tilmeld</TabsTrigger>
-                  </TabsList>
-                  
-                  <TabsContent value="login" className="space-y-4">
-                    <form className="space-y-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="login-email">Email</Label>
-                        <Input
-                          id="login-email"
-                          type="email"
-                          placeholder="din@email.dk"
-                          required
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="login-password">Adgangskode</Label>
-                        <Input
-                          id="login-password"
-                          type="password"
-                          required
-                        />
-                      </div>
-                      <Button type="submit" className="w-full">
-                        Log Ind
-                      </Button>
-                    </form>
-                  </TabsContent>
-                  
-                  <TabsContent value="register" className="space-y-4">
-                    <form className="space-y-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="register-email">Email</Label>
-                        <Input
-                          id="register-email"
-                          type="email"
-                          placeholder="din@email.dk"
-                          required
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="register-password">Adgangskode</Label>
-                        <Input
-                          id="register-password"
-                          type="password"
-                          required
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="register-password-confirm">Bekræft adgangskode</Label>
-                        <Input
-                          id="register-password-confirm"
-                          type="password"
-                          required
-                        />
-                      </div>
-                      <Button type="submit" className="w-full">
-                        Tilmeld
-                      </Button>
-                    </form>
-                  </TabsContent>
-                </Tabs>
-              </DialogContent>
-            </Dialog>
+            <UserMenu />
             
             <Dialog open={isJuridiskDialogOpen} onOpenChange={setIsJuridiskDialogOpen}>
               <DialogTrigger asChild>

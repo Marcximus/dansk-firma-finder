@@ -14,6 +14,7 @@ import HjaelpecenterPage from "./pages/HjaelpecenterPage";
 import SearchGuidePage from "./pages/SearchGuidePage";
 import TrackFoelgPage from "./pages/TrackFoelgPage";
 import CheckoutPage from "./pages/CheckoutPage";
+import AuthPage from "./pages/AuthPage";
 import KontaktOsPage from "./pages/KontaktOsPage";
 import VirksomhedsrapporterPage from "./pages/VirksomhedsrapporterPage";
 import DatakilderPage from "./pages/DatakilderPage";
@@ -41,6 +42,7 @@ const App = () => (
             <Route path="/soegeguide" element={<SearchGuidePage />} />
             <Route path="/track-foelg" element={<TrackFoelgPage />} />
             <Route path="/checkout" element={<CheckoutPage />} />
+            <Route path="/auth" element={<AuthPage />} />
             <Route path="/kontakt-os" element={<KontaktOsPage />} />
             <Route path="/virksomhedsrapporter" element={<VirksomhedsrapporterPage />} />
             <Route path="/payment-success" element={<PaymentSuccessPage />} />

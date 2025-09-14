@@ -85,11 +85,8 @@ export const SubscriptionProvider: React.FC<SubscriptionProviderProps> = ({ chil
     try {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) {
-        toast({
-          title: "Authentication Required",
-          description: "Please log in to subscribe",
-          variant: "destructive",
-        });
+        // Redirect to auth page with current page as redirect
+        window.location.href = `/auth?redirect=${encodeURIComponent(window.location.pathname)}`;
         return;
       }
 
@@ -127,11 +124,8 @@ export const SubscriptionProvider: React.FC<SubscriptionProviderProps> = ({ chil
     try {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) {
-        toast({
-          title: "Authentication Required",
-          description: "Please log in to manage your subscription",
-          variant: "destructive",
-        });
+        // Redirect to auth page with current page as redirect
+        window.location.href = `/auth?redirect=${encodeURIComponent(window.location.pathname)}`;
         return;
       }
 
