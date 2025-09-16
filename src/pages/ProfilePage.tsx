@@ -545,10 +545,10 @@ const ProfilePage: React.FC = () => {
                     <table className="w-full table-fixed">
                       <thead>
                         <tr className="border-b border-border">
-                          <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground w-12">#</th>
+                          <th className="text-left py-3 text-sm font-medium text-muted-foreground w-12">#</th>
                           <th className="text-left py-3 text-sm font-medium text-muted-foreground w-48">Selskab</th>
                           <th className="text-left py-3 text-sm font-medium text-muted-foreground w-28">CVR</th>
-                          <th className="text-left py-3 text-sm font-medium text-muted-foreground w-32">Rapport Type</th>
+                          <th className="text-left py-3 text-sm font-medium text-muted-foreground w-64">Rapport Type</th>
                           <th className="text-left py-3 text-sm font-medium text-muted-foreground w-24">Dato</th>
                           <th className="text-left py-3 text-sm font-medium text-muted-foreground w-32">Status</th>
                         </tr>
@@ -556,7 +556,7 @@ const ProfilePage: React.FC = () => {
                       <tbody>
                         {mockReports.map((report, index) => (
                           <tr key={report.id} className="border-b border-border/30 hover:bg-muted/20">
-                            <td className="py-3 px-4 text-sm text-muted-foreground">{index + 1}.</td>
+                            <td className="py-3 text-sm text-muted-foreground">{index + 1}.</td>
                             <td className="py-3 font-semibold text-foreground">{report.company_name}</td>
                             <td className="py-3 text-sm font-mono text-muted-foreground">{report.company_cvr}</td>
                             <td className="py-3 text-sm text-muted-foreground">{report.report_type}</td>
