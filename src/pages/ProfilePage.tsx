@@ -517,80 +517,73 @@ const ProfilePage: React.FC = () => {
             </div>
 
             {/* Ordered Reports Section */}
-            <Card className="border-2 border-blue-200/50 mt-16">
-              <CardHeader className="pb-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="p-2 bg-blue-100 rounded-lg">
-                      <FileText className="h-6 w-6 text-blue-600" />
-                    </div>
-                    <div>
-                      <CardTitle className="text-xl">Bestilte rapporter</CardTitle>
-                      <CardDescription>
-                        Dine købte virksomhedsrapporter og analyser
-                      </CardDescription>
-                    </div>
-                  </div>
-                  <Button variant="outline">
+            <div className="space-y-6 mt-16">
+              <div className="flex items-center gap-3">
+                <div className="p-3 bg-primary/10 rounded-xl">
+                  <FileText className="h-7 w-7 text-primary" />
+                </div>
+                <div>
+                  <h2 className="text-2xl font-bold">Bestilte rapporter</h2>
+                </div>
+              </div>
+
+              {mockReports.length === 0 ? (
+                <div className="text-center py-16">
+                  <FileText className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
+                  <h3 className="text-xl font-semibold mb-2">Ingen rapporter bestilt endnu</h3>
+                  <p className="text-muted-foreground mb-6">
+                    Bestil detaljerede virksomhedsrapporter og finansielle analyser
+                  </p>
+                  <Button>
                     <Plus className="h-4 w-4 mr-2" />
-                    Bestil rapport
+                    Bestil din første rapport
                   </Button>
                 </div>
-              </CardHeader>
-              <CardContent>
-                {mockReports.length === 0 ? (
-                  <div className="text-center py-12">
-                    <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
-                      <FileText className="h-8 w-8 text-muted-foreground" />
-                    </div>
-                    <h3 className="text-lg font-semibold mb-2">Ingen rapporter bestilt endnu</h3>
-                    <p className="text-muted-foreground mb-6 max-w-md mx-auto">
-                      Bestil detaljerede virksomhedsrapporter og finansielle analyser
-                    </p>
-                    <Button>
-                      <Plus className="h-4 w-4 mr-2" />
-                      Bestil din første rapport
-                    </Button>
-                  </div>
-                ) : (
-                  <div className="space-y-4">
-                    {mockReports.map((report) => (
-                      <div key={report.id} className="flex items-center justify-between p-4 bg-muted/30 rounded-lg">
-                        <div className="flex-1">
-                          <h4 className="font-semibold text-foreground">{report.company_name}</h4>
-                          <p className="text-sm text-muted-foreground mb-2">
-                            CVR: {report.company_cvr} • {report.report_type}
-                          </p>
-                          <div className="flex items-center gap-3">
-                            <span className="text-xs text-muted-foreground">
-                              Bestilt: {new Date(report.order_date).toLocaleDateString('da-DK')}
-                            </span>
-                            <Badge 
-                              variant={report.status === 'ready' ? 'default' : 'secondary'}
-                              className="text-xs"
-                            >
-                              {report.status === 'ready' ? 'Klar til download' : 
-                               report.status === 'processing' ? 'Behandles' : 'Downloaded'}
-                            </Badge>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          {report.status === 'ready' && (
-                            <Button size="sm" variant="default">
-                              <Download className="h-4 w-4 mr-2" />
-                              Download
-                            </Button>
-                          )}
-                          <Button size="sm" variant="ghost">
-                            <Eye className="h-4 w-4" />
-                          </Button>
+              ) : (
+                <div className="space-y-4">
+                  {mockReports.map((report) => (
+                    <div key={report.id} className="flex items-center justify-between p-4 bg-muted/30 rounded-lg">
+                      <div className="flex-1">
+                        <h4 className="font-semibold text-foreground">{report.company_name}</h4>
+                        <p className="text-sm text-muted-foreground mb-2">
+                          CVR: {report.company_cvr} • {report.report_type}
+                        </p>
+                        <div className="flex items-center gap-3">
+                          <span className="text-xs text-muted-foreground">
+                            Bestilt: {new Date(report.order_date).toLocaleDateString('da-DK')}
+                          </span>
+                          <Badge 
+                            variant={report.status === 'ready' ? 'default' : 'secondary'}
+                            className="text-xs"
+                          >
+                            {report.status === 'ready' ? 'Klar til download' : 
+                             report.status === 'processing' ? 'Behandles' : 'Downloaded'}
+                          </Badge>
                         </div>
                       </div>
-                    ))}
+                      <div className="flex items-center gap-2">
+                        {report.status === 'ready' && (
+                          <Button size="sm" variant="default">
+                            <Download className="h-4 w-4 mr-2" />
+                            Download
+                          </Button>
+                        )}
+                        <Button size="sm" variant="ghost">
+                          <Eye className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                  
+                  <div className="mt-8 flex justify-center">
+                    <Button className="bg-primary hover:bg-primary/90">
+                      <Plus className="h-4 w-4 mr-2" />
+                      Bestil flere rapporter
+                    </Button>
                   </div>
-                )}
-              </CardContent>
-            </Card>
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Sidebar */}
