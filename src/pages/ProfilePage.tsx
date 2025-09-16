@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Layout from '@/components/Layout';
-import { User, Building2, Phone, Mail, Calendar, CreditCard, FileText, Star, Settings as SettingsIcon, Download, Edit2, Save, X, Bell, Eye, Trash2, Plus, Crown, Shield, Zap, TrendingUp, TrendingDown, AlertCircle, Clock, Users, DollarSign, MapPin, Calendar as CalendarIcon, Loader } from 'lucide-react';
+import { User, Building2, Phone, Mail, Calendar, CreditCard, FileText, Star, Settings as SettingsIcon, Download, Edit2, Save, X, Bell, Eye, Trash2, Plus, Crown, Shield, Zap, TrendingUp, TrendingDown, AlertCircle, Clock, Users, DollarSign, MapPin, Calendar as CalendarIcon, Loader, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -173,6 +173,28 @@ const ProfilePage: React.FC = () => {
       });
     }
     setIsEditing(false);
+  };
+
+  const handleLogout = async () => {
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
+      
+      toast({
+        title: "Logget ud",
+        description: "Du er blevet logget ud af din konto",
+      });
+      
+      // Redirect to auth page
+      window.location.href = '/auth';
+    } catch (error) {
+      console.error('Error signing out:', error);
+      toast({
+        title: "Fejl",
+        description: "Kunne ikke logge ud",
+        variant: "destructive",
+      });
+    }
   };
 
   const removeFollowedCompany = async (companyId: string) => {
@@ -384,10 +406,16 @@ const ProfilePage: React.FC = () => {
           </div>
           <div className="flex items-center gap-3">
             {!isEditing ? (
-              <Button variant="outline" onClick={() => setIsEditing(true)}>
-                <Edit2 className="h-4 w-4 mr-2" />
-                Rediger profil
-              </Button>
+              <>
+                <Button variant="outline" onClick={() => setIsEditing(true)}>
+                  <Edit2 className="h-4 w-4 mr-2" />
+                  Rediger profil
+                </Button>
+                <Button variant="outline" onClick={handleLogout}>
+                  <LogOut className="h-4 w-4 mr-2" />
+                  Log ud
+                </Button>
+              </>
             ) : (
               <div className="flex gap-2">
                 <Button variant="outline" onClick={handleCancelEdit}>
@@ -397,6 +425,10 @@ const ProfilePage: React.FC = () => {
                 <Button onClick={handleSaveProfile} disabled={saving}>
                   <Save className="h-4 w-4 mr-2" />
                   {saving ? 'Gemmer...' : 'Gem'}
+                </Button>
+                <Button variant="outline" onClick={handleLogout}>
+                  <LogOut className="h-4 w-4 mr-2" />
+                  Log ud
                 </Button>
               </div>
             )}
