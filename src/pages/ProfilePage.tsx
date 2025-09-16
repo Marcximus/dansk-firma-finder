@@ -510,7 +510,7 @@ const ProfilePage: React.FC = () => {
                     </tbody>
                   </table>
                   </div>
-                  <div className="mt-4 flex justify-center">
+                  <div className="mt-8 flex justify-center">
                     <Button asChild className="bg-primary hover:bg-primary/90">
                       <a href="/">
                         <Plus className="h-4 w-4 mr-2" />
