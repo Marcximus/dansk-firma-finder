@@ -666,42 +666,6 @@ const ProfilePage: React.FC = () => {
               </CardContent>
             </Card>
 
-            {/* Quick Stats */}
-            <Card>
-              <CardHeader className="pb-4">
-                <CardTitle className="text-lg flex items-center gap-2">
-                  <Clock className="h-5 w-5 text-primary" />
-                  Hurtig oversigt
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div className="flex justify-between items-center">
-                    <div className="flex items-center gap-2">
-                      <Building2 className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-sm">Følger</span>
-                    </div>
-                    <span className="font-semibold">{followedCompanies.length}</span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <div className="flex items-center gap-2">
-                      <FileText className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-sm">Rapporter</span>
-                    </div>
-                    <span className="font-semibold">{mockReports.length}</span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <div className="flex items-center gap-2">
-                      <Bell className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-sm">Nye ændringer</span>
-                    </div>
-                    <Badge variant="secondary" className="bg-red-100 text-red-800">
-                      {followedCompanies.reduce((acc, company) => acc + getRecentChanges(company.company_data).length, 0)}
-                    </Badge>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
           </div>
         </div>
       </div>
