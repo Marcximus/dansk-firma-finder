@@ -570,7 +570,7 @@ const ProfilePage: React.FC = () => {
                                   Download
                                 </Button>
                               ) : report.status === 'processing' ? (
-                                <Badge variant="secondary" className="bg-orange-100 text-orange-800">
+                                <Badge variant="secondary" className="bg-blue-100 text-blue-800">
                                   Behandles
                                 </Badge>
                               ) : (
