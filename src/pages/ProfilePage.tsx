@@ -360,42 +360,56 @@ const ProfilePage: React.FC = () => {
                   </Button>
                 </div>
               ) : (
-                <div className="space-y-3">
-                  {followedCompanies.map((company) => {
-                    const recentChanges = getRecentChanges(company.company_data);
-                    const latestChange = recentChanges.length > 0 ? recentChanges[0] : null;
-                    
-                    return (
-                      <div key={company.id} className="flex items-center justify-between py-3 border-b border-border/30 hover:bg-muted/20 px-4 -mx-4 rounded-lg transition-colors">
-                        <div className="flex items-center gap-6 flex-1">
-                          <h3 className="font-semibold text-foreground min-w-0 flex-1">
-                            {company.company_name}
-                          </h3>
-                          <span className="text-sm text-muted-foreground font-mono">
-                            CVR: {company.company_cvr}
-                          </span>
-                          <span className="text-sm text-muted-foreground">
-                            {latestChange ? `${latestChange.description} (${new Date(latestChange.date).toLocaleDateString('da-DK')})` : 'Ingen ændringer'}
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-2 ml-4">
-                          <Button variant="ghost" size="sm" asChild>
-                            <a href={`/company/${company.company_cvr}`}>
-                              <Eye className="h-4 w-4" />
-                            </a>
-                          </Button>
-                          <Button 
-                            variant="ghost" 
-                            size="sm"
-                            onClick={() => removeFollowedCompany(company.id)}
-                            className="text-muted-foreground hover:text-destructive"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </div>
-                    );
-                  })}
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="border-b border-border">
+                        <th className="text-left py-3 text-sm font-medium text-muted-foreground">#</th>
+                        <th className="text-left py-3 text-sm font-medium text-muted-foreground">Selskab</th>
+                        <th className="text-left py-3 text-sm font-medium text-muted-foreground">CVR</th>
+                        <th className="text-left py-3 text-sm font-medium text-muted-foreground">Seneste Ændring</th>
+                        <th className="text-left py-3 text-sm font-medium text-muted-foreground">Dato</th>
+                        <th className="text-left py-3 text-sm font-medium text-muted-foreground">Handlinger</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {followedCompanies.map((company, index) => {
+                        const recentChanges = getRecentChanges(company.company_data);
+                        const latestChange = recentChanges.length > 0 ? recentChanges[0] : null;
+                        
+                        return (
+                          <tr key={company.id} className="border-b border-border/30 hover:bg-muted/20">
+                            <td className="py-3 text-sm text-muted-foreground">{index + 1}.</td>
+                            <td className="py-3 font-semibold text-foreground">{company.company_name}</td>
+                            <td className="py-3 text-sm font-mono text-muted-foreground">{company.company_cvr}</td>
+                            <td className="py-3 text-sm text-muted-foreground">
+                              {latestChange ? latestChange.description : 'Ingen ændringer'}
+                            </td>
+                            <td className="py-3 text-sm text-muted-foreground">
+                              {latestChange ? new Date(latestChange.date).toLocaleDateString('da-DK') : '-'}
+                            </td>
+                            <td className="py-3">
+                              <div className="flex items-center gap-1">
+                                <Button variant="ghost" size="sm" asChild>
+                                  <a href={`/company/${company.company_cvr}`}>
+                                    <Eye className="h-4 w-4" />
+                                  </a>
+                                </Button>
+                                <Button 
+                                  variant="ghost" 
+                                  size="sm"
+                                  onClick={() => removeFollowedCompany(company.id)}
+                                  className="text-muted-foreground hover:text-destructive"
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
                 </div>
               )}
             </div>
