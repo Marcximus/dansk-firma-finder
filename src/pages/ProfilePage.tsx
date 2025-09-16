@@ -540,41 +540,50 @@ const ProfilePage: React.FC = () => {
                   </Button>
                 </div>
               ) : (
-                <div className="space-y-4">
-                  {mockReports.map((report) => (
-                    <div key={report.id} className="flex items-center justify-between p-4 bg-muted/30 rounded-lg">
-                      <div className="flex-1">
-                        <h4 className="font-semibold text-foreground">{report.company_name}</h4>
-                        <p className="text-sm text-muted-foreground mb-2">
-                          CVR: {report.company_cvr} • {report.report_type}
-                        </p>
-                        <div className="flex items-center gap-3">
-                          <span className="text-xs text-muted-foreground">
-                            Bestilt: {new Date(report.order_date).toLocaleDateString('da-DK')}
-                          </span>
-                          <Badge 
-                            variant={report.status === 'ready' ? 'default' : 'secondary'}
-                            className="text-xs"
-                          >
-                            {report.status === 'ready' ? 'Klar til download' : 
-                             report.status === 'processing' ? 'Behandles' : 'Downloaded'}
-                          </Badge>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        {report.status === 'ready' && (
-                          <Button size="sm" variant="default">
-                            <Download className="h-4 w-4 mr-2" />
-                            Download
-                          </Button>
-                        )}
-                        <Button size="sm" variant="ghost">
-                          <Eye className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </div>
-                  ))}
-                  
+                <div className="bg-card border rounded-lg overflow-hidden">
+                  <div className="overflow-x-auto">
+                    <table className="w-full">
+                      <thead className="border-b border-border/30">
+                        <tr>
+                          <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground">#</th>
+                          <th className="text-left py-3 text-sm font-medium text-muted-foreground">Selskab</th>
+                          <th className="text-left py-3 text-sm font-medium text-muted-foreground">CVR</th>
+                          <th className="text-left py-3 text-sm font-medium text-muted-foreground">Rapport Type</th>
+                          <th className="text-left py-3 text-sm font-medium text-muted-foreground">Dato</th>
+                          <th className="text-left py-3 text-sm font-medium text-muted-foreground">Status</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {mockReports.map((report, index) => (
+                          <tr key={report.id} className="border-b border-border/30 hover:bg-muted/20">
+                            <td className="py-3 px-4 text-sm text-muted-foreground">{index + 1}.</td>
+                            <td className="py-3 font-semibold text-foreground">{report.company_name}</td>
+                            <td className="py-3 text-sm font-mono text-muted-foreground">{report.company_cvr}</td>
+                            <td className="py-3 text-sm text-muted-foreground">{report.report_type}</td>
+                            <td className="py-3 text-sm text-muted-foreground">
+                              {new Date(report.order_date).toLocaleDateString('da-DK')}
+                            </td>
+                            <td className="py-3">
+                              {report.status === 'ready' ? (
+                                <Button size="sm" variant="default">
+                                  <Download className="h-4 w-4 mr-2" />
+                                  Download
+                                </Button>
+                              ) : report.status === 'processing' ? (
+                                <Badge variant="secondary" className="bg-orange-100 text-orange-800">
+                                  Behandles
+                                </Badge>
+                              ) : (
+                                <Badge variant="outline">
+                                  Downloaded
+                                </Badge>
+                              )}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
                   <div className="mt-8 flex justify-center">
                     <Button className="bg-primary hover:bg-primary/90">
                       <Plus className="h-4 w-4 mr-2" />
