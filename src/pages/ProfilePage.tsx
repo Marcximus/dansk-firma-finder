@@ -565,10 +565,10 @@ const ProfilePage: React.FC = () => {
                             </td>
                             <td className="py-3">
                               {report.status === 'ready' ? (
-                                <Button size="sm" variant="default">
-                                  <Download className="h-4 w-4 mr-2" />
+                                <Badge variant="secondary" className="bg-green-100 text-green-800 flex items-center gap-1 animate-pulse cursor-pointer hover:bg-green-200 transition-colors">
+                                  <Download className="h-3 w-3" />
                                   Download
-                                </Button>
+                                </Badge>
                               ) : report.status === 'processing' ? (
                                 <Badge variant="secondary" className="bg-blue-100 text-blue-800 flex items-center gap-1">
                                   <Loader className="h-3 w-3 animate-spin" />
