@@ -16,6 +16,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Textarea } from '@/components/ui/textarea';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import UserMenu from '@/components/UserMenu';
+import NotificationBell from '@/components/NotificationBell';
 
 interface LayoutProps {
   children: ReactNode;
@@ -130,6 +131,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           </form>
           
           <div className="flex items-center gap-2">
+            <NotificationBell />
             <UserMenu />
             
             <Dialog open={isJuridiskDialogOpen} onOpenChange={setIsJuridiskDialogOpen}>

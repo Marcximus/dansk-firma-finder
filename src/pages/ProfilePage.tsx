@@ -12,6 +12,7 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { SUBSCRIPTION_TIERS } from '@/constants/subscriptions';
 import type { User as SupabaseUser } from '@supabase/supabase-js';
+import { getRecentChanges, type CompanyChange } from '@/services/utils/changeUtils';
 
 interface Profile {
   id: string;
@@ -32,13 +33,6 @@ interface FollowedCompany {
   notification_preferences: any;
   created_at: string;
   updated_at: string;
-}
-
-interface CompanyChange {
-  type: 'address' | 'management' | 'financials' | 'status' | 'ownership';
-  description: string;
-  date: string;
-  severity: 'low' | 'medium' | 'high';
 }
 
 interface OrderedReport {
@@ -276,7 +270,7 @@ const ProfilePage: React.FC = () => {
         severity: 'medium'
       },
       {
-        type: 'financials',
+        type: 'financial',
         description: 'Ny regnskabsperiode offentliggjort',
         date: '2024-01-05',
         severity: 'low'
