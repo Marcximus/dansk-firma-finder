@@ -200,6 +200,46 @@ const ProfilePage: React.FC = () => {
     }
   };
 
+  const toggleNotifications = async (companyId: string, currentEnabled: boolean) => {
+    try {
+      const { error } = await supabase
+        .from('followed_companies')
+        .update({
+          notification_preferences: {
+            ...followedCompanies.find(c => c.id === companyId)?.notification_preferences,
+            email: !currentEnabled
+          }
+        })
+        .eq('id', companyId);
+
+      if (error) throw error;
+
+      setFollowedCompanies(prev => prev.map(company => 
+        company.id === companyId 
+          ? { 
+              ...company, 
+              notification_preferences: { 
+                ...company.notification_preferences, 
+                email: !currentEnabled 
+              } 
+            }
+          : company
+      ));
+
+      toast({
+        title: "Notifikationer opdateret",
+        description: `Notifikationer ${!currentEnabled ? 'aktiveret' : 'deaktiveret'}`,
+      });
+    } catch (error) {
+      console.error('Error toggling notifications:', error);
+      toast({
+        title: "Fejl",
+        description: "Kunne ikke opdatere notifikationer",
+        variant: "destructive",
+      });
+    }
+  };
+
   const getCurrentTierInfo = () => {
     if (!subscribed || !subscriptionTier) return null;
     return SUBSCRIPTION_TIERS[subscriptionTier as keyof typeof SUBSCRIPTION_TIERS];
@@ -369,6 +409,7 @@ const ProfilePage: React.FC = () => {
                         <th className="text-left py-3 text-sm font-medium text-muted-foreground">CVR</th>
                         <th className="text-left py-3 text-sm font-medium text-muted-foreground">Seneste Ændring</th>
                         <th className="text-left py-3 text-sm font-medium text-muted-foreground">Dato</th>
+                        <th className="text-left py-3 text-sm font-medium text-muted-foreground">Notifikationer</th>
                         <th className="text-left py-3 text-sm font-medium text-muted-foreground">Handlinger</th>
                       </tr>
                     </thead>
@@ -387,6 +428,18 @@ const ProfilePage: React.FC = () => {
                             </td>
                             <td className="py-3 text-sm text-muted-foreground">
                               {latestChange ? new Date(latestChange.date).toLocaleDateString('da-DK') : '-'}
+                            </td>
+                            <td className="py-3">
+                              <button
+                                onClick={() => toggleNotifications(company.id, company.notification_preferences?.email || false)}
+                                className={`px-3 py-1 text-xs font-medium rounded-full transition-colors ${
+                                  company.notification_preferences?.email 
+                                    ? 'bg-success/10 text-success hover:bg-success/20' 
+                                    : 'bg-destructive/10 text-destructive hover:bg-destructive/20'
+                                }`}
+                              >
+                                {company.notification_preferences?.email ? 'ON' : 'OFF'}
+                              </button>
                             </td>
                             <td className="py-3">
                               <div className="flex items-center gap-1">
