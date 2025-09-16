@@ -1,18 +1,21 @@
 import React, { useState, useEffect } from 'react';
 import Layout from '@/components/Layout';
-import { User, Building2, Phone, Mail, Calendar, CreditCard, FileText, Star, Settings, Download, Edit2, Save, X, Bell, Eye, Trash2, Plus, Crown, Shield, Zap, TrendingUp, TrendingDown, AlertCircle, Clock, Users, DollarSign, MapPin, Calendar as CalendarIcon } from 'lucide-react';
+import { User, Building2, Phone, Mail, Calendar, CreditCard, FileText, Star, Settings as SettingsIcon, Download, Edit2, Save, X, Bell, Eye, Trash2, Plus, Crown, Shield, Zap, TrendingUp, TrendingDown, AlertCircle, Clock, Users, DollarSign, MapPin, Calendar as CalendarIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Checkbox } from '@/components/ui/checkbox';
 import { useSubscription } from '@/contexts/SubscriptionContext';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { SUBSCRIPTION_TIERS } from '@/constants/subscriptions';
 import type { User as SupabaseUser } from '@supabase/supabase-js';
 import { getRecentChanges, type CompanyChange } from '@/services/utils/changeUtils';
+import NotificationSettingsForm from '@/components/NotificationSettingsForm';
 
 interface Profile {
   id: string;
@@ -53,6 +56,8 @@ const ProfilePage: React.FC = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [notificationDialogOpen, setNotificationDialogOpen] = useState(false);
+  const [selectedCompanyForSettings, setSelectedCompanyForSettings] = useState<FollowedCompany | null>(null);
   const { subscribed, subscriptionTier, openCustomerPortal, subscriptionEnd } = useSubscription();
   const { toast } = useToast();
 
@@ -229,6 +234,50 @@ const ProfilePage: React.FC = () => {
       toast({
         title: "Fejl",
         description: "Kunne ikke opdatere notifikationer",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const openNotificationSettings = (company: FollowedCompany) => {
+    setSelectedCompanyForSettings(company);
+    setNotificationDialogOpen(true);
+  };
+
+  const updateNotificationPreferences = async (preferences: { email: boolean; sms: boolean; call: boolean }) => {
+    if (!selectedCompanyForSettings) return;
+
+    try {
+      const { error } = await supabase
+        .from('followed_companies')
+        .update({
+          notification_preferences: preferences
+        })
+        .eq('id', selectedCompanyForSettings.id);
+
+      if (error) throw error;
+
+      setFollowedCompanies(prev => prev.map(company => 
+        company.id === selectedCompanyForSettings.id 
+          ? { 
+              ...company, 
+              notification_preferences: preferences
+            }
+          : company
+      ));
+
+      toast({
+        title: "Notifikationer opdateret",
+        description: "Dine notifikationsindstillinger er blevet gemt",
+      });
+
+      setNotificationDialogOpen(false);
+      setSelectedCompanyForSettings(null);
+    } catch (error) {
+      console.error('Error updating notification preferences:', error);
+      toast({
+        title: "Fejl",
+        description: "Kunne ikke opdatere notifikationsindstillinger",
         variant: "destructive",
       });
     }
@@ -417,16 +466,26 @@ const ProfilePage: React.FC = () => {
                               {latestChange ? new Date(latestChange.date).toLocaleDateString('da-DK') : '-'}
                             </td>
                             <td className="py-3">
-                              <button
-                                onClick={() => toggleNotifications(company.id, company.notification_preferences?.email || false)}
-                                className={`px-3 py-1 text-xs font-medium rounded-full transition-colors ${
-                                  company.notification_preferences?.email 
-                                    ? 'bg-success/10 text-success hover:bg-success/20' 
-                                    : 'bg-destructive/10 text-destructive hover:bg-destructive/20'
-                                }`}
-                              >
-                                {company.notification_preferences?.email ? 'ON' : 'OFF'}
-                              </button>
+                              <div className="flex items-center gap-2">
+                                <button
+                                  onClick={() => toggleNotifications(company.id, company.notification_preferences?.email || false)}
+                                  className={`px-3 py-1 text-xs font-medium rounded-full transition-colors ${
+                                    company.notification_preferences?.email 
+                                      ? 'bg-success/10 text-success hover:bg-success/20' 
+                                      : 'bg-destructive/10 text-destructive hover:bg-destructive/20'
+                                  }`}
+                                >
+                                  {company.notification_preferences?.email ? 'ON' : 'OFF'}
+                                </button>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => openNotificationSettings(company)}
+                                  className="p-1 h-7 w-7"
+                                >
+                                  <SettingsIcon className="h-3 w-3" />
+                                </Button>
+                              </div>
                             </td>
                             <td className="py-3">
                               <div className="flex items-center gap-1">
@@ -640,7 +699,7 @@ const ProfilePage: React.FC = () => {
                       </div>
                     )}
                     <Button variant="outline" size="sm" onClick={openCustomerPortal} className="w-full">
-                      <Settings className="h-4 w-4 mr-2" />
+                      <SettingsIcon className="h-4 w-4 mr-2" />
                       Administrer abonnement
                     </Button>
                   </div>
@@ -663,6 +722,26 @@ const ProfilePage: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Notification Settings Dialog */}
+      <Dialog open={notificationDialogOpen} onOpenChange={setNotificationDialogOpen}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>Notifikationsindstillinger</DialogTitle>
+            <DialogDescription>
+              Vælg hvordan du vil modtage notifikationer for {selectedCompanyForSettings?.company_name}
+            </DialogDescription>
+          </DialogHeader>
+          
+          {selectedCompanyForSettings && (
+            <NotificationSettingsForm 
+              company={selectedCompanyForSettings}
+              onSave={updateNotificationPreferences}
+              onCancel={() => setNotificationDialogOpen(false)}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </Layout>
   );
 };
