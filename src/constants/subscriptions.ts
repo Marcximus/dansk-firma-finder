@@ -11,7 +11,8 @@ export const SUBSCRIPTION_TIERS = {
       "Op til 1 virksomhed",
       "Email support",
       "Daglige opdateringer"
-    ]
+    ],
+    description: "Perfekt til at komme i gang"
   },
   premium: {
     name: "Premium",
@@ -27,7 +28,9 @@ export const SUBSCRIPTION_TIERS = {
       "Timevise opdateringer",
       "Prioriteret support",
       "Detaljerede rapporter"
-    ]
+    ],
+    description: "Til professionelle og virksomheder",
+    popular: true
   },
   enterprise: {
     name: "Enterprise",
@@ -45,7 +48,8 @@ export const SUBSCRIPTION_TIERS = {
       "API adgang",
       "Brugerdefinerede rapporter",
       "Bulk operationer"
-    ]
+    ],
+    description: "Til store organisationer"
   }
 } as const;
 

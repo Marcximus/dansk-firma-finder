@@ -116,7 +116,7 @@ const TrackFoelgPage: React.FC = () => {
                 </div>
                 <CardTitle className="text-xl mb-2">{SUBSCRIPTION_TIERS.standard.name}</CardTitle>
                 <CardDescription className="text-sm">
-                  Perfekt til at komme i gang
+                  {SUBSCRIPTION_TIERS.standard.description}
                 </CardDescription>
               </CardHeader>
               <CardContent className="pt-4 flex flex-col flex-grow">
@@ -171,7 +171,7 @@ const TrackFoelgPage: React.FC = () => {
                 </div>
                 <CardTitle className="text-xl mb-2">{SUBSCRIPTION_TIERS.premium.name}</CardTitle>
                 <CardDescription className="text-sm">
-                  Til professionelle og virksomheder
+                  {SUBSCRIPTION_TIERS.premium.description}
                 </CardDescription>
               </CardHeader>
               <CardContent className="pt-4 flex flex-col flex-grow">
@@ -219,7 +219,7 @@ const TrackFoelgPage: React.FC = () => {
                 </div>
                 <CardTitle className="text-xl mb-2">{SUBSCRIPTION_TIERS.enterprise.name}</CardTitle>
                 <CardDescription className="text-sm">
-                  Til store organisationer
+                  {SUBSCRIPTION_TIERS.enterprise.description}
                 </CardDescription>
               </CardHeader>
               <CardContent className="pt-4 flex flex-col flex-grow">
