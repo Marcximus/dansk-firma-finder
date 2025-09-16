@@ -429,7 +429,7 @@ const ProfilePage: React.FC = () => {
                   </Button>
                 </div>
               ) : (
-                <div>
+                <div className="bg-card rounded-lg overflow-hidden">
                   <table className="w-full table-fixed">
                     <thead>
                       <tr className="border-b border-border">
