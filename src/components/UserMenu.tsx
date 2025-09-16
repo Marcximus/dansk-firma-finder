@@ -60,46 +60,14 @@ const UserMenu: React.FC = () => {
   }
 
   return (
-    <div className="flex items-center gap-2">
-      <Button asChild variant="outline" size="sm">
-        <a href="/profil" className="flex items-center gap-2">
-          <User className="h-4 w-4" />
-          <span className="hidden sm:inline">
-            {user.user_metadata?.full_name || user.email?.split('@')[0]}
-          </span>
-        </a>
-      </Button>
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button variant="ghost" size="sm" className="px-2">
-            <Settings className="h-4 w-4" />
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="w-56">
-          <DropdownMenuLabel>
-            <div className="flex flex-col space-y-1">
-              <p className="text-sm font-medium leading-none">
-                {user.user_metadata?.full_name || 'User'}
-              </p>
-              <p className="text-xs leading-none text-muted-foreground">
-                {user.email}
-              </p>
-            </div>
-          </DropdownMenuLabel>
-          <DropdownMenuSeparator />
-          {subscribed && (
-            <DropdownMenuItem onClick={openCustomerPortal}>
-              <Settings className="mr-2 h-4 w-4" />
-              <span>Administrer abonnement</span>
-            </DropdownMenuItem>
-          )}
-          <DropdownMenuItem onClick={handleSignOut}>
-            <LogOut className="mr-2 h-4 w-4" />
-            <span>Log ud</span>
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
-    </div>
+    <Button asChild variant="outline" size="sm">
+      <a href="/profil" className="flex items-center gap-2">
+        <User className="h-4 w-4" />
+        <span className="hidden sm:inline">
+          {user.user_metadata?.full_name || user.email?.split('@')[0]}
+        </span>
+      </a>
+    </Button>
   );
 };
 
