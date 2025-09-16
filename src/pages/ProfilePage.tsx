@@ -381,9 +381,6 @@ const ProfilePage: React.FC = () => {
               <User className="h-8 w-8 text-primary" />
               Min Dashboard
             </h1>
-            <p className="text-muted-foreground mt-2">
-              Hold styr på virksomhederne du følger og administrer din konto
-            </p>
           </div>
           <div className="flex items-center gap-3">
             {!isEditing ? (
@@ -417,9 +414,6 @@ const ProfilePage: React.FC = () => {
                 </div>
                 <div>
                   <h2 className="text-2xl font-bold">Virksomheder du følger</h2>
-                  <p className="text-muted-foreground">
-                    {followedCompanies.length} virksomheder på din følgeliste
-                  </p>
                 </div>
               </div>
 
