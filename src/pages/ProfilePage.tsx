@@ -368,24 +368,16 @@ const ProfilePage: React.FC = () => {
           <div className="lg:col-span-3 space-y-6">
             {/* Followed Companies - Main Focus */}
             <div className="space-y-6">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="p-3 bg-primary/10 rounded-xl">
-                    <Building2 className="h-7 w-7 text-primary" />
-                  </div>
-                  <div>
-                    <h2 className="text-2xl font-bold">Virksomheder du følger</h2>
-                    <p className="text-muted-foreground">
-                      {followedCompanies.length} virksomheder på din følgeliste
-                    </p>
-                  </div>
+              <div className="flex items-center gap-3">
+                <div className="p-3 bg-primary/10 rounded-xl">
+                  <Building2 className="h-7 w-7 text-primary" />
                 </div>
-                <Button asChild className="bg-primary hover:bg-primary/90">
-                  <a href="/">
-                    <Plus className="h-4 w-4 mr-2" />
-                    Tilføj flere
-                  </a>
-                </Button>
+                <div>
+                  <h2 className="text-2xl font-bold">Virksomheder du følger</h2>
+                  <p className="text-muted-foreground">
+                    {followedCompanies.length} virksomheder på din følgeliste
+                  </p>
+                </div>
               </div>
 
               {followedCompanies.length === 0 ? (
@@ -400,7 +392,8 @@ const ProfilePage: React.FC = () => {
                   </Button>
                 </div>
               ) : (
-                <div className="overflow-x-auto">
+                <div>
+                  <div className="overflow-x-auto">
                   <table className="w-full">
                     <thead>
                       <tr className="border-b border-border">
@@ -463,6 +456,15 @@ const ProfilePage: React.FC = () => {
                       })}
                     </tbody>
                   </table>
+                  </div>
+                  <div className="mt-4 flex justify-center">
+                    <Button asChild className="bg-primary hover:bg-primary/90">
+                      <a href="/">
+                        <Plus className="h-4 w-4 mr-2" />
+                        Tilføj flere
+                      </a>
+                    </Button>
+                  </div>
                 </div>
               )}
             </div>
