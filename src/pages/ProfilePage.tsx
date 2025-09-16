@@ -431,16 +431,16 @@ const ProfilePage: React.FC = () => {
               ) : (
                 <div>
                   <div className="overflow-x-auto">
-                  <table className="w-full">
+                  <table className="w-full table-fixed">
                     <thead>
                       <tr className="border-b border-border">
-                        <th className="text-left py-3 text-sm font-medium text-muted-foreground">#</th>
-                        <th className="text-left py-3 text-sm font-medium text-muted-foreground">Selskab</th>
-                        <th className="text-left py-3 text-sm font-medium text-muted-foreground">CVR</th>
-                        <th className="text-left py-3 text-sm font-medium text-muted-foreground">Seneste Ændring</th>
-                        <th className="text-left py-3 text-sm font-medium text-muted-foreground">Dato</th>
-                        <th className="text-left py-3 text-sm font-medium text-muted-foreground">Notifikationer</th>
-                        <th className="text-left py-3 text-sm font-medium text-muted-foreground">Handlinger</th>
+                        <th className="text-left py-3 text-sm font-medium text-muted-foreground w-12">#</th>
+                        <th className="text-left py-3 text-sm font-medium text-muted-foreground w-48">Selskab</th>
+                        <th className="text-left py-3 text-sm font-medium text-muted-foreground w-28">CVR</th>
+                        <th className="text-left py-3 text-sm font-medium text-muted-foreground w-64">Seneste Ændring</th>
+                        <th className="text-left py-3 text-sm font-medium text-muted-foreground w-24">Dato</th>
+                        <th className="text-left py-3 text-sm font-medium text-muted-foreground w-32">Notifikationer</th>
+                        <th className="text-left py-3 text-sm font-medium text-muted-foreground w-32">Handlinger</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -542,15 +542,15 @@ const ProfilePage: React.FC = () => {
               ) : (
                 <div className="bg-card rounded-lg overflow-hidden">
                   <div className="overflow-x-auto">
-                    <table className="w-full">
+                    <table className="w-full table-fixed">
                       <thead>
                         <tr className="border-b border-border">
-                          <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground">#</th>
-                          <th className="text-left py-3 text-sm font-medium text-muted-foreground">Selskab</th>
-                          <th className="text-left py-3 text-sm font-medium text-muted-foreground">CVR</th>
-                          <th className="text-left py-3 text-sm font-medium text-muted-foreground">Rapport Type</th>
-                          <th className="text-left py-3 text-sm font-medium text-muted-foreground">Dato</th>
-                          <th className="text-left py-3 text-sm font-medium text-muted-foreground">Status</th>
+                          <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground w-12">#</th>
+                          <th className="text-left py-3 text-sm font-medium text-muted-foreground w-48">Selskab</th>
+                          <th className="text-left py-3 text-sm font-medium text-muted-foreground w-28">CVR</th>
+                          <th className="text-left py-3 text-sm font-medium text-muted-foreground w-32">Rapport Type</th>
+                          <th className="text-left py-3 text-sm font-medium text-muted-foreground w-24">Dato</th>
+                          <th className="text-left py-3 text-sm font-medium text-muted-foreground w-32">Status</th>
                         </tr>
                       </thead>
                       <tbody>
