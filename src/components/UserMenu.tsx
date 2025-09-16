@@ -81,6 +81,12 @@ const UserMenu: React.FC = () => {
           </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
+        <DropdownMenuItem asChild>
+          <a href="/profil">
+            <User className="mr-2 h-4 w-4" />
+            <span>Min profil</span>
+          </a>
+        </DropdownMenuItem>
         {subscribed && (
           <DropdownMenuItem onClick={openCustomerPortal}>
             <Settings className="mr-2 h-4 w-4" />

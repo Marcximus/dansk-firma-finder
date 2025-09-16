@@ -15,10 +15,11 @@ import SearchGuidePage from "./pages/SearchGuidePage";
 import TrackFoelgPage from "./pages/TrackFoelgPage";
 import CheckoutPage from "./pages/CheckoutPage";
 import AuthPage from "./pages/AuthPage";
+import ProfilePage from "./pages/ProfilePage";
 import KontaktOsPage from "./pages/KontaktOsPage";
 import VirksomhedsrapporterPage from "./pages/VirksomhedsrapporterPage";
-import DatakilderPage from "./pages/DatakilderPage";
 import PaymentSuccessPage from "./pages/PaymentSuccessPage";
+import DatakilderPage from "./pages/DatakilderPage";
 import NotFound from "./pages/NotFound";
 import ScrollToTop from "./components/ScrollToTop";
 
@@ -43,6 +44,7 @@ const App = () => (
             <Route path="/track-foelg" element={<TrackFoelgPage />} />
             <Route path="/checkout" element={<CheckoutPage />} />
             <Route path="/auth" element={<AuthPage />} />
+            <Route path="/profil" element={<ProfilePage />} />
             <Route path="/kontakt-os" element={<KontaktOsPage />} />
             <Route path="/virksomhedsrapporter" element={<VirksomhedsrapporterPage />} />
             <Route path="/payment-success" element={<PaymentSuccessPage />} />
