@@ -464,7 +464,7 @@ const ProfilePage: React.FC = () => {
             </div>
 
             {/* Ordered Reports Section */}
-            <Card className="border-2 border-blue-200/50">
+            <Card className="border-2 border-blue-200/50 mt-8">
               <CardHeader className="pb-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
