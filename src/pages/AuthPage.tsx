@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { Eye, EyeOff, Mail, Lock, User, ArrowLeft } from 'lucide-react';
+import { Eye, EyeOff, Mail, Lock, User, ArrowLeft, Building2, Phone } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 const AuthPage: React.FC = () => {
@@ -16,6 +16,9 @@ const AuthPage: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
+  const [companyName, setCompanyName] = useState('');
+  const [cvrNumber, setCvrNumber] = useState('');
+  const [phoneNumber, setPhoneNumber] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
@@ -78,6 +81,9 @@ const AuthPage: React.FC = () => {
             emailRedirectTo: `${window.location.origin}${redirectTo}`,
             data: {
               full_name: fullName,
+              company_name: companyName,
+              phone: phoneNumber,
+              cvr_number: cvrNumber,
             }
           }
         });
@@ -158,20 +164,65 @@ const AuthPage: React.FC = () => {
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
               {!isLogin && (
-                <div className="space-y-2">
-                  <Label htmlFor="fullName" className="flex items-center gap-2">
-                    <User className="h-4 w-4" />
-                    Fuldt navn
-                  </Label>
-                  <Input
-                    id="fullName"
-                    type="text"
-                    value={fullName}
-                    onChange={(e) => setFullName(e.target.value)}
-                    placeholder="Dit fulde navn"
-                    required={!isLogin}
-                  />
-                </div>
+                <>
+                  <div className="space-y-2">
+                    <Label htmlFor="fullName" className="flex items-center gap-2">
+                      <User className="h-4 w-4" />
+                      Fuldt navn
+                    </Label>
+                    <Input
+                      id="fullName"
+                      type="text"
+                      value={fullName}
+                      onChange={(e) => setFullName(e.target.value)}
+                      placeholder="Dit fulde navn"
+                      required={!isLogin}
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="companyName" className="flex items-center gap-2">
+                      <Building2 className="h-4 w-4" />
+                      Virksomhedsnavn (valgfrit)
+                    </Label>
+                    <Input
+                      id="companyName"
+                      type="text"
+                      value={companyName}
+                      onChange={(e) => setCompanyName(e.target.value)}
+                      placeholder="Dit firma navn"
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="cvrNumber" className="flex items-center gap-2">
+                      <Building2 className="h-4 w-4" />
+                      CVR/Momsnummer (valgfrit)
+                    </Label>
+                    <Input
+                      id="cvrNumber"
+                      type="text"
+                      value={cvrNumber}
+                      onChange={(e) => setCvrNumber(e.target.value)}
+                      placeholder="12345678"
+                      maxLength={8}
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="phoneNumber" className="flex items-center gap-2">
+                      <Phone className="h-4 w-4" />
+                      Telefonnummer (valgfrit)
+                    </Label>
+                    <Input
+                      id="phoneNumber"
+                      type="tel"
+                      value={phoneNumber}
+                      onChange={(e) => setPhoneNumber(e.target.value)}
+                      placeholder="+45 12 34 56 78"
+                    />
+                  </div>
+                </>
               )}
 
               <div className="space-y-2">
@@ -300,6 +351,9 @@ const AuthPage: React.FC = () => {
                   setEmail('');
                   setPassword('');
                   setFullName('');
+                  setCompanyName('');
+                  setCvrNumber('');
+                  setPhoneNumber('');
                 }}
                 className="w-full"
               >
