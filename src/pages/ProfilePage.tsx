@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Layout from '@/components/Layout';
-import { User, Building2, Phone, Mail, Calendar, CreditCard, FileText, Star, Settings as SettingsIcon, Download, Edit2, Save, X, Bell, Eye, Trash2, Plus, Crown, Shield, Zap, TrendingUp, TrendingDown, AlertCircle, Clock, Users, DollarSign, MapPin, Calendar as CalendarIcon } from 'lucide-react';
+import { User, Building2, Phone, Mail, Calendar, CreditCard, FileText, Star, Settings as SettingsIcon, Download, Edit2, Save, X, Bell, Eye, Trash2, Plus, Crown, Shield, Zap, TrendingUp, TrendingDown, AlertCircle, Clock, Users, DollarSign, MapPin, Calendar as CalendarIcon, Loader } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -570,7 +570,8 @@ const ProfilePage: React.FC = () => {
                                   Download
                                 </Button>
                               ) : report.status === 'processing' ? (
-                                <Badge variant="secondary" className="bg-blue-100 text-blue-800">
+                                <Badge variant="secondary" className="bg-blue-100 text-blue-800 flex items-center gap-1">
+                                  <Loader className="h-3 w-3 animate-spin" />
                                   Behandles
                                 </Badge>
                               ) : (
