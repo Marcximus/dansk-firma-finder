@@ -540,10 +540,10 @@ const ProfilePage: React.FC = () => {
                   </Button>
                 </div>
               ) : (
-                <div className="bg-card border rounded-lg overflow-hidden">
+                <div className="bg-card rounded-lg overflow-hidden">
                   <div className="overflow-x-auto">
                     <table className="w-full">
-                      <thead className="border-b border-border/30">
+                      <thead>
                         <tr>
                           <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground">#</th>
                           <th className="text-left py-3 text-sm font-medium text-muted-foreground">Selskab</th>
@@ -555,7 +555,7 @@ const ProfilePage: React.FC = () => {
                       </thead>
                       <tbody>
                         {mockReports.map((report, index) => (
-                          <tr key={report.id} className="border-b border-border/30 hover:bg-muted/20">
+                          <tr key={report.id} className="hover:bg-muted/20">
                             <td className="py-3 px-4 text-sm text-muted-foreground">{index + 1}.</td>
                             <td className="py-3 font-semibold text-foreground">{report.company_name}</td>
                             <td className="py-3 text-sm font-mono text-muted-foreground">{report.company_cvr}</td>
