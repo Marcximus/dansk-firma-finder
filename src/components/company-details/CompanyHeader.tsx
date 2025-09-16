@@ -1,11 +1,14 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Company } from '@/services/companyAPI';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { Calendar, FileText, Map } from 'lucide-react';
+import { Calendar, FileText, Map, Star, Check, Bell, Mail } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
+import type { User } from '@supabase/supabase-js';
 
 interface CompanyHeaderProps {
   company: Company;
@@ -13,6 +16,132 @@ interface CompanyHeaderProps {
 
 const CompanyHeader: React.FC<CompanyHeaderProps> = ({ company }) => {
   const navigate = useNavigate();
+  const { toast } = useToast();
+  const [user, setUser] = useState<User | null>(null);
+  const [isFollowing, setIsFollowing] = useState(false);
+  const [followingId, setFollowingId] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    // Get current user and check if following
+    const checkUserAndFollowStatus = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      setUser(user);
+      
+      if (user) {
+        await checkFollowStatus(user.id);
+      }
+    };
+
+    checkUserAndFollowStatus();
+
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      setUser(session?.user || null);
+      if (session?.user) {
+        await checkFollowStatus(session.user.id);
+      } else {
+        setIsFollowing(false);
+        setFollowingId(null);
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, [company.cvr]);
+
+  const checkFollowStatus = async (userId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('followed_companies')
+        .select('id')
+        .eq('user_id', userId)
+        .eq('company_cvr', company.cvr)
+        .single();
+
+      if (error && error.code !== 'PGRST116') { // PGRST116 = no rows returned
+        console.error('Error checking follow status:', error);
+        return;
+      }
+
+      if (data) {
+        setIsFollowing(true);
+        setFollowingId(data.id);
+      } else {
+        setIsFollowing(false);
+        setFollowingId(null);
+      }
+    } catch (error) {
+      console.error('Error checking follow status:', error);
+    }
+  };
+
+  const handleTrackClick = async () => {
+    if (!user) {
+      // Redirect to auth page with current company as context
+      navigate(`/auth?redirect=/company/${company.cvr}`);
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      if (isFollowing && followingId) {
+        // Unfollow the company
+        const { error } = await supabase
+          .from('followed_companies')
+          .delete()
+          .eq('id', followingId);
+
+        if (error) throw error;
+
+        setIsFollowing(false);
+        setFollowingId(null);
+        toast({
+          title: "Virksomhed ikke længere fulgt",
+          description: `Du får ikke længere opdateringer om ${company.name}`,
+        });
+      } else {
+        // Follow the company
+        const { data, error } = await supabase
+          .from('followed_companies')
+          .insert({
+            user_id: user.id,
+            company_cvr: company.cvr,
+            company_name: company.name,
+            company_data: {
+              name: company.name,
+              industry: company.industry,
+              city: company.city,
+              address: company.address,
+            },
+            notification_preferences: {
+              email: true,
+              sms: false
+            }
+          })
+          .select('id')
+          .single();
+
+        if (error) throw error;
+
+        setIsFollowing(true);
+        setFollowingId(data.id);
+        toast({
+          title: "Virksomhed følges nu",
+          description: `Du får nu opdateringer om ændringer i ${company.name} via e-mail`,
+        });
+      }
+    } catch (error) {
+      console.error('Error updating follow status:', error);
+      toast({
+        title: "Fejl",
+        description: "Kunne ikke opdatere følgestatus. Prøv igen.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleReportClick = () => {
     navigate('/virksomhedsrapporter', { 
@@ -58,12 +187,47 @@ const CompanyHeader: React.FC<CompanyHeaderProps> = ({ company }) => {
           </Button>
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button variant="outline" size="lg" className="bg-sky-100 border-sky-300 text-sky-700 hover:bg-sky-200 px-8 py-4 text-lg">
-                Track & Følg Dette Selskab
+              <Button 
+                variant={isFollowing ? "default" : "outline"} 
+                size="lg" 
+                className={`px-8 py-4 text-lg flex items-center gap-2 ${
+                  isFollowing 
+                    ? 'bg-green-600 hover:bg-green-700 text-white' 
+                    : 'bg-sky-100 border-sky-300 text-sky-700 hover:bg-sky-200'
+                }`}
+                onClick={handleTrackClick}
+                disabled={loading}
+              >
+                {isFollowing ? (
+                  <>
+                    <Check className="h-5 w-5" />
+                    Følges
+                  </>
+                ) : (
+                  <>
+                    <Star className="h-5 w-5" />
+                    Track & Følg Dette Selskab
+                  </>
+                )}
               </Button>
             </TooltipTrigger>
             <TooltipContent>
-              <p className="max-w-64">Få besked på mail når der er ændringer i selskabet, fx nye bestyrelsesmedlemmer, kapital eller regnskaber</p>
+              <div className="max-w-64">
+                {isFollowing ? (
+                  <div className="space-y-2">
+                    <p>Du følger denne virksomhed</p>
+                    <div className="flex items-center gap-2">
+                      <Mail className="h-4 w-4" />
+                      <span className="text-sm">E-mail notifikationer aktive</span>
+                    </div>
+                    <p className="text-sm text-muted-foreground">Klik for at stoppe med at følge</p>
+                  </div>
+                ) : user ? (
+                  <p>Få besked på mail når der er ændringer i selskabet, fx nye bestyrelsesmedlemmer, kapital eller regnskaber</p>
+                ) : (
+                  <p>Log ind for at følge denne virksomhed og få automatiske opdateringer</p>
+                )}
+              </div>
             </TooltipContent>
           </Tooltip>
         </div>
