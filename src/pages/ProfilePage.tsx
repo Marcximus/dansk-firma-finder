@@ -622,7 +622,7 @@ const ProfilePage: React.FC = () => {
                   </div>
                   <div>
                     <CardTitle className="text-lg">
-                      {subscribed ? currentTier?.name : 'Gratis Plan'}
+                      {subscribed ? currentTier?.name : 'Standard Plan'}
                     </CardTitle>
                     <CardDescription>
                       {subscribed ? 'Aktiv abonnement' : 'Opgrader for flere funktioner'}
