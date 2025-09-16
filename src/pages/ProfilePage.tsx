@@ -430,7 +430,6 @@ const ProfilePage: React.FC = () => {
                 </div>
               ) : (
                 <div>
-                  <div className="overflow-x-auto">
                   <table className="w-full table-fixed">
                     <thead>
                       <tr className="border-b border-border">
@@ -503,7 +502,6 @@ const ProfilePage: React.FC = () => {
                       })}
                     </tbody>
                   </table>
-                  </div>
                   <div className="mt-8 flex justify-center">
                     <Button asChild className="bg-primary hover:bg-primary/90">
                       <a href="/">
@@ -541,8 +539,7 @@ const ProfilePage: React.FC = () => {
                 </div>
               ) : (
                 <div className="bg-card rounded-lg overflow-hidden">
-                  <div className="overflow-x-auto">
-                    <table className="w-full table-fixed">
+                  <table className="w-full table-fixed">
                       <thead>
                         <tr className="border-b border-border">
                           <th className="text-left py-3 text-sm font-medium text-muted-foreground w-12">#</th>
@@ -584,7 +581,6 @@ const ProfilePage: React.FC = () => {
                         ))}
                       </tbody>
                     </table>
-                  </div>
                   <div className="mt-8 flex justify-center">
                     <Button className="bg-primary hover:bg-primary/90">
                       <Plus className="h-4 w-4 mr-2" />
