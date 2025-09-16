@@ -580,6 +580,7 @@ const ProfilePage: React.FC = () => {
                           <th className="text-left py-3 text-sm font-medium text-muted-foreground w-64">Rapport Type</th>
                           <th className="text-left py-3 text-sm font-medium text-muted-foreground w-24">Dato</th>
                           <th className="text-left py-3 text-sm font-medium text-muted-foreground w-32">Status</th>
+                          <th className="text-left py-3 text-sm font-medium text-muted-foreground w-32"></th>
                         </tr>
                       </thead>
                       <tbody>
@@ -609,6 +610,7 @@ const ProfilePage: React.FC = () => {
                                 </Badge>
                               )}
                             </td>
+                            <td className="py-3"></td>
                           </tr>
                         ))}
                       </tbody>
