@@ -93,14 +93,20 @@ export default {
 					'0%': {
 						boxShadow: '0 0 0 0 hsl(var(--primary) / 0.4)'
 					},
-					'25%': {
+					'15%': {
 						boxShadow: '0 0 0 8px hsl(var(--primary) / 0.6), 0 0 20px hsl(var(--primary) / 0.3)'
+					},
+					'30%': {
+						boxShadow: '0 0 0 0 hsl(var(--primary) / 0.4)'
 					},
 					'50%': {
 						boxShadow: '0 0 0 0 hsl(var(--primary) / 0.4)'
 					},
-					'75%': {
+					'65%': {
 						boxShadow: '0 0 0 8px hsl(var(--primary) / 0.6), 0 0 20px hsl(var(--primary) / 0.3)'
+					},
+					'80%': {
+						boxShadow: '0 0 0 0 hsl(var(--primary) / 0.4)'
 					},
 					'100%': {
 						boxShadow: '0 0 0 0 hsl(var(--primary) / 0.4)'
@@ -110,7 +116,7 @@ export default {
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
 				'accordion-up': 'accordion-up 0.2s ease-out',
-				'glow-twice': 'glow-twice 2s ease-in-out'
+				'glow-twice': 'glow-twice 4s ease-in-out'
 			}
 		}
 	},

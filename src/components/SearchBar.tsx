@@ -30,7 +30,7 @@ const SearchBar = forwardRef<SearchBarRef, SearchBarProps>(({ onSearch, isLoadin
       // Reset glow after animation completes
       setTimeout(() => {
         setIsGlowing(false);
-      }, 2000);
+      }, 4000);
     }
   }));
 
