@@ -5,6 +5,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { SubscriptionProvider } from "@/contexts/SubscriptionContext";
+import Analytics from "@/components/Analytics";
 import Index from "./pages/Index";
 import CompanyPage from "./pages/CompanyPage";
 import FAQPage from "./pages/FAQPage";
@@ -33,6 +34,7 @@ const App = () => (
         <Sonner />
         <BrowserRouter>
           <ScrollToTop />
+          <Analytics />
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/company/:id" element={<CompanyPage />} />
