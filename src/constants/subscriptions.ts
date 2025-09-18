@@ -3,7 +3,8 @@ export const SUBSCRIPTION_TIERS = {
     name: "Standard",
     price_id: "price_1S7GrpCiBj9ds2dS6SoLE0NE",
     product_id: "prod_T3NdHGSrlkTpN9",
-    price: 99,
+    price: 0,
+    originalPrice: 49,
     currency: "DKK",
     maxCompanies: 1,
     features: [
@@ -17,7 +18,8 @@ export const SUBSCRIPTION_TIERS = {
     name: "Premium",
     price_id: "price_1S7GsMCiBj9ds2dS9AwSOf8D",
     product_id: "prod_T3NddRPim0rQkG",
-    price: 249,
+    price: 99,
+    originalPrice: 199,
     currency: "DKK",
     maxCompanies: 5,
     features: [
@@ -34,6 +36,7 @@ export const SUBSCRIPTION_TIERS = {
     price_id: "price_1S7Gu0CiBj9ds2dSoohsv6Y5",
     product_id: "prod_T3NfsGoxTVXTL7",
     price: 499,
+    originalPrice: 899,
     currency: "DKK",
     maxCompanies: 100,
     features: [
