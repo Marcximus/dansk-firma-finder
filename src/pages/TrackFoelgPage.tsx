@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import Layout from '@/components/Layout';
 import { Target, Bell, Star, TrendingUp, ArrowLeft, CheckCircle, Users, BarChart3, Settings } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Link, useSearchParams } from 'react-router-dom';
+import { Link, useSearchParams, useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useSubscription } from '@/contexts/SubscriptionContext';
@@ -13,6 +13,7 @@ import JSONLDScript, { createServiceSchema } from '@/components/JSONLDScript';
 
 const TrackFoelgPage: React.FC = () => {
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   const { subscribed, subscriptionTier, createCheckout, openCustomerPortal, checkSubscription, loading } = useSubscription();
   const { toast } = useToast();
 
@@ -152,10 +153,10 @@ const TrackFoelgPage: React.FC = () => {
                   className="w-full mt-auto" 
                   variant={subscriptionTier === 'standard' ? 'secondary' : 'outline'}
                   size="lg"
-                  onClick={() => subscriptionTier === 'standard' ? openCustomerPortal() : handleSubscribe('standard')}
+                  onClick={() => subscriptionTier === 'standard' ? openCustomerPortal() : navigate('/?focus=search')}
                   disabled={loading}
                 >
-                  {subscriptionTier === 'standard' ? 'Administrer' : 'Vælg Standard'}
+                  {subscriptionTier === 'standard' ? 'Administrer' : 'Følg Dit Første Selskab'}
                 </Button>
               </CardContent>
             </Card>
