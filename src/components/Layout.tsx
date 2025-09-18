@@ -507,7 +507,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             <div>
               <h3 className="text-lg font-semibold mb-4">Tjenester</h3>
               <ul className="space-y-2">
-                <li><Link to="/" className="text-muted-foreground hover:text-primary">Virksomhedssøgning</Link></li>
+                <li><Link to="/?focusSearch=true" className="text-muted-foreground hover:text-primary">Virksomhedssøgning</Link></li>
                 <li><Link to="/virksomhedsrapporter" className="text-muted-foreground hover:text-primary">Virksomhedsrapporter</Link></li>
                 <li><Link to="/track-foelg" className="text-muted-foreground hover:text-primary">Track & Følg</Link></li>
               </ul>
