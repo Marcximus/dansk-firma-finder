@@ -1,9 +1,12 @@
 
 import { formatAddress, formatPeriod } from './formatUtils';
+import { extractComprehensiveData } from './enhancedDataUtils';
+import { extractDataIntelligently } from './dataDiscovery';
 
-// Helper function to extract basic CVR data for company details
+// Helper function to extract basic CVR data for company details with enhanced extraction
 export const extractCvrDetails = (cvrData: any) => {
-  console.log('extractCvrDetails - Input data:', cvrData);
+  console.log('=== ENHANCED CVR DETAILS EXTRACTION ===');
+  console.log('extractCvrDetails - Input data keys:', Object.keys(cvrData || {}));
   
   if (!cvrData || !cvrData.Vrvirksomhed) {
     console.log('extractCvrDetails - No Vrvirksomhed data found');
@@ -11,7 +14,15 @@ export const extractCvrDetails = (cvrData: any) => {
   }
 
   const vrvirksomhed = cvrData.Vrvirksomhed;
-  console.log('extractCvrDetails - Processing Vrvirksomhed:', vrvirksomhed);
+  console.log('extractCvrDetails - Processing Vrvirksomhed with', Object.keys(vrvirksomhed).length, 'main sections');
+  
+  // Use enhanced extraction for better results
+  const comprehensiveData = extractComprehensiveData(cvrData);
+  console.log('Comprehensive extraction completed, data quality:', comprehensiveData?.completenessReport.dataQuality);
+  
+  // Use intelligent extraction as backup
+  const intelligentData = extractDataIntelligently(vrvirksomhed);
+  console.log('Intelligent extraction results:', Object.keys(intelligentData));
   
   // Extract management and board information
   const management = vrvirksomhed.deltagerRelation?.map((relation: any) => {
@@ -125,9 +136,33 @@ export const extractCvrDetails = (cvrData: any) => {
     status,
     employeeCount,
     purposeText,
-    fullData: vrvirksomhed
+    fullData: vrvirksomhed,
+    // Include enhanced data
+    enhancedData: comprehensiveData,
+    intelligentExtraction: {
+      companyName: intelligentData.companyName,
+      industry: intelligentData.industry,
+      status: intelligentData.status,
+      employees: intelligentData.employees,
+      address: intelligentData.address,
+      purpose: intelligentData.purpose
+    },
+    dataQuality: comprehensiveData?.completenessReport.dataQuality || 'unknown',
+    extractionReport: {
+      totalDataPoints: comprehensiveData?.rawDataSummary.totalFields || 0,
+      foundFields: comprehensiveData?.completenessReport.foundFields || 0,
+      missingFields: comprehensiveData?.completenessReport.missingFields || [],
+      suggestions: comprehensiveData?.completenessReport.suggestions || []
+    }
   };
 
-  console.log('extractCvrDetails - Final result:', result);
+  console.log('=== ENHANCED CVR EXTRACTION COMPLETE ===');
+  console.log('Data quality:', result.dataQuality);
+  console.log('Found fields:', result.extractionReport.foundFields);
+  console.log('Total data points:', result.extractionReport.totalDataPoints);
+  console.log('Intelligent extraction success rate:', 
+    Object.values(result.intelligentExtraction).filter(Boolean).length / 
+    Object.keys(result.intelligentExtraction).length * 100, '%');
+  
   return result;
 };
