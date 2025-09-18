@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { CheckCircle, Download, ArrowLeft } from 'lucide-react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import SEO from '@/components/SEO';
 
 const PaymentSuccessPage: React.FC = () => {
   const navigate = useNavigate();
@@ -12,6 +13,12 @@ const PaymentSuccessPage: React.FC = () => {
 
   return (
     <Layout>
+      <SEO 
+        title="Betaling gennemført - Tak for din ordre | SelskabsInfo"
+        description="Din betaling er gennemført. Dine rapporter bliver nu genereret og sendt til dig."
+        canonicalUrl="https://selskabsinfo.dk/payment-success"
+        keywords="betaling gennemført, ordre bekræftelse, rapporter"
+      />
       <div className="py-8 max-w-4xl mx-auto px-4">
         <Card className="text-center">
           <CardHeader>

@@ -6,8 +6,15 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Link } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import SEO from '@/components/SEO';
 const HjaelpecenterPage: React.FC = () => {
   return <Layout>
+      <SEO 
+        title="Hjælpecenter - Support og vejledning | SelskabsInfo"
+        description="Find svar på almindelige spørgsmål og få hjælp til at bruge SelskabsInfo effektivt."
+        canonicalUrl="https://selskabsinfo.dk/hjaelpecenter"
+        keywords="hjælpecenter, support, FAQ, vejledning, hjælp"
+      />
       <div className="py-8 max-w-6xl mx-auto px-4">
         <div className="text-center mb-8">
           <div className="flex items-center justify-center gap-2 mb-4">

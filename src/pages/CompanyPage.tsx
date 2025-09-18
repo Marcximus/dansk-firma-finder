@@ -5,6 +5,7 @@ import { getCompanyById, Company } from '@/services/companyAPI';
 import CompanyDetails from '@/components/CompanyDetails';
 import Layout from '@/components/Layout';
 import { useToast } from '@/components/ui/use-toast';
+import SEO from '@/components/SEO';
 
 const CompanyPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -70,6 +71,12 @@ const CompanyPage: React.FC = () => {
 
   return (
     <Layout>
+      <SEO 
+        title={`${company.name} - Virksomhedsoplysninger | SelskabsInfo`}
+        description={`Se detaljerede oplysninger om ${company.name}. CVR: ${company.cvr}. Find regnskaber, ledelse, ejerforhold og historiske data.`}
+        canonicalUrl={`https://selskabsinfo.dk/company/${id}`}
+        keywords={`${company.name}, CVR ${company.cvr}, danske virksomheder, selskabsoplysninger`}
+      />
       <CompanyDetails company={company} />
     </Layout>
   );

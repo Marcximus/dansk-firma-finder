@@ -7,6 +7,7 @@ import SearchBar from '@/components/SearchBar';
 import CompanyCard from '@/components/CompanyCard';
 import Layout from '@/components/Layout';
 import { Spinner } from '@/components/ui/spinner';
+import SEO from '@/components/SEO';
 
 const HomePage = () => {
   const [searchTerm, setSearchTerm] = useState<string>('');
@@ -74,6 +75,12 @@ const HomePage = () => {
 
   return (
     <Layout>
+      <SEO 
+        title="SelskabsInfo - Søg i danske virksomheder og få omfattende selskabsoplysninger"
+        description="Søg og udforsk detaljerede oplysninger om danske virksomheder. Find CVR-data, regnskaber, ledelse og meget mere. Gratis søgning i alle danske selskaber."
+        canonicalUrl="https://selskabsinfo.dk/"
+        keywords="danske virksomheder, CVR søgning, selskabsoplysninger, virksomhedsdata, regnskaber, ledelse"
+      />
       <div className="max-w-5xl mx-auto">
         {/* Only show hero section if no search has been performed */}
         {!searchTerm && (

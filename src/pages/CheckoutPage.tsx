@@ -7,6 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Separator } from '@/components/ui/separator';
 import { useSubscription } from '@/contexts/SubscriptionContext';
 import { SUBSCRIPTION_TIERS, SubscriptionTier } from '@/constants/subscriptions';
+import SEO from '@/components/SEO';
 
 const CheckoutPage: React.FC = () => {
   const [searchParams] = useSearchParams();
@@ -31,6 +32,12 @@ const CheckoutPage: React.FC = () => {
 
   return (
     <Layout>
+      <SEO 
+        title="Checkout - Gennemfør dit køb | SelskabsInfo"
+        description="Gennemfør dit køb af abonnement til SelskabsInfo. Sikker betaling via Stripe."
+        canonicalUrl="https://selskabsinfo.dk/checkout"
+        keywords="checkout, betaling, abonnement, Stripe"
+      />
       <div className="py-8 max-w-4xl mx-auto px-4">
         {/* Header */}
         <div className="mb-8">

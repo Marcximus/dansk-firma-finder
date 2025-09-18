@@ -18,6 +18,7 @@ import {
   TrendingUp
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import SEO from '@/components/SEO';
 
 const DatakilderPage: React.FC = () => {
   const primarySources = [
@@ -147,6 +148,12 @@ const DatakilderPage: React.FC = () => {
 
   return (
     <Layout>
+      <SEO 
+        title="Datakilder - Pålidelige kilder til virksomhedsdata | SelskabsInfo"
+        description="Læs om de officielle datakilder vi bruger til at levere præcise og opdaterede virksomhedsoplysninger."
+        canonicalUrl="https://selskabsinfo.dk/datakilder"
+        keywords="datakilder, CVR-registeret, officielle kilder, datakvalitet"
+      />
       <div className="py-8 max-w-6xl mx-auto px-4">
         <div className="text-center mb-8">
           <div className="flex items-center justify-center gap-2 mb-4">

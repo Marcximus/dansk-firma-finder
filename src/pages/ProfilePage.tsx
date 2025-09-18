@@ -16,6 +16,7 @@ import { SUBSCRIPTION_TIERS } from '@/constants/subscriptions';
 import type { User as SupabaseUser } from '@supabase/supabase-js';
 import { getRecentChanges, type CompanyChange } from '@/services/utils/changeUtils';
 import NotificationSettingsForm from '@/components/NotificationSettingsForm';
+import SEO from '@/components/SEO';
 
 interface Profile {
   id: string;
@@ -373,8 +374,14 @@ const ProfilePage: React.FC = () => {
   ];
 
   if (loading) {
-    return (
-      <Layout>
+  return (
+    <Layout>
+      <SEO 
+        title="Min Profil - Kontoindstillinger og Følgeliste | SelskabsInfo"
+        description="Administrer din SelskabsInfo-konto, se følgede virksomheder, bestilte rapporter og indstil notifikationer."
+        canonicalUrl="https://selskabsinfo.dk/profil"
+        keywords="profil, konto, følgede virksomheder, rapporter, notifikationer"
+      />
         <div className="py-8 max-w-7xl mx-auto px-4">
           <div className="animate-pulse">
             <div className="h-8 bg-muted rounded w-1/3 mb-8"></div>

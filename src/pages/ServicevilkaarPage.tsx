@@ -3,10 +3,17 @@ import Layout from '@/components/Layout';
 import { FileText, Calendar, Shield, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
+import SEO from '@/components/SEO';
 
 const ServicevilkaarPage: React.FC = () => {
   return (
     <Layout>
+      <SEO 
+        title="Servicevilkår og Brugsvilkår | SelskabsInfo"
+        description="Læs SelskabsInfos servicevilkår og brugsvilkår. Vigtige oplysninger om brug af vores tjenester og ansvar."
+        canonicalUrl="https://selskabsinfo.dk/servicevilkaar"
+        keywords="servicevilkår, brugsvilkår, ansvar, tjenestebetingelser"
+      />
       <div className="py-8 max-w-4xl mx-auto px-4">
         <div className="text-center mb-8">
           <div className="flex items-center justify-center gap-2 mb-4">

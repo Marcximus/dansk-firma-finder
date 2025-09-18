@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { useSubscription } from '@/contexts/SubscriptionContext';
 import { useToast } from '@/hooks/use-toast';
 import { SUBSCRIPTION_TIERS } from '@/constants/subscriptions';
+import SEO from '@/components/SEO';
 
 const TrackFoelgPage: React.FC = () => {
   const [searchParams] = useSearchParams();
@@ -47,6 +48,12 @@ const TrackFoelgPage: React.FC = () => {
   const currentTier = getCurrentTierInfo();
   return (
     <Layout>
+      <SEO 
+        title="Track & Følg - Abonnement på virksomhedsovervågning | SelskabsInfo"
+        description="Få automatiske opdateringer om danske virksomheder. Vælg mellem Standard, Premium og Business pakker."
+        canonicalUrl="https://selskabsinfo.dk/track-foelg"
+        keywords="track virksomheder, følg selskaber, abonnement, virksomhedsovervågning"
+      />
       <div className="py-8 max-w-6xl mx-auto px-4">
         {/* Header */}
         <div className="text-center mb-12">

@@ -8,6 +8,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Mail, Phone, MapPin, Clock, MessageCircle, Send, Building } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import SEO from '@/components/SEO';
 
 const KontaktOsPage: React.FC = () => {
   const [formData, setFormData] = useState({
@@ -51,6 +52,12 @@ const KontaktOsPage: React.FC = () => {
 
   return (
     <Layout>
+      <SEO 
+        title="Kontakt Os - Få hjælp og support | SelskabsInfo"
+        description="Kontakt SelskabsInfo for support, spørgsmål eller hjælp. Vi er klar til at hjælpe dig."
+        canonicalUrl="https://selskabsinfo.dk/kontakt-os"
+        keywords="kontakt, support, hjælp, kundeservice"
+      />
       <div className="py-8 max-w-6xl mx-auto px-4">
         <div className="text-center mb-8">
           <div className="flex items-center justify-center gap-2 mb-4">

@@ -20,6 +20,7 @@ import {
   CheckCircle,
   MapPin
 } from 'lucide-react';
+import SEO from '@/components/SEO';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { searchCompanies, Company } from '@/services/companyAPI';
@@ -346,6 +347,12 @@ const VirksomhedsrapporterPage: React.FC = () => {
 
   return (
     <Layout>
+      <SEO 
+        title="Virksomhedsrapporter - Detaljerede selskabsanalyser | SelskabsInfo"
+        description="Bestil omfattende virksomhedsrapporter med finansielle analyser, kreditvurderinger og due diligence data."
+        canonicalUrl="https://selskabsinfo.dk/virksomhedsrapporter"
+        keywords="virksomhedsrapporter, selskabsanalyser, kreditvurdering, due diligence"
+      />
       <div className="py-8 max-w-6xl mx-auto px-4">
         <div className="text-center mb-8">
           <div className="flex items-center justify-center gap-2 mb-4">

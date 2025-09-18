@@ -4,10 +4,17 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/
 import { HelpCircle, Search, Building, FileText, Users, Shield, Phone, Mail, Bell } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
+import SEO from '@/components/SEO';
 
 const FAQPage: React.FC = () => {
   return (
     <Layout>
+      <SEO 
+        title="Ofte stillede spørgsmål - FAQ | SelskabsInfo"
+        description="Find svar på de mest almindelige spørgsmål om SelskabsInfo. Hjælp til søgning, dataforståelse, tracking og meget mere."
+        canonicalUrl="https://selskabsinfo.dk/faq"
+        keywords="FAQ, spørgsmål, hjælp, SelskabsInfo, virksomhedssøgning, CVR data"
+      />
       <div className="py-8 max-w-4xl mx-auto px-4">
         <div className="text-center mb-8">
           <div className="flex items-center justify-center gap-2 mb-4">

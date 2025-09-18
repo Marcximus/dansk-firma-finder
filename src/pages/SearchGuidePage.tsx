@@ -5,10 +5,17 @@ import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import SEO from '@/components/SEO';
 
 const SearchGuidePage: React.FC = () => {
   return (
     <Layout>
+      <SEO 
+        title="Søgeguide - Lær at søge effektivt efter danske virksomheder | SelskabsInfo"
+        description="Lær hvordan du finder de virksomheder du leder efter. Tips og tricks til effektiv søgning i CVR-registeret og danske selskaber."
+        canonicalUrl="https://selskabsinfo.dk/soegeguide"
+        keywords="søgeguide, virksomhedssøgning, CVR søgning, søgetips, danske virksomheder"
+      />
       <div className="py-8 max-w-4xl mx-auto px-4">
         {/* Header */}
         <div className="text-center mb-8">

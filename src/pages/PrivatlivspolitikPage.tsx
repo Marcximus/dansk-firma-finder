@@ -6,10 +6,17 @@ import { Link } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
+import SEO from '@/components/SEO';
 
 const PrivatlivspolitikPage: React.FC = () => {
   return (
     <Layout>
+      <SEO 
+        title="Privatlivspolitik og GDPR - Databehandling | SelskabsInfo"
+        description="Læs om hvordan SelskabsInfo behandler personoplysninger i overensstemmelse med GDPR og dansk lovgivning. Transparent databeskyttelse."
+        canonicalUrl="https://selskabsinfo.dk/privatlivspolitik"
+        keywords="privatlivspolitik, GDPR, databehandling, personoplysninger, databeskyttelse"
+      />
       <div className="py-8 max-w-4xl mx-auto px-4">
         <div className="text-center mb-8">
           <div className="flex items-center justify-center gap-2 mb-4">

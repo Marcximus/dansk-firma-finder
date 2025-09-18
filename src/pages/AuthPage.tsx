@@ -10,6 +10,7 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { Eye, EyeOff, Mail, Lock, User, ArrowLeft, Building2, Phone } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import SEO from '@/components/SEO';
 
 const AuthPage: React.FC = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -139,6 +140,12 @@ const AuthPage: React.FC = () => {
 
   return (
     <Layout>
+      <SEO 
+        title="Log ind eller opret konto | SelskabsInfo"
+        description="Log ind på din SelskabsInfo-konto eller opret en ny konto for at få adgang til premium funktioner."
+        canonicalUrl="https://selskabsinfo.dk/auth"
+        keywords="log ind, opret konto, registrering, login"
+      />
       <div className="py-8 max-w-md mx-auto px-4">
         <div className="mb-6">
           <Button variant="outline" asChild>
