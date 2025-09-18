@@ -136,7 +136,7 @@ const TrackFoelgPage: React.FC = () => {
                 <div className="text-center mb-6 pb-4 border-b border-border">
                   <div className="relative mb-1">
                     <div className="text-4xl font-bold text-green-600">{SUBSCRIPTION_TIERS.standard.price},-</div>
-                    <div className="absolute -top-1 -right-4 text-sm text-muted-foreground line-through opacity-70">{SUBSCRIPTION_TIERS.standard.originalPrice},-</div>
+                    <div className="absolute -top-1 -right-1 text-sm text-muted-foreground line-through opacity-70">{SUBSCRIPTION_TIERS.standard.originalPrice},-</div>
                   </div>
                   <div className="text-sm text-muted-foreground">pr. måned</div>
                 </div>
@@ -192,7 +192,7 @@ const TrackFoelgPage: React.FC = () => {
                 <div className="text-center mb-6 pb-4 border-b border-border">
                   <div className="relative mb-1">
                     <div className="text-4xl font-bold text-primary">{SUBSCRIPTION_TIERS.premium.price},-</div>
-                    <div className="absolute -top-1 -right-4 text-sm text-muted-foreground line-through opacity-70">{SUBSCRIPTION_TIERS.premium.originalPrice},-</div>
+                    <div className="absolute -top-1 -right-1 text-sm text-muted-foreground line-through opacity-70">{SUBSCRIPTION_TIERS.premium.originalPrice},-</div>
                   </div>
                   <div className="text-sm text-muted-foreground">pr. måned</div>
                 </div>
@@ -241,7 +241,7 @@ const TrackFoelgPage: React.FC = () => {
                 <div className="text-center mb-6 pb-4 border-b border-border">
                   <div className="relative mb-1">
                     <div className="text-4xl font-bold">{SUBSCRIPTION_TIERS.enterprise.price},-</div>
-                    <div className="absolute -top-1 -right-4 text-sm text-muted-foreground line-through opacity-70">{SUBSCRIPTION_TIERS.enterprise.originalPrice},-</div>
+                    <div className="absolute -top-1 -right-1 text-sm text-muted-foreground line-through opacity-70">{SUBSCRIPTION_TIERS.enterprise.originalPrice},-</div>
                   </div>
                   <div className="text-sm text-muted-foreground">pr. måned</div>
                 </div>
