@@ -618,8 +618,22 @@ const ProfilePage: React.FC = () => {
                         {mockReports.map((report, index) => (
                           <tr key={report.id} className="border-b border-border/30 hover:bg-muted/20">
                             <td className="py-3 text-sm text-muted-foreground">{index + 1}.</td>
-                            <td className="py-3 font-semibold text-foreground">{report.company_name}</td>
-                            <td className="py-3 text-sm font-mono text-muted-foreground">{report.company_cvr}</td>
+                            <td className="py-3 font-semibold text-foreground">
+                              <Link 
+                                to={`/company/${report.company_cvr}`}
+                                className="hover:text-primary transition-colors underline-offset-4 hover:underline"
+                              >
+                                {report.company_name}
+                              </Link>
+                            </td>
+                            <td className="py-3 text-sm font-mono text-muted-foreground">
+                              <Link 
+                                to={`/company/${report.company_cvr}`}
+                                className="hover:text-primary transition-colors underline-offset-4 hover:underline font-medium"
+                              >
+                                {report.company_cvr}
+                              </Link>
+                            </td>
                             <td className="py-3 text-sm text-muted-foreground">{report.report_type}</td>
                             <td className="py-3 text-sm text-muted-foreground">
                               {new Date(report.order_date).toLocaleDateString('da-DK')}
