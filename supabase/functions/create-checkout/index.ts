@@ -62,7 +62,7 @@ serve(async (req) => {
         },
       ],
       mode: "subscription",
-      success_url: `${origin}/track-foelg?success=true`,
+      success_url: `${origin}/payment-success`,
       cancel_url: `${origin}/track-foelg?canceled=true`,
       metadata: {
         user_id: user.id,
