@@ -210,7 +210,7 @@ const TrackFoelgPage: React.FC = () => {
                   onClick={() => subscriptionTier === 'premium' ? openCustomerPortal() : handleSubscribe('premium')}
                   disabled={loading}
                 >
-                  {subscriptionTier === 'premium' ? 'Administrer' : 'Vælg Premium'}
+                  {subscriptionTier === 'premium' ? 'Administrer' : 'Opgrader til Premium'}
                 </Button>
               </CardContent>
             </Card>
@@ -259,7 +259,7 @@ const TrackFoelgPage: React.FC = () => {
                   onClick={() => subscriptionTier === 'enterprise' ? openCustomerPortal() : handleSubscribe('enterprise')}
                   disabled={loading}
                 >
-                  {subscriptionTier === 'enterprise' ? 'Administrer' : 'Vælg Enterprise'}
+                  {subscriptionTier === 'enterprise' ? 'Administrer' : 'Opgrader til Enterprise'}
                 </Button>
               </CardContent>
             </Card>
