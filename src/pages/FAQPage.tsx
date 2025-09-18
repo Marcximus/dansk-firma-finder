@@ -5,8 +5,32 @@ import { HelpCircle, Search, Building, FileText, Users, Shield, Phone, Mail, Bel
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 import SEO from '@/components/SEO';
+import JSONLDScript, { createFAQSchema } from '@/components/JSONLDScript';
 
 const FAQPage: React.FC = () => {
+  const faqData = [
+    {
+      question: "Hvad er Selskabsinfo?",
+      answer: "Selskabsinfo er en dansk tjeneste, der giver dig adgang til omfattende virksomhedsoplysninger fra CVR-registeret. Vi samler og præsenterer data på en overskuelig måde, så du nemt kan få overblik over danske virksomheder, deres ejerforhold, regnskabstal og meget mere."
+    },
+    {
+      question: "Hvordan søger jeg efter en virksomhed?",
+      answer: "Du kan søge efter virksomheder ved at bruge virksomhedsnavn, CVR-nummer, branchekode, by eller postnummer. Søgningen er intelligent og finder resultater, selv hvis du ikke staver helt korrekt."
+    },
+    {
+      question: "Hvilke oplysninger kan jeg finde om virksomheder?",
+      answer: "Vi viser omfattende information om danske virksomheder, herunder grundoplysninger, finansielle data, ledelse og ejere, samt historiske data."
+    },
+    {
+      question: "Hvor kommer data fra, og hvor opdateret er det?",
+      answer: "Alle data kommer direkte fra officielle danske myndigheder som CVR-registeret og regnskabsdata fra årsrapporter. Data opdateres løbende og er maksimalt 24-48 timer gamle."
+    },
+    {
+      question: "Er det lovligt at bruge disse oplysninger?",
+      answer: "Ja, alle oplysninger vi viser er offentligt tilgængelige i henhold til dansk lovgivning. CVR-registeret er offentligt, og du kan frit bruge oplysningerne til legitimate forretningsmæssige formål."
+    }
+  ];
+
   return (
     <Layout>
       <SEO 
@@ -15,6 +39,7 @@ const FAQPage: React.FC = () => {
         canonicalUrl="https://selskabsinfo.dk/faq"
         keywords="FAQ, spørgsmål, hjælp, SelskabsInfo, virksomhedssøgning, CVR data"
       />
+      <JSONLDScript data={createFAQSchema(faqData)} />
       <div className="py-8 max-w-4xl mx-auto px-4">
         <div className="text-center mb-8">
           <div className="flex items-center justify-center gap-2 mb-4">

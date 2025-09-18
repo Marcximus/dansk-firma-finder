@@ -9,6 +9,7 @@ import { useSubscription } from '@/contexts/SubscriptionContext';
 import { useToast } from '@/hooks/use-toast';
 import { SUBSCRIPTION_TIERS } from '@/constants/subscriptions';
 import SEO from '@/components/SEO';
+import JSONLDScript, { createServiceSchema } from '@/components/JSONLDScript';
 
 const TrackFoelgPage: React.FC = () => {
   const [searchParams] = useSearchParams();
@@ -54,6 +55,11 @@ const TrackFoelgPage: React.FC = () => {
         canonicalUrl="https://selskabsinfo.dk/track-foelg"
         keywords="track virksomheder, følg selskaber, abonnement, virksomhedsovervågning"
       />
+      <JSONLDScript data={createServiceSchema({
+        name: "Track & Følg - Virksomhedsovervågning",
+        description: "Få automatiske opdateringer om danske virksomheder med vores abonnementstjeneste",
+        price: "99"
+      })} />
       <div className="py-8 max-w-6xl mx-auto px-4">
         {/* Header */}
         <div className="text-center mb-12">

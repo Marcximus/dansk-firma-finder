@@ -6,6 +6,7 @@ import CompanyDetails from '@/components/CompanyDetails';
 import Layout from '@/components/Layout';
 import { useToast } from '@/components/ui/use-toast';
 import SEO from '@/components/SEO';
+import JSONLDScript, { createCompanySchema } from '@/components/JSONLDScript';
 
 const CompanyPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -77,6 +78,7 @@ const CompanyPage: React.FC = () => {
         canonicalUrl={`https://selskabsinfo.dk/company/${id}`}
         keywords={`${company.name}, CVR ${company.cvr}, danske virksomheder, selskabsoplysninger`}
       />
+      <JSONLDScript data={createCompanySchema(company)} />
       <CompanyDetails company={company} />
     </Layout>
   );

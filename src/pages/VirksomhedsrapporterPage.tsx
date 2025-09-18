@@ -21,6 +21,7 @@ import {
   MapPin
 } from 'lucide-react';
 import SEO from '@/components/SEO';
+import JSONLDScript, { createServiceSchema } from '@/components/JSONLDScript';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { searchCompanies, Company } from '@/services/companyAPI';
@@ -353,6 +354,11 @@ const VirksomhedsrapporterPage: React.FC = () => {
         canonicalUrl="https://selskabsinfo.dk/virksomhedsrapporter"
         keywords="virksomhedsrapporter, selskabsanalyser, kreditvurdering, due diligence"
       />
+      <JSONLDScript data={createServiceSchema({
+        name: "Virksomhedsrapporter - Detaljerede selskabsanalyser",
+        description: "Omfattende virksomhedsrapporter med finansielle analyser, kreditvurderinger og due diligence data",
+        price: "199"
+      })} />
       <div className="py-8 max-w-6xl mx-auto px-4">
         <div className="text-center mb-8">
           <div className="flex items-center justify-center gap-2 mb-4">

@@ -9,6 +9,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Mail, Phone, MapPin, Clock, MessageCircle, Send, Building } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import SEO from '@/components/SEO';
+import JSONLDScript, { createOrganizationSchema } from '@/components/JSONLDScript';
 
 const KontaktOsPage: React.FC = () => {
   const [formData, setFormData] = useState({
@@ -58,6 +59,7 @@ const KontaktOsPage: React.FC = () => {
         canonicalUrl="https://selskabsinfo.dk/kontakt-os"
         keywords="kontakt, support, hjælp, kundeservice"
       />
+      <JSONLDScript data={createOrganizationSchema()} />
       <div className="py-8 max-w-6xl mx-auto px-4">
         <div className="text-center mb-8">
           <div className="flex items-center justify-center gap-2 mb-4">

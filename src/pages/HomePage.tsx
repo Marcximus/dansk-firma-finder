@@ -8,6 +8,7 @@ import CompanyCard from '@/components/CompanyCard';
 import Layout from '@/components/Layout';
 import { Spinner } from '@/components/ui/spinner';
 import SEO from '@/components/SEO';
+import JSONLDScript, { createWebsiteSchema, createOrganizationSchema } from '@/components/JSONLDScript';
 
 const HomePage = () => {
   const [searchTerm, setSearchTerm] = useState<string>('');
@@ -81,6 +82,8 @@ const HomePage = () => {
         canonicalUrl="https://selskabsinfo.dk/"
         keywords="danske virksomheder, CVR søgning, selskabsoplysninger, virksomhedsdata, regnskaber, ledelse"
       />
+      <JSONLDScript data={createWebsiteSchema()} />
+      <JSONLDScript data={createOrganizationSchema()} />
       <div className="max-w-5xl mx-auto">
         {/* Only show hero section if no search has been performed */}
         {!searchTerm && (
