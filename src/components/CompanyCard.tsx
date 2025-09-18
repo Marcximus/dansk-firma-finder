@@ -127,71 +127,158 @@ const CompanyCard: React.FC<CompanyCardProps> = ({ company }) => {
     return { name: null, role: null };
   };
 
+  // Extract the most recent change from CVR data
+  const getLastChange = () => {
+    if (!company.realCvrData) return null;
+    
+    // Look for recent changes in various parts of the CVR data
+    let latestDate = null;
+    let changeType = '';
+    
+    // Check lifecycle changes
+    if (company.realCvrData.livsforloeb) {
+      for (const change of company.realCvrData.livsforloeb) {
+        if (change.periode?.gyldigFra) {
+          const changeDate = new Date(change.periode.gyldigFra);
+          if (!latestDate || changeDate > latestDate) {
+            latestDate = changeDate;
+            changeType = 'Status ændring';
+          }
+        }
+      }
+    }
+    
+    // Check address changes
+    if (company.realCvrData.beliggenhedsadresse) {
+      for (const addr of company.realCvrData.beliggenhedsadresse) {
+        if (addr.periode?.gyldigFra) {
+          const changeDate = new Date(addr.periode.gyldigFra);
+          if (!latestDate || changeDate > latestDate) {
+            latestDate = changeDate;
+            changeType = 'Adresse ændring';
+          }
+        }
+      }
+    }
+    
+    // Check name changes
+    if (company.realCvrData.navne) {
+      for (const nameChange of company.realCvrData.navne) {
+        if (nameChange.periode?.gyldigFra) {
+          const changeDate = new Date(nameChange.periode.gyldigFra);
+          if (!latestDate || changeDate > latestDate) {
+            latestDate = changeDate;
+            changeType = 'Navn ændring';
+          }
+        }
+      }
+    }
+    
+    if (latestDate) {
+      return {
+        date: latestDate.toLocaleDateString('da-DK'),
+        type: changeType
+      };
+    }
+    
+    return null;
+  };
+
   const { name: personName, role: personRole } = getDirectorOrOwner();
   const statusText = cleanStatus(company.status || 'Aktiv');
+  const lastChange = getLastChange();
 
   return (
-    <Link to={`/company/${company.id}`} className="block h-full">
-      <Card className="h-full flex flex-col hover:shadow-md transition-shadow fadeIn cursor-pointer">
-        <CardHeader className="pb-2 pt-3">
-          <div className="flex flex-col items-center gap-3">
-            <CardTitle className="text-lg font-bold leading-tight text-center min-h-[2rem] flex items-center justify-center px-1">
+    <Card className="h-full flex flex-col hover:shadow-md transition-shadow cursor-pointer">
+      <CardHeader className="pb-2 pt-3">
+        <div className="flex flex-col items-center gap-3">
+          <CardTitle className="text-lg font-bold leading-tight text-center min-h-[2rem] flex items-center justify-center px-1">
+            <Link 
+              to={`/company/${company.id}`}
+              className="hover:text-primary transition-colors underline-offset-4 hover:underline"
+              onClick={(e) => e.stopPropagation()}
+            >
               {company.name}
-            </CardTitle>
-            {company.logo && (
-              <div className="w-16 h-16 flex items-center justify-center">
-                <img 
-                  src={company.logo} 
-                  alt={`${company.name} logo`} 
-                  className="max-w-full max-h-full object-contain"
-                />
-              </div>
-            )}
+            </Link>
+          </CardTitle>
+          {company.logo && (
+            <div className="w-16 h-16 flex items-center justify-center">
+              <img 
+                src={company.logo} 
+                alt={`${company.name} logo`} 
+                className="max-w-full max-h-full object-contain"
+              />
+            </div>
+          )}
+        </div>
+      </CardHeader>
+      <CardContent className="flex-1 flex flex-col pt-2">
+        <div className="space-y-4 text-sm flex-1">
+          <div className="grid grid-cols-3 gap-2">
+            <span className="font-medium text-muted-foreground">CVR</span>
+            <span className="col-span-2">
+              <Link 
+                to={`/company/${company.id}`}
+                className="hover:text-primary transition-colors underline-offset-4 hover:underline font-medium"
+                onClick={(e) => e.stopPropagation()}
+              >
+                {company.cvr}
+              </Link>
+            </span>
           </div>
-        </CardHeader>
-        <CardContent className="flex-1 flex flex-col pt-2">
-          <div className="space-y-4 text-sm flex-1">
-            <div className="grid grid-cols-3 gap-2">
-              <span className="font-medium text-muted-foreground">CVR</span>
-              <span className="col-span-2">{company.cvr}</span>
-            </div>
-            
-            <div className="grid grid-cols-3 gap-2">
-              <span className="font-medium text-muted-foreground">{personRole || 'Direktør'}</span>
-              <span className="col-span-2">{personName || 'Ikke tilgængelig'}</span>
-            </div>
-            
-            <div className="grid grid-cols-3 gap-2">
-              <span className="font-medium text-muted-foreground">Type</span>
-              <span className="col-span-2">{cleanLegalForm(company.legalForm || 'Ikke tilgængelig')}</span>
-            </div>
-            
-            <div className="grid grid-cols-3 gap-2">
-              <span className="font-medium text-muted-foreground">Status</span>
-              <div className="col-span-2">
-                <Badge className={getStatusColor(company.status || 'NORMAL')}>
-                  {statusText}
-                </Badge>
-              </div>
-            </div>
-            
-            <div className="grid grid-cols-3 gap-2">
-              <span className="font-medium text-muted-foreground">Adresse</span>
-              <div className="col-span-2">
-                <div>{company.address}</div>
-                <div>{company.postalCode} {company.city}</div>
-              </div>
+          
+          <div className="grid grid-cols-3 gap-2">
+            <span className="font-medium text-muted-foreground">{personRole || 'Direktør'}</span>
+            <span className="col-span-2">{personName || 'Ikke tilgængelig'}</span>
+          </div>
+          
+          <div className="grid grid-cols-3 gap-2">
+            <span className="font-medium text-muted-foreground">Type</span>
+            <span className="col-span-2">{cleanLegalForm(company.legalForm || 'Ikke tilgængelig')}</span>
+          </div>
+          
+          <div className="grid grid-cols-3 gap-2">
+            <span className="font-medium text-muted-foreground">Status</span>
+            <div className="col-span-2">
+              <Badge className={getStatusColor(company.status || 'NORMAL')}>
+                {statusText}
+              </Badge>
             </div>
           </div>
           
-          <div className="mt-6 pt-4 border-t">
-            <Button asChild className="w-full">
-              <span>Se Detaljer</span>
-            </Button>
+          {lastChange && (
+            <div className="grid grid-cols-3 gap-2">
+              <span className="font-medium text-muted-foreground">Seneste ændring</span>
+              <span className="col-span-2">
+                <Link 
+                  to={`/company/${company.id}`}
+                  className="hover:text-primary transition-colors underline-offset-4 hover:underline"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  {lastChange.type} ({lastChange.date})
+                </Link>
+              </span>
+            </div>
+          )}
+          
+          <div className="grid grid-cols-3 gap-2">
+            <span className="font-medium text-muted-foreground">Adresse</span>
+            <div className="col-span-2">
+              <div>{company.address}</div>
+              <div>{company.postalCode} {company.city}</div>
+            </div>
           </div>
-        </CardContent>
-      </Card>
-    </Link>
+        </div>
+        
+        <div className="mt-6 pt-4 border-t">
+          <Button asChild className="w-full">
+            <Link to={`/company/${company.id}`}>
+              Se Detaljer
+            </Link>
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
   );
 };
 
