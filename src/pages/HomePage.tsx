@@ -1,9 +1,9 @@
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useLocation, useSearchParams } from 'react-router-dom';
 import { searchCompanies, Company } from '@/services/companyAPI';
-import SearchBar, { SearchBarRef } from '@/components/SearchBar';
+import SearchBar from '@/components/SearchBar';
 import CompanyCard from '@/components/CompanyCard';
 import Layout from '@/components/Layout';
 import { Spinner } from '@/components/ui/spinner';
@@ -15,24 +15,14 @@ const HomePage = () => {
   const queryClient = useQueryClient();
   const location = useLocation();
   const [searchParams] = useSearchParams();
-  const searchBarRef = useRef<SearchBarRef>(null);
   
   // Handle search from URL parameters (from header search)
   useEffect(() => {
     const searchFromUrl = searchParams.get('search');
-    const focusSearch = searchParams.get('focusSearch');
-    
     if (searchFromUrl) {
       setSearchTerm(searchFromUrl);
     } else if (location.pathname === '/' && location.search === '') {
       setSearchTerm('');
-    }
-    
-    // Trigger focus and glow if focusSearch parameter is present
-    if (focusSearch === 'true' && searchBarRef.current) {
-      setTimeout(() => {
-        searchBarRef.current?.focusAndGlow();
-      }, 100); // Small delay to ensure component is rendered
     }
   }, [location, searchParams]);
   
@@ -103,7 +93,7 @@ const HomePage = () => {
               Søg og udforsk detaljerede oplysninger om danske virksomheder
             </p>
             <div className="flex justify-center mb-12">
-              <SearchBar ref={searchBarRef} onSearch={handleSearch} isLoading={isLoading} />
+              <SearchBar onSearch={handleSearch} isLoading={isLoading} />
             </div>
           </div>
         )}

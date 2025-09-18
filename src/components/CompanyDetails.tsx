@@ -40,7 +40,7 @@ const CompanyDetails: React.FC<CompanyDetailsProps> = ({ company }) => {
         <DataSourceInfo />
         <div className="flex justify-center">
           <Button asChild variant="outline" className="flex gap-1.5">
-            <Link to="/?focusSearch=true">
+            <Link to="/">
               <ArrowLeft className="w-4 h-4" />
               Tilbage til søgning
             </Link>

@@ -763,7 +763,7 @@ const FAQPage: React.FC = () => {
             </div>
             <div className="mt-4">
               <Button asChild>
-                <Link to="/?focusSearch=true">Tilbage til søgning</Link>
+                <Link to="/">Tilbage til søgning</Link>
               </Button>
             </div>
           </div>
