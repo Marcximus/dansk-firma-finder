@@ -93,19 +93,22 @@ export default {
 					'0%': {
 						boxShadow: '0 0 0 0 hsl(var(--primary) / 0.4)'
 					},
-					'10%': {
-						boxShadow: '0 0 0 8px hsl(var(--primary) / 0.6), 0 0 20px hsl(var(--primary) / 0.3)'
-					},
-					'20%': {
+					'15%': {
 						boxShadow: '0 0 0 0 hsl(var(--primary) / 0.4)'
 					},
-					'40%': {
+					'20%': {
+						boxShadow: '0 0 0 8px hsl(var(--primary) / 0.6), 0 0 20px hsl(var(--primary) / 0.3)'
+					},
+					'25%': {
+						boxShadow: '0 0 0 0 hsl(var(--primary) / 0.4)'
+					},
+					'45%': {
 						boxShadow: '0 0 0 0 hsl(var(--primary) / 0.4)'
 					},
 					'50%': {
 						boxShadow: '0 0 0 8px hsl(var(--primary) / 0.6), 0 0 20px hsl(var(--primary) / 0.3)'
 					},
-					'60%': {
+					'55%': {
 						boxShadow: '0 0 0 0 hsl(var(--primary) / 0.4)'
 					},
 					'100%': {
