@@ -150,8 +150,7 @@ const TrackFoelgPage: React.FC = () => {
                   ))}
                 </ul>
                 <Button 
-                  className="w-full mt-auto" 
-                  variant={subscriptionTier === 'standard' ? 'secondary' : 'outline'}
+                  className="w-full mt-auto bg-green-600 hover:bg-green-700 text-white" 
                   size="lg"
                   onClick={() => subscriptionTier === 'standard' ? openCustomerPortal() : navigate('/?focus=search')}
                   disabled={loading}
@@ -255,8 +254,7 @@ const TrackFoelgPage: React.FC = () => {
                   ))}
                 </ul>
                 <Button 
-                  className="w-full mt-auto" 
-                  variant={subscriptionTier === 'enterprise' ? 'secondary' : 'secondary'}
+                  className="w-full mt-auto bg-purple-600 hover:bg-purple-700 text-white" 
                   size="lg"
                   onClick={() => subscriptionTier === 'enterprise' ? openCustomerPortal() : handleSubscribe('enterprise')}
                   disabled={loading}
