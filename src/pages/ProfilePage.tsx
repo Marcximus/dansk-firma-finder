@@ -358,7 +358,7 @@ const ProfilePage: React.FC = () => {
     {
       id: '1',
       company_name: 'BESTSELLER A/S',
-      company_cvr: '10012345',
+      company_cvr: '15404274', // Real CVR for BESTSELLER
       report_type: 'Premium',
       order_date: '2024-01-15',
       status: 'ready',
@@ -367,7 +367,7 @@ const ProfilePage: React.FC = () => {
     {
       id: '2',
       company_name: 'NOVO NORDISK A/S',
-      company_cvr: '24256790',
+      company_cvr: '24256790', // Real CVR for Novo Nordisk
       report_type: 'Standard',
       order_date: '2024-01-12',
       status: 'processing'
