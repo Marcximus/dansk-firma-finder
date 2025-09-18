@@ -490,10 +490,33 @@ const ProfilePage: React.FC = () => {
                         return (
                           <tr key={company.id} className="border-b border-border/30 hover:bg-muted/20">
                             <td className="py-3 text-sm text-muted-foreground">{index + 1}.</td>
-                            <td className="py-3 font-semibold text-foreground">{company.company_name}</td>
-                            <td className="py-3 text-sm font-mono text-muted-foreground">{company.company_cvr}</td>
+                            <td className="py-3 font-semibold text-foreground">
+                              <Link 
+                                to={`/company/${company.company_cvr}`}
+                                className="hover:text-primary transition-colors underline-offset-4 hover:underline"
+                              >
+                                {company.company_name}
+                              </Link>
+                            </td>
+                            <td className="py-3 text-sm font-mono text-muted-foreground">
+                              <Link 
+                                to={`/company/${company.company_cvr}`}
+                                className="hover:text-primary transition-colors underline-offset-4 hover:underline font-medium"
+                              >
+                                {company.company_cvr}
+                              </Link>
+                            </td>
                             <td className="py-3 text-sm text-muted-foreground">
-                              {latestChange ? latestChange.description : 'Ingen ændringer'}
+                              {latestChange ? (
+                                <Link 
+                                  to={`/company/${company.company_cvr}`}
+                                  className="hover:text-primary transition-colors underline-offset-4 hover:underline"
+                                >
+                                  {latestChange.description}
+                                </Link>
+                              ) : (
+                                'Ingen ændringer'
+                              )}
                             </td>
                             <td className="py-3 text-sm text-muted-foreground">
                               {latestChange ? new Date(latestChange.date).toLocaleDateString('da-DK') : '-'}
