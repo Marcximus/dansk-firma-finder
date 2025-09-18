@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import Layout from '@/components/Layout';
 import { User, Building2, Phone, Mail, Calendar, CreditCard, FileText, Star, Settings as SettingsIcon, Download, Edit2, Save, X, Bell, Eye, Trash2, Plus, Crown, Shield, Zap, TrendingUp, TrendingDown, AlertCircle, Clock, Users, DollarSign, MapPin, Calendar as CalendarIcon, Loader, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -543,10 +544,10 @@ const ProfilePage: React.FC = () => {
                   </table>
                   <div className="mt-8 flex justify-center">
                     <Button asChild className="bg-primary hover:bg-primary/90">
-                      <a href="/">
+                      <Link to="/?focus=search">
                         <Plus className="h-4 w-4 mr-2" />
                         Tilføj flere
-                      </a>
+                      </Link>
                     </Button>
                   </div>
                 </div>
