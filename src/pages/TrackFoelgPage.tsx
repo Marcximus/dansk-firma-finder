@@ -135,9 +135,9 @@ const TrackFoelgPage: React.FC = () => {
               </CardHeader>
               <CardContent className="pt-4 flex flex-col flex-grow">
                 <div className="text-center mb-6 pb-4 border-b border-border">
-                  <div className="flex items-baseline justify-center gap-2 mb-1">
+                  <div className="mb-1">
+                    <div className="text-lg text-muted-foreground line-through opacity-70 mb-1">{SUBSCRIPTION_TIERS.standard.originalPrice},-</div>
                     <div className="text-4xl font-bold text-green-600">{SUBSCRIPTION_TIERS.standard.price},-</div>
-                    <div className="text-lg text-muted-foreground line-through opacity-70">{SUBSCRIPTION_TIERS.standard.originalPrice},-</div>
                   </div>
                   <div className="text-sm text-muted-foreground">pr. måned</div>
                 </div>
@@ -190,9 +190,9 @@ const TrackFoelgPage: React.FC = () => {
               </CardHeader>
               <CardContent className="pt-4 flex flex-col flex-grow">
                 <div className="text-center mb-6 pb-4 border-b border-border">
-                  <div className="flex items-baseline justify-center gap-2 mb-1">
+                  <div className="mb-1">
+                    <div className="text-lg text-muted-foreground line-through opacity-70 mb-1">{SUBSCRIPTION_TIERS.premium.originalPrice},-</div>
                     <div className="text-4xl font-bold text-primary">{SUBSCRIPTION_TIERS.premium.price},-</div>
-                    <div className="text-lg text-muted-foreground line-through opacity-70">{SUBSCRIPTION_TIERS.premium.originalPrice},-</div>
                   </div>
                   <div className="text-sm text-muted-foreground">pr. måned</div>
                 </div>
@@ -239,9 +239,9 @@ const TrackFoelgPage: React.FC = () => {
               </CardHeader>
               <CardContent className="pt-4 flex flex-col flex-grow">
                 <div className="text-center mb-6 pb-4 border-b border-border">
-                  <div className="flex items-baseline justify-center gap-2 mb-1">
+                  <div className="mb-1">
+                    <div className="text-lg text-muted-foreground line-through opacity-70 mb-1">{SUBSCRIPTION_TIERS.enterprise.originalPrice},-</div>
                     <div className="text-4xl font-bold">{SUBSCRIPTION_TIERS.enterprise.price},-</div>
-                    <div className="text-lg text-muted-foreground line-through opacity-70">{SUBSCRIPTION_TIERS.enterprise.originalPrice},-</div>
                   </div>
                   <div className="text-sm text-muted-foreground">pr. måned</div>
                 </div>
