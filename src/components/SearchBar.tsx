@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Search } from 'lucide-react';
@@ -8,10 +8,32 @@ import { Spinner } from '@/components/ui/spinner';
 interface SearchBarProps {
   onSearch: (query: string) => void;
   isLoading?: boolean;
+  shouldFocus?: boolean;
 }
 
-const SearchBar: React.FC<SearchBarProps> = ({ onSearch, isLoading = false }) => {
+const SearchBar: React.FC<SearchBarProps> = ({ onSearch, isLoading = false, shouldFocus = false }) => {
   const [query, setQuery] = useState('');
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  // Handle auto-focus with glow animation
+  useEffect(() => {
+    if (shouldFocus && inputRef.current) {
+      // Small delay to ensure the component is mounted
+      setTimeout(() => {
+        if (inputRef.current) {
+          inputRef.current.focus();
+          // Add glow animation class
+          inputRef.current.classList.add('animate-glow-twice');
+          // Remove the animation class after it completes
+          setTimeout(() => {
+            if (inputRef.current) {
+              inputRef.current.classList.remove('animate-glow-twice');
+            }
+          }, 6000); // Match the animation duration
+        }
+      }, 100);
+    }
+  }, [shouldFocus]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -26,6 +48,7 @@ const SearchBar: React.FC<SearchBarProps> = ({ onSearch, isLoading = false }) =>
       <div className="relative flex-grow">
         <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
         <Input 
+          ref={inputRef}
           type="text"
           placeholder="Søg virksomheder efter navn, CVR, branche eller by..."
           value={query}

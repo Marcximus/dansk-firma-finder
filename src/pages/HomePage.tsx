@@ -12,17 +12,27 @@ import JSONLDScript, { createWebsiteSchema, createOrganizationSchema } from '@/c
 
 const HomePage = () => {
   const [searchTerm, setSearchTerm] = useState<string>('');
+  const [shouldFocusSearch, setShouldFocusSearch] = useState<boolean>(false);
   const queryClient = useQueryClient();
   const location = useLocation();
   const [searchParams] = useSearchParams();
   
-  // Handle search from URL parameters (from header search)
+  // Handle search from URL parameters (from header search) and focus trigger
   useEffect(() => {
     const searchFromUrl = searchParams.get('search');
+    const focusParam = searchParams.get('focus');
+    
     if (searchFromUrl) {
       setSearchTerm(searchFromUrl);
     } else if (location.pathname === '/' && location.search === '') {
       setSearchTerm('');
+    }
+    
+    // Trigger focus and glow animation if focus parameter is present
+    if (focusParam === 'search') {
+      setShouldFocusSearch(true);
+      // Reset the focus trigger after it's been used
+      setTimeout(() => setShouldFocusSearch(false), 100);
     }
   }, [location, searchParams]);
   
@@ -93,7 +103,7 @@ const HomePage = () => {
               Søg og udforsk detaljerede oplysninger om danske virksomheder
             </p>
             <div className="flex justify-center mb-12">
-              <SearchBar onSearch={handleSearch} isLoading={isLoading} />
+              <SearchBar onSearch={handleSearch} isLoading={isLoading} shouldFocus={shouldFocusSearch} />
             </div>
           </div>
         )}
