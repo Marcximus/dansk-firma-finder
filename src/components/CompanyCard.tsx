@@ -246,21 +246,6 @@ const CompanyCard: React.FC<CompanyCardProps> = ({ company }) => {
             </div>
           </div>
           
-          {lastChange && (
-            <div className="grid grid-cols-3 gap-2">
-              <span className="font-medium text-muted-foreground">Seneste ændring</span>
-              <span className="col-span-2">
-                <Link 
-                  to={`/company/${company.id}`}
-                  className="hover:text-primary transition-colors underline-offset-4 hover:underline"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  {lastChange.type} ({lastChange.date})
-                </Link>
-              </span>
-            </div>
-          )}
-          
           <div className="grid grid-cols-3 gap-2">
             <span className="font-medium text-muted-foreground">Adresse</span>
             <div className="col-span-2">
