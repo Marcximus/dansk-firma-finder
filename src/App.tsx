@@ -9,6 +9,7 @@ import { SubscriptionProvider } from "@/contexts/SubscriptionContext";
 import Analytics from "@/components/Analytics";
 import Index from "./pages/Index";
 import CompanyPage from "./pages/CompanyPage";
+import CompanyChangesPage from "./pages/CompanyChangesPage";
 import FAQPage from "./pages/FAQPage";
 import ServicevilkaarPage from "./pages/ServicevilkaarPage";
 import PrivatlivspolitikPage from "./pages/PrivatlivspolitikPage";
@@ -40,6 +41,7 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/company/:id" element={<CompanyPage />} />
+            <Route path="/company/:id/changes" element={<CompanyChangesPage />} />
             <Route path="/faq" element={<FAQPage />} />
             <Route path="/servicevilkaar" element={<ServicevilkaarPage />} />
             <Route path="/privatlivspolitik" element={<PrivatlivspolitikPage />} />

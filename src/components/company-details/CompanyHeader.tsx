@@ -143,6 +143,10 @@ const CompanyHeader: React.FC<CompanyHeaderProps> = ({ company }) => {
     }
   };
 
+  const handleChangesClick = () => {
+    navigate(`/company/${company.cvr}/changes`);
+  };
+
   const handleReportClick = () => {
     navigate('/virksomhedsrapporter', { 
       state: { preloadedCompany: company }
@@ -189,6 +193,7 @@ const CompanyHeader: React.FC<CompanyHeaderProps> = ({ company }) => {
             variant="outline" 
             size="lg" 
             className="px-8 py-4 text-lg"
+            onClick={handleChangesClick}
           >
             Seneste Ændringer
           </Button>
