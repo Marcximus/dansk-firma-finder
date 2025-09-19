@@ -28,6 +28,10 @@ import ScrollToTop from "./components/ScrollToTop";
 import { AdminLayout } from "./components/admin/AdminLayout";
 import { AdminDashboard } from "./pages/admin/AdminDashboard";
 import { UserManagement } from "./pages/admin/UserManagement";
+import { CompanyInsights } from "./pages/admin/CompanyInsights";
+import { RevenueAnalytics } from "./pages/admin/RevenueAnalytics";
+import { ReportsOrders } from "./pages/admin/ReportsOrders";
+import { SystemHealth } from "./pages/admin/SystemHealth";
 
 const queryClient = new QueryClient();
 
@@ -63,6 +67,10 @@ const App = () => (
             <Route path="/admin" element={<AdminLayout />}>
               <Route index element={<AdminDashboard />} />
               <Route path="users" element={<UserManagement />} />
+              <Route path="companies" element={<CompanyInsights />} />
+              <Route path="revenue" element={<RevenueAnalytics />} />
+              <Route path="reports" element={<ReportsOrders />} />
+              <Route path="system" element={<SystemHealth />} />
             </Route>
             
             <Route path="*" element={<NotFound />} />
