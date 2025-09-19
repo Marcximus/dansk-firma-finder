@@ -472,23 +472,18 @@ const TrackFoelgPage: React.FC = () => {
 
 
 
-        {/* CTA and Back Button */}
-        <div className="text-center space-y-4">
+        {/* CTA Section */}
+        <div className="text-center">
           <div className="space-x-4">
-            <Button size="lg" className="bg-primary hover:bg-primary/90">
-              Kom i gang med tracking
+            <Button size="lg" className="bg-primary hover:bg-primary/90" asChild>
+              <Link to="/?focus=search">
+                Kom i gang med tracking
+              </Link>
             </Button>
             <Button variant="outline" size="lg" asChild>
               <Link to="/kontakt-os">Kontakt os for demo</Link>
             </Button>
           </div>
-          
-          <Button variant="outline" asChild>
-            <Link to="/" className="flex items-center gap-2">
-              <ArrowLeft className="h-4 w-4" />
-              Tilbage til forsiden
-            </Link>
-          </Button>
         </div>
       </div>
 
