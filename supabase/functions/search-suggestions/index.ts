@@ -52,7 +52,7 @@ serve(async (req) => {
               "multi_match": {
                 "query": query,
                 "fields": [
-                  "Vrvirksomhed.virksomhedMetadata.nyesteNavn.navn^3",
+                  "Vrvirksomhed.navne.navn^3",
                   "Vrvirksomhed.virksomhedMetadata.sammensatStatus"
                 ],
                 "type": "best_fields",
@@ -71,8 +71,8 @@ serve(async (req) => {
       },
       "_source": [
         "Vrvirksomhed.cvrNummer",
-        "Vrvirksomhed.virksomhedMetadata.nyesteNavn.navn",
-        "Vrvirksomhed.virksomhedMetadata.nyesteBeliggenhedsadresse.kommune.kommuneNavn"
+        "Vrvirksomhed.navne",
+        "Vrvirksomhed.beliggenhedsadresse"
       ]
     };
     
@@ -106,7 +106,7 @@ serve(async (req) => {
       hasData: !!data
     });
     
-    // Process suggestions
+    // Process suggestions using same logic as main search
     const suggestions = (data.hits?.hits || []).map((hit: any, index: number) => {
       logStep(`Processing hit ${index}`, { hit: JSON.stringify(hit).substring(0, 200) });
       
@@ -116,9 +116,16 @@ serve(async (req) => {
         return null;
       }
       
-      const navn = virksomhed.virksomhedMetadata?.nyesteNavn?.navn;
+      // Get the current/active name (where gyldigTil is null) or the most recent name
+      const currentName = virksomhed.navne?.find((n: any) => n.periode?.gyldigTil === null);
+      const navn = currentName?.navn || virksomhed.navne?.[virksomhed.navne?.length - 1]?.navn;
+      
+      // Get the current/active address (where gyldigTil is null) or the most recent address
+      const currentAddress = virksomhed.beliggenhedsadresse?.find((addr: any) => addr.periode?.gyldigTil === null);
+      const primaryAddress = currentAddress || virksomhed.beliggenhedsadresse?.[virksomhed.beliggenhedsadresse?.length - 1];
+      
       const cvr = virksomhed.cvrNummer;
-      const kommune = virksomhed.virksomhedMetadata?.nyesteBeliggenhedsadresse?.kommune?.kommuneNavn;
+      const kommune = primaryAddress?.postdistrikt || '';
       
       logStep(`Extracted data for hit ${index}`, { navn, cvr, kommune });
       
