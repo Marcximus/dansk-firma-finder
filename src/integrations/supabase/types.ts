@@ -14,6 +14,30 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_metrics: {
+        Row: {
+          created_at: string
+          id: string
+          metric_date: string
+          metric_type: string
+          metric_value: Json
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          metric_date: string
+          metric_type: string
+          metric_value: Json
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          metric_date?: string
+          metric_type?: string
+          metric_value?: Json
+        }
+        Relationships: []
+      }
       followed_companies: {
         Row: {
           company_cvr: string
@@ -80,6 +104,96 @@ export type Database = {
         }
         Relationships: []
       }
+      report_orders: {
+        Row: {
+          amount_cents: number
+          company_cvr: string
+          company_name: string
+          created_at: string
+          currency: string
+          id: string
+          report_type: string
+          status: string
+          stripe_payment_intent_id: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount_cents: number
+          company_cvr: string
+          company_name: string
+          created_at?: string
+          currency?: string
+          id?: string
+          report_type: string
+          status?: string
+          stripe_payment_intent_id?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amount_cents?: number
+          company_cvr?: string
+          company_name?: string
+          created_at?: string
+          currency?: string
+          id?: string
+          report_type?: string
+          status?: string
+          stripe_payment_intent_id?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_activity_log: {
+        Row: {
+          activity_data: Json | null
+          activity_type: string
+          created_at: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          activity_data?: Json | null
+          activity_type: string
+          created_at?: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          activity_data?: Json | null
+          activity_type?: string
+          created_at?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_subscriptions: {
         Row: {
           created_at: string
@@ -128,9 +242,20 @@ export type Database = {
         Args: { tier: string }
         Returns: number
       }
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
+      is_admin: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "user"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -257,6 +382,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "user"],
+    },
   },
 } as const

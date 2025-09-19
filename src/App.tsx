@@ -25,6 +25,9 @@ import PaymentSuccessPage from "./pages/PaymentSuccessPage";
 import DatakilderPage from "./pages/DatakilderPage";
 import NotFound from "./pages/NotFound";
 import ScrollToTop from "./components/ScrollToTop";
+import { AdminLayout } from "./components/admin/AdminLayout";
+import { AdminDashboard } from "./pages/admin/AdminDashboard";
+import { UserManagement } from "./pages/admin/UserManagement";
 
 const queryClient = new QueryClient();
 
@@ -55,6 +58,13 @@ const App = () => (
             <Route path="/virksomhedsrapporter" element={<VirksomhedsrapporterPage />} />
             <Route path="/payment-success" element={<PaymentSuccessPage />} />
             <Route path="/datakilder" element={<DatakilderPage />} />
+            
+            {/* Admin Routes */}
+            <Route path="/admin" element={<AdminLayout />}>
+              <Route index element={<AdminDashboard />} />
+              <Route path="users" element={<UserManagement />} />
+            </Route>
+            
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
