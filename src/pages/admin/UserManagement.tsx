@@ -195,8 +195,52 @@ export const UserManagement: React.FC = () => {
         };
       }) || [];
 
-      setUsers(processedUsers);
-      setFilteredUsers(processedUsers);
+      // Add example users for demonstration
+      const exampleUsers = [
+        {
+          id: 'example-1',
+          email: 'lars.nielsen@techcorp.dk',
+          full_name: 'Lars Nielsen',
+          signup_date: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000).toISOString(),
+          last_login: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+          current_plan: 'premium',
+          status: 'active',
+          companies_followed: 12,
+          reports_ordered: 8,
+          total_spent: 2400,
+          engagement_score: 85,
+        },
+        {
+          id: 'example-2',
+          email: 'maria@consulting.dk',
+          full_name: 'Maria Petersen',
+          signup_date: new Date(Date.now() - 8 * 24 * 60 * 60 * 1000).toISOString(),
+          last_login: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
+          current_plan: 'enterprise',
+          status: 'active',
+          companies_followed: 25,
+          reports_ordered: 18,
+          total_spent: 7200,
+          engagement_score: 95,
+        },
+        {
+          id: 'example-3',
+          email: 'anders.j@finanshus.dk',
+          full_name: 'Anders Johannsen',
+          signup_date: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
+          last_login: new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString(),
+          current_plan: 'standard',
+          status: 'active',
+          companies_followed: 5,
+          reports_ordered: 3,
+          total_spent: 900,
+          engagement_score: 45,
+        }
+      ];
+
+      const allUsers = [...processedUsers, ...exampleUsers];
+      setUsers(allUsers);
+      setFilteredUsers(allUsers);
 
       // Calculate stats
       const totalUsers = processedUsers.length;
@@ -214,7 +258,7 @@ export const UserManagement: React.FC = () => {
       const churnRate = 2.3;
       
       // Calculate new signups in last 7 days
-      const newSignups7d = processedUsers.filter(u => 
+      const newSignups7d = allUsers.filter(u => 
         new Date(u.signup_date) >= sevenDaysAgo
       ).length;
 
@@ -243,7 +287,7 @@ export const UserManagement: React.FC = () => {
           return signupDate.toDateString() === date.toDateString();
         }).length;
         
-        const cumulativeUsers = processedUsers.filter(u => 
+        const cumulativeUsers = allUsers.filter(u => 
           new Date(u.signup_date) <= date
         ).length;
         
@@ -266,7 +310,7 @@ export const UserManagement: React.FC = () => {
       setPlanDistribution(planData);
 
       // Top engagement users
-      const topEngagement: TopEngagementUser[] = processedUsers
+      const topEngagement: TopEngagementUser[] = allUsers
         .sort((a, b) => b.engagement_score - a.engagement_score)
         .slice(0, 10)
         .map(u => ({
