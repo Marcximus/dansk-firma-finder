@@ -259,11 +259,11 @@ export const UserManagement: React.FC = () => {
       setFilteredUsers(allUsers);
 
       // Calculate stats
-      const totalUsers = processedUsers.length;
-      const standardUsers = processedUsers.filter(u => u.current_plan === 'standard').length;
-      const premiumUsers = processedUsers.filter(u => u.current_plan === 'premium').length;
-      const enterpriseUsers = processedUsers.filter(u => u.current_plan === 'enterprise').length;
-      const freeUsers = processedUsers.filter(u => u.current_plan === 'free').length;
+      const totalUsers = allUsers.length;
+      const standardUsers = allUsers.filter(u => u.current_plan === 'standard').length;
+      const premiumUsers = allUsers.filter(u => u.current_plan === 'premium').length;
+      const enterpriseUsers = allUsers.filter(u => u.current_plan === 'enterprise').length;
+      const freeUsers = allUsers.filter(u => u.current_plan === 'free').length;
       
       // Mock active users (would need activity tracking)
       const activeUsers24h = Math.floor(totalUsers * 0.15);
@@ -328,7 +328,7 @@ export const UserManagement: React.FC = () => {
 
       setGrowthTrend(generateTrendData(parseInt(trendPeriod)));
 
-      // Plan distribution data
+      // Plan distribution data - using actual calculated values
       const planData: PlanDistributionData[] = [
         { plan: 'Free', users: freeUsers, revenue: 0, color: BLUE_GREEN_COLORS[0] },
         { plan: 'Standard', users: standardUsers, revenue: standardUsers * 99, color: BLUE_GREEN_COLORS[1] },

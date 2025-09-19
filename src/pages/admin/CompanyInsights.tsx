@@ -45,7 +45,7 @@ interface FollowGrowthData {
   data: Array<{ date: string; followers: number }>;
 }
 
-const COLORS = ['hsl(var(--primary))', 'hsl(var(--secondary))', 'hsl(var(--accent))', 'hsl(var(--muted))', 'hsl(var(--destructive))'];
+const COLORS = ['#10B981', '#3B82F6', '#F59E0B', '#8B5CF6', '#EF4444', '#06B6D4'];
 
 export const CompanyInsights: React.FC = () => {
   const [stats, setStats] = useState<CompanyStats>({
