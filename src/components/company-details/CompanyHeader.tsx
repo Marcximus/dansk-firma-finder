@@ -8,6 +8,9 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { Calendar, FileText, Map, Star, Check, Bell, Mail } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { useSubscription } from '@/contexts/SubscriptionContext';
+import { SUBSCRIPTION_TIERS } from '@/constants/subscriptions';
+import UpgradeDialog from '../UpgradeDialog';
 import type { User } from '@supabase/supabase-js';
 
 interface CompanyHeaderProps {
@@ -17,10 +20,13 @@ interface CompanyHeaderProps {
 const CompanyHeader: React.FC<CompanyHeaderProps> = ({ company }) => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { subscribed, subscriptionTier, loading: subscriptionLoading } = useSubscription();
   const [user, setUser] = useState<User | null>(null);
   const [isFollowing, setIsFollowing] = useState(false);
   const [followingId, setFollowingId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [showUpgradeDialog, setShowUpgradeDialog] = useState(false);
+  const [followedCompaniesCount, setFollowedCompaniesCount] = useState(0);
 
   useEffect(() => {
     // Get current user and check if following
@@ -51,6 +57,7 @@ const CompanyHeader: React.FC<CompanyHeaderProps> = ({ company }) => {
 
   const checkFollowStatus = async (userId: string) => {
     try {
+      // Check if user is following this specific company
       const { data, error } = await supabase
         .from('followed_companies')
         .select('id')
@@ -70,6 +77,19 @@ const CompanyHeader: React.FC<CompanyHeaderProps> = ({ company }) => {
         setIsFollowing(false);
         setFollowingId(null);
       }
+
+      // Get total count of followed companies
+      const { data: allFollowed, error: countError } = await supabase
+        .from('followed_companies')
+        .select('id')
+        .eq('user_id', userId);
+
+      if (countError) {
+        console.error('Error checking followed companies count:', countError);
+        return;
+      }
+
+      setFollowedCompaniesCount(allFollowed?.length || 0);
     } catch (error) {
       console.error('Error checking follow status:', error);
     }
@@ -80,6 +100,18 @@ const CompanyHeader: React.FC<CompanyHeaderProps> = ({ company }) => {
       // Redirect to auth page with current company as context
       navigate(`/auth?redirect=/company/${company.cvr}`);
       return;
+    }
+
+    // Check subscription limits before allowing follow
+    if (!isFollowing) {
+      const maxCompanies = subscriptionTier && subscriptionTier in SUBSCRIPTION_TIERS 
+        ? SUBSCRIPTION_TIERS[subscriptionTier as keyof typeof SUBSCRIPTION_TIERS].maxCompanies 
+        : 1; // Default to 1 for standard plan
+
+      if (followedCompaniesCount >= maxCompanies) {
+        setShowUpgradeDialog(true);
+        return;
+      }
     }
 
     setLoading(true);
@@ -96,6 +128,7 @@ const CompanyHeader: React.FC<CompanyHeaderProps> = ({ company }) => {
 
         setIsFollowing(false);
         setFollowingId(null);
+        setFollowedCompaniesCount(prev => prev - 1);
         toast({
           title: "Virksomhed ikke længere fulgt",
           description: `Du får ikke længere opdateringer om ${company.name}`,
@@ -126,6 +159,7 @@ const CompanyHeader: React.FC<CompanyHeaderProps> = ({ company }) => {
 
         setIsFollowing(true);
         setFollowingId(data.id);
+        setFollowedCompaniesCount(prev => prev + 1);
         toast({
           title: "Virksomhed følges nu",
           description: `Du får nu opdateringer om ændringer i ${company.name} via e-mail`,
@@ -265,6 +299,10 @@ const CompanyHeader: React.FC<CompanyHeaderProps> = ({ company }) => {
           </Badge>
         </div>
       </div>
+      <UpgradeDialog 
+        open={showUpgradeDialog} 
+        onClose={() => setShowUpgradeDialog(false)} 
+      />
     </TooltipProvider>
   );
 };
