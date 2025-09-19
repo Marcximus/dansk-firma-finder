@@ -328,12 +328,11 @@ export const UserManagement: React.FC = () => {
 
       setGrowthTrend(generateTrendData(parseInt(trendPeriod)));
 
-      // Plan distribution data - using actual calculated values
+      // Plan distribution data - only paid plans (Standard, Premium, Enterprise)
       const planData: PlanDistributionData[] = [
-        { plan: 'Free', users: freeUsers, revenue: 0, color: BLUE_GREEN_COLORS[0] },
-        { plan: 'Standard', users: standardUsers, revenue: standardUsers * 99, color: BLUE_GREEN_COLORS[1] },
-        { plan: 'Premium', users: premiumUsers, revenue: premiumUsers * 299, color: BLUE_GREEN_COLORS[2] },
-        { plan: 'Enterprise', users: enterpriseUsers, revenue: enterpriseUsers * 599, color: BLUE_GREEN_COLORS[3] },
+        { plan: 'Standard', users: standardUsers, revenue: standardUsers * 99, color: BLUE_GREEN_COLORS[0] },
+        { plan: 'Premium', users: premiumUsers, revenue: premiumUsers * 299, color: BLUE_GREEN_COLORS[1] },
+        { plan: 'Enterprise', users: enterpriseUsers, revenue: enterpriseUsers * 599, color: BLUE_GREEN_COLORS[2] },
       ];
       setPlanDistribution(planData);
 
