@@ -16,7 +16,7 @@ export const SUBSCRIPTION_TIERS = {
   },
   premium: {
     name: "Premium",
-    price_id: "price_1S7GsMCiBj9ds2dS9AwSOf8D",
+    price_id: "price_1S946zCiBj9ds2dS7lWM3VOU",
     product_id: "prod_T3NddRPim0rQkG",
     price: 99,
     originalPrice: 199,
