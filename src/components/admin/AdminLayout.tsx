@@ -1,6 +1,7 @@
 import React from 'react';
 import { Outlet } from 'react-router-dom';
 import { AdminSidebar } from './AdminSidebar';
+import { AdminSetup } from './AdminSetup';
 import { SidebarProvider } from '@/components/ui/sidebar';
 import { useAdminAuth } from '@/hooks/useAdminAuth';
 import { Spinner } from '@/components/ui/spinner';
@@ -17,14 +18,7 @@ export const AdminLayout: React.FC = () => {
   }
 
   if (!isAdmin) {
-    return (
-      <div className="h-screen flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold mb-2">Access Denied</h1>
-          <p className="text-muted-foreground">You don't have admin privileges.</p>
-        </div>
-      </div>
-    );
+    return <AdminSetup />;
   }
 
   return (
