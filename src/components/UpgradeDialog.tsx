@@ -22,7 +22,7 @@ const UpgradeDialog: React.FC<UpgradeDialogProps> = ({ open, onClose }) => {
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl">
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-2xl text-center mb-4">
             Brugere på vores Standard Plan kan kun følge 1 virksomhed
@@ -32,7 +32,7 @@ const UpgradeDialog: React.FC<UpgradeDialogProps> = ({ open, onClose }) => {
           </p>
         </DialogHeader>
         
-        <div className="grid grid-cols-2 gap-4 mt-4 h-[480px]">
+        <div className="grid grid-cols-2 gap-4 mt-6 h-[600px]">
           {/* Premium Package */}
           <Card className="relative hover:shadow-lg border-primary h-full flex flex-col">
             <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
@@ -40,30 +40,30 @@ const UpgradeDialog: React.FC<UpgradeDialogProps> = ({ open, onClose }) => {
                 Mest populær
               </Badge>
             </div>
-            <CardHeader className="text-center pb-3 pt-5">
-              <div className="flex justify-center mb-2">
-                <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
-                  <Star className="h-5 w-5 text-primary" />
+            <CardHeader className="text-center pb-4 pt-6">
+              <div className="flex justify-center mb-3">
+                <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center">
+                  <Star className="h-6 w-6 text-primary" />
                 </div>
               </div>
-              <CardTitle className="text-lg mb-1">{SUBSCRIPTION_TIERS.premium.name}</CardTitle>
+              <CardTitle className="text-xl mb-2">{SUBSCRIPTION_TIERS.premium.name}</CardTitle>
             </CardHeader>
-            <CardContent className="pt-3 flex flex-col flex-1">
-              <div className="text-center mb-4 pb-3 border-b border-border">
+            <CardContent className="pt-4 flex flex-col flex-1">
+              <div className="text-center mb-6 pb-4 border-b border-border">
                 <div className="mb-1">
-                  <div className="text-base text-muted-foreground line-through opacity-70 mb-1">
+                  <div className="text-lg text-muted-foreground line-through opacity-70 mb-1">
                     {SUBSCRIPTION_TIERS.premium.originalPrice},-
                   </div>
-                  <div className="text-3xl font-bold text-primary">
+                  <div className="text-4xl font-bold text-primary">
                     {SUBSCRIPTION_TIERS.premium.price},-
                   </div>
                 </div>
-                <div className="text-xs text-muted-foreground">pr. måned</div>
+                <div className="text-sm text-muted-foreground">pr. måned</div>
               </div>
-              <ul className="space-y-2 mb-6 flex-1">
+              <ul className="space-y-3 mb-8 flex-1">
                 {SUBSCRIPTION_TIERS.premium.features.map((feature, index) => (
-                  <li key={index} className="flex items-center gap-2 text-xs">
-                    <CheckCircle className="h-3 w-3 text-green-600 flex-shrink-0" />
+                  <li key={index} className="flex items-center gap-3 text-sm">
+                    <CheckCircle className="h-4 w-4 text-green-600 flex-shrink-0" />
                     <span>{feature}</span>
                   </li>
                 ))}
@@ -81,30 +81,30 @@ const UpgradeDialog: React.FC<UpgradeDialogProps> = ({ open, onClose }) => {
 
           {/* Enterprise Package */}
           <Card className="relative hover:shadow-lg h-full flex flex-col">
-            <CardHeader className="text-center pb-3 pt-5">
-              <div className="flex justify-center mb-2">
-                <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center">
-                  <Users className="h-5 w-5 text-purple-600" />
+            <CardHeader className="text-center pb-4 pt-6">
+              <div className="flex justify-center mb-3">
+                <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center">
+                  <Users className="h-6 w-6 text-purple-600" />
                 </div>
               </div>
-              <CardTitle className="text-lg mb-1">{SUBSCRIPTION_TIERS.enterprise.name}</CardTitle>
+              <CardTitle className="text-xl mb-2">{SUBSCRIPTION_TIERS.enterprise.name}</CardTitle>
             </CardHeader>
-            <CardContent className="pt-3 flex flex-col flex-1">
-              <div className="text-center mb-4 pb-3 border-b border-border">
+            <CardContent className="pt-4 flex flex-col flex-1">
+              <div className="text-center mb-6 pb-4 border-b border-border">
                 <div className="mb-1">
-                  <div className="text-base text-muted-foreground line-through opacity-70 mb-1">
+                  <div className="text-lg text-muted-foreground line-through opacity-70 mb-1">
                     {SUBSCRIPTION_TIERS.enterprise.originalPrice},-
                   </div>
-                  <div className="text-3xl font-bold">
+                  <div className="text-4xl font-bold">
                     {SUBSCRIPTION_TIERS.enterprise.price},-
                   </div>
                 </div>
-                <div className="text-xs text-muted-foreground">pr. måned</div>
+                <div className="text-sm text-muted-foreground">pr. måned</div>
               </div>
-              <ul className="space-y-2 mb-6 flex-1">
+              <ul className="space-y-3 mb-8 flex-1">
                 {SUBSCRIPTION_TIERS.enterprise.features.map((feature, index) => (
-                  <li key={index} className="flex items-center gap-2 text-xs">
-                    <CheckCircle className="h-3 w-3 text-green-600 flex-shrink-0" />
+                  <li key={index} className="flex items-center gap-3 text-sm">
+                    <CheckCircle className="h-4 w-4 text-green-600 flex-shrink-0" />
                     <span>{feature}</span>
                   </li>
                 ))}
