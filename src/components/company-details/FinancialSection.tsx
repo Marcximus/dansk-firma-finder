@@ -13,14 +13,29 @@ interface FinancialSectionProps {
 const FinancialSection: React.FC<FinancialSectionProps> = ({ cvr, cvrData }) => {
   const [financialData, setFinancialData] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [loadingStage, setLoadingStage] = useState('Indlæser regnskabsdata...');
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchFinancialData = async () => {
       try {
+        setLoadingStage('Kontakter Erhvervsstyrelsen...');
+        console.log(`Fetching financial data for CVR: ${cvr}`);
+        
         const data = await getFinancialData(cvr);
-        setFinancialData(data);
+        console.log('Financial data response:', data);
+        
+        if (data?.error) {
+          setError(data.error);
+          setLoadingStage('Fejl ved indlæsning af regnskabsdata');
+        } else {
+          setFinancialData(data);
+          setLoadingStage('Regnskabsdata indlæst');
+        }
       } catch (error) {
         console.error('Error fetching financial data:', error);
+        setError(`Fejl ved indlæsning: ${error}`);
+        setLoadingStage('Fejl ved indlæsning af regnskabsdata');
       } finally {
         setIsLoading(false);
       }
@@ -83,7 +98,24 @@ const FinancialSection: React.FC<FinancialSectionProps> = ({ cvr, cvrData }) => 
           </CardHeader>
           <CardContent>
             {isLoading ? (
-              <p className="text-muted-foreground">Indlæser regnskabsdata...</p>
+              <div className="space-y-2">
+                <p className="text-muted-foreground">{loadingStage}</p>
+                {loadingStage === 'Kontakter Erhvervsstyrelsen...' && (
+                  <div className="w-full bg-secondary rounded-full h-2">
+                    <div className="bg-primary h-2 rounded-full animate-pulse" style={{ width: '60%' }}></div>
+                  </div>
+                )}
+              </div>
+            ) : error ? (
+              <div className="space-y-2">
+                <p className="text-destructive">⚠️ {error}</p>
+                <p className="text-sm text-muted-foreground">
+                  {error.includes('credentials') ? 
+                    'API-nøgler er ikke konfigureret korrekt' :
+                    'Prøv igen senere eller kontakt support hvis problemet fortsætter'
+                  }
+                </p>
+              </div>
             ) : reports.length > 0 ? (
               <div className="space-y-4">
                 {reports.slice(0, 5).map((report: any, index: number) => (

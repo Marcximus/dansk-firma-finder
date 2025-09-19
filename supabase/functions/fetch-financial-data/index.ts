@@ -22,11 +22,19 @@ serve(async (req) => {
     const username = Deno.env.get('DANISH_BUSINESS_API_USERNAME');
     const password = Deno.env.get('DANISH_BUSINESS_API_PASSWORD');
     
+    console.log('API Credentials check:', {
+      username: username ? `${username.substring(0, 3)}***` : 'NOT SET',
+      password: password ? '***SET***' : 'NOT SET'
+    });
+    
     if (!username || !password) {
       console.log('Danish Business API credentials not configured, returning empty results');
-      console.log('Username exists:', !!username, 'Password exists:', !!password);
       return new Response(
-        JSON.stringify({ financialReports: [] }),
+        JSON.stringify({ 
+          financialReports: [],
+          error: 'API credentials not configured',
+          debug: 'Check DANISH_BUSINESS_API_USERNAME and DANISH_BUSINESS_API_PASSWORD secrets'
+        }),
         { 
           headers: { 
             ...corsHeaders, 

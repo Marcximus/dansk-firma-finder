@@ -1,7 +1,9 @@
 
 import { formatAddress, formatPeriod } from './formatUtils';
 
-// Helper functions for extracting ownership data
+// Enhanced helper functions for extracting ownership data with intelligent field discovery
+import { extractDataIntelligently, scanDataStructure } from './dataDiscovery';
+
 export const extractOwnershipData = (cvrData: any) => {
   console.log('extractOwnershipData - Input data:', cvrData);
   
@@ -12,6 +14,15 @@ export const extractOwnershipData = (cvrData: any) => {
   
   const vrvirksomhed = cvrData.Vrvirksomhed;
   console.log('extractOwnershipData - Processing Vrvirksomhed:', vrvirksomhed);
+  
+  // Intelligent field discovery for ownership data
+  const availablePaths = scanDataStructure(vrvirksomhed);
+  console.log('Ownership data - Available field paths:', availablePaths.filter(path => 
+    path.toLowerCase().includes('ejer') || 
+    path.toLowerCase().includes('owner') || 
+    path.toLowerCase().includes('andel') ||
+    path.toLowerCase().includes('stemme')
+  ));
 
   const getOwnershipFromRelations = () => {
     const relations = vrvirksomhed.deltagerRelation || [];

@@ -1,5 +1,7 @@
 
-// Helper functions for extracting signing rules and management data
+// Enhanced helper functions for extracting signing rules and management data with intelligent field discovery
+import { extractDataIntelligently, scanDataStructure, getValueByPath } from './dataDiscovery';
+
 export const extractSigningRulesData = (cvrData: any) => {
   console.log('extractSigningRulesData - Input data:', cvrData);
   
@@ -11,27 +13,93 @@ export const extractSigningRulesData = (cvrData: any) => {
   const vrvirksomhed = cvrData.Vrvirksomhed;
   const relations = vrvirksomhed.deltagerRelation || [];
   console.log('extractSigningRulesData - Processing relations:', relations);
+  
+  // Intelligent field discovery for signing rules
+  const availablePaths = scanDataStructure(vrvirksomhed);
+  const signingRulePaths = availablePaths.filter(path => 
+    path.toLowerCase().includes('tegning') || 
+    path.toLowerCase().includes('binding') || 
+    path.toLowerCase().includes('regel') ||
+    path.toLowerCase().includes('sign') ||
+    path.toLowerCase().includes('authority')
+  );
+  console.log('Signing rules - Available field paths:', signingRulePaths);
 
   const getSigningRules = () => {
-    const tegningsregler = vrvirksomhed.tegningsregler || [];
-    let signingRules = tegningsregler.map((regel: any) => regel.regel || regel.beskrivelse || regel.tekst).filter(Boolean);
+    let signingRules: string[] = [];
     
+    // Try multiple possible field locations for signing rules
+    const possibleRulePaths = [
+      'tegningsregler',
+      'bindingsregler', 
+      'signingRules',
+      'attributter',
+      'virksomhedsrelation.*.tegningsregler',
+      'deltagerRelation.*.tegningsregler',
+      'reguleringAttributter'
+    ];
+    
+    possibleRulePaths.forEach(path => {
+      try {
+        const value = getValueByPath(vrvirksomhed, path);
+        if (value) {
+          if (Array.isArray(value)) {
+            value.forEach((item: any) => {
+              const rule = item.regel || item.beskrivelse || item.tekst || item.vaerdi || item;
+              if (typeof rule === 'string' && rule.trim()) {
+                signingRules.push(rule.trim());
+              }
+            });
+          }
+        }
+      } catch (e) {
+        // Silent fail for each path attempt
+      }
+    });
+    
+    // Enhanced attribute scanning
     const attributter = vrvirksomhed.attributter || [];
     const signingAttributes = attributter.filter((attr: any) => 
-      attr.type === 'TEGNINGSREGEL' || attr.type === 'BINDING_RULE'
+      attr.type?.includes('TEGNING') || 
+      attr.type?.includes('BINDING') || 
+      attr.type?.includes('SIGN') ||
+      attr.type?.includes('REGEL') ||
+      attr.type?.includes('AUTHORITY')
     );
     
     signingAttributes.forEach((attr: any) => {
       if (attr.vaerdier) {
         attr.vaerdier.forEach((value: any) => {
-          if (value.vaerdi) {
-            signingRules.push(value.vaerdi);
+          const rule = value.vaerdi || value.regel || value.tekst;
+          if (rule && typeof rule === 'string' && rule.trim()) {
+            signingRules.push(rule.trim());
           }
         });
       }
     });
     
-    console.log('Signing rules extraction:', signingRules);
+    // Check relations for signing rules
+    relations.forEach((relation: any) => {
+      relation.organisationer?.forEach((org: any) => {
+        org.medlemsData?.forEach((medlem: any) => {
+          medlem.attributter?.forEach((attr: any) => {
+            if (attr.type?.includes('TEGNING') || attr.type?.includes('SIGN')) {
+              attr.vaerdier?.forEach((value: any) => {
+                const rule = value.vaerdi || value.regel;
+                if (rule && typeof rule === 'string' && rule.trim()) {
+                  signingRules.push(rule.trim());
+                }
+              });
+            }
+          });
+        });
+      });
+    });
+    
+    // Remove duplicates and empty rules
+    signingRules = [...new Set(signingRules.filter(rule => rule && rule.length > 0))];
+    
+    console.log('Enhanced signing rules extraction:', signingRules);
     return signingRules;
   };
 

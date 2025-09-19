@@ -11,6 +11,8 @@ import {
   extractComprehensiveData,
   type DataCompletenessReport 
 } from '@/services/cvrUtils';
+import DataQualityIndicator from './DataQualityIndicator';
+import DataExtractor from './DataExtractor';
 
 interface RawDataAccordionProps {
   cvrData: any;
@@ -214,7 +216,31 @@ const RawDataAccordion: React.FC<RawDataAccordionProps> = ({ cvrData }) => {
                     <div key={index} className="text-xs bg-blue-50 border border-blue-200 rounded p-2">
                       {suggestion}
                     </div>
-                  ))}
+            ))}
+            
+            {/* Individual Data Extractors */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold">Individual Data Extraction Analysis</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <DataExtractor 
+                  cvrData={cvrData} 
+                  title="Tegningsregel og personkreds" 
+                  extractorType="signing" 
+                />
+                <DataExtractor 
+                  cvrData={cvrData} 
+                  title="Ejerforhold & Datterselskaber" 
+                  extractorType="ownership" 
+                />
+                <DataExtractor 
+                  cvrData={cvrData} 
+                  title="Financial Data" 
+                  extractorType="financial" 
+                />
+              </div>
+            </div>
+            
+            {/* Missing Data Suggestions */}
                 </div>
               </CardContent>
             </Card>
