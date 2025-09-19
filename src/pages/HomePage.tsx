@@ -102,7 +102,7 @@ const HomePage = () => {
             <p className="text-xl text-muted-foreground mb-8">
               Søg og udforsk detaljerede oplysninger om danske virksomheder
             </p>
-            <div className="flex justify-center mb-12 relative">
+            <div className="flex justify-center mb-12">
               <SearchBar onSearch={handleSearch} isLoading={isLoading} shouldFocus={shouldFocusSearch} />
             </div>
           </div>
