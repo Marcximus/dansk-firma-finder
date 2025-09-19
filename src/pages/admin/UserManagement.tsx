@@ -6,6 +6,8 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { 
   Users, 
   TrendingUp, 
@@ -18,7 +20,13 @@ import {
   FileText,
   MoreHorizontal,
   ArrowUpDown,
-  Activity
+  Activity,
+  ArrowUp,
+  ArrowDown,
+  Eye,
+  ShoppingCart,
+  MapPin,
+  Phone
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, BarChart, Bar, AreaChart, Area, ComposedChart, PieChart, Pie, Cell } from 'recharts';
@@ -98,6 +106,13 @@ export const UserManagement: React.FC = () => {
   const [planDistribution, setPlanDistribution] = useState<PlanDistributionData[]>([]);
   const [topEngagementUsers, setTopEngagementUsers] = useState<TopEngagementUser[]>([]);
   const [trendPeriod, setTrendPeriod] = useState<'30' | '90' | '365'>('30');
+  
+  // Modal states
+  const [selectedUser, setSelectedUser] = useState<UserData | null>(null);
+  const [showUserDetails, setShowUserDetails] = useState(false);
+  const [showPurchaseHistory, setShowPurchaseHistory] = useState(false);
+  const [showCompaniesModal, setShowCompaniesModal] = useState(false);
+  const [showReportsModal, setShowReportsModal] = useState(false);
   
   const [searchTerm, setSearchTerm] = useState('');
   const [planFilter, setPlanFilter] = useState<string>('all');
@@ -428,6 +443,48 @@ export const UserManagement: React.FC = () => {
         variant: 'destructive',
       });
     }
+  };
+
+  const upgradePlan = (user: UserData) => {
+    const planOrder = ['free', 'standard', 'premium', 'enterprise'];
+    const currentIndex = planOrder.indexOf(user.current_plan);
+    const nextPlan = currentIndex < planOrder.length - 1 ? planOrder[currentIndex + 1] : user.current_plan;
+    
+    toast({
+      title: 'Plan Upgrade',
+      description: `${user.full_name} would be upgraded from ${user.current_plan} to ${nextPlan}`,
+    });
+  };
+
+  const downgradePlan = (user: UserData) => {
+    const planOrder = ['free', 'standard', 'premium', 'enterprise'];
+    const currentIndex = planOrder.indexOf(user.current_plan);
+    const prevPlan = currentIndex > 0 ? planOrder[currentIndex - 1] : user.current_plan;
+    
+    toast({
+      title: 'Plan Downgrade',
+      description: `${user.full_name} would be downgraded from ${user.current_plan} to ${prevPlan}`,
+    });
+  };
+
+  const openUserDetails = (user: UserData) => {
+    setSelectedUser(user);
+    setShowUserDetails(true);
+  };
+
+  const openPurchaseHistory = (user: UserData) => {
+    setSelectedUser(user);
+    setShowPurchaseHistory(true);
+  };
+
+  const openCompaniesModal = (user: UserData) => {
+    setSelectedUser(user);
+    setShowCompaniesModal(true);
+  };
+
+  const openReportsModal = (user: UserData) => {
+    setSelectedUser(user);
+    setShowReportsModal(true);
   };
 
   const formatCurrency = (amount: number) => {
@@ -810,23 +867,59 @@ export const UserManagement: React.FC = () => {
                     </TableCell>
                     <TableCell>{getPlanBadge(user.current_plan)}</TableCell>
                     <TableCell>
-                      <Badge variant="outline">{user.companies_followed}</Badge>
+                      <button
+                        onClick={() => openCompaniesModal(user)}
+                        className="hover:bg-muted rounded px-2 py-1 transition-colors"
+                      >
+                        <Badge variant="outline" className="cursor-pointer hover:bg-primary/10">
+                          {user.companies_followed}
+                        </Badge>
+                      </button>
                     </TableCell>
                     <TableCell>
-                      <Badge variant="outline">{user.reports_ordered}</Badge>
+                      <button
+                        onClick={() => openReportsModal(user)}
+                        className="hover:bg-muted rounded px-2 py-1 transition-colors"
+                      >
+                        <Badge variant="outline" className="cursor-pointer hover:bg-primary/10">
+                          {user.reports_ordered}
+                        </Badge>
+                      </button>
                     </TableCell>
                     <TableCell>{formatCurrency(user.total_spent)}</TableCell>
                     <TableCell>
                       {new Date(user.last_login).toLocaleDateString('da-DK')}
                     </TableCell>
                     <TableCell>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => promoteToAdmin(user.id)}
-                      >
-                        Make Admin
-                      </Button>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="outline" size="sm">
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="w-48">
+                          <DropdownMenuItem onClick={() => upgradePlan(user)}>
+                            <ArrowUp className="h-4 w-4 mr-2" />
+                            Upgrade Plan
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => downgradePlan(user)}>
+                            <ArrowDown className="h-4 w-4 mr-2" />
+                            Downgrade Plan
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => openUserDetails(user)}>
+                            <Eye className="h-4 w-4 mr-2" />
+                            View Details
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => openPurchaseHistory(user)}>
+                            <ShoppingCart className="h-4 w-4 mr-2" />
+                            Purchase History
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => promoteToAdmin(user.id)}>
+                            <Crown className="h-4 w-4 mr-2" />
+                            Make Admin
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -841,6 +934,250 @@ export const UserManagement: React.FC = () => {
           </div>
         </CardContent>
       </Card>
+
+      {/* User Details Modal */}
+      <Dialog open={showUserDetails} onOpenChange={setShowUserDetails}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Eye className="h-5 w-5" />
+              User Details
+            </DialogTitle>
+          </DialogHeader>
+          {selectedUser && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-4">
+                <div className="flex items-center gap-3">
+                  <Avatar className="h-16 w-16">
+                    <AvatarFallback className="text-lg">
+                      {selectedUser.full_name.split(' ').map(n => n[0]).join('').toUpperCase()}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div>
+                    <h3 className="text-lg font-semibold">{selectedUser.full_name}</h3>
+                    <p className="text-muted-foreground">{selectedUser.email}</p>
+                    <p className="text-xs text-muted-foreground">ID: {selectedUser.id}</p>
+                  </div>
+                </div>
+                
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2">
+                    <Building2 className="h-4 w-4 text-muted-foreground" />
+                    <span className="font-medium">Company:</span>
+                    <span>TechCorp A/S</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Phone className="h-4 w-4 text-muted-foreground" />
+                    <span className="font-medium">Phone:</span>
+                    <span>+45 12 34 56 78</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <MapPin className="h-4 w-4 text-muted-foreground" />
+                    <span className="font-medium">Address:</span>
+                    <span>Copenhagen, Denmark</span>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="space-y-4">
+                <div className="p-4 border rounded-lg">
+                  <h4 className="font-medium mb-3">Account Information</h4>
+                  <div className="space-y-2 text-sm">
+                    <div className="flex justify-between">
+                      <span>Current Plan:</span>
+                      <span>{getPlanBadge(selectedUser.current_plan)}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Signup Date:</span>
+                      <span>{new Date(selectedUser.signup_date).toLocaleDateString('da-DK')}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Last Login:</span>
+                      <span>{new Date(selectedUser.last_login).toLocaleDateString('da-DK')}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Total Spent:</span>
+                      <span className="font-medium">{formatCurrency(selectedUser.total_spent)}</span>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="p-4 border rounded-lg">
+                  <h4 className="font-medium mb-3">Activity Summary</h4>
+                  <div className="space-y-2 text-sm">
+                    <div className="flex justify-between">
+                      <span>Companies Followed:</span>
+                      <Badge variant="outline">{selectedUser.companies_followed}</Badge>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Reports Ordered:</span>
+                      <Badge variant="outline">{selectedUser.reports_ordered}</Badge>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Engagement Score:</span>
+                      <Badge variant="secondary">{selectedUser.engagement_score}</Badge>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Purchase History Modal */}
+      <Dialog open={showPurchaseHistory} onOpenChange={setShowPurchaseHistory}>
+        <DialogContent className="max-w-4xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <ShoppingCart className="h-5 w-5" />
+              Purchase History - {selectedUser?.full_name}
+            </DialogTitle>
+          </DialogHeader>
+          {selectedUser && (
+            <div className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <Card>
+                  <CardContent className="p-4">
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-green-600">{formatCurrency(selectedUser.total_spent)}</div>
+                      <div className="text-sm text-muted-foreground">Total Spent</div>
+                    </div>
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardContent className="p-4">
+                    <div className="text-center">
+                      <div className="text-2xl font-bold">{selectedUser.reports_ordered}</div>
+                      <div className="text-sm text-muted-foreground">Reports Purchased</div>
+                    </div>
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardContent className="p-4">
+                    <div className="text-center">
+                      <div className="text-2xl font-bold">12</div>
+                      <div className="text-sm text-muted-foreground">Months Active</div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+              
+              <div className="space-y-4">
+                <h4 className="font-medium">Recent Purchases</h4>
+                <div className="space-y-3">
+                  {[
+                    { type: 'Subscription', item: 'Premium Plan', amount: 299, date: '2024-01-15' },
+                    { type: 'Report', item: 'Danske Bank A/S Report', amount: 49, date: '2024-01-10' },
+                    { type: 'Report', item: 'Novo Nordisk A/S Report', amount: 49, date: '2024-01-08' },
+                    { type: 'Subscription', item: 'Standard Plan', amount: 99, date: '2024-01-01' },
+                  ].map((purchase, index) => (
+                    <div key={index} className="flex items-center justify-between p-3 border rounded">
+                      <div className="flex items-center gap-3">
+                        <Badge variant={purchase.type === 'Subscription' ? 'default' : 'secondary'}>
+                          {purchase.type}
+                        </Badge>
+                        <div>
+                          <div className="font-medium">{purchase.item}</div>
+                          <div className="text-sm text-muted-foreground">
+                            {new Date(purchase.date).toLocaleDateString('da-DK')}
+                          </div>
+                        </div>
+                      </div>
+                      <div className="font-medium">{formatCurrency(purchase.amount * 100)}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Companies Modal */}
+      <Dialog open={showCompaniesModal} onOpenChange={setShowCompaniesModal}>
+        <DialogContent className="max-w-3xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Building2 className="h-5 w-5" />
+              Companies Followed - {selectedUser?.full_name}
+            </DialogTitle>
+          </DialogHeader>
+          {selectedUser && (
+            <div className="space-y-4">
+              <div className="text-sm text-muted-foreground">
+                {selectedUser.companies_followed} companies being monitored
+              </div>
+              <div className="grid gap-3">
+                {[
+                  { name: 'Danske Bank A/S', cvr: '61126228', updates: 15, lastUpdate: '2024-01-15' },
+                  { name: 'Novo Nordisk A/S', cvr: '24256790', updates: 8, lastUpdate: '2024-01-14' },
+                  { name: 'Mærsk A/S', cvr: '22756214', updates: 12, lastUpdate: '2024-01-13' },
+                  { name: 'TDC Group A/S', cvr: '14773041', updates: 5, lastUpdate: '2024-01-12' },
+                  { name: 'Carlsberg A/S', cvr: '61056416', updates: 7, lastUpdate: '2024-01-11' },
+                ].slice(0, selectedUser.companies_followed).map((company, index) => (
+                  <div key={index} className="flex items-center justify-between p-3 border rounded">
+                    <div>
+                      <div className="font-medium">{company.name}</div>
+                      <div className="text-sm text-muted-foreground">CVR: {company.cvr}</div>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-sm font-medium">{company.updates} updates</div>
+                      <div className="text-xs text-muted-foreground">
+                        Last: {new Date(company.lastUpdate).toLocaleDateString('da-DK')}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Reports Modal */}
+      <Dialog open={showReportsModal} onOpenChange={setShowReportsModal}>
+        <DialogContent className="max-w-3xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <FileText className="h-5 w-5" />
+              Reports Ordered - {selectedUser?.full_name}
+            </DialogTitle>
+          </DialogHeader>
+          {selectedUser && (
+            <div className="space-y-4">
+              <div className="text-sm text-muted-foreground">
+                {selectedUser.reports_ordered} reports purchased
+              </div>
+              <div className="grid gap-3">
+                {[
+                  { company: 'Danske Bank A/S', type: 'Financial Report', date: '2024-01-15', amount: 49, status: 'Completed' },
+                  { company: 'Novo Nordisk A/S', type: 'Comprehensive Report', date: '2024-01-10', amount: 99, status: 'Completed' },
+                  { company: 'Mærsk A/S', type: 'Basic Report', date: '2024-01-08', amount: 29, status: 'Completed' },
+                  { company: 'TDC Group A/S', type: 'Financial Report', date: '2024-01-05', amount: 49, status: 'Completed' },
+                  { company: 'Carlsberg A/S', type: 'Comprehensive Report', date: '2024-01-03', amount: 99, status: 'Completed' },
+                ].slice(0, selectedUser.reports_ordered).map((report, index) => (
+                  <div key={index} className="flex items-center justify-between p-3 border rounded">
+                    <div className="flex-1">
+                      <div className="font-medium">{report.company}</div>
+                      <div className="text-sm text-muted-foreground">{report.type}</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-sm font-medium">{formatCurrency(report.amount * 100)}</div>
+                      <div className="text-xs text-muted-foreground">
+                        {new Date(report.date).toLocaleDateString('da-DK')}
+                      </div>
+                    </div>
+                    <div>
+                      <Badge variant="secondary">{report.status}</Badge>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
