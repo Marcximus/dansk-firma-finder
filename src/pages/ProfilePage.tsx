@@ -17,6 +17,7 @@ import { SUBSCRIPTION_TIERS } from '@/constants/subscriptions';
 import type { User as SupabaseUser } from '@supabase/supabase-js';
 import { getRecentChanges, type CompanyChange } from '@/services/utils/changeUtils';
 import NotificationSettingsForm from '@/components/NotificationSettingsForm';
+import UpgradeDialog from '@/components/UpgradeDialog';
 import SEO from '@/components/SEO';
 
 interface Profile {
@@ -60,6 +61,7 @@ const ProfilePage: React.FC = () => {
   const [saving, setSaving] = useState(false);
   const [notificationDialogOpen, setNotificationDialogOpen] = useState(false);
   const [selectedCompanyForSettings, setSelectedCompanyForSettings] = useState<FollowedCompany | null>(null);
+  const [upgradeDialogOpen, setUpgradeDialogOpen] = useState(false);
   const { subscribed, subscriptionTier, openCustomerPortal, subscriptionEnd } = useSubscription();
   const { toast } = useToast();
 
@@ -223,7 +225,34 @@ const ProfilePage: React.FC = () => {
     }
   };
 
+  // Helper function to count companies with email notifications enabled
+  const getEnabledEmailNotificationCount = () => {
+    return followedCompanies.filter(company => 
+      company.notification_preferences?.email === true
+    ).length;
+  };
+
+  // Helper function to get subscription limit for companies
+  const getCompanyLimit = () => {
+    if (!subscribed || !subscriptionTier) {
+      // Free/unsubscribed users get standard limits
+      return SUBSCRIPTION_TIERS.standard.maxCompanies;
+    }
+    return SUBSCRIPTION_TIERS[subscriptionTier as keyof typeof SUBSCRIPTION_TIERS].maxCompanies;
+  };
+
   const toggleNotifications = async (companyId: string, currentEnabled: boolean) => {
+    // If turning ON notifications, check subscription limits
+    if (!currentEnabled) {
+      const currentEnabledCount = getEnabledEmailNotificationCount();
+      const companyLimit = getCompanyLimit();
+      
+      if (currentEnabledCount >= companyLimit) {
+        setUpgradeDialogOpen(true);
+        return;
+      }
+    }
+
     try {
       const { error } = await supabase
         .from('followed_companies')
@@ -814,6 +843,12 @@ const ProfilePage: React.FC = () => {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Upgrade Dialog */}
+      <UpgradeDialog 
+        open={upgradeDialogOpen} 
+        onClose={() => setUpgradeDialogOpen(false)}
+      />
     </Layout>
   );
 };
