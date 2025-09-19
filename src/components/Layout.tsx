@@ -501,11 +501,11 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         <div className="container mx-auto px-4 py-8">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             <div>
-              <h3 className="text-lg font-semibold mb-4">Selskabsinfo</h3>
+              <h2 className="text-lg font-semibold mb-4">Selskabsinfo</h2>
               <p className="text-muted-foreground">Nem adgang til danske virksomhedsoplysninger siden 2025.</p>
             </div>
             <div>
-              <h3 className="text-lg font-semibold mb-4">Tjenester</h3>
+              <h2 className="text-lg font-semibold mb-4">Tjenester</h2>
               <ul className="space-y-2">
                 <li><Link to="/?focus=search" className="text-muted-foreground hover:text-primary">Virksomhedssøgning</Link></li>
                 <li><Link to="/virksomhedsrapporter" className="text-muted-foreground hover:text-primary">Virksomhedsrapporter</Link></li>
@@ -513,7 +513,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
               </ul>
             </div>
             <div>
-              <h3 className="text-lg font-semibold mb-4">Support</h3>
+              <h2 className="text-lg font-semibold mb-4">Support</h2>
               <ul className="space-y-2">
                 <li><Link to="/hjaelpecenter" className="text-muted-foreground hover:text-primary">Hjælpecenter</Link></li>
                 <li><Link to="/kontakt-os" className="text-muted-foreground hover:text-primary">Kontakt Os</Link></li>
@@ -521,7 +521,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
               </ul>
             </div>
             <div>
-              <h3 className="text-lg font-semibold mb-4">Juridisk</h3>
+              <h2 className="text-lg font-semibold mb-4">Juridisk</h2>
               <ul className="space-y-2">
                 <li><Link to="/servicevilkaar" className="text-muted-foreground hover:text-primary">Servicevilkår</Link></li>
                 <li><Link to="/privatlivspolitik" className="text-muted-foreground hover:text-primary">Privatlivspolitik</Link></li>
