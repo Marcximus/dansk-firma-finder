@@ -133,3 +133,38 @@ export const getFinancialData = async (cvr: string) => {
     return null;
   }
 };
+
+// Search suggestions interface
+export interface SearchSuggestion {
+  name: string;
+  cvr: string;
+  city: string;
+  displayText: string;
+}
+
+// New function to get search suggestions
+export const getSearchSuggestions = async (query: string): Promise<SearchSuggestion[]> => {
+  console.log(`🔍 Getting search suggestions for: "${query}"`);
+  
+  if (!query || query.length < 2) {
+    return [];
+  }
+  
+  try {
+    const { data, error } = await supabase.functions.invoke('search-suggestions', {
+      body: { query }
+    });
+    
+    if (error) {
+      console.error('Error calling search-suggestions function:', error);
+      return [];
+    }
+    
+    console.log(`🔍 Got ${data.suggestions?.length || 0} suggestions`);
+    return data.suggestions || [];
+    
+  } catch (error) {
+    console.error('Error fetching search suggestions:', error);
+    return [];
+  }
+};

@@ -7,6 +7,9 @@ verify_jwt = false
 [functions.fetch-financial-data]
 verify_jwt = false
 
+[functions.search-suggestions]
+verify_jwt = false
+
 [functions.create-payment]
 verify_jwt = false
 
