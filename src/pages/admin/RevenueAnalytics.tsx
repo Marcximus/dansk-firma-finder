@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { DollarSign, TrendingUp, Users, CreditCard } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
-import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, BarChart, Bar } from 'recharts';
+import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, BarChart, Bar, AreaChart, Area, ComposedChart, PieChart, Pie, Cell } from 'recharts';
 
 interface RevenueStats {
   totalMRR: number;
@@ -20,6 +20,22 @@ interface RevenueData {
   mrr: number;
   reports: number;
   conversions: number;
+  newUsers: number;
+  churnedUsers: number;
+  totalRevenue: number;
+}
+
+interface UserTierData {
+  tier: string;
+  users: number;
+  revenue: number;
+  color: string;
+}
+
+interface ConversionFunnelData {
+  stage: string;
+  users: number;
+  conversion: number;
 }
 
 export const RevenueAnalytics: React.FC = () => {
@@ -33,7 +49,11 @@ export const RevenueAnalytics: React.FC = () => {
     enterpriseUsers: 0,
   });
   const [revenueData, setRevenueData] = useState<RevenueData[]>([]);
+  const [userTierData, setUserTierData] = useState<UserTierData[]>([]);
+  const [conversionFunnel, setConversionFunnel] = useState<ConversionFunnelData[]>([]);
   const [loading, setLoading] = useState(true);
+
+  const COLORS = ['hsl(var(--primary))', 'hsl(var(--secondary))', 'hsl(var(--accent))', 'hsl(var(--muted-foreground))'];
 
   useEffect(() => {
     const fetchRevenueAnalytics = async () => {
@@ -88,21 +108,43 @@ export const RevenueAnalytics: React.FC = () => {
           enterpriseUsers,
         });
 
-        // Generate mock historical data for charts
+        // Generate comprehensive historical data for charts
         const mockRevenueData: RevenueData[] = [];
         for (let i = 11; i >= 0; i--) {
           const date = new Date();
           date.setMonth(date.getMonth() - i);
           const monthName = date.toLocaleDateString('en-US', { month: 'short', year: '2-digit' });
+          const growthFactor = 0.7 + (i * 0.03); // Simulate gradual growth
           
           mockRevenueData.push({
             month: monthName,
-            mrr: Math.floor(totalMRR * (0.7 + (Math.random() * 0.6))), // Simulate growth
+            mrr: Math.floor(totalMRR * growthFactor),
             reports: Math.floor(reportRevenue * (0.5 + (Math.random() * 1))),
             conversions: Math.floor(Math.random() * 20) + 5,
+            newUsers: Math.floor(Math.random() * 50) + 10,
+            churnedUsers: Math.floor(Math.random() * 10) + 2,
+            totalRevenue: Math.floor((totalMRR * growthFactor) + (reportRevenue * (0.5 + Math.random()))),
           });
         }
         setRevenueData(mockRevenueData);
+
+        // User tier distribution for pie chart
+        const tierData: UserTierData[] = [
+          { tier: 'Standard', users: standardUsers, revenue: monthlyRevenue.standard, color: COLORS[0] },
+          { tier: 'Premium', users: premiumUsers, revenue: monthlyRevenue.premium, color: COLORS[1] },
+          { tier: 'Enterprise', users: enterpriseUsers, revenue: monthlyRevenue.enterprise, color: COLORS[2] },
+        ];
+        setUserTierData(tierData);
+
+        // Conversion funnel data
+        const totalVisitors = 1000; // Mock data
+        const funnelData: ConversionFunnelData[] = [
+          { stage: 'Visitors', users: totalVisitors, conversion: 100 },
+          { stage: 'Signups', users: Math.floor(totalVisitors * 0.15), conversion: 15 },
+          { stage: 'Trial Users', users: Math.floor(totalVisitors * 0.12), conversion: 12 },
+          { stage: 'Paid Users', users: totalUsers, conversion: (totalUsers / totalVisitors) * 100 },
+        ];
+        setConversionFunnel(funnelData);
 
       } catch (error) {
         console.error('Error fetching revenue analytics:', error);
@@ -201,67 +243,164 @@ export const RevenueAnalytics: React.FC = () => {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* User Distribution */}
+        {/* User Distribution Pie Chart */}
         <Card>
           <CardHeader>
-            <CardTitle>User Distribution by Plan</CardTitle>
+            <CardTitle>Revenue by User Tier</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Badge variant="outline">Standard</Badge>
-                  <span className="text-sm text-muted-foreground">99 DKK/month</span>
+            <ResponsiveContainer width="100%" height={300}>
+              <PieChart>
+                <Pie
+                  data={userTierData}
+                  cx="50%"
+                  cy="50%"
+                  outerRadius={80}
+                  dataKey="revenue"
+                  label={({ tier, revenue }) => `${tier}: ${formatCurrency(revenue)}`}
+                >
+                  {userTierData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={entry.color} />
+                  ))}
+                </Pie>
+                <Tooltip formatter={(value) => formatCurrency(Number(value))} />
+              </PieChart>
+            </ResponsiveContainer>
+            <div className="mt-4 space-y-2">
+              {userTierData.map((tier, index) => (
+                <div key={tier.tier} className="flex items-center justify-between text-sm">
+                  <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 rounded-full" style={{ backgroundColor: tier.color }} />
+                    <span>{tier.tier}</span>
+                  </div>
+                  <span>{tier.users} users</span>
                 </div>
-                <span className="font-medium">{stats.standardUsers}</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Badge variant="secondary">Premium</Badge>
-                  <span className="text-sm text-muted-foreground">299 DKK/month</span>
-                </div>
-                <span className="font-medium">{stats.premiumUsers}</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Badge>Enterprise</Badge>
-                  <span className="text-sm text-muted-foreground">599 DKK/month</span>
-                </div>
-                <span className="font-medium">{stats.enterpriseUsers}</span>
-              </div>
+              ))}
             </div>
           </CardContent>
         </Card>
 
-        {/* Revenue Trend Chart */}
+        {/* Combined Revenue Chart */}
         <Card className="col-span-2">
           <CardHeader>
-            <CardTitle>Revenue Trend (Last 12 Months)</CardTitle>
+            <CardTitle>MRR vs Report Revenue (Last 12 Months)</CardTitle>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>
-              <LineChart data={revenueData}>
+              <ComposedChart data={revenueData}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="month" />
                 <YAxis />
                 <Tooltip formatter={(value) => formatCurrency(Number(value))} />
-                <Line 
+                <Area 
                   type="monotone" 
                   dataKey="mrr" 
+                  fill="hsl(var(--primary) / 0.3)"
                   stroke="hsl(var(--primary))" 
                   strokeWidth={2}
                   name="MRR"
                 />
-              </LineChart>
+                <Bar dataKey="reports" fill="hsl(var(--secondary))" name="Report Revenue" />
+              </ComposedChart>
             </ResponsiveContainer>
           </CardContent>
         </Card>
       </div>
 
-      {/* Upgrade Funnel */}
+      {/* Total Revenue Trend */}
       <Card>
         <CardHeader>
-          <CardTitle>Upgrade Funnel & Conversions</CardTitle>
+          <CardTitle>Total Revenue Trend</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <ResponsiveContainer width="100%" height={400}>
+            <AreaChart data={revenueData}>
+              <defs>
+                <linearGradient id="totalRevenue" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.8}/>
+                  <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0.1}/>
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="month" />
+              <YAxis />
+              <Tooltip formatter={(value) => formatCurrency(Number(value))} />
+              <Area 
+                type="monotone" 
+                dataKey="totalRevenue" 
+                stroke="hsl(var(--primary))" 
+                fill="url(#totalRevenue)"
+                strokeWidth={3}
+                name="Total Revenue"
+              />
+            </AreaChart>
+          </ResponsiveContainer>
+        </CardContent>
+      </Card>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* User Growth & Churn */}
+        <Card>
+          <CardHeader>
+            <CardTitle>User Growth vs Churn</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ResponsiveContainer width="100%" height={350}>
+              <ComposedChart data={revenueData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="month" />
+                <YAxis />
+                <Tooltip />
+                <Bar dataKey="newUsers" fill="hsl(var(--primary))" name="New Users" />
+                <Bar dataKey="churnedUsers" fill="hsl(var(--destructive))" name="Churned Users" />
+                <Line 
+                  type="monotone" 
+                  dataKey="conversions" 
+                  stroke="hsl(var(--accent))" 
+                  strokeWidth={3}
+                  name="Net Growth"
+                />
+              </ComposedChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+
+        {/* Conversion Funnel */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Conversion Funnel</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ResponsiveContainer width="100%" height={350}>
+              <BarChart data={conversionFunnel} layout="horizontal">
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis type="number" />
+                <YAxis dataKey="stage" type="category" width={80} />
+                <Tooltip 
+                  formatter={(value, name) => [
+                    name === 'users' ? `${value} users` : `${value}%`,
+                    name === 'users' ? 'Users' : 'Conversion Rate'
+                  ]}
+                />
+                <Bar dataKey="users" fill="hsl(var(--primary))" name="users" />
+              </BarChart>
+            </ResponsiveContainer>
+            <div className="mt-4 space-y-2">
+              {conversionFunnel.map((stage, index) => (
+                <div key={stage.stage} className="flex justify-between text-sm">
+                  <span>{stage.stage}</span>
+                  <span className="font-medium">{stage.conversion.toFixed(1)}% conversion</span>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Monthly Conversions Trend */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Monthly Conversions & Upgrades</CardTitle>
         </CardHeader>
         <CardContent>
           <ResponsiveContainer width="100%" height={300}>
