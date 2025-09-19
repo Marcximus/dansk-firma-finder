@@ -22,7 +22,7 @@ const UpgradeDialog: React.FC<UpgradeDialogProps> = ({ open, onClose }) => {
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-5xl">
         <DialogHeader>
           <DialogTitle className="text-2xl text-center mb-4">
             Brugere på vores Standard Plan kan kun følge 1 virksomhed
