@@ -32,7 +32,7 @@ const UpgradeDialog: React.FC<UpgradeDialogProps> = ({ open, onClose }) => {
           </p>
         </DialogHeader>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mt-6">
           {/* Premium Package */}
           <Card className="relative hover:shadow-lg border-primary">
             <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
