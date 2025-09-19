@@ -129,19 +129,19 @@ const SearchBar: React.FC<SearchBarProps> = ({ onSearch, isLoading = false, shou
                   {searchResults.map((company) => (
                     <div
                       key={company.cvr}
-                      className="p-3 hover:bg-accent cursor-pointer border-b border-border last:border-b-0 transition-colors"
+                      className="p-3 hover:bg-accent cursor-pointer border-b border-border last:border-b-0 transition-colors text-left"
                       onClick={() => handleSuggestionClick(company)}
                     >
-                      <div className="flex items-start gap-3">
+                      <div className="flex items-start gap-3 w-full">
                         <Building className="h-4 w-4 text-muted-foreground mt-1 flex-shrink-0" />
-                        <div className="flex-1 min-w-0">
-                          <div className="font-medium text-sm truncate">
+                        <div className="flex-1 min-w-0 text-left">
+                          <div className="font-medium text-sm truncate text-left">
                             {company.name}
                           </div>
-                          <div className="text-xs text-muted-foreground">
+                          <div className="text-xs text-muted-foreground text-left">
                             CVR: {company.cvr}
                           </div>
-                          <div className="flex items-center gap-1 text-xs text-muted-foreground mt-1">
+                          <div className="flex items-center gap-1 text-xs text-muted-foreground mt-1 justify-start">
                             <MapPin className="h-3 w-3" />
                             {company.city}
                           </div>
