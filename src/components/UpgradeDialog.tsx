@@ -34,7 +34,7 @@ const UpgradeDialog: React.FC<UpgradeDialogProps> = ({ open, onClose }) => {
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
           {/* Premium Package */}
-          <Card className="relative hover:shadow-lg border-primary">
+          <Card className="relative hover:shadow-lg border-primary flex flex-col h-full">
             <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
               <Badge className="bg-primary text-primary-foreground px-4 py-1 text-sm font-semibold">
                 Mest populær
@@ -48,7 +48,7 @@ const UpgradeDialog: React.FC<UpgradeDialogProps> = ({ open, onClose }) => {
               </div>
               <CardTitle className="text-xl mb-2">{SUBSCRIPTION_TIERS.premium.name}</CardTitle>
             </CardHeader>
-            <CardContent className="pt-4">
+            <CardContent className="pt-4 flex-1 flex flex-col">
               <div className="text-center mb-6 pb-4 border-b border-border">
                 <div className="mb-1">
                   <div className="text-lg text-muted-foreground line-through opacity-70 mb-1">
@@ -60,7 +60,7 @@ const UpgradeDialog: React.FC<UpgradeDialogProps> = ({ open, onClose }) => {
                 </div>
                 <div className="text-sm text-muted-foreground">pr. måned</div>
               </div>
-              <ul className="space-y-3 mb-8">
+              <ul className="space-y-3 mb-8 flex-1">
                 {SUBSCRIPTION_TIERS.premium.features.map((feature, index) => (
                   <li key={index} className="flex items-center gap-3 text-sm">
                     <CheckCircle className="h-4 w-4 text-green-600 flex-shrink-0" />
@@ -80,8 +80,8 @@ const UpgradeDialog: React.FC<UpgradeDialogProps> = ({ open, onClose }) => {
           </Card>
 
           {/* Enterprise Package */}
-          <Card className="relative hover:shadow-lg">
-            <CardHeader className="text-center pb-4 pt-6 mt-6">
+          <Card className="relative hover:shadow-lg flex flex-col h-full">
+            <CardHeader className="text-center pb-4 pt-9">
               <div className="flex justify-center mb-3">
                 <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center">
                   <Users className="h-6 w-6 text-purple-600" />
@@ -89,7 +89,7 @@ const UpgradeDialog: React.FC<UpgradeDialogProps> = ({ open, onClose }) => {
               </div>
               <CardTitle className="text-xl mb-2">{SUBSCRIPTION_TIERS.enterprise.name}</CardTitle>
             </CardHeader>
-            <CardContent className="pt-4">
+            <CardContent className="pt-4 flex-1 flex flex-col">
               <div className="text-center mb-6 pb-4 border-b border-border">
                 <div className="mb-1">
                   <div className="text-lg text-muted-foreground line-through opacity-70 mb-1">
@@ -101,7 +101,7 @@ const UpgradeDialog: React.FC<UpgradeDialogProps> = ({ open, onClose }) => {
                 </div>
                 <div className="text-sm text-muted-foreground">pr. måned</div>
               </div>
-              <ul className="space-y-3 mb-8">
+              <ul className="space-y-3 mb-8 flex-1">
                 {SUBSCRIPTION_TIERS.enterprise.features.map((feature, index) => (
                   <li key={index} className="flex items-center gap-3 text-sm">
                     <CheckCircle className="h-4 w-4 text-green-600 flex-shrink-0" />
