@@ -144,6 +144,7 @@ const CompanyHeader: React.FC<CompanyHeaderProps> = ({ company }) => {
   };
 
   const handleChangesClick = () => {
+    console.log('Changes button clicked, navigating to:', `/company/${company.cvr}/changes`);
     navigate(`/company/${company.cvr}/changes`);
   };
 

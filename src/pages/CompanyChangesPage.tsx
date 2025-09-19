@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { getCompanyById, Company } from '@/services/companyAPI';
 import Layout from '@/components/Layout';
-import { useToast } from '@/components/ui/use-toast';
+import { useToast } from '@/hooks/use-toast';
 import SEO from '@/components/SEO';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Calendar, MapPin, Building, Users, Mail, Phone } from 'lucide-react';
