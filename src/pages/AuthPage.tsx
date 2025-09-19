@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
+import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { Eye, EyeOff, Mail, Lock, User, ArrowLeft, Building2, Phone } from 'lucide-react';
@@ -21,6 +22,8 @@ const AuthPage: React.FC = () => {
   const [cvrNumber, setCvrNumber] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [acceptTerms, setAcceptTerms] = useState(false);
+  const [acceptPrivacy, setAcceptPrivacy] = useState(false);
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -74,6 +77,17 @@ const AuthPage: React.FC = () => {
           });
         }
       } else {
+        // Validate terms acceptance for signup
+        if (!acceptTerms || !acceptPrivacy) {
+          toast({
+            title: "Acceptér vilkår",
+            description: "Du skal acceptere både servicevilkår og privatlivspolitik for at oprette en konto",
+            variant: "destructive",
+          });
+          setLoading(false);
+          return;
+        }
+
         // Sign up
         const { error } = await supabase.auth.signUp({
           email,
@@ -278,6 +292,40 @@ const AuthPage: React.FC = () => {
                 </div>
               </div>
 
+              {!isLogin && (
+                <div className="space-y-4">
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      id="acceptTerms"
+                      checked={acceptTerms}
+                      onCheckedChange={(checked) => setAcceptTerms(checked as boolean)}
+                      required
+                    />
+                    <Label htmlFor="acceptTerms" className="text-sm">
+                      Jeg accepterer{' '}
+                      <Link to="/servicevilkaar" className="text-primary underline">
+                        Servicevilkår
+                      </Link>
+                    </Label>
+                  </div>
+                  
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      id="acceptPrivacy"
+                      checked={acceptPrivacy}
+                      onCheckedChange={(checked) => setAcceptPrivacy(checked as boolean)}
+                      required
+                    />
+                    <Label htmlFor="acceptPrivacy" className="text-sm">
+                      Jeg accepterer{' '}
+                      <Link to="/privatlivspolitik" className="text-primary underline">
+                        Privatlivspolitik
+                      </Link>
+                    </Label>
+                  </div>
+                </div>
+              )}
+
               <Button type="submit" className="w-full" size="lg" disabled={loading}>
                 {loading ? 'Behandler...' : (isLogin ? 'Log ind' : 'Opret konto')}
               </Button>
@@ -361,6 +409,8 @@ const AuthPage: React.FC = () => {
                   setCompanyName('');
                   setCvrNumber('');
                   setPhoneNumber('');
+                  setAcceptTerms(false);
+                  setAcceptPrivacy(false);
                 }}
                 className="w-full"
               >
