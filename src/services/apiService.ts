@@ -156,15 +156,16 @@ export const getSearchSuggestions = async (query: string): Promise<SearchSuggest
     });
     
     if (error) {
-      console.error('Error calling search-suggestions function:', error);
+      console.error('🔍 Error calling search-suggestions function:', error);
       return [];
     }
     
+    console.log(`🔍 Search suggestions response:`, data);
     console.log(`🔍 Got ${data.suggestions?.length || 0} suggestions`);
     return data.suggestions || [];
     
   } catch (error) {
-    console.error('Error fetching search suggestions:', error);
+    console.error('🔍 Error fetching search suggestions:', error);
     return [];
   }
 };

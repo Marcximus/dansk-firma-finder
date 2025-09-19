@@ -87,24 +87,45 @@ serve(async (req) => {
       body: JSON.stringify(searchBody)
     });
     
+    logStep("API response status", { status: response.status, ok: response.ok });
+    
     if (!response.ok) {
-      logStep("API request failed", { status: response.status, statusText: response.statusText });
+      const errorText = await response.text();
+      logStep("API request failed", { 
+        status: response.status, 
+        statusText: response.statusText,
+        errorBody: errorText.substring(0, 500) // Log first 500 chars of error
+      });
       throw new Error(`API request failed: ${response.status} ${response.statusText}`);
     }
     
     const data = await response.json();
-    logStep("API response received", { totalHits: data.hits?.total?.value || 0 });
+    logStep("API response received", { 
+      totalHits: data.hits?.total?.value || 0,
+      actualHits: data.hits?.hits?.length || 0,
+      hasData: !!data
+    });
     
     // Process suggestions
-    const suggestions = (data.hits?.hits || []).map((hit: any) => {
+    const suggestions = (data.hits?.hits || []).map((hit: any, index: number) => {
+      logStep(`Processing hit ${index}`, { hit: JSON.stringify(hit).substring(0, 200) });
+      
       const virksomhed = hit._source?.Vrvirksomhed;
-      if (!virksomhed) return null;
+      if (!virksomhed) {
+        logStep(`No Vrvirksomhed found in hit ${index}`);
+        return null;
+      }
       
       const navn = virksomhed.virksomhedMetadata?.nyesteNavn?.navn;
       const cvr = virksomhed.cvrNummer;
       const kommune = virksomhed.virksomhedMetadata?.nyesteBeliggenhedsadresse?.kommune?.kommuneNavn;
       
-      if (!navn || !cvr) return null;
+      logStep(`Extracted data for hit ${index}`, { navn, cvr, kommune });
+      
+      if (!navn || !cvr) {
+        logStep(`Missing navn or cvr for hit ${index}`, { navn, cvr });
+        return null;
+      }
       
       return {
         name: navn,
@@ -114,7 +135,7 @@ serve(async (req) => {
       };
     }).filter(Boolean);
     
-    logStep("Processed suggestions", { count: suggestions.length });
+    logStep("Processed suggestions", { count: suggestions.length, suggestions });
     
     return new Response(JSON.stringify({ suggestions }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
