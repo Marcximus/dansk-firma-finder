@@ -71,6 +71,57 @@ export type Database = {
         }
         Relationships: []
       }
+      leads: {
+        Row: {
+          company: string | null
+          conversion_date: string | null
+          created_at: string
+          email: string
+          id: string
+          lead_value_dkk: number | null
+          message: string
+          name: string
+          phone: string | null
+          service_type: string
+          source: string
+          status: string
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          company?: string | null
+          conversion_date?: string | null
+          created_at?: string
+          email: string
+          id?: string
+          lead_value_dkk?: number | null
+          message: string
+          name: string
+          phone?: string | null
+          service_type: string
+          source?: string
+          status?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          company?: string | null
+          conversion_date?: string | null
+          created_at?: string
+          email?: string
+          id?: string
+          lead_value_dkk?: number | null
+          message?: string
+          name?: string
+          phone?: string | null
+          service_type?: string
+          source?: string
+          status?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           company_name: string | null

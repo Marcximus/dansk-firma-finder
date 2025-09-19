@@ -32,6 +32,7 @@ import { CompanyInsights } from "./pages/admin/CompanyInsights";
 import { RevenueAnalytics } from "./pages/admin/RevenueAnalytics";
 import { ReportsOrders } from "./pages/admin/ReportsOrders";
 import { SystemHealth } from "./pages/admin/SystemHealth";
+import { LeadManagement } from "./pages/admin/LeadManagement";
 
 const queryClient = new QueryClient();
 
@@ -70,6 +71,7 @@ const App = () => (
               <Route path="companies" element={<CompanyInsights />} />
               <Route path="revenue" element={<RevenueAnalytics />} />
               <Route path="reports" element={<ReportsOrders />} />
+              <Route path="leads" element={<LeadManagement />} />
               <Route path="system" element={<SystemHealth />} />
             </Route>
             

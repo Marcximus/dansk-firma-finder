@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Users, Building2, DollarSign, FileText, TrendingUp, Activity } from 'lucide-react';
+import { Users, Building2, DollarSign, FileText, TrendingUp, Activity, Scale } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { Skeleton } from '@/components/ui/skeleton';
 
@@ -11,6 +11,8 @@ interface AdminMetrics {
   totalReportOrders: number;
   premiumUsers: number;
   enterpriseUsers: number;
+  totalLeads: number;
+  newLeads: number;
 }
 
 export const AdminMetricsCards: React.FC = () => {
@@ -37,9 +39,15 @@ export const AdminMetricsCards: React.FC = () => {
           .from('report_orders')
           .select('id, amount_cents');
 
+        const { data: leads } = await supabase
+          .from('leads')
+          .select('id, status');
+
         const totalUsers = profiles?.length || 0;
         const totalFollowedCompanies = followedCompanies?.length || 0;
         const totalReportOrders = reportOrders?.length || 0;
+        const totalLeads = leads?.length || 0;
+        const newLeads = leads?.filter(lead => lead.status === 'new').length || 0;
 
         // Calculate revenue (assuming report orders are the main revenue source for now)
         const monthlyRevenue = reportOrders?.reduce((sum, order) => sum + (order.amount_cents / 100), 0) || 0;
@@ -56,6 +64,8 @@ export const AdminMetricsCards: React.FC = () => {
           totalReportOrders,
           premiumUsers,
           enterpriseUsers,
+          totalLeads,
+          newLeads,
         });
       } catch (error) {
         console.error('Error fetching admin metrics:', error);
@@ -70,7 +80,7 @@ export const AdminMetricsCards: React.FC = () => {
   if (loading) {
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {[...Array(6)].map((_, i) => (
+        {[...Array(7)].map((_, i) => (
           <Card key={i}>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <Skeleton className="h-4 w-24" />
@@ -114,6 +124,13 @@ export const AdminMetricsCards: React.FC = () => {
       description: 'Total reports purchased',
       icon: FileText,
       color: 'text-purple-600',
+    },
+    {
+      title: 'Total Leads',
+      value: metrics?.totalLeads || 0,
+      description: `${metrics?.newLeads || 0} new leads`,
+      icon: Scale,
+      color: 'text-indigo-600',
     },
     {
       title: 'Premium Users',

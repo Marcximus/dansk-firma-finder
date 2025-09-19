@@ -31,24 +31,56 @@ const KontaktOsPage: React.FC = () => {
     }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Contact form submitted:', formData);
-    // Here you would typically send the data to your backend
-    alert('Tak for din henvendelse! Vi kontakter dig snarest muligt.');
     
-    // Reset form
-    setFormData({
-      name: '',
-      email: '',
-      phone: '',
-      company: '',
-      subject: '',
-      message: '',
-      contactType: 'general',
-      preferredContact: 'email',
-      wantNewsletter: false,
-    });
+    try {
+      // Check if this is a service request (lead)
+      if (formData.contactType === 'legal' || formData.contactType === 'accounting') {
+        // Submit as lead
+        const response = await fetch(`https://yvpsrnjyldlyqomlonop.supabase.co/functions/v1/handle-lead`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl2cHNybmp5bGRseXFvbWxvbm9wIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTAxNjM0MDksImV4cCI6MjA2NTczOTQwOX0.7ZS-k5208kt62atnewZIzAOZl8bOxtCZP3xRh_MjLag`,
+          },
+          body: JSON.stringify({
+            name: formData.name,
+            email: formData.email,
+            phone: formData.phone,
+            company: formData.company,
+            service_type: formData.contactType,
+            message: `${formData.subject}\n\n${formData.message}`,
+          }),
+        });
+
+        if (response.ok) {
+          alert('Tak for din forespørgsel! Vi har modtaget din anmodning om hjælp og vil kontakte dig snarest.');
+        } else {
+          throw new Error('Failed to submit lead');
+        }
+      } else {
+        // Regular contact form submission
+        console.log('Contact form submitted:', formData);
+        alert('Tak for din henvendelse! Vi kontakter dig snarest muligt.');
+      }
+      
+      // Reset form
+      setFormData({
+        name: '',
+        email: '',
+        phone: '',
+        company: '',
+        subject: '',
+        message: '',
+        contactType: 'general',
+        preferredContact: 'email',
+        wantNewsletter: false,
+      });
+    } catch (error) {
+      console.error('Error submitting form:', error);
+      alert('Der opstod en fejl. Prøv venligst igen.');
+    }
   };
 
   return (
@@ -107,8 +139,12 @@ const KontaktOsPage: React.FC = () => {
                         <Label htmlFor="partnership">Partnerskab og samarbejde</Label>
                       </div>
                       <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="press" id="press" />
-                        <Label htmlFor="press">Presse og medier</Label>
+                        <RadioGroupItem value="legal" id="legal" />
+                        <Label htmlFor="legal">Hjælp til Jura</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="accounting" id="accounting" />
+                        <Label htmlFor="accounting">Hjælp til Regnskab</Label>
                       </div>
                     </RadioGroup>
                   </div>

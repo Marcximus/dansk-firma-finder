@@ -10,6 +10,7 @@ import {
   AlertTriangle,
   FileText,
   DollarSign,
+  Scale,
 } from 'lucide-react';
 import {
   Sidebar,
@@ -49,6 +50,11 @@ const adminNavItems = [
     title: 'Reports & Orders',
     url: '/admin/reports',
     icon: FileText,
+  },
+  {
+    title: 'Lead Management',
+    url: '/admin/leads',
+    icon: Scale,
   },
   {
     title: 'System Health',
