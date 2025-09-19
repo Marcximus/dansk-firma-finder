@@ -24,30 +24,44 @@ const NotificationBell: React.FC<NotificationBellProps> = ({ className }) => {
   const [changeCount, setChangeCount] = useState(0);
   const [companiesWithChanges, setCompaniesWithChanges] = useState<CompanyWithChanges[]>([]);
   const [open, setOpen] = useState(false);
+  const [user, setUser] = useState<any>(null);
   const { toast } = useToast();
   const navigate = useNavigate();
 
   // Check for new changes in followed companies
   const checkForNewChanges = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      const { data: { user: currentUser } } = await supabase.auth.getUser();
+      console.log('Notification bell: user check:', currentUser?.id);
+      setUser(currentUser);
+      
+      if (!currentUser) {
+        console.log('No user found, clearing changes');
+        setCompaniesWithChanges([]);
+        setChangeCount(0);
+        setHasNewChanges(false);
+        return;
+      }
 
       const { data: followedCompanies, error } = await supabase
         .from('followed_companies')
         .select('*')
-        .eq('user_id', user.id);
+        .eq('user_id', currentUser.id);
 
       if (error) {
         console.error('Error fetching followed companies:', error);
         return;
       }
 
+      console.log('Followed companies data:', followedCompanies);
       const companiesWithChanges: CompanyWithChanges[] = [];
       let totalChanges = 0;
 
       followedCompanies?.forEach(company => {
+        console.log('Checking changes for company:', company.company_name, company.company_data);
         const changes = getRecentChanges(company.company_data);
+        console.log('Changes found for', company.company_name, ':', changes);
+        
         if (changes.length > 0) {
           companiesWithChanges.push({
             company_name: company.company_name,
@@ -58,6 +72,9 @@ const NotificationBell: React.FC<NotificationBellProps> = ({ className }) => {
         }
       });
 
+      console.log('Total companies with changes:', companiesWithChanges);
+      console.log('Total change count:', totalChanges);
+      
       setCompaniesWithChanges(companiesWithChanges);
       setChangeCount(totalChanges);
       setHasNewChanges(totalChanges > 0);
@@ -99,7 +116,7 @@ const NotificationBell: React.FC<NotificationBellProps> = ({ className }) => {
             variant="ghost"
             size="icon"
             className="relative hover:bg-primary/10"
-            disabled={!hasNewChanges}
+            disabled={!user}
           >
             <Bell className="h-5 w-5" />
             {hasNewChanges && (
@@ -119,7 +136,12 @@ const NotificationBell: React.FC<NotificationBellProps> = ({ className }) => {
             </CardHeader>
             <CardContent className="space-y-3">
               {companiesWithChanges.length === 0 ? (
-                <p className="text-muted-foreground text-sm">Ingen nye ændringer</p>
+                <div className="text-center py-4">
+                  <p className="text-muted-foreground text-sm">Ingen nye ændringer</p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Vi tjekker dine fulgte virksomheder for ændringer
+                  </p>
+                </div>
               ) : (
                 companiesWithChanges.map((company) => (
                   <div
