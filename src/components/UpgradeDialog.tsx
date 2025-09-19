@@ -81,7 +81,7 @@ const UpgradeDialog: React.FC<UpgradeDialogProps> = ({ open, onClose }) => {
 
           {/* Enterprise Package */}
           <Card className="relative hover:shadow-lg">
-            <CardHeader className="text-center pb-4">
+            <CardHeader className="text-center pb-4 pt-6 mt-6">
               <div className="flex justify-center mb-3">
                 <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center">
                   <Users className="h-6 w-6 text-purple-600" />
