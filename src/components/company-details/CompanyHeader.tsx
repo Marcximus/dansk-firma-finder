@@ -175,7 +175,7 @@ const CompanyHeader: React.FC<CompanyHeaderProps> = ({ company }) => {
 
   return (
     <TooltipProvider>
-      <div className="bg-white rounded-lg shadow-sm p-6 relative">
+      <div className="bg-background sticky top-[73px] z-40 rounded-lg shadow-sm p-6 relative backdrop-blur-sm border-b mb-6">
         <div className="absolute top-4 right-4 text-center flex gap-3">
           <Button 
             variant="default" 
