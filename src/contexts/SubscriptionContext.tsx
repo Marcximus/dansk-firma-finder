@@ -12,6 +12,7 @@ interface SubscriptionState {
 
 interface SubscriptionContextType extends SubscriptionState {
   checkSubscription: () => Promise<void>;
+  createPaymentIntent: (priceId: string) => Promise<{clientSecret: string, customerId: string, priceId: string}>;
   createCheckout: (priceId: string) => Promise<void>;
   openCustomerPortal: () => Promise<void>;
 }
@@ -78,6 +79,44 @@ export const SubscriptionProvider: React.FC<SubscriptionProviderProps> = ({ chil
     } catch (error) {
       console.error('Error in checkSubscription:', error);
       setState(prev => ({ ...prev, loading: false }));
+    }
+  };
+
+  const createPaymentIntent = async (priceId: string) => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        // Redirect to auth page with current page as redirect
+        window.location.href = `/auth?redirect=${encodeURIComponent(window.location.pathname)}`;
+        throw new Error('User not authenticated');
+      }
+
+      const { data, error } = await supabase.functions.invoke('create-payment-intent', {
+        body: { priceId },
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+        },
+      });
+
+      if (error) {
+        console.error('Error creating payment intent:', error);
+        toast({
+          title: "Error",
+          description: "Failed to create payment intent",
+          variant: "destructive",
+        });
+        throw error;
+      }
+
+      return data;
+    } catch (error) {
+      console.error('Error in createPaymentIntent:', error);
+      toast({
+        title: "Error",
+        description: "Failed to create payment intent",
+        variant: "destructive",
+      });
+      throw error;
     }
   };
 
@@ -194,6 +233,7 @@ export const SubscriptionProvider: React.FC<SubscriptionProviderProps> = ({ chil
       value={{
         ...state,
         checkSubscription,
+        createPaymentIntent,
         createCheckout,
         openCustomerPortal,
       }}
