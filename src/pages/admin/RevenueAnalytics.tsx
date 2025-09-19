@@ -100,7 +100,7 @@ export const RevenueAnalytics: React.FC = () => {
   const [revenueData, setRevenueData] = useState<RevenueData[]>([]);
   const [userTierData, setUserTierData] = useState<UserTierData[]>([]);
   const [conversionFunnel, setConversionFunnel] = useState<ConversionFunnelData[]>([]);
-  const [geographicData, setGeographicData] = useState<GeographicData[]>([]);
+  const [userTypeData, setUserTypeData] = useState<{type: string, users: number, revenue: number, color: string}[]>([]);
   const [paymentMethodData, setPaymentMethodData] = useState<PaymentMethodData[]>([]);
   const [cohortData, setCohortData] = useState<CohortData[]>([]);
   const [revenueSegments, setRevenueSegments] = useState<RevenueSegmentData[]>([]);
@@ -230,14 +230,17 @@ export const RevenueAnalytics: React.FC = () => {
         ];
         setConversionFunnel(funnelData);
 
-        // Geographic revenue data (mock)
-        const geoData: GeographicData[] = [
-          { country: 'Denmark', revenue: totalMRR * 0.65, users: Math.floor(totalUsers * 0.7), averageRevenue: 0 },
-          { country: 'Sweden', revenue: totalMRR * 0.15, users: Math.floor(totalUsers * 0.12), averageRevenue: 0 },
-          { country: 'Norway', revenue: totalMRR * 0.12, users: Math.floor(totalUsers * 0.1), averageRevenue: 0 },
-          { country: 'Germany', revenue: totalMRR * 0.08, users: Math.floor(totalUsers * 0.08), averageRevenue: 0 },
-        ].map(item => ({ ...item, averageRevenue: item.users > 0 ? item.revenue / item.users : 0 }));
-        setGeographicData(geoData);
+        // User type data (Company vs Normal users)
+        const companyUsers = Math.floor(totalUsers * 0.35); // 35% company users
+        const normalUsers = totalUsers - companyUsers;
+        const companyRevenue = totalMRR * 0.68; // Company users generate more revenue per user
+        const normalRevenue = totalMRR - companyRevenue;
+        
+        const userTypeAnalysis = [
+          { type: 'Company Users', users: companyUsers, revenue: companyRevenue, color: COLORS[0] },
+          { type: 'Normal Users', users: normalUsers, revenue: normalRevenue, color: COLORS[1] },
+        ];
+        setUserTypeData(userTypeAnalysis);
 
         // Payment method data (mock)
         const paymentData: PaymentMethodData[] = [
@@ -438,10 +441,9 @@ export const RevenueAnalytics: React.FC = () => {
       </div>
 
       <Tabs defaultValue="overview" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-6">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="segments">Segments</TabsTrigger>
-          <TabsTrigger value="geography">Geography</TabsTrigger>
           <TabsTrigger value="cohorts">Cohorts</TabsTrigger>
           <TabsTrigger value="forecasting">Forecasting</TabsTrigger>
           <TabsTrigger value="expenses">P&L</TabsTrigger>
@@ -647,41 +649,47 @@ export const RevenueAnalytics: React.FC = () => {
                 </div>
               </CardContent>
             </Card>
-          </div>
-        </TabsContent>
 
-        <TabsContent value="geography" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Revenue by Geography</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ResponsiveContainer width="100%" height={400}>
-                <ComposedChart data={geographicData}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="country" />
-                  <YAxis yAxisId="left" />
-                  <YAxis yAxisId="right" orientation="right" />
-                  <Tooltip 
-                    formatter={(value, name) => [
-                      name === 'revenue' ? formatCurrency(Number(value)) : value,
-                      name === 'revenue' ? 'Revenue' : name === 'users' ? 'Users' : 'Avg Revenue'
-                    ]}
-                  />
-                  <Bar yAxisId="left" dataKey="revenue" fill={COLORS[0]} name="revenue" />
-                  <Line yAxisId="right" type="monotone" dataKey="users" stroke={COLORS[1]} strokeWidth={3} name="users" />
-                </ComposedChart>
-              </ResponsiveContainer>
-              <div className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-4">
-                {geographicData.map((country) => (
-                  <div key={country.country} className="text-center p-3 bg-muted rounded-lg">
-                    <div className="font-semibold">{country.country}</div>
-                    <div className="text-sm text-muted-foreground">{formatCurrency(country.averageRevenue)}/user</div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
+            {/* Revenue by User Type */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Revenue by User Type</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ResponsiveContainer width="100%" height={300}>
+                  <PieChart>
+                    <Pie
+                      data={userTypeData}
+                      cx="50%"
+                      cy="50%"
+                      outerRadius={80}
+                      dataKey="revenue"
+                      label={({ type, revenue }) => `${type}: ${formatCurrency(revenue)}`}
+                    >
+                      {userTypeData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.color} />
+                      ))}
+                    </Pie>
+                    <Tooltip formatter={(value) => formatCurrency(Number(value))} />
+                  </PieChart>
+                </ResponsiveContainer>
+                <div className="mt-4 space-y-2">
+                  {userTypeData.map((type) => (
+                    <div key={type.type} className="flex items-center justify-between text-sm">
+                      <div className="flex items-center gap-2">
+                        <div className="w-3 h-3 rounded-full" style={{ backgroundColor: type.color }} />
+                        <span>{type.type}</span>
+                      </div>
+                      <div className="text-right">
+                        <div>{type.users} users</div>
+                        <div className="text-muted-foreground">{formatCurrency(type.revenue / type.users)}/user</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
         </TabsContent>
 
         <TabsContent value="cohorts" className="space-y-6">
