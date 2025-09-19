@@ -117,6 +117,7 @@ const NotificationBell: React.FC<NotificationBellProps> = ({ className }) => {
             size="icon"
             className="relative hover:bg-primary/10"
             disabled={!user}
+            aria-label="View notifications"
           >
             <Bell className="h-5 w-5" />
             {hasNewChanges && (
