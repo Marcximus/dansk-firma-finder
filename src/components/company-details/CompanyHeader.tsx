@@ -185,6 +185,13 @@ const CompanyHeader: React.FC<CompanyHeaderProps> = ({ company }) => {
           >
             Virksomhedsrapport
           </Button>
+          <Button 
+            variant="outline" 
+            size="lg" 
+            className="px-8 py-4 text-lg"
+          >
+            Seneste Ændringer
+          </Button>
           <Tooltip>
             <TooltipTrigger asChild>
               <Button 
