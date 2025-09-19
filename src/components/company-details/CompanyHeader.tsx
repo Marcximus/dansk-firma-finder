@@ -183,7 +183,7 @@ const CompanyHeader: React.FC<CompanyHeaderProps> = ({ company }) => {
             className="px-8 py-4 text-lg"
             onClick={handleReportClick}
           >
-            Virksomhedsrapport med kreditvurdering
+            Virksomhedsrapport
           </Button>
           <Tooltip>
             <TooltipTrigger asChild>
