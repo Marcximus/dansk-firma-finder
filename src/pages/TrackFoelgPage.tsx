@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import Layout from '@/components/Layout';
 import { Target, Bell, Star, TrendingUp, ArrowLeft, CheckCircle, Users, BarChart3, Settings } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -10,12 +10,14 @@ import { useToast } from '@/hooks/use-toast';
 import { SUBSCRIPTION_TIERS } from '@/constants/subscriptions';
 import SEO from '@/components/SEO';
 import JSONLDScript, { createServiceSchema } from '@/components/JSONLDScript';
+import UpgradeDialog from '@/components/UpgradeDialog';
 
 const TrackFoelgPage: React.FC = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const { subscribed, subscriptionTier, createCheckout, openCustomerPortal, checkSubscription, loading } = useSubscription();
+  const { subscribed, subscriptionTier, openCustomerPortal, checkSubscription, loading } = useSubscription();
   const { toast } = useToast();
+  const [showUpgradeDialog, setShowUpgradeDialog] = useState(false);
 
   // Check for success/canceled params from Stripe redirect
   useEffect(() => {
@@ -38,8 +40,8 @@ const TrackFoelgPage: React.FC = () => {
     }
   }, [searchParams, toast, checkSubscription]);
 
-  const handleSubscribe = async (tier: keyof typeof SUBSCRIPTION_TIERS) => {
-    await createCheckout(SUBSCRIPTION_TIERS[tier].price_id);
+  const handleUpgradeClick = () => {
+    setShowUpgradeDialog(true);
   };
 
   const getCurrentTierInfo = () => {
@@ -207,7 +209,7 @@ const TrackFoelgPage: React.FC = () => {
                 <Button 
                   className={`w-full mt-auto ${subscriptionTier === 'premium' ? 'bg-green-600 hover:bg-green-700' : 'bg-primary hover:bg-primary/90'} text-white shadow-lg`}
                   size="lg"
-                  onClick={() => subscriptionTier === 'premium' ? openCustomerPortal() : handleSubscribe('premium')}
+                  onClick={() => subscriptionTier === 'premium' ? openCustomerPortal() : handleUpgradeClick()}
                   disabled={loading}
                 >
                   {subscriptionTier === 'premium' ? 'Administrer' : 'Opgrader til Premium'}
@@ -256,7 +258,7 @@ const TrackFoelgPage: React.FC = () => {
                 <Button 
                   className="w-full mt-auto bg-purple-600 hover:bg-purple-700 text-white" 
                   size="lg"
-                  onClick={() => subscriptionTier === 'enterprise' ? openCustomerPortal() : handleSubscribe('enterprise')}
+                  onClick={() => subscriptionTier === 'enterprise' ? openCustomerPortal() : handleUpgradeClick()}
                   disabled={loading}
                 >
                   {subscriptionTier === 'enterprise' ? 'Administrer' : 'Opgrader til Enterprise'}
@@ -489,6 +491,11 @@ const TrackFoelgPage: React.FC = () => {
           </Button>
         </div>
       </div>
+
+      <UpgradeDialog 
+        open={showUpgradeDialog}
+        onClose={() => setShowUpgradeDialog(false)}
+      />
     </Layout>
   );
 };
