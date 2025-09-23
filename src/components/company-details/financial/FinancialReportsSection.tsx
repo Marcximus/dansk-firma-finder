@@ -1,12 +1,32 @@
 
 import React, { useState, useEffect } from 'react';
-import { FileText, Calendar, Download } from 'lucide-react';
+import { FileText, Calendar, Download, TrendingUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { getFinancialData } from '@/services/companyAPI';
 
 interface FinancialReportsSectionProps {
   cvr: string;
 }
+
+// Mock financial reports data
+const generateMockReports = (cvr: string) => {
+  const currentYear = new Date().getFullYear();
+  const reports = [];
+  
+  for (let i = 1; i <= 4; i++) {
+    const year = currentYear - i;
+    reports.push({
+      period: `${year}-01-01 til ${year}-12-31`,
+      publishDate: `${year + 1}-05-${15 + (i * 2)}`,
+      approvalDate: `${year + 1}-04-${20 + i}`,
+      documentType: 'Årsregnskab',
+      companyName: `Virksomhed CVR ${cvr}`,
+      documentUrl: null // Mock - no actual documents
+    });
+  }
+  
+  return reports;
+};
 
 const FinancialReportsSection: React.FC<FinancialReportsSectionProps> = ({ cvr }) => {
   const [financialReports, setFinancialReports] = useState<any[]>([]);
@@ -16,9 +36,18 @@ const FinancialReportsSection: React.FC<FinancialReportsSectionProps> = ({ cvr }
     const fetchFinancialData = async () => {
       try {
         const data = await getFinancialData(cvr);
-        setFinancialReports(data?.financialReports || []);
+        let reports = data?.financialReports || [];
+        
+        // If no real reports found, use mock data
+        if (reports.length === 0) {
+          reports = generateMockReports(cvr);
+        }
+        
+        setFinancialReports(reports);
       } catch (error) {
         console.error('Error fetching financial data:', error);
+        // Fallback to mock data on error
+        setFinancialReports(generateMockReports(cvr));
       } finally {
         setIsLoading(false);
       }
@@ -58,17 +87,27 @@ const FinancialReportsSection: React.FC<FinancialReportsSectionProps> = ({ cvr }
                         )}
                       </div>
                     </div>
-                    {report.documentUrl && (
-                      <Button 
-                        variant="outline" 
-                        size="sm"
-                        onClick={() => window.open(report.documentUrl, '_blank')}
-                        className="flex items-center gap-1"
-                      >
-                        <Download className="h-4 w-4" />
-                        Hent
-                      </Button>
-                    )}
+                     {report.documentUrl ? (
+                       <Button 
+                         variant="outline" 
+                         size="sm"
+                         onClick={() => window.open(report.documentUrl, '_blank')}
+                         className="flex items-center gap-1"
+                       >
+                         <Download className="h-4 w-4" />
+                         Hent
+                       </Button>
+                     ) : (
+                       <Button 
+                         variant="outline" 
+                         size="sm"
+                         disabled
+                         className="flex items-center gap-1"
+                       >
+                         <TrendingUp className="h-4 w-4" />
+                         Demo data
+                       </Button>
+                     )}
                   </div>
                 </div>
               ))}
@@ -81,7 +120,7 @@ const FinancialReportsSection: React.FC<FinancialReportsSectionProps> = ({ cvr }
           
           <div className="mt-4 text-sm text-blue-600 bg-blue-50 p-3 rounded">
             <strong>Note:</strong> Regnskabsoplysninger hentes fra Erhvervsstyrelsens offentliggørelsesdatabase. 
-            Ikke alle virksomheder har offentligt tilgængelige regnskaber.
+            Hvis ingen rigtige data er tilgængelige, vises der demo-data til illustrationsformål.
           </div>
         </div>
       )}

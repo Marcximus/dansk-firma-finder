@@ -1,78 +1,87 @@
 
 import React from 'react';
-import { DollarSign } from 'lucide-react';
+import { DollarSign, TrendingUp, TrendingDown } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 interface FinancialKPICardProps {
   financialKPIs: any;
 }
 
 const FinancialKPICard: React.FC<FinancialKPICardProps> = ({ financialKPIs }) => {
+  const formatCurrency = (value: number | null | undefined) => {
+    if (!value) return 'Ikke tilgængelig';
+    return `${value.toLocaleString('da-DK')} DKK`;
+  };
+
+  const kpiData = [
+    {
+      label: 'Nettoomsætning',
+      value: financialKPIs?.nettoomsaetning,
+      icon: DollarSign,
+      color: 'text-blue-600'
+    },
+    {
+      label: 'Bruttofortjeneste',
+      value: financialKPIs?.bruttofortjeneste,
+      icon: TrendingUp,
+      color: 'text-green-600'
+    },
+    {
+      label: 'Årets resultat',
+      value: financialKPIs?.aaretsResultat,
+      icon: financialKPIs?.aaretsResultat > 0 ? TrendingUp : TrendingDown,
+      color: financialKPIs?.aaretsResultat > 0 ? 'text-green-600' : 'text-red-600'
+    },
+    {
+      label: 'Egenkapital i alt',
+      value: financialKPIs?.egenkapital,
+      icon: DollarSign,
+      color: 'text-purple-600'
+    },
+    {
+      label: 'Status balance',
+      value: financialKPIs?.statusBalance,
+      icon: DollarSign,
+      color: 'text-orange-600'
+    }
+  ];
+
   return (
-    <div>
-      <h4 className="font-semibold mb-3 flex items-center gap-2">
-        <DollarSign className="h-4 w-4" />
-        Nøgletal
-        {financialKPIs?.periode && (
-          <span className="text-sm font-normal text-muted-foreground">({financialKPIs.periode})</span>
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <DollarSign className="h-5 w-5" />
+          Nøgletal
+          {financialKPIs?.periode && (
+            <span className="text-sm font-normal text-muted-foreground">({financialKPIs.periode})</span>
+          )}
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {kpiData.map((kpi, index) => {
+            const Icon = kpi.icon;
+            return (
+              <div key={index} className="border rounded-lg p-4 hover:shadow-md transition-shadow">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="text-sm font-medium text-muted-foreground">{kpi.label}</div>
+                  <Icon className={`h-4 w-4 ${kpi.color}`} />
+                </div>
+                <div className="text-lg font-semibold">
+                  {formatCurrency(kpi.value)}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+        
+        {!financialKPIs && (
+          <div className="text-center py-8 text-muted-foreground">
+            Genererer finansielle nøgletal...
+          </div>
         )}
-      </h4>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {/* Nettoomsætning */}
-        <div className="border rounded p-3">
-          <div className="text-sm font-medium text-muted-foreground">Nettoomsætning</div>
-          <div className="text-lg font-semibold">
-            {financialKPIs?.nettoomsaetning ? 
-              `${financialKPIs.nettoomsaetning.toLocaleString('da-DK')} DKK` : 
-              'Ikke tilgængelig'
-            }
-          </div>
-        </div>
-        
-        {/* Bruttofortjeneste */}
-        <div className="border rounded p-3">
-          <div className="text-sm font-medium text-muted-foreground">Bruttofortjeneste</div>
-          <div className="text-lg font-semibold">
-            {financialKPIs?.bruttofortjeneste ? 
-              `${financialKPIs.bruttofortjeneste.toLocaleString('da-DK')} DKK` : 
-              'Ikke tilgængelig'
-            }
-          </div>
-        </div>
-        
-        {/* Årets resultat */}
-        <div className="border rounded p-3">
-          <div className="text-sm font-medium text-muted-foreground">Årets resultat</div>
-          <div className="text-lg font-semibold">
-            {financialKPIs?.aaretsResultat ? 
-              `${financialKPIs.aaretsResultat.toLocaleString('da-DK')} DKK` : 
-              'Ikke tilgængelig'
-            }
-          </div>
-        </div>
-        
-        {/* Egenkapital i alt */}
-        <div className="border rounded p-3">
-          <div className="text-sm font-medium text-muted-foreground">Egenkapital i alt</div>
-          <div className="text-lg font-semibold">
-            {financialKPIs?.egenkapital ? 
-              `${financialKPIs.egenkapital.toLocaleString('da-DK')} DKK` : 
-              'Ikke tilgængelig'
-            }
-          </div>
-        </div>
-        
-        {/* Status balance */}
-        <div className="border rounded p-3">
-          <div className="text-sm font-medium text-muted-foreground">Status balance</div>
-          <div className="text-lg font-semibold">
-            {financialKPIs?.statusBalance ? 
-              `${financialKPIs.statusBalance.toLocaleString('da-DK')} DKK` : 
-              'Ikke tilgængelig'
-            }
-          </div>
-        </div>
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   );
 };
 

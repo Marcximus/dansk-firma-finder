@@ -1,12 +1,13 @@
 
 import React from 'react';
 import { AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
-import { extractFinancialData } from '@/services/cvrUtils';
+import { extractFinancialData } from '@/services/utils/financialUtils';
 import { TrendingUp } from 'lucide-react';
 import FinancialKPICard from './financial/FinancialKPICard';
 import EmploymentDataCard from './financial/EmploymentDataCard';
 import CapitalInformationCard from './financial/CapitalInformationCard';
 import FinancialReportsSection from './financial/FinancialReportsSection';
+import FinancialChartsSection from './financial/FinancialChartsSection';
 
 interface FinancialAccordionProps {
   cvr: string;
@@ -16,7 +17,7 @@ interface FinancialAccordionProps {
 const FinancialAccordion: React.FC<FinancialAccordionProps> = ({ cvr, cvrData }) => {
   console.log('FinancialAccordion - Raw CVR Data:', cvrData);
   
-  const financialData = extractFinancialData(cvrData);
+  const financialData = extractFinancialData(cvrData, cvr);
   console.log('FinancialAccordion - Extracted Data:', financialData);
 
   return (
@@ -31,6 +32,11 @@ const FinancialAccordion: React.FC<FinancialAccordionProps> = ({ cvr, cvrData })
         <div className="space-y-6">
           {/* Key Financial Figures - Always show these */}
           <FinancialKPICard financialKPIs={financialData?.financialKPIs} />
+
+          {/* Financial Charts - Show historical data if available */}
+          {financialData?.historicalData && financialData.historicalData.length > 0 && (
+            <FinancialChartsSection historicalData={financialData.historicalData} />
+          )}
 
           {/* Employment Data */}
           <EmploymentDataCard 

@@ -1,10 +1,18 @@
 
+import { generateMockFinancialData } from './mockFinancialData';
+
 // Helper functions for extracting financial data
-export const extractFinancialData = (cvrData: any) => {
+export const extractFinancialData = (cvrData: any, cvr?: string) => {
   console.log('extractFinancialData - Input data:', cvrData);
   
+  // If no real CVR data is available, generate mock data
+  if (!cvrData?.Vrvirksomhed && cvr) {
+    console.log('extractFinancialData - No real data found, generating mock data for CVR:', cvr);
+    return generateMockFinancialData(cvr);
+  }
+  
   if (!cvrData?.Vrvirksomhed) {
-    console.log('extractFinancialData - No Vrvirksomhed data found');
+    console.log('extractFinancialData - No Vrvirksomhed data found and no CVR provided');
     return null;
   }
   
@@ -67,6 +75,7 @@ export const extractFinancialData = (cvrData: any) => {
 
   const result = {
     financialKPIs: getFinancialKPIs(),
+    historicalData: [], // Placeholder for backward compatibility
     yearlyEmployment: vrvirksomhed.aarsbeskaeftigelse || [],
     quarterlyEmployment: vrvirksomhed.kvartalsbeskaeftigelse || [],
     kapitalforhold: vrvirksomhed.kapitalforhold || [],
