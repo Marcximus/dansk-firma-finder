@@ -82,6 +82,20 @@ export const extractFinancialData = (cvrData: any, cvr?: string) => {
     regnskabsperiode: vrvirksomhed.regnskabsperiode || []
   };
 
+  // Check if we have meaningful financial data, if not generate mock data
+  const hasFinancialData = result.financialKPIs && (
+    result.financialKPIs.nettoomsaetning || 
+    result.financialKPIs.bruttofortjeneste || 
+    result.financialKPIs.aaretsResultat || 
+    result.financialKPIs.egenkapital || 
+    result.financialKPIs.statusBalance
+  );
+
+  if (!hasFinancialData && cvr) {
+    console.log('extractFinancialData - No meaningful financial data found, generating mock data for CVR:', cvr);
+    return generateMockFinancialData(cvr);
+  }
+
   console.log('extractFinancialData - Final result:', result);
   return result;
 };
