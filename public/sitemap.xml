@@ -2,7 +2,7 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <!-- Homepage - Main company search -->
   <url>
-    <loc>https://yoursite.lovable.app/</loc>
+    <loc>https://selskabsinfo.dk/</loc>
     <lastmod>2025-10-16</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
@@ -10,13 +10,13 @@
   
   <!-- Core Product Pages -->
   <url>
-    <loc>https://yoursite.lovable.app/virksomhedsrapporter</loc>
+    <loc>https://selskabsinfo.dk/virksomhedsrapporter</loc>
     <lastmod>2025-10-16</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://yoursite.lovable.app/track-foelg</loc>
+    <loc>https://selskabsinfo.dk/track-foelg</loc>
     <lastmod>2025-10-16</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
@@ -24,25 +24,25 @@
   
   <!-- Support & Help Pages -->
   <url>
-    <loc>https://yoursite.lovable.app/hjaelpecenter</loc>
+    <loc>https://selskabsinfo.dk/hjaelpecenter</loc>
     <lastmod>2025-10-16</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://yoursite.lovable.app/soegeguide</loc>
+    <loc>https://selskabsinfo.dk/soegeguide</loc>
     <lastmod>2025-10-16</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://yoursite.lovable.app/faq</loc>
+    <loc>https://selskabsinfo.dk/faq</loc>
     <lastmod>2025-10-16</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://yoursite.lovable.app/kontakt-os</loc>
+    <loc>https://selskabsinfo.dk/kontakt-os</loc>
     <lastmod>2025-10-16</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
@@ -50,7 +50,7 @@
   
   <!-- Data & Information Pages -->
   <url>
-    <loc>https://yoursite.lovable.app/datakilder</loc>
+    <loc>https://selskabsinfo.dk/datakilder</loc>
     <lastmod>2025-10-16</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
@@ -58,13 +58,13 @@
   
   <!-- Legal Pages -->
   <url>
-    <loc>https://yoursite.lovable.app/servicevilkaar</loc>
+    <loc>https://selskabsinfo.dk/servicevilkaar</loc>
     <lastmod>2025-10-16</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
-    <loc>https://yoursite.lovable.app/privatlivspolitik</loc>
+    <loc>https://selskabsinfo.dk/privatlivspolitik</loc>
     <lastmod>2025-10-16</lastmod>
     <changefreq>yearly</changefreq>
     <priority>0.5</priority>

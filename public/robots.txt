@@ -19,4 +19,4 @@ Allow: /virksomhedsrapporter
 Allow: /datakilder
 
 # Sitemap location
-Sitemap: https://yoursite.lovable.app/sitemap.xml
+Sitemap: https://selskabsinfo.dk/sitemap.xml
