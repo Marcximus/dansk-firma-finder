@@ -148,7 +148,7 @@ export const extractExtendedInfo = (cvrData: any) => {
     if (!capitalAmount) return null;
     
     // Check if partially paid
-    const partialAttr = attributter.find((attr: any) => attr.type === 'DELVIST_INDBETALT');
+    const partialAttr = attributter.find((attr: any) => attr.type === 'KAPITAL_DELVIST');
     let isPartiallyPaid = false;
     
     if (partialAttr?.vaerdier) {
