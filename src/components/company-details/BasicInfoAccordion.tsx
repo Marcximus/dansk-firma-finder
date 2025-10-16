@@ -114,6 +114,11 @@ const BasicInfoAccordion: React.FC<BasicInfoAccordionProps> = ({ company, cvrDat
       <AccordionContent className="px-6 pb-6">
         <div className="space-y-2">
           <div className="grid grid-cols-[200px_1fr] gap-4">
+            <span>Navn</span>
+            <span>{company.name}</span>
+          </div>
+          
+          <div className="grid grid-cols-[200px_1fr] gap-4">
             <span>CVR-nummer</span>
             <span>{company.cvr}</span>
           </div>
