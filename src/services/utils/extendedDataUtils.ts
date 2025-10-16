@@ -119,7 +119,20 @@ export const extractExtendedInfo = (cvrData: any) => {
 
   // Enhanced registered capital extraction
   const getRegisteredCapital = () => {
-    // Try multiple sources for capital information
+    // Try attributter array first (most reliable source)
+    const attributter = vrvirksomhed.attributter || [];
+    const kapitalAttr = attributter.find((attr: any) => attr.type === 'KAPITAL');
+    if (kapitalAttr?.vaerdier) {
+      const currentValue = kapitalAttr.vaerdier.find((v: any) => v.periode?.gyldigTil === null);
+      const latestValue = currentValue || kapitalAttr.vaerdier[kapitalAttr.vaerdier.length - 1];
+      if (latestValue?.vaerdi) {
+        const capital = parseFloat(latestValue.vaerdi);
+        console.log('Registered capital from attributter:', capital);
+        return capital;
+      }
+    }
+    
+    // Try kapitalforhold
     const kapitalforhold = vrvirksomhed.kapitalforhold || [];
     const current = kapitalforhold.find((k: any) => !k.periode?.gyldigTil && k.kapitalbeloeb);
     let registeredCapital = current?.kapitalbeloeb || vrvirksomhed.registreretKapital;
