@@ -44,13 +44,18 @@ const BasicInfoAccordion: React.FC<BasicInfoAccordionProps> = ({ company, cvrDat
   };
 
   const getStartDate = () => {
-    // Direct path to livsforloeb registration date
+    // Priority 1: Direct stiftelsesDato field from CVR data
+    if (cvrData?.stiftelsesDato) {
+      return formatDate(cvrData.stiftelsesDato);
+    }
+    
+    // Priority 2: livsforloeb registration date
     const livsforloebDate = cvrData?.livsforloeb?.[0]?.periode?.gyldigFra;
     if (livsforloebDate) {
       return formatDate(livsforloebDate);
     }
     
-    // Check for FØRSTE_REGNSKABSPERIODE_START in attributter
+    // Priority 3: Check for FØRSTE_REGNSKABSPERIODE_START in attributter
     const regnskabStart = cvrData?.attributter?.find((attr: any) => 
       attr.type === 'FØRSTE_REGNSKABSPERIODE_START'
     );
@@ -58,7 +63,7 @@ const BasicInfoAccordion: React.FC<BasicInfoAccordionProps> = ({ company, cvrDat
       return formatDate(regnskabStart.vaerdier[0].vaerdi);
     }
     
-    // Fallback to company.yearFounded
+    // Priority 4: Fallback to company.yearFounded
     if (company.yearFounded) {
       return company.yearFounded.toString();
     }
