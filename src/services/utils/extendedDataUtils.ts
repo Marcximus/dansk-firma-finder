@@ -117,40 +117,58 @@ export const extractExtendedInfo = (cvrData: any) => {
     return kapitalforhold;
   };
 
-  // Enhanced registered capital extraction
+  // Enhanced registered capital extraction with partial payment status
   const getRegisteredCapital = () => {
-    // Try attributter array first (most reliable source)
     const attributter = vrvirksomhed.attributter || [];
+    
+    // Get capital amount
     const kapitalAttr = attributter.find((attr: any) => attr.type === 'KAPITAL');
+    let capitalAmount = null;
+    
     if (kapitalAttr?.vaerdier) {
       const currentValue = kapitalAttr.vaerdier.find((v: any) => v.periode?.gyldigTil === null);
       const latestValue = currentValue || kapitalAttr.vaerdier[kapitalAttr.vaerdier.length - 1];
       if (latestValue?.vaerdi) {
-        const capital = parseFloat(latestValue.vaerdi);
-        console.log('Registered capital from attributter:', capital);
-        return capital;
+        capitalAmount = parseFloat(latestValue.vaerdi);
       }
     }
     
-    // Try kapitalforhold
-    const kapitalforhold = vrvirksomhed.kapitalforhold || [];
-    const current = kapitalforhold.find((k: any) => !k.periode?.gyldigTil && k.kapitalbeloeb);
-    let registeredCapital = current?.kapitalbeloeb || vrvirksomhed.registreretKapital;
-    
-    // Try alternative field names
-    if (!registeredCapital && kapitalforhold.length > 0) {
-      const latest = kapitalforhold[kapitalforhold.length - 1];
-      registeredCapital = latest?.kapitalbeloeb || latest?.amount || latest?.beloeb;
+    // Fallback to kapitalforhold
+    if (!capitalAmount) {
+      const kapitalforhold = vrvirksomhed.kapitalforhold || [];
+      const current = kapitalforhold.find((k: any) => !k.periode?.gyldigTil && k.kapitalbeloeb);
+      capitalAmount = current?.kapitalbeloeb || vrvirksomhed.registreretKapital;
+      
+      if (!capitalAmount && kapitalforhold.length > 0) {
+        const latest = kapitalforhold[kapitalforhold.length - 1];
+        capitalAmount = latest?.kapitalbeloeb || latest?.amount || latest?.beloeb;
+      }
     }
     
-    // Try virksomhedsform for capital info
-    if (!registeredCapital && vrvirksomhed.virksomhedsform) {
-      const currentForm = vrvirksomhed.virksomhedsform.find((f: any) => !f.periode?.gyldigTil);
-      registeredCapital = currentForm?.kapital || vrvirksomhed.virksomhedsform[vrvirksomhed.virksomhedsform.length - 1]?.kapital;
+    if (!capitalAmount) return null;
+    
+    // Check if partially paid
+    const partialAttr = attributter.find((attr: any) => attr.type === 'DELVIST_INDBETALT');
+    let isPartiallyPaid = false;
+    
+    if (partialAttr?.vaerdier) {
+      const currentValue = partialAttr.vaerdier.find((v: any) => v.periode?.gyldigTil === null);
+      const value = currentValue || partialAttr.vaerdier[partialAttr.vaerdier.length - 1];
+      isPartiallyPaid = value?.vaerdi === 'true' || value?.vaerdi === true;
     }
     
-    console.log('Registered capital extraction - kapitalforhold:', kapitalforhold, 'registeredCapital:', registeredCapital);
-    return registeredCapital;
+    // Format the capital string
+    const formatted = capitalAmount.toLocaleString('da-DK', {
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0
+    });
+    
+    const result = isPartiallyPaid 
+      ? `${formatted} DKK (delvist indbetalt)` 
+      : `${formatted} DKK`;
+    
+    console.log('Registered capital:', result);
+    return result;
   };
 
   // Extract accounting year from attributter

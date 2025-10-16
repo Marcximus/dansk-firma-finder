@@ -185,10 +185,7 @@ const BasicInfoAccordion: React.FC<BasicInfoAccordionProps> = ({ company, cvrDat
           <InfoRow 
             icon={DollarSign} 
             label="Registreret kapital" 
-            value={extendedInfo?.registeredCapital ? 
-              `${extendedInfo.registeredCapital.toLocaleString('da-DK')} DKK` : 
-              undefined
-            } 
+            value={extendedInfo?.registeredCapital} 
           />
           
           <InfoRow 
