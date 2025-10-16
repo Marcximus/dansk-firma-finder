@@ -41,12 +41,6 @@ const ExtendedInfoAccordion: React.FC<ExtendedInfoAccordionProps> = ({ company, 
         <div className="space-y-1">
           {/* Basic Information */}
           <InfoRow 
-            icon={Phone} 
-            label="Telefon" 
-            value={extendedInfo?.phone} 
-          />
-          
-          <InfoRow 
             icon={MapPin} 
             label="Kommune" 
             value={extendedInfo?.municipality?.kommuneNavn || extendedInfo?.municipality} 
@@ -68,6 +62,12 @@ const ExtendedInfoAccordion: React.FC<ExtendedInfoAccordionProps> = ({ company, 
             icon={Calendar} 
             label="Regnskabsår" 
             value={extendedInfo?.accountingYear} 
+          />
+          
+          <InfoRow 
+            icon={Calendar} 
+            label="Første regnskabsperiode" 
+            value={extendedInfo?.firstAccountingPeriod} 
           />
           
           <InfoRow 

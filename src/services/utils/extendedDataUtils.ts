@@ -183,6 +183,18 @@ export const extractExtendedInfo = (cvrData: any) => {
     return null;
   };
 
+  // Extract first accounting period
+  const getFirstAccountingPeriod = () => {
+    const attributter = vrvirksomhed.attributter || [];
+    const firstPeriodAttr = attributter.find((attr: any) => attr.type === 'FØRSTE_REGNSKABSPERIODE_START');
+    if (firstPeriodAttr?.vaerdier) {
+      const value = firstPeriodAttr.vaerdier.find((v: any) => v.periode?.gyldigTil === null);
+      const latestValue = value || firstPeriodAttr.vaerdier[firstPeriodAttr.vaerdier.length - 1];
+      return latestValue?.vaerdi || null;
+    }
+    return null;
+  };
+
   const result = {
     phone: getPhone(),
     municipality: getMunicipality(),
@@ -191,6 +203,7 @@ export const extractExtendedInfo = (cvrData: any) => {
     secondaryIndustries: getSecondaryIndustries(),
     isListed: vrvirksomhed.boersnoteret || false,
     accountingYear: getAccountingYear(),
+    firstAccountingPeriod: getFirstAccountingPeriod(),
     latestStatuteDate: (() => {
       const vedtaegter = vrvirksomhed.vedtaegter || [];
       const latest = vedtaegter.find((v: any) => v.periode?.gyldigTil === null) || vedtaegter[vedtaegter.length - 1];

@@ -201,13 +201,11 @@ const BasicInfoAccordion: React.FC<BasicInfoAccordionProps> = ({ company, cvrDat
             ) : undefined}
           />
           
-          {contactInfo.phone && (
-            <InfoRow 
-              icon={Phone} 
-              label="Telefon" 
-              value={contactInfo.phone} 
-            />
-          )}
+          <InfoRow 
+            icon={Phone} 
+            label="Telefon" 
+            value={extendedInfo?.phone} 
+          />
           
           {website && (
             <InfoRow 
