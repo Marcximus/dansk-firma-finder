@@ -18,10 +18,10 @@ const BasicInfoAccordion: React.FC<BasicInfoAccordionProps> = ({ company, cvrDat
     value: string | null | undefined | React.ReactNode, 
     className?: string 
   }) => (
-    <div className={`flex items-center gap-3 py-2 ${className}`}>
+    <div className={`flex items-center gap-3 ${className}`}>
       <Icon className="h-4 w-4 text-muted-foreground flex-shrink-0" />
       <span className="text-sm text-muted-foreground min-w-[120px]">{label}:</span>
-      <span className="text-sm font-medium">{value || 'Ikke tilgængelig'}</span>
+      <span className="text-sm">{value || 'Ikke tilgængelig'}</span>
     </div>
   );
   
