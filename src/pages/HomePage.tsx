@@ -58,8 +58,9 @@ const HomePage = () => {
   const transformCompanyData = (company: Company): Company => {
     // Transform legal form
     let transformedLegalForm = company.legalForm;
-    if (company.legalForm === 'Anden udenlandsk virksomhed' || 
-        company.legalForm === 'Filial af udenlandsk aktieselskab, kommanditakties etc') {
+    if (company.legalForm?.toLowerCase().includes('filial')) {
+      transformedLegalForm = 'Filial';
+    } else if (company.legalForm === 'Anden udenlandsk virksomhed') {
       transformedLegalForm = 'Udenlandsk Virksomhed';
     }
 

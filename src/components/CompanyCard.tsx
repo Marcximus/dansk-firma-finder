@@ -12,13 +12,17 @@ interface CompanyCardProps {
 const CompanyCard: React.FC<CompanyCardProps> = ({ company }) => {
   // Transform legal form text to clean up specific cases for search results
   const cleanLegalForm = (legalForm: string) => {
-    // First handle the foreign company simplification
-    if (legalForm === 'Anden udenlandsk virksomhed' || 
-        legalForm === 'Filial af udenlandsk aktieselskab, kommanditakties etc') {
+    // Handle filial simplification
+    if (legalForm?.toLowerCase().includes('filial')) {
+      return 'Filial';
+    }
+    
+    // Handle foreign company simplification
+    if (legalForm === 'Anden udenlandsk virksomhed') {
       return 'Udenlandsk Virksomhed';
     }
     
-    // Then handle the personal company simplification
+    // Handle the personal company simplification
     if (legalForm === 'Personligt ejet Mindre Virksomhed') {
       return 'Personligt Ejet Virksomhed';
     }
