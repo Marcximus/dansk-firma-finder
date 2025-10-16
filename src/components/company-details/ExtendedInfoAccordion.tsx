@@ -22,10 +22,10 @@ const ExtendedInfoAccordion: React.FC<ExtendedInfoAccordionProps> = ({ company, 
     value: string | null | undefined, 
     className?: string 
   }) => (
-    <div className={`flex items-center gap-3 py-2 ${className}`}>
+    <div className={`flex items-center gap-3 ${className}`}>
       <Icon className="h-4 w-4 text-muted-foreground flex-shrink-0" />
       <span className="text-sm text-muted-foreground min-w-[120px]">{label}:</span>
-      <span className="text-sm font-medium">{value || 'Ikke tilgængelig'}</span>
+      <span className="text-sm">{value || 'Ikke tilgængelig'}</span>
     </div>
   );
 
@@ -87,24 +87,24 @@ const ExtendedInfoAccordion: React.FC<ExtendedInfoAccordionProps> = ({ company, 
 
           {/* Purpose - Special handling for long text */}
           {extendedInfo?.purpose && (
-            <div className="flex gap-3 py-2 border-t mt-4 pt-4">
+            <div className="flex gap-3 border-t mt-4 pt-4">
               <Target className="h-4 w-4 text-muted-foreground flex-shrink-0 mt-0.5" />
               <div className="flex-1">
                 <span className="text-sm text-muted-foreground">Formål:</span>
-                <p className="text-sm font-medium mt-1 leading-relaxed">{extendedInfo.purpose}</p>
+                <p className="text-sm mt-1 leading-relaxed">{extendedInfo.purpose}</p>
               </div>
             </div>
           )}
 
           {/* Secondary Industries */}
           {extendedInfo?.secondaryIndustries && extendedInfo.secondaryIndustries.length > 0 && (
-            <div className="flex gap-3 py-2 border-t mt-4 pt-4">
+            <div className="flex gap-3 border-t mt-4 pt-4">
               <Briefcase className="h-4 w-4 text-muted-foreground flex-shrink-0 mt-0.5" />
               <div className="flex-1">
                 <span className="text-sm text-muted-foreground">Bibrancher:</span>
                 <div className="mt-1 space-y-1">
                   {extendedInfo.secondaryIndustries.map((branch: any, index: number) => (
-                    <div key={index} className="text-sm font-medium">
+                    <div key={index} className="text-sm">
                       {branch.branchekode} {branch.branchetekst}
                     </div>
                   ))}
@@ -115,13 +115,13 @@ const ExtendedInfoAccordion: React.FC<ExtendedInfoAccordionProps> = ({ company, 
 
           {/* Alternative Names */}
           {extendedInfo?.binavne && extendedInfo.binavne.length > 0 && (
-            <div className="flex gap-3 py-2 border-t mt-4 pt-4">
+            <div className="flex gap-3 border-t mt-4 pt-4">
               <Info className="h-4 w-4 text-muted-foreground flex-shrink-0 mt-0.5" />
               <div className="flex-1">
                 <span className="text-sm text-muted-foreground">Binavne:</span>
                 <div className="mt-1">
                   {extendedInfo.binavne.map((navn: string, index: number) => (
-                    <div key={index} className="text-sm font-medium">{navn}</div>
+                    <div key={index} className="text-sm">{navn}</div>
                   ))}
                 </div>
               </div>
@@ -130,14 +130,14 @@ const ExtendedInfoAccordion: React.FC<ExtendedInfoAccordionProps> = ({ company, 
 
           {/* Capital Classes */}
           {extendedInfo?.capitalClasses && extendedInfo.capitalClasses.length > 0 && (
-            <div className="flex gap-3 py-2 border-t mt-4 pt-4">
+            <div className="flex gap-3 border-t mt-4 pt-4">
               <DollarSign className="h-4 w-4 text-muted-foreground flex-shrink-0 mt-0.5" />
               <div className="flex-1">
                 <span className="text-sm text-muted-foreground">Kapitalklasser:</span>
                 <div className="mt-1 space-y-2">
                   {extendedInfo.capitalClasses.map((kapital: any, index: number) => (
                     <div key={index} className="text-sm">
-                      <div className="font-medium">{kapital.kapitalklasse || 'Ukendt kapitalklasse'}</div>
+                      <div>{kapital.kapitalklasse || 'Ukendt kapitalklasse'}</div>
                       {kapital.kapitalbeloeb && (
                         <div className="text-muted-foreground">
                           {kapital.kapitalbeloeb.toLocaleString('da-DK')} {kapital.valuta || 'DKK'}
