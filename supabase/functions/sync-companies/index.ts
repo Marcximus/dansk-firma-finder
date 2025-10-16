@@ -74,21 +74,13 @@ serve(async (req) => {
     }
 
     // Fetch companies from Danish Business API
-    // Query for active companies (status = "NORMAL")
+    // Fetch all companies - we'll filter by status in the application layer
     const elasticQuery = {
       "_source": ["Vrvirksomhed.cvrNummer", "Vrvirksomhed.virksomhedMetadata.nyesteNavn.navn", "Vrvirksomhed.virksomhedMetadata.sammensatStatus"],
       "size": batchSize,
       "from": offset,
       "query": {
-        "bool": {
-          "must": [
-            {
-              "term": {
-                "Vrvirksomhed.virksomhedMetadata.sammensatStatus": "NORMAL"
-              }
-            }
-          ]
-        }
+        "match_all": {}
       },
       "sort": [
         { "Vrvirksomhed.cvrNummer": "asc" }
@@ -107,10 +99,14 @@ serve(async (req) => {
     });
 
     if (!apiResponse.ok) {
-      throw new Error('Failed to fetch from Danish Business API');
+      const errorText = await apiResponse.text();
+      console.error('[sync-companies] API Error:', apiResponse.status, errorText);
+      throw new Error(`Failed to fetch from Danish Business API: ${apiResponse.status}`);
     }
 
     const apiData = await apiResponse.json();
+    console.log('[sync-companies] API Response structure:', JSON.stringify(apiData).substring(0, 500));
+    
     const hits = apiData?.hits?.hits || [];
     const totalCompanies = apiData?.hits?.total?.value || 0;
 
