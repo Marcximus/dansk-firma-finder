@@ -39,6 +39,21 @@ const ExtendedInfoAccordion: React.FC<ExtendedInfoAccordionProps> = ({ company, 
       </AccordionTrigger>
       <AccordionContent className="px-6 pb-6">
         <div className="space-y-1">
+          {/* Alternative Names */}
+          {extendedInfo?.binavne && extendedInfo.binavne.length > 0 && (
+            <div className="flex gap-3 mb-4">
+              <Info className="h-4 w-4 text-muted-foreground flex-shrink-0 mt-0.5" />
+              <div className="flex-1">
+                <span className="text-sm text-muted-foreground">Binavne:</span>
+                <div className="mt-1">
+                  {extendedInfo.binavne.map((navn: string, index: number) => (
+                    <div key={index} className="text-sm">{navn}</div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Basic Information */}
           <InfoRow 
             icon={MapPin} 
@@ -104,20 +119,6 @@ const ExtendedInfoAccordion: React.FC<ExtendedInfoAccordionProps> = ({ company, 
             </div>
           )}
 
-          {/* Alternative Names */}
-          {extendedInfo?.binavne && extendedInfo.binavne.length > 0 && (
-            <div className="flex gap-3 border-t mt-4 pt-4">
-              <Info className="h-4 w-4 text-muted-foreground flex-shrink-0 mt-0.5" />
-              <div className="flex-1">
-                <span className="text-sm text-muted-foreground">Binavne:</span>
-                <div className="mt-1">
-                  {extendedInfo.binavne.map((navn: string, index: number) => (
-                    <div key={index} className="text-sm">{navn}</div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          )}
 
           {/* Capital Classes */}
           {extendedInfo?.capitalClasses && extendedInfo.capitalClasses.length > 0 && (
