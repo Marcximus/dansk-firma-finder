@@ -81,8 +81,7 @@ const KontaktOsPage: React.FC = () => {
           throw new Error('Failed to submit lead');
         }
       } else {
-        // Regular contact form submission
-        console.log('Contact form submitted:', formData);
+        // Regular contact form submission (no backend processing yet)
         alert('Tak for din henvendelse! Vi kontakter dig snarest muligt.');
       }
       

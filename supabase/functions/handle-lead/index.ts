@@ -120,9 +120,13 @@ const handler = async (req: Request): Promise<Response> => {
       .single();
 
     if (insertError) {
-      console.error('Error inserting lead:', insertError);
+      console.error('[ERROR]', {
+        function: 'handle-lead',
+        error: insertError.message,
+        timestamp: new Date().toISOString()
+      });
       return new Response(
-        JSON.stringify({ error: 'Failed to create lead' }),
+        JSON.stringify({ error: 'Failed to submit request. Please try again.' }),
         {
           status: 500,
           headers: { 'Content-Type': 'application/json', ...corsHeaders },
@@ -130,7 +134,7 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
-    console.log('Lead created successfully:', lead);
+    console.log('[INFO] Lead created successfully with ID:', lead.id);
 
     // Log user activity if user_id is provided
     if (leadData.user_id) {
@@ -160,9 +164,13 @@ const handler = async (req: Request): Promise<Response> => {
     );
 
   } catch (error: any) {
-    console.error('Error in handle-lead function:', error);
+    console.error('[ERROR]', {
+      function: 'handle-lead',
+      error: error.message,
+      timestamp: new Date().toISOString()
+    });
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: 'An error occurred. Please try again.' }),
       {
         status: 500,
         headers: { 'Content-Type': 'application/json', ...corsHeaders },
