@@ -111,16 +111,32 @@ serve(async (req) => {
     }
 
     const apiData = await apiResponse.json();
-    console.log('[sync-companies] API Response structure:', JSON.stringify(apiData).substring(0, 500));
+    
+    // Log the full response to debug
+    console.log('[sync-companies] Full API Response:', JSON.stringify(apiData));
+    console.log('[sync-companies] Hits structure:', JSON.stringify(apiData?.hits));
     
     const hits = apiData?.hits?.hits || [];
-    const totalCompanies = apiData?.hits?.total?.value || 0;
+    const totalCompanies = apiData?.hits?.total?.value || apiData?.hits?.total || 0;
 
     console.log(`[sync-companies] Found ${hits.length} companies (total: ${totalCompanies})`);
 
+    // Log sample hit to understand structure
+    if (hits.length > 0) {
+      console.log('[sync-companies] Sample hit structure:', JSON.stringify(hits[0]));
+    }
+
     // Transform and insert companies
     const companies = hits.map((hit: any) => {
-      const source = hit._source?.Vrvirksomhed;
+      // The structure might be hit._source.Vrvirksomhed or just hit._source
+      const source = hit._source?.Vrvirksomhed || hit._source;
+      
+      console.log('[sync-companies] Processing company:', {
+        cvr: source?.cvrNummer,
+        name: source?.virksomhedMetadata?.nyesteNavn?.navn,
+        status: source?.virksomhedMetadata?.sammensatStatus
+      });
+      
       return {
         cvr: source?.cvrNummer?.toString(),
         name: source?.virksomhedMetadata?.nyesteNavn?.navn || 'Unavngivet',

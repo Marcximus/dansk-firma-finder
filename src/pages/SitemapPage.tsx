@@ -15,7 +15,10 @@ const SitemapPage = ({ type }: SitemapPageProps) => {
       try {
         let path = location.pathname;
         
-        if (type === 'static') {
+        // Handle main sitemap.xml - generate index
+        if (path === '/sitemap.xml') {
+          path = '/sitemap.xml';
+        } else if (type === 'static') {
           path = '/sitemap-static.xml';
         } else if (type === 'companies' && page) {
           path = `/sitemap-companies-${page}.xml`;
@@ -29,9 +32,22 @@ const SitemapPage = ({ type }: SitemapPageProps) => {
 
         // Return XML response
         const xml = data?.xml || data;
-        const blob = new Blob([xml], { type: 'application/xml' });
-        const url = URL.createObjectURL(blob);
-        window.location.replace(url);
+        
+        // Set response headers and replace document
+        const parser = new DOMParser();
+        const xmlDoc = parser.parseFromString(xml, 'application/xml');
+        
+        // Replace the entire document with XML
+        document.open();
+        document.write(xml);
+        document.close();
+        
+        // Set content type
+        if (document.contentType !== 'application/xml') {
+          const blob = new Blob([xml], { type: 'application/xml' });
+          const url = URL.createObjectURL(blob);
+          window.location.replace(url);
+        }
       } catch (error) {
         console.error('Sitemap generation error:', error);
         document.body.innerHTML = '<error>Failed to generate sitemap</error>';
