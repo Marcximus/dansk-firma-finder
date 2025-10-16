@@ -3,7 +3,6 @@ import React from 'react';
 import { AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Company } from '@/services/companyAPI';
 import { FileText } from 'lucide-react';
-import { Table, TableBody, TableCell, TableRow } from '@/components/ui/table';
 
 interface BasicInfoAccordionProps {
   company: Company;
@@ -113,72 +112,68 @@ const BasicInfoAccordion: React.FC<BasicInfoAccordionProps> = ({ company, cvrDat
         </div>
       </AccordionTrigger>
       <AccordionContent className="px-6 pb-6">
-        <Table>
-          <TableBody>
-            <TableRow>
-              <TableCell className="font-medium text-muted-foreground w-1/3">CVR-nummer</TableCell>
-              <TableCell className="font-semibold">{company.cvr}</TableCell>
-            </TableRow>
-            
-            <TableRow>
-              <TableCell className="font-medium text-muted-foreground w-1/3">Adresse</TableCell>
-              <TableCell className="font-semibold">
-                {address.street}, {address.postal} {address.city}
-              </TableCell>
-            </TableRow>
-            
-            <TableRow>
-              <TableCell className="font-medium text-muted-foreground w-1/3">Startdato</TableCell>
-              <TableCell className="font-semibold">{getStartDate()}</TableCell>
-            </TableRow>
-            
-            <TableRow>
-              <TableCell className="font-medium text-muted-foreground w-1/3">Virksomhedsform</TableCell>
-              <TableCell className="font-semibold">{getLegalForm()}</TableCell>
-            </TableRow>
-            
-            <TableRow>
-              <TableCell className="font-medium text-muted-foreground w-1/3">E-mail</TableCell>
-              <TableCell>
-                {contactInfo.email ? (
-                  <a href={`mailto:${contactInfo.email}`} className="font-medium text-primary hover:underline">
-                    {contactInfo.email}
-                  </a>
-                ) : (
-                  <span className="font-medium text-muted-foreground">Ikke oplyst</span>
-                )}
-              </TableCell>
-            </TableRow>
-            
-            <TableRow>
-              <TableCell className="font-medium text-muted-foreground w-1/3">Telefon</TableCell>
-              <TableCell className="font-semibold">
-                {contactInfo.phone || <span className="text-muted-foreground">Ikke oplyst</span>}
-              </TableCell>
-            </TableRow>
-            
-            {website && (
-              <TableRow>
-                <TableCell className="font-medium text-muted-foreground w-1/3">Hjemmeside</TableCell>
-                <TableCell>
-                  <a 
-                    href={website.startsWith('http') ? website : `https://${website}`} 
-                    target="_blank" 
-                    rel="noopener noreferrer" 
-                    className="font-medium text-primary hover:underline"
-                  >
-                    {website}
-                  </a>
-                </TableCell>
-              </TableRow>
-            )}
-            
-            <TableRow>
-              <TableCell className="font-medium text-muted-foreground w-1/3">Status</TableCell>
-              <TableCell className="font-semibold">{getStatus()}</TableCell>
-            </TableRow>
-          </TableBody>
-        </Table>
+        <div className="space-y-2">
+          <div className="grid grid-cols-[200px_1fr] gap-4">
+            <span>CVR-nummer</span>
+            <span>{company.cvr}</span>
+          </div>
+          
+          <div className="grid grid-cols-[200px_1fr] gap-4">
+            <span>Adresse</span>
+            <span>{address.street}, {address.postal} {address.city}</span>
+          </div>
+          
+          <div className="grid grid-cols-[200px_1fr] gap-4">
+            <span>Startdato</span>
+            <span>{getStartDate()}</span>
+          </div>
+          
+          <div className="grid grid-cols-[200px_1fr] gap-4">
+            <span>Virksomhedsform</span>
+            <span>{getLegalForm()}</span>
+          </div>
+          
+          <div className="grid grid-cols-[200px_1fr] gap-4">
+            <span>Email</span>
+            <span>
+              {contactInfo.email ? (
+                <a href={`mailto:${contactInfo.email}`} className="text-primary hover:underline">
+                  {contactInfo.email}
+                </a>
+              ) : (
+                ''
+              )}
+            </span>
+          </div>
+          
+          {contactInfo.phone && (
+            <div className="grid grid-cols-[200px_1fr] gap-4">
+              <span>Telefon</span>
+              <span>{contactInfo.phone}</span>
+            </div>
+          )}
+          
+          {website && (
+            <div className="grid grid-cols-[200px_1fr] gap-4">
+              <span>Hjemmeside</span>
+              <span>
+                <a 
+                  href={website.startsWith('http') ? website : `https://${website}`} 
+                  target="_blank" 
+                  rel="noopener noreferrer" 
+                  className="text-primary hover:underline"
+                >
+                  {website}
+                </a>
+              </span>
+            </div>
+          )}
+          
+          <div className="grid grid-cols-[200px_1fr] gap-4">
+            <span>Status</span>
+            <span>{getStatus()}</span>
+          </div>
+        </div>
       </AccordionContent>
     </AccordionItem>
   );
