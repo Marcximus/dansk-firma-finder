@@ -2,7 +2,7 @@
 import React from 'react';
 import { AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Company } from '@/services/companyAPI';
-import { FileText } from 'lucide-react';
+import { FileText, Building2, Hash, MapPin, Calendar, Briefcase, Mail, Phone, Globe, Activity } from 'lucide-react';
 import { format } from 'date-fns';
 import { da } from 'date-fns/locale';
 
@@ -12,16 +12,18 @@ interface BasicInfoAccordionProps {
 }
 
 const BasicInfoAccordion: React.FC<BasicInfoAccordionProps> = ({ company, cvrData }) => {
-  // DEBUG: Log the entire cvrData object structure
-  console.log('🔍 ========== BasicInfoAccordion DEBUGGING START ==========');
-  console.log('🔍 cvrData type:', typeof cvrData);
-  console.log('🔍 cvrData is null?', cvrData === null);
-  console.log('🔍 cvrData is undefined?', cvrData === undefined);
-  console.log('🔍 cvrData keys:', cvrData ? Object.keys(cvrData) : 'NO KEYS');
-  console.log('🔍 Direct access stiftelsesDato:', cvrData?.stiftelsesDato);
-  console.log('🔍 Does cvrData have stiftelsesDato property?', cvrData ? ('stiftelsesDato' in cvrData) : false);
-  console.log('🔍 Full cvrData object:', JSON.stringify(cvrData, null, 2).substring(0, 500));
-  console.log('🔍 ========== BasicInfoAccordion DEBUGGING END ==========');
+  const InfoRow = ({ icon: Icon, label, value, className = "" }: { 
+    icon: any, 
+    label: string, 
+    value: string | null | undefined | React.ReactNode, 
+    className?: string 
+  }) => (
+    <div className={`flex items-center gap-3 py-2 ${className}`}>
+      <Icon className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+      <span className="text-sm text-muted-foreground min-w-[120px]">{label}:</span>
+      <span className="text-sm font-medium">{value || 'Ikke tilgængelig'}</span>
+    </div>
+  );
   
   const formatDate = (dateString: string) => {
     if (!dateString) return 'Ikke oplyst';
@@ -147,56 +149,60 @@ const BasicInfoAccordion: React.FC<BasicInfoAccordionProps> = ({ company, cvrDat
         </div>
       </AccordionTrigger>
       <AccordionContent className="px-6 pb-6">
-        <div className="space-y-2">
-          <div className="grid grid-cols-[200px_1fr] gap-4">
-            <span>Navn</span>
-            <span>{company.name}</span>
-          </div>
+        <div className="space-y-1">
+          <InfoRow 
+            icon={Building2} 
+            label="Navn" 
+            value={company.name} 
+          />
           
-          <div className="grid grid-cols-[200px_1fr] gap-4">
-            <span>CVR-nummer</span>
-            <span>{company.cvr}</span>
-          </div>
+          <InfoRow 
+            icon={Hash} 
+            label="CVR-nummer" 
+            value={company.cvr} 
+          />
           
-          <div className="grid grid-cols-[200px_1fr] gap-4">
-            <span>Adresse</span>
-            <span>{address.street}, {address.postal} {address.city}</span>
-          </div>
+          <InfoRow 
+            icon={MapPin} 
+            label="Adresse" 
+            value={`${address.street}, ${address.postal} ${address.city}`} 
+          />
           
-          <div className="grid grid-cols-[200px_1fr] gap-4">
-            <span>Startdato</span>
-            <span>{getStartDate()}</span>
-          </div>
+          <InfoRow 
+            icon={Calendar} 
+            label="Startdato" 
+            value={getStartDate()} 
+          />
           
-          <div className="grid grid-cols-[200px_1fr] gap-4">
-            <span>Virksomhedsform</span>
-            <span>{getLegalForm()}</span>
-          </div>
+          <InfoRow 
+            icon={Briefcase} 
+            label="Virksomhedsform" 
+            value={getLegalForm()} 
+          />
           
-          <div className="grid grid-cols-[200px_1fr] gap-4">
-            <span>Email</span>
-            <span>
-              {contactInfo.email ? (
-                <a href={`mailto:${contactInfo.email}`} className="text-primary hover:underline">
-                  {contactInfo.email}
-                </a>
-              ) : (
-                ''
-              )}
-            </span>
-          </div>
+          <InfoRow 
+            icon={Mail} 
+            label="Email" 
+            value={contactInfo.email ? (
+              <a href={`mailto:${contactInfo.email}`} className="text-primary hover:underline">
+                {contactInfo.email}
+              </a>
+            ) : undefined}
+          />
           
           {contactInfo.phone && (
-            <div className="grid grid-cols-[200px_1fr] gap-4">
-              <span>Telefon</span>
-              <span>{contactInfo.phone}</span>
-            </div>
+            <InfoRow 
+              icon={Phone} 
+              label="Telefon" 
+              value={contactInfo.phone} 
+            />
           )}
           
           {website && (
-            <div className="grid grid-cols-[200px_1fr] gap-4">
-              <span>Hjemmeside</span>
-              <span>
+            <InfoRow 
+              icon={Globe} 
+              label="Hjemmeside" 
+              value={
                 <a 
                   href={website.startsWith('http') ? website : `https://${website}`} 
                   target="_blank" 
@@ -205,14 +211,15 @@ const BasicInfoAccordion: React.FC<BasicInfoAccordionProps> = ({ company, cvrDat
                 >
                   {website}
                 </a>
-              </span>
-            </div>
+              }
+            />
           )}
           
-          <div className="grid grid-cols-[200px_1fr] gap-4">
-            <span>Status</span>
-            <span>{getStatus()}</span>
-          </div>
+          <InfoRow 
+            icon={Activity} 
+            label="Status" 
+            value={getStatus()} 
+          />
         </div>
       </AccordionContent>
     </AccordionItem>
