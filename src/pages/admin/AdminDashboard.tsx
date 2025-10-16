@@ -14,6 +14,7 @@ import { AdminMetricsCards } from '@/components/admin/AdminMetricsCards';
 import { UserGrowthChart } from '@/components/admin/charts/UserGrowthChart';
 import { RevenueChart } from '@/components/admin/charts/RevenueChart';
 import { TopCompaniesChart } from '@/components/admin/charts/TopCompaniesChart';
+import { SitemapSetupCard } from '@/components/admin/SitemapSetupCard';
 import { supabase } from '@/integrations/supabase/client';
 
 interface DashboardStats {
@@ -339,6 +340,9 @@ export const AdminDashboard: React.FC = () => {
         <TabsContent value="overview" className="space-y-6">
           {/* Overview Cards */}
           <AdminMetricsCards />
+
+          {/* Sitemap Setup */}
+          <SitemapSetupCard />
 
           {/* Charts Grid */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
