@@ -12,6 +12,7 @@ import {
   DollarSign,
   Scale,
   Database,
+  Globe,
 } from 'lucide-react';
 import {
   Sidebar,
@@ -61,6 +62,11 @@ const adminNavItems = [
     title: 'Company Sync',
     url: '/admin/sync',
     icon: Database,
+  },
+  {
+    title: 'Sitemap Status',
+    url: '/admin/sitemaps',
+    icon: Globe,
   },
   {
     title: 'System Health',

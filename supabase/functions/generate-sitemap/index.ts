@@ -18,9 +18,11 @@ serve(async (req) => {
 
   try {
     const url = new URL(req.url);
-    const path = url.pathname;
+    const { path } = await req.json().catch(() => ({ path: url.pathname }));
+    
+    const pathToUse = path || url.pathname;
 
-    console.log(`[generate-sitemap] Request for: ${path}`);
+    console.log(`[generate-sitemap] Request for: ${pathToUse}`);
 
     // Initialize Supabase client
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
@@ -28,17 +30,17 @@ serve(async (req) => {
     const supabase = createClient(supabaseUrl, supabaseKey);
 
     // Handle sitemap index request
-    if (path.endsWith('/sitemap.xml') || path.endsWith('/sitemap')) {
+    if (pathToUse.endsWith('/sitemap.xml') || pathToUse.endsWith('/sitemap')) {
       return generateSitemapIndex(supabase);
     }
 
     // Handle static sitemap request
-    if (path.includes('/sitemap-static.xml')) {
+    if (pathToUse.includes('/sitemap-static.xml')) {
       return generateStaticSitemap();
     }
 
     // Handle company sitemap pages (e.g., /sitemap-companies-1.xml)
-    const companiesMatch = path.match(/\/sitemap-companies-(\d+)\.xml/);
+    const companiesMatch = pathToUse.match(/\/sitemap-companies-(\d+)\.xml/);
     if (companiesMatch) {
       const page = parseInt(companiesMatch[1]);
       return generateCompaniesSitemap(supabase, page);

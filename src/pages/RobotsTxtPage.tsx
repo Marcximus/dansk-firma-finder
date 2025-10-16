@@ -1,0 +1,37 @@
+import { useEffect } from "react";
+
+const RobotsTxtPage = () => {
+  useEffect(() => {
+    const robotsTxt = `User-agent: *
+Allow: /
+
+# Block auth and checkout pages from search engines
+Disallow: /auth
+Disallow: /checkout
+Disallow: /profil
+Disallow: /payment-success
+
+# Allow important pages
+Allow: /faq
+Allow: /servicevilkaar
+Allow: /privatlivspolitik
+Allow: /hjaelpecenter
+Allow: /soegeguide
+Allow: /track-foelg
+Allow: /kontakt-os
+Allow: /virksomhedsrapporter
+Allow: /datakilder
+
+# Sitemap location
+Sitemap: https://selskabsinfo.dk/sitemap.xml
+`;
+
+    document.open();
+    document.write(robotsTxt);
+    document.close();
+  }, []);
+
+  return null;
+};
+
+export default RobotsTxtPage;

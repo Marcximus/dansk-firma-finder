@@ -34,6 +34,9 @@ import { ReportsOrders } from "./pages/admin/ReportsOrders";
 import { SystemHealth } from "./pages/admin/SystemHealth";
 import { LeadManagement } from "./pages/admin/LeadManagement";
 import CompanySync from "./pages/admin/CompanySync";
+import SitemapStatus from "./pages/admin/SitemapStatus";
+import SitemapPage from "./pages/SitemapPage";
+import RobotsTxtPage from "./pages/RobotsTxtPage";
 
 const queryClient = new QueryClient();
 
@@ -65,6 +68,12 @@ const App = () => (
             <Route path="/payment-success" element={<PaymentSuccessPage />} />
             <Route path="/datakilder" element={<DatakilderPage />} />
             
+            {/* Sitemap Routes */}
+            <Route path="/sitemap.xml" element={<SitemapPage />} />
+            <Route path="/sitemap-static.xml" element={<SitemapPage type="static" />} />
+            <Route path="/sitemap-companies-:page.xml" element={<SitemapPage type="companies" />} />
+            <Route path="/robots.txt" element={<RobotsTxtPage />} />
+            
             {/* Admin Routes */}
             <Route path="/admin" element={<AdminLayout />}>
               <Route index element={<AdminDashboard />} />
@@ -74,6 +83,7 @@ const App = () => (
               <Route path="reports" element={<ReportsOrders />} />
               <Route path="leads" element={<LeadManagement />} />
               <Route path="sync" element={<CompanySync />} />
+              <Route path="sitemaps" element={<SitemapStatus />} />
               <Route path="system" element={<SystemHealth />} />
             </Route>
             
