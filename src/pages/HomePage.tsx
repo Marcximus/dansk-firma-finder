@@ -9,10 +9,22 @@ import Layout from '@/components/Layout';
 import { Spinner } from '@/components/ui/spinner';
 import SEO from '@/components/SEO';
 import JSONLDScript, { createWebsiteSchema, createOrganizationSchema } from '@/components/JSONLDScript';
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+  PaginationEllipsis,
+} from "@/components/ui/pagination";
+
+const ITEMS_PER_PAGE = 15;
 
 const HomePage = () => {
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [shouldFocusSearch, setShouldFocusSearch] = useState<boolean>(false);
+  const [currentPage, setCurrentPage] = useState(1);
   const queryClient = useQueryClient();
   const location = useLocation();
   const [searchParams] = useSearchParams();
@@ -80,9 +92,23 @@ const HomePage = () => {
   const handleSearch = (query: string) => {
     console.log('🎨 HomePage: handleSearch called with query:', query);
     setSearchTerm(query);
+    setCurrentPage(1); // Reset to first page on new search
     // Invalidate and refetch the query with the new search term
     queryClient.invalidateQueries({ queryKey: ['companies', query] });
   };
+
+  // Calculate pagination
+  const totalPages = companies ? Math.ceil(companies.length / ITEMS_PER_PAGE) : 0;
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+  const endIndex = startIndex + ITEMS_PER_PAGE;
+  const paginatedCompanies = companies?.slice(startIndex, endIndex) || [];
+
+  // Reset to page 1 if current page exceeds total pages
+  useEffect(() => {
+    if (totalPages > 0 && currentPage > totalPages) {
+      setCurrentPage(1);
+    }
+  }, [totalPages, currentPage]);
 
   return (
     <Layout>
@@ -124,11 +150,65 @@ const HomePage = () => {
         )}
 
         {/* Render companies in the exact order from backend - NO SORTING ON FRONTEND */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {companies.map((company: Company) => (
-            <CompanyCard key={company.id} company={company} />
-          ))}
-        </div>
+        {companies.length > 0 && (
+          <>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {paginatedCompanies.map((company: Company) => (
+                <CompanyCard key={company.id} company={company} />
+              ))}
+            </div>
+            
+            {totalPages > 1 && (
+              <div className="mt-8 flex justify-center">
+                <Pagination>
+                  <PaginationContent>
+                    <PaginationItem>
+                      <PaginationPrevious 
+                        onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                        className={currentPage === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                      />
+                    </PaginationItem>
+                    
+                    {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => {
+                      // Show first page, last page, current page, and pages around current
+                      if (
+                        page === 1 ||
+                        page === totalPages ||
+                        (page >= currentPage - 1 && page <= currentPage + 1)
+                      ) {
+                        return (
+                          <PaginationItem key={page}>
+                            <PaginationLink
+                              onClick={() => setCurrentPage(page)}
+                              isActive={currentPage === page}
+                              className="cursor-pointer"
+                            >
+                              {page}
+                            </PaginationLink>
+                          </PaginationItem>
+                        );
+                      } else if (page === currentPage - 2 || page === currentPage + 2) {
+                        return (
+                          <PaginationItem key={page}>
+                            <PaginationEllipsis />
+                          </PaginationItem>
+                        );
+                      }
+                      return null;
+                    })}
+                    
+                    <PaginationItem>
+                      <PaginationNext 
+                        onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                        className={currentPage === totalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                      />
+                    </PaginationItem>
+                  </PaginationContent>
+                </Pagination>
+              </div>
+            )}
+          </>
+        )}
 
         {searchTerm && companies.length === 0 && !isLoading && (
           <div className="text-center py-8">
