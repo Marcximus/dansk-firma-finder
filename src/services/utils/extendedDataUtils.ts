@@ -153,33 +153,27 @@ export const extractExtendedInfo = (cvrData: any) => {
     return registeredCapital;
   };
 
-  // Fixed accounting year extraction with detailed logging
+  // Extract accounting year from attributter
   const getAccountingYear = () => {
-    console.log('=== ACCOUNTING YEAR EXTRACTION DEBUG ===');
-    const regnskabsperiode = vrvirksomhed.regnskabsperiode || [];
-    console.log('Accounting year extraction - regnskabsperiode:', regnskabsperiode);
+    const attributter = vrvirksomhed.attributter || [];
+    const startAttr = attributter.find((attr: any) => attr.type === 'REGNSKABSÅR_START');
+    const endAttr = attributter.find((attr: any) => attr.type === 'REGNSKABSÅR_SLUT');
     
-    if (regnskabsperiode.length === 0) {
-      console.log('No regnskabsperiode found');
-      return null;
-    }
-    
-    // Find current period (where gyldigTil is null) or use the most recent one
-    const current = regnskabsperiode.find((periode: any) => periode.periode?.gyldigTil === null) || regnskabsperiode[regnskabsperiode.length - 1];
-    console.log('Selected periode:', current);
-    
-    if (current) {
-      // Try different possible field names
-      const from = current.regnskabsperiodefra || current.regnskabsPeriodeFra || current.fra || current.startDato;
-      const to = current.regnskabsperiodetil || current.regnskabsPeriodeTil || current.til || current.slutDato;
-      console.log('From field:', from, 'To field:', to);
+    if (startAttr?.vaerdier && endAttr?.vaerdier) {
+      const startValue = startAttr.vaerdier.find((v: any) => v.periode?.gyldigTil === null);
+      const endValue = endAttr.vaerdier.find((v: any) => v.periode?.gyldigTil === null);
       
-      const result = from && to ? `${from} - ${to}` : null;
-      console.log('Accounting year result:', result);
-      return result;
+      const start = (startValue || startAttr.vaerdier[startAttr.vaerdier.length - 1])?.vaerdi;
+      const end = (endValue || endAttr.vaerdier[endAttr.vaerdier.length - 1])?.vaerdi;
+      
+      if (start && end) {
+        // Convert --06-01 to 01/06 format
+        const startFormatted = start.replace('--', '').split('-').reverse().join('/');
+        const endFormatted = end.replace('--', '').split('-').reverse().join('/');
+        return `${startFormatted} - ${endFormatted}`;
+      }
     }
     
-    console.log('No valid accounting period found');
     return null;
   };
 
