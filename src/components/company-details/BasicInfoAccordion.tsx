@@ -2,7 +2,8 @@
 import React from 'react';
 import { AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Company } from '@/services/companyAPI';
-import { FileText, MapPin, Calendar, Building, Mail, Phone, AlertCircle } from 'lucide-react';
+import { FileText } from 'lucide-react';
+import { Table, TableBody, TableCell, TableRow } from '@/components/ui/table';
 
 interface BasicInfoAccordionProps {
   company: Company;
@@ -112,99 +113,72 @@ const BasicInfoAccordion: React.FC<BasicInfoAccordionProps> = ({ company, cvrDat
         </div>
       </AccordionTrigger>
       <AccordionContent className="px-6 pb-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
-          {/* CVR-nummer */}
-          <div className="flex items-start gap-3">
-            <FileText className="h-5 w-5 text-muted-foreground mt-0.5" />
-            <div>
-              <div className="font-medium text-sm text-muted-foreground mb-1">CVR-nummer</div>
-              <div className="font-semibold">{company.cvr}</div>
-            </div>
-          </div>
-
-          {/* Adresse */}
-          <div className="flex items-start gap-3">
-            <MapPin className="h-5 w-5 text-muted-foreground mt-0.5" />
-            <div>
-              <div className="font-medium text-sm text-muted-foreground mb-1">Adresse</div>
-              <div className="font-semibold">
-                {address.street}<br />
-                {address.postal} {address.city}
-              </div>
-            </div>
-          </div>
-
-          {/* Startdato */}
-          <div className="flex items-start gap-3">
-            <Calendar className="h-5 w-5 text-muted-foreground mt-0.5" />
-            <div>
-              <div className="font-medium text-sm text-muted-foreground mb-1">Startdato</div>
-              <div className="font-semibold">{getStartDate()}</div>
-            </div>
-          </div>
-
-          {/* Virksomhedsform */}
-          <div className="flex items-start gap-3">
-            <Building className="h-5 w-5 text-muted-foreground mt-0.5" />
-            <div>
-              <div className="font-medium text-sm text-muted-foreground mb-1">Virksomhedsform</div>
-              <div className="font-semibold">{getLegalForm()}</div>
-            </div>
-          </div>
-
-          {/* Kontaktoplysninger */}
-          <div className="flex items-start gap-3 md:col-span-2">
-            <Mail className="h-5 w-5 text-muted-foreground mt-0.5" />
-            <div className="flex-1">
-              <div className="font-medium text-sm text-muted-foreground mb-2">Kontaktoplysninger</div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <Table>
+          <TableBody>
+            <TableRow>
+              <TableCell className="font-medium text-muted-foreground w-1/3">CVR-nummer</TableCell>
+              <TableCell className="font-semibold">{company.cvr}</TableCell>
+            </TableRow>
+            
+            <TableRow>
+              <TableCell className="font-medium text-muted-foreground w-1/3">Adresse</TableCell>
+              <TableCell className="font-semibold">
+                {address.street}, {address.postal} {address.city}
+              </TableCell>
+            </TableRow>
+            
+            <TableRow>
+              <TableCell className="font-medium text-muted-foreground w-1/3">Startdato</TableCell>
+              <TableCell className="font-semibold">{getStartDate()}</TableCell>
+            </TableRow>
+            
+            <TableRow>
+              <TableCell className="font-medium text-muted-foreground w-1/3">Virksomhedsform</TableCell>
+              <TableCell className="font-semibold">{getLegalForm()}</TableCell>
+            </TableRow>
+            
+            <TableRow>
+              <TableCell className="font-medium text-muted-foreground w-1/3">E-mail</TableCell>
+              <TableCell>
                 {contactInfo.email ? (
-                  <div className="flex items-center gap-2">
-                    <Mail className="h-4 w-4 text-muted-foreground" />
-                    <a href={`mailto:${contactInfo.email}`} className="font-medium text-primary hover:underline text-sm">
-                      {contactInfo.email}
-                    </a>
-                  </div>
+                  <a href={`mailto:${contactInfo.email}`} className="font-medium text-primary hover:underline">
+                    {contactInfo.email}
+                  </a>
                 ) : (
-                  <div className="flex items-center gap-2">
-                    <Mail className="h-4 w-4 text-muted-foreground" />
-                    <span className="font-medium text-muted-foreground text-sm">Ikke oplyst</span>
-                  </div>
+                  <span className="font-medium text-muted-foreground">Ikke oplyst</span>
                 )}
-                
-                {contactInfo.phone ? (
-                  <div className="flex items-center gap-2">
-                    <Phone className="h-4 w-4 text-muted-foreground" />
-                    <span className="font-medium text-sm">{contactInfo.phone}</span>
-                  </div>
-                ) : (
-                  <div className="flex items-center gap-2">
-                    <Phone className="h-4 w-4 text-muted-foreground" />
-                    <span className="font-medium text-muted-foreground text-sm">Ikke oplyst</span>
-                  </div>
-                )}
-                
-                {website && (
-                  <div className="flex items-center gap-2">
-                    <Building className="h-4 w-4 text-muted-foreground" />
-                    <a href={website.startsWith('http') ? website : `https://${website}`} target="_blank" rel="noopener noreferrer" className="font-medium text-primary hover:underline text-sm">
-                      {website}
-                    </a>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-
-          {/* Status */}
-          <div className="flex items-start gap-3">
-            <AlertCircle className="h-5 w-5 text-muted-foreground mt-0.5" />
-            <div>
-              <div className="font-medium text-sm text-muted-foreground mb-1">Status</div>
-              <div className="font-semibold">{getStatus()}</div>
-            </div>
-          </div>
-        </div>
+              </TableCell>
+            </TableRow>
+            
+            <TableRow>
+              <TableCell className="font-medium text-muted-foreground w-1/3">Telefon</TableCell>
+              <TableCell className="font-semibold">
+                {contactInfo.phone || <span className="text-muted-foreground">Ikke oplyst</span>}
+              </TableCell>
+            </TableRow>
+            
+            {website && (
+              <TableRow>
+                <TableCell className="font-medium text-muted-foreground w-1/3">Hjemmeside</TableCell>
+                <TableCell>
+                  <a 
+                    href={website.startsWith('http') ? website : `https://${website}`} 
+                    target="_blank" 
+                    rel="noopener noreferrer" 
+                    className="font-medium text-primary hover:underline"
+                  >
+                    {website}
+                  </a>
+                </TableCell>
+              </TableRow>
+            )}
+            
+            <TableRow>
+              <TableCell className="font-medium text-muted-foreground w-1/3">Status</TableCell>
+              <TableCell className="font-semibold">{getStatus()}</TableCell>
+            </TableRow>
+          </TableBody>
+        </Table>
       </AccordionContent>
     </AccordionItem>
   );
