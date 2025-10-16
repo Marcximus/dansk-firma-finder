@@ -3,6 +3,8 @@ import React from 'react';
 import { AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Company } from '@/services/companyAPI';
 import { FileText } from 'lucide-react';
+import { format } from 'date-fns';
+import { da } from 'date-fns/locale';
 
 interface BasicInfoAccordionProps {
   company: Company;
@@ -24,7 +26,8 @@ const BasicInfoAccordion: React.FC<BasicInfoAccordionProps> = ({ company, cvrDat
   const formatDate = (dateString: string) => {
     if (!dateString) return 'Ikke oplyst';
     try {
-      return new Date(dateString).toLocaleDateString('da-DK');
+      const date = new Date(dateString);
+      return format(date, 'd MMMM yyyy', { locale: da });
     } catch {
       return dateString;
     }
