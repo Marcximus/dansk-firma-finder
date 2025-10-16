@@ -55,47 +55,33 @@ const BasicInfoAccordion: React.FC<BasicInfoAccordionProps> = ({ company, cvrDat
   };
 
   const getStartDate = () => {
-    console.log('📅 DEBUG getStartDate - Starting...');
-    console.log('📅 DEBUG: cvrData exists?', !!cvrData);
-    console.log('📅 DEBUG: cvrData?.stiftelsesDato value:', cvrData?.stiftelsesDato);
+    // Extract the actual Vrvirksomhed data
+    const vrvirksomhed = cvrData?.Vrvirksomhed || cvrData;
     
-    // Priority 1: Direct stiftelsesDato field from CVR data
-    if (cvrData?.stiftelsesDato) {
-      console.log('✅ Using stiftelsesDato:', cvrData.stiftelsesDato);
-      return formatDate(cvrData.stiftelsesDato);
+    // Priority 1: Direct stiftelsesDato field
+    if (vrvirksomhed?.stiftelsesDato) {
+      return formatDate(vrvirksomhed.stiftelsesDato);
     }
-    console.log('❌ stiftelsesDato not found or empty');
     
     // Priority 2: livsforloeb registration date
-    const livsforloebDate = cvrData?.livsforloeb?.[0]?.periode?.gyldigFra;
-    console.log('📅 DEBUG: livsforloebDate:', livsforloebDate);
+    const livsforloebDate = vrvirksomhed?.livsforloeb?.[0]?.periode?.gyldigFra;
     if (livsforloebDate) {
-      console.log('✅ Using livsforloeb date:', livsforloebDate);
       return formatDate(livsforloebDate);
     }
-    console.log('❌ livsforloeb date not found');
     
     // Priority 3: Check for FØRSTE_REGNSKABSPERIODE_START in attributter
-    console.log('📅 DEBUG: attributter:', cvrData?.attributter);
-    const regnskabStart = cvrData?.attributter?.find((attr: any) => 
+    const regnskabStart = vrvirksomhed?.attributter?.find((attr: any) => 
       attr.type === 'FØRSTE_REGNSKABSPERIODE_START'
     );
-    console.log('📅 DEBUG: regnskabStart:', regnskabStart);
     if (regnskabStart?.vaerdier?.[0]?.vaerdi) {
-      console.log('✅ Using FØRSTE_REGNSKABSPERIODE_START:', regnskabStart.vaerdier[0].vaerdi);
       return formatDate(regnskabStart.vaerdier[0].vaerdi);
     }
-    console.log('❌ FØRSTE_REGNSKABSPERIODE_START not found');
     
     // Priority 4: Fallback to company.yearFounded
-    console.log('📅 DEBUG: company.yearFounded:', company.yearFounded);
     if (company.yearFounded) {
-      console.log('✅ Using company.yearFounded:', company.yearFounded);
       return company.yearFounded.toString();
     }
-    console.log('❌ company.yearFounded not found');
     
-    console.log('⚠️ Returning Ikke oplyst - no date found anywhere');
     return 'Ikke oplyst';
   };
 
