@@ -10,10 +10,16 @@ interface BasicInfoAccordionProps {
 }
 
 const BasicInfoAccordion: React.FC<BasicInfoAccordionProps> = ({ company, cvrData }) => {
-  // DEBUG: Log the entire cvrData object
-  console.log('🔍 DEBUG: cvrData in BasicInfoAccordion:', cvrData);
-  console.log('🔍 DEBUG: cvrData?.stiftelsesDato:', cvrData?.stiftelsesDato);
-  console.log('🔍 DEBUG: company.realCvrData:', company.realCvrData);
+  // DEBUG: Log the entire cvrData object structure
+  console.log('🔍 ========== BasicInfoAccordion DEBUGGING START ==========');
+  console.log('🔍 cvrData type:', typeof cvrData);
+  console.log('🔍 cvrData is null?', cvrData === null);
+  console.log('🔍 cvrData is undefined?', cvrData === undefined);
+  console.log('🔍 cvrData keys:', cvrData ? Object.keys(cvrData) : 'NO KEYS');
+  console.log('🔍 Direct access stiftelsesDato:', cvrData?.stiftelsesDato);
+  console.log('🔍 Does cvrData have stiftelsesDato property?', cvrData ? ('stiftelsesDato' in cvrData) : false);
+  console.log('🔍 Full cvrData object:', JSON.stringify(cvrData, null, 2).substring(0, 500));
+  console.log('🔍 ========== BasicInfoAccordion DEBUGGING END ==========');
   
   const formatDate = (dateString: string) => {
     if (!dateString) return 'Ikke oplyst';
