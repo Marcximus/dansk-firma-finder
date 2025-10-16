@@ -16,6 +16,23 @@ interface LeadRequest {
   user_id?: string;
 }
 
+// Validation functions
+const validateEmail = (email: string): boolean => {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailRegex.test(email) && email.length <= 255;
+};
+
+const validatePhone = (phone: string): boolean => {
+  if (!phone) return true;
+  const phoneRegex = /^(\+?45\s?)?[0-9\s-]{8,20}$/;
+  return phoneRegex.test(phone);
+};
+
+const validateString = (str: string, minLen: number, maxLen: number): boolean => {
+  const trimmed = str.trim();
+  return trimmed.length >= minLen && trimmed.length <= maxLen;
+};
+
 const handler = async (req: Request): Promise<Response> => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
@@ -39,6 +56,49 @@ const handler = async (req: Request): Promise<Response> => {
           status: 400,
           headers: { 'Content-Type': 'application/json', ...corsHeaders },
         }
+      );
+    }
+
+    // Validate input formats and lengths
+    if (!validateString(leadData.name, 2, 100)) {
+      return new Response(
+        JSON.stringify({ error: 'Name must be between 2 and 100 characters' }),
+        { status: 400, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
+      );
+    }
+
+    if (!validateEmail(leadData.email)) {
+      return new Response(
+        JSON.stringify({ error: 'Invalid email address' }),
+        { status: 400, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
+      );
+    }
+
+    if (leadData.phone && !validatePhone(leadData.phone)) {
+      return new Response(
+        JSON.stringify({ error: 'Invalid phone number format' }),
+        { status: 400, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
+      );
+    }
+
+    if (leadData.company && !validateString(leadData.company, 1, 200)) {
+      return new Response(
+        JSON.stringify({ error: 'Company name must not exceed 200 characters' }),
+        { status: 400, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
+      );
+    }
+
+    if (!validateString(leadData.message, 10, 2000)) {
+      return new Response(
+        JSON.stringify({ error: 'Message must be between 10 and 2000 characters' }),
+        { status: 400, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
+      );
+    }
+
+    if (!['legal', 'accounting'].includes(leadData.service_type)) {
+      return new Response(
+        JSON.stringify({ error: 'Invalid service type' }),
+        { status: 400, headers: { 'Content-Type': 'application/json', ...corsHeaders } }
       );
     }
 

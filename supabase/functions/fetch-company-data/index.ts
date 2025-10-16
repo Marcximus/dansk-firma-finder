@@ -29,6 +29,37 @@ serve(async (req) => {
     const { cvr, companyName } = requestBody;
     console.log(`CVR: ${cvr}, Company Name: ${companyName}`);
     
+    // Validate inputs
+    if (!cvr && !companyName) {
+      return new Response(
+        JSON.stringify({ error: 'Either CVR or company name is required' }),
+        { 
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        }
+      );
+    }
+    
+    if (cvr && (!/^\d{8}$/.test(cvr))) {
+      return new Response(
+        JSON.stringify({ error: 'CVR must be exactly 8 digits' }),
+        { 
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        }
+      );
+    }
+    
+    if (companyName && (typeof companyName !== 'string' || companyName.trim().length === 0 || companyName.length > 200)) {
+      return new Response(
+        JSON.stringify({ error: 'Company name must be between 1 and 200 characters' }),
+        { 
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        }
+      );
+    }
+    
     const username = Deno.env.get('DANISH_BUSINESS_API_USERNAME');
     const password = Deno.env.get('DANISH_BUSINESS_API_PASSWORD');
     

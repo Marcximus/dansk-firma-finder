@@ -16,7 +16,24 @@ serve(async (req) => {
     const { cvr } = await req.json();
     
     if (!cvr) {
-      throw new Error('CVR number is required');
+      return new Response(
+        JSON.stringify({ error: 'CVR number is required', financialReports: [] }),
+        { 
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        }
+      );
+    }
+    
+    // Validate CVR format (must be exactly 8 digits)
+    if (!/^\d{8}$/.test(cvr)) {
+      return new Response(
+        JSON.stringify({ error: 'CVR must be exactly 8 digits', financialReports: [] }),
+        { 
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        }
+      );
     }
     
     const username = Deno.env.get('DANISH_BUSINESS_API_USERNAME');

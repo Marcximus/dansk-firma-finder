@@ -23,7 +23,68 @@ serve(async (req) => {
     const { companyReports } = await req.json();
 
     if (!companyReports || companyReports.length === 0) {
-      throw new Error("Missing required parameter: companyReports");
+      return new Response(
+        JSON.stringify({ error: "Missing required parameter: companyReports" }),
+        {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
+      );
+    }
+
+    // Validate companyReports structure and content
+    if (!Array.isArray(companyReports)) {
+      return new Response(
+        JSON.stringify({ error: "companyReports must be an array" }),
+        {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
+      );
+    }
+
+    // Validate each report
+    const validReportTypes = ['standard', 'premium', 'enterprise'];
+    for (const report of companyReports) {
+      if (!report.company?.name || !report.company?.cvr || !report.reportType) {
+        return new Response(
+          JSON.stringify({ error: "Invalid report structure: missing required fields" }),
+          {
+            status: 400,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          }
+        );
+      }
+
+      if (!validReportTypes.includes(report.reportType)) {
+        return new Response(
+          JSON.stringify({ error: `Invalid report type: ${report.reportType}` }),
+          {
+            status: 400,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          }
+        );
+      }
+
+      if (!/^\d{8}$/.test(report.company.cvr)) {
+        return new Response(
+          JSON.stringify({ error: "CVR must be exactly 8 digits" }),
+          {
+            status: 400,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          }
+        );
+      }
+
+      if (typeof report.company.name !== 'string' || report.company.name.length === 0 || report.company.name.length > 200) {
+        return new Response(
+          JSON.stringify({ error: "Company name must be between 1 and 200 characters" }),
+          {
+            status: 400,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          }
+        );
+      }
     }
 
     console.log("Creating payment for:", { reportsCount: companyReports.length });

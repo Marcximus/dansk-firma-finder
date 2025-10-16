@@ -10,6 +10,19 @@ import { Mail, Phone, MapPin, Clock, MessageCircle, Send, Building } from 'lucid
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import SEO from '@/components/SEO';
 import JSONLDScript, { createOrganizationSchema } from '@/components/JSONLDScript';
+import { z } from 'zod';
+
+const contactSchema = z.object({
+  name: z.string().trim().min(2, 'Navn skal være mindst 2 tegn').max(100, 'Navn må ikke overstige 100 tegn'),
+  email: z.string().trim().email('Ugyldig email adresse').max(255, 'Email må ikke overstige 255 tegn'),
+  phone: z.string().regex(/^(\+?45\s?)?[0-9\s-]{8,20}$/, 'Ugyldigt telefonnummer').optional().or(z.literal('')),
+  company: z.string().max(200, 'Virksomhedsnavn må ikke overstige 200 tegn').optional().or(z.literal('')),
+  subject: z.string().trim().min(5, 'Emne skal være mindst 5 tegn').max(200, 'Emne må ikke overstige 200 tegn'),
+  message: z.string().trim().min(10, 'Besked skal være mindst 10 tegn').max(2000, 'Besked må ikke overstige 2000 tegn'),
+  contactType: z.enum(['general', 'technical', 'billing', 'partnership', 'legal', 'accounting']),
+  preferredContact: z.enum(['email', 'phone', 'either']),
+  wantNewsletter: z.boolean(),
+});
 
 const KontaktOsPage: React.FC = () => {
   const [formData, setFormData] = useState({
@@ -35,6 +48,14 @@ const KontaktOsPage: React.FC = () => {
     e.preventDefault();
     
     try {
+      // Validate form data
+      const validationResult = contactSchema.safeParse(formData);
+      if (!validationResult.success) {
+        const errors = validationResult.error.errors.map(err => err.message).join(', ');
+        alert(`Venligst ret følgende fejl: ${errors}`);
+        return;
+      }
+
       // Check if this is a service request (lead)
       if (formData.contactType === 'legal' || formData.contactType === 'accounting') {
         // Submit as lead
