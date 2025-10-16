@@ -74,13 +74,18 @@ serve(async (req) => {
     }
 
     // Fetch companies from Danish Business API
-    // Fetch all companies - we'll filter by status in the application layer
+    // Use range query for CVR numbers (valid range: 10000000-99999999)
     const elasticQuery = {
       "_source": ["Vrvirksomhed.cvrNummer", "Vrvirksomhed.virksomhedMetadata.nyesteNavn.navn", "Vrvirksomhed.virksomhedMetadata.sammensatStatus"],
       "size": batchSize,
       "from": offset,
       "query": {
-        "match_all": {}
+        "range": {
+          "Vrvirksomhed.cvrNummer": {
+            "gte": 10000000,
+            "lte": 99999999
+          }
+        }
       },
       "sort": [
         { "Vrvirksomhed.cvrNummer": "asc" }
@@ -88,6 +93,7 @@ serve(async (req) => {
     };
 
     console.log(`[sync-companies] Fetching batch: offset=${offset}, size=${batchSize}`);
+    console.log(`[sync-companies] Query:`, JSON.stringify(elasticQuery.query));
 
     const apiResponse = await fetch('http://distribution.virk.dk/cvr-permanent/virksomhed/_search', {
       method: 'POST',
