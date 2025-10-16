@@ -207,12 +207,23 @@ export const extractExtendedInfo = (cvrData: any) => {
     return null;
   };
 
+  // Extract primary industry with code
+  const getPrimaryIndustry = () => {
+    const hovedbranche = vrvirksomhed.hovedbranche || [];
+    const current = hovedbranche.find((b: any) => !b.periode?.gyldigTil) || hovedbranche[hovedbranche.length - 1];
+    if (current?.branchekode && current?.branchetekst) {
+      return `${current.branchekode} ${current.branchetekst}`;
+    }
+    return null;
+  };
+
   const result = {
     phone: getPhone(),
     municipality: getMunicipality(),
     purpose: getPurpose(),
     binavne: (vrvirksomhed.binavne || []).map((navn: any) => navn.navn).filter(Boolean),
     secondaryIndustries: getSecondaryIndustries(),
+    primaryIndustry: getPrimaryIndustry(),
     isListed: vrvirksomhed.boersnoteret || false,
     accountingYear: getAccountingYear(),
     firstAccountingPeriod: getFirstAccountingPeriod(),

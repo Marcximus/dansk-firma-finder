@@ -58,7 +58,7 @@ const ExtendedInfoAccordion: React.FC<ExtendedInfoAccordionProps> = ({ company, 
           <InfoRow 
             icon={Briefcase} 
             label="Branchekode" 
-            value={company.industry} 
+            value={extendedInfo?.primaryIndustry || company.industry} 
           />
           
           <InfoRow 
