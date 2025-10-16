@@ -44,12 +44,21 @@ const BasicInfoAccordion: React.FC<BasicInfoAccordionProps> = ({ company, cvrDat
   };
 
   const getStartDate = () => {
-    if (cvrData?.vrvirksomhed?.stiftelsesDato) {
-      return formatDate(cvrData.vrvirksomhed.stiftelsesDato);
+    // Check for stiftelsesDato in attributter
+    if (cvrData?.attributter) {
+      const stiftelsesAttr = cvrData.attributter.find((attr: any) => 
+        attr.type === 'STIFTELSESDATO' || attr.type === 'STIFTELSE'
+      );
+      if (stiftelsesAttr?.vaerdier?.[0]?.vaerdi) {
+        return formatDate(stiftelsesAttr.vaerdier[0].vaerdi);
+      }
     }
-    if (cvrData?.stiftelsesDato) {
-      return formatDate(cvrData.stiftelsesDato);
+    
+    // Check for livsforloeb which contains the registration date
+    if (cvrData?.livsforloeb?.[0]?.periode?.gyldigFra) {
+      return formatDate(cvrData.livsforloeb[0].periode.gyldigFra);
     }
+    
     if (company.yearFounded) {
       return company.yearFounded.toString();
     }
