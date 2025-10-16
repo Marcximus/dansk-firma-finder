@@ -11,6 +11,7 @@ import {
   FileText,
   DollarSign,
   Scale,
+  Database,
 } from 'lucide-react';
 import {
   Sidebar,
@@ -55,6 +56,11 @@ const adminNavItems = [
     title: 'Lead Management',
     url: '/admin/leads',
     icon: Scale,
+  },
+  {
+    title: 'Company Sync',
+    url: '/admin/sync',
+    icon: Database,
   },
   {
     title: 'System Health',

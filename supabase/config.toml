@@ -7,6 +7,9 @@ verify_jwt = false
 [functions.generate-sitemap]
 verify_jwt = false
 
+[functions.sync-companies]
+verify_jwt = true
+
 [functions.fetch-financial-data]
 verify_jwt = false
 

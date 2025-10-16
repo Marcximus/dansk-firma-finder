@@ -33,6 +33,7 @@ import { RevenueAnalytics } from "./pages/admin/RevenueAnalytics";
 import { ReportsOrders } from "./pages/admin/ReportsOrders";
 import { SystemHealth } from "./pages/admin/SystemHealth";
 import { LeadManagement } from "./pages/admin/LeadManagement";
+import CompanySync from "./pages/admin/CompanySync";
 
 const queryClient = new QueryClient();
 
@@ -72,6 +73,7 @@ const App = () => (
               <Route path="revenue" element={<RevenueAnalytics />} />
               <Route path="reports" element={<ReportsOrders />} />
               <Route path="leads" element={<LeadManagement />} />
+              <Route path="sync" element={<CompanySync />} />
               <Route path="system" element={<SystemHealth />} />
             </Route>
             
