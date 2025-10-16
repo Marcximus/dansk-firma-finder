@@ -2,9 +2,10 @@
 import React from 'react';
 import { AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Company } from '@/services/companyAPI';
-import { FileText, Building2, Hash, MapPin, Calendar, Briefcase, Mail, Phone, Globe, Activity } from 'lucide-react';
+import { FileText, Building2, Hash, MapPin, Calendar, Briefcase, Mail, Phone, Globe, Activity, DollarSign } from 'lucide-react';
 import { format } from 'date-fns';
 import { da } from 'date-fns/locale';
+import { extractExtendedInfo } from '@/services/cvrUtils';
 
 interface BasicInfoAccordionProps {
   company: Company;
@@ -139,6 +140,7 @@ const BasicInfoAccordion: React.FC<BasicInfoAccordionProps> = ({ company, cvrDat
   const contactInfo = getContactInfo();
   const website = getWebsite();
   const address = getAddress();
+  const extendedInfo = extractExtendedInfo(cvrData);
 
   return (
     <AccordionItem value="basic" className="border rounded-lg">
@@ -181,8 +183,17 @@ const BasicInfoAccordion: React.FC<BasicInfoAccordionProps> = ({ company, cvrDat
           />
           
           <InfoRow 
+            icon={DollarSign} 
+            label="Registreret kapital" 
+            value={extendedInfo?.registeredCapital ? 
+              `${extendedInfo.registeredCapital.toLocaleString('da-DK')} DKK` : 
+              undefined
+            } 
+          />
+          
+          <InfoRow 
             icon={Mail} 
-            label="Email" 
+            label="Email"
             value={contactInfo.email ? (
               <a href={`mailto:${contactInfo.email}`} className="text-primary hover:underline">
                 {contactInfo.email}

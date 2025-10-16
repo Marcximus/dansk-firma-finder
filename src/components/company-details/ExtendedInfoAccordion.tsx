@@ -75,15 +75,6 @@ const ExtendedInfoAccordion: React.FC<ExtendedInfoAccordionProps> = ({ company, 
             label="Seneste vedtægtsdato" 
             value={extendedInfo?.latestStatuteDate} 
           />
-          
-          <InfoRow 
-            icon={DollarSign} 
-            label="Registreret kapital" 
-            value={extendedInfo?.registeredCapital ? 
-              `${extendedInfo.registeredCapital.toLocaleString('da-DK')} DKK` : 
-              undefined
-            } 
-          />
 
           {/* Purpose - Special handling for long text */}
           {extendedInfo?.purpose && (
