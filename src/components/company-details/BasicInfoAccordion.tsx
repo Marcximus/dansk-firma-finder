@@ -44,6 +44,9 @@ const BasicInfoAccordion: React.FC<BasicInfoAccordionProps> = ({ company, cvrDat
   };
 
   const getStartDate = () => {
+    if (cvrData?.vrvirksomhed?.stiftelsesDato) {
+      return formatDate(cvrData.vrvirksomhed.stiftelsesDato);
+    }
     if (cvrData?.stiftelsesDato) {
       return formatDate(cvrData.stiftelsesDato);
     }
