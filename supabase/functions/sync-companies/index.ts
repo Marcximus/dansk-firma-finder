@@ -39,13 +39,29 @@ serve(async (req) => {
     }
 
     // Check if user is admin
-    const { data: isAdmin } = await supabase.rpc('is_admin');
+    console.log('[sync-companies] Checking admin role for user:', user.id);
+    const { data: isAdmin, error: roleError } = await supabase.rpc('has_role', {
+      _user_id: user.id,
+      _role: 'admin'
+    });
+    
+    if (roleError) {
+      console.error('[sync-companies] Role check error:', roleError);
+      return new Response(JSON.stringify({ error: 'Failed to verify admin status' }), {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+    
     if (!isAdmin) {
+      console.log('[sync-companies] User is not admin');
       return new Response(JSON.stringify({ error: 'Admin access required' }), {
         status: 403,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
+    
+    console.log('[sync-companies] Admin access verified');
 
     const { batchSize = 1000, offset = 0 } = await req.json().catch(() => ({}));
 
