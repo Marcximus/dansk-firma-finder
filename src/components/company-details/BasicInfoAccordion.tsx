@@ -44,36 +44,25 @@ const BasicInfoAccordion: React.FC<BasicInfoAccordionProps> = ({ company, cvrDat
   };
 
   const getStartDate = () => {
-    console.log('getStartDate - cvrData:', cvrData);
-    console.log('getStartDate - livsforloeb:', cvrData?.livsforloeb);
-    console.log('getStartDate - attributter:', cvrData?.attributter);
-    
-    // Priority 1: Check livsforloeb registration date (most reliable)
-    if (cvrData?.livsforloeb?.[0]?.periode?.gyldigFra) {
-      const date = cvrData.livsforloeb[0].periode.gyldigFra;
-      console.log('Found in livsforloeb:', date);
-      return formatDate(date);
+    // Direct path to livsforloeb registration date
+    const livsforloebDate = cvrData?.livsforloeb?.[0]?.periode?.gyldigFra;
+    if (livsforloebDate) {
+      return formatDate(livsforloebDate);
     }
     
-    // Priority 2: Check for stiftelsesDato in attributter
-    if (cvrData?.attributter) {
-      const stiftelsesAttr = cvrData.attributter.find((attr: any) => 
-        attr.type === 'STIFTELSESDATO' || attr.type === 'STIFTELSE'
-      );
-      if (stiftelsesAttr?.vaerdier?.[0]?.vaerdi) {
-        const date = stiftelsesAttr.vaerdier[0].vaerdi;
-        console.log('Found in attributter:', date);
-        return formatDate(date);
-      }
+    // Check for FØRSTE_REGNSKABSPERIODE_START in attributter
+    const regnskabStart = cvrData?.attributter?.find((attr: any) => 
+      attr.type === 'FØRSTE_REGNSKABSPERIODE_START'
+    );
+    if (regnskabStart?.vaerdier?.[0]?.vaerdi) {
+      return formatDate(regnskabStart.vaerdier[0].vaerdi);
     }
     
-    // Priority 3: Fallback to company.yearFounded
+    // Fallback to company.yearFounded
     if (company.yearFounded) {
-      console.log('Using company.yearFounded:', company.yearFounded);
       return company.yearFounded.toString();
     }
     
-    console.log('No start date found, returning Ikke oplyst');
     return 'Ikke oplyst';
   };
 
