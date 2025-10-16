@@ -4,6 +4,9 @@ project_id = "yvpsrnjyldlyqomlonop"
 [functions.fetch-company-data]
 verify_jwt = false
 
+[functions.generate-sitemap]
+verify_jwt = false
+
 [functions.fetch-financial-data]
 verify_jwt = false
 

@@ -1,72 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <!-- Homepage - Main company search -->
-  <url>
-    <loc>https://selskabsinfo.dk/</loc>
+<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <!-- Static pages sitemap -->
+  <sitemap>
+    <loc>https://selskabsinfo.dk/sitemap-static.xml</loc>
     <lastmod>2025-10-16</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>1.0</priority>
-  </url>
+  </sitemap>
   
-  <!-- Core Product Pages -->
-  <url>
-    <loc>https://selskabsinfo.dk/virksomhedsrapporter</loc>
-    <lastmod>2025-10-16</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.9</priority>
-  </url>
-  <url>
-    <loc>https://selskabsinfo.dk/track-foelg</loc>
-    <lastmod>2025-10-16</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.9</priority>
-  </url>
-  
-  <!-- Support & Help Pages -->
-  <url>
-    <loc>https://selskabsinfo.dk/hjaelpecenter</loc>
-    <lastmod>2025-10-16</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://selskabsinfo.dk/soegeguide</loc>
-    <lastmod>2025-10-16</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://selskabsinfo.dk/faq</loc>
-    <lastmod>2025-10-16</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://selskabsinfo.dk/kontakt-os</loc>
-    <lastmod>2025-10-16</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  
-  <!-- Data & Information Pages -->
-  <url>
-    <loc>https://selskabsinfo.dk/datakilder</loc>
-    <lastmod>2025-10-16</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  
-  <!-- Legal Pages -->
-  <url>
-    <loc>https://selskabsinfo.dk/servicevilkaar</loc>
-    <lastmod>2025-10-16</lastmod>
-    <changefreq>yearly</changefreq>
-    <priority>0.5</priority>
-  </url>
-  <url>
-    <loc>https://selskabsinfo.dk/privatlivspolitik</loc>
-    <lastmod>2025-10-16</lastmod>
-    <changefreq>yearly</changefreq>
-    <priority>0.5</priority>
-  </url>
-</urlset>
+  <!-- Company sitemaps are dynamically generated -->
+  <!-- See https://selskabsinfo.dk/generate-sitemap for dynamic generation -->
+</sitemapindex>
