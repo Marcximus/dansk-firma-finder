@@ -126,8 +126,8 @@ const SigningRulesAccordion: React.FC<SigningRulesAccordionProps> = ({ cvrData }
                             const activeFunk = funkAttr?.vaerdier?.find((v: any) => 
                               v.periode?.gyldigTil === null || v.periode?.gyldigTil === undefined
                             );
-                            return activeFunk?.periode ? (
-                              <div>Periode: {formatPeriod(activeFunk.periode)}</div>
+                            return activeFunk?.periode?.gyldigFra ? (
+                              <div>Siden: {activeFunk.periode.gyldigFra}</div>
                             ) : null;
                           })()}
                         </div>
