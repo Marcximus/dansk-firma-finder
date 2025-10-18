@@ -120,33 +120,42 @@ export const extractSigningRulesData = (cvrData: any) => {
 
   // Filter and enrich relations with only active roles
   const filterActiveRelations = (roleCheck: (org: any, medlem: any) => boolean) => {
-    return relations.filter((relation: any) => {
-      // Check if this person has any active organizations matching the role
-      const hasActiveRole = relation.organisationer?.some((org: any) => {
-        if (!isActiveMembership(org)) return false;
+    return relations
+      .filter((relation: any) => {
+        // Check if this person has any active organizations matching the role
+        const hasActiveRole = relation.organisationer?.some((org: any) => {
+          if (!isActiveMembership(org)) return false;
+          
+          // Check each active member's role
+          return org.medlemsData?.some((medlem: any) => {
+            if (medlem.periode?.gyldigTil) return false; // Skip inactive
+            return roleCheck(org, medlem);
+          });
+        });
         
-        // Check each active member's role
-        return org.medlemsData?.some((medlem: any) => {
-          if (medlem.periode?.gyldigTil) return false; // Skip inactive
-          return roleCheck(org, medlem);
-        });
-      });
-      
-      if (hasActiveRole) {
-        console.log('Found active member:', {
-          name: relation.deltager?.navne?.[0]?.navn,
-          organisations: relation.organisationer?.map((o: any) => ({
-            hovedtype: o.hovedtype,
-            active: isActiveMembership(o),
-            functions: o.medlemsData?.map((m: any) => 
-              m.attributter?.find((a: any) => a.type === 'FUNKTION')?.vaerdier?.[0]?.vaerdi
-            )
-          }))
-        });
-      }
-      
-      return hasActiveRole;
-    });
+        if (hasActiveRole) {
+          console.log('Found active member:', {
+            name: relation.deltager?.navne?.[0]?.navn,
+            organisations: relation.organisationer?.map((o: any) => ({
+              hovedtype: o.hovedtype,
+              active: isActiveMembership(o),
+              functions: o.medlemsData?.map((m: any) => 
+                m.attributter?.find((a: any) => a.type === 'FUNKTION')?.vaerdier?.[0]?.vaerdi
+              )
+            }))
+          });
+        }
+        
+        return hasActiveRole;
+      })
+      .map((relation: any) => ({
+        ...relation,
+        organisationer: relation.organisationer?.map((org: any) => ({
+          ...org,
+          // Filter to only include active memberships
+          medlemsData: org.medlemsData?.filter((medlem: any) => !medlem.periode?.gyldigTil)
+        }))
+      }));
   };
 
   const result = {

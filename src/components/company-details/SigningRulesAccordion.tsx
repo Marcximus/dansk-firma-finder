@@ -95,20 +95,23 @@ const SigningRulesAccordion: React.FC<SigningRulesAccordionProps> = ({ cvrData }
                   <div className="font-semibold text-base">{personName}</div>
                   <div className="text-sm text-muted-foreground mb-2">{personAddress}</div>
                   
-                  {relation.organisationer && relation.organisationer.map((org: any, orgIndex: number) => (
-                    <div key={orgIndex} className="text-sm">
-                      <div className="font-medium">
-                        {getRoleDisplayName(org.hovedtype, org.medlemsData?.[0])}
-                      </div>
-                      {org.medlemsData && org.medlemsData.map((medlem: any, medlemIndex: number) => (
-                        <div key={medlemIndex} className="text-xs text-muted-foreground mt-1">
+                  {relation.organisationer && relation.organisationer.map((org: any, orgIndex: number) => {
+                    // Only show active memberships (already filtered by signingRulesUtils)
+                    const activeMemberships = org.medlemsData || [];
+                    
+                    return activeMemberships.map((medlem: any, medlemIndex: number) => (
+                      <div key={`${orgIndex}-${medlemIndex}`} className="text-sm">
+                        <div className="font-medium">
+                          {getRoleDisplayName(org.hovedtype, medlem)}
+                        </div>
+                        <div className="text-xs text-muted-foreground mt-1">
                           {medlem.periode && (
                             <div>Periode: {formatPeriod(medlem.periode)}</div>
                           )}
                         </div>
-                      ))}
-                    </div>
-                  ))}
+                      </div>
+                    ));
+                  })}
                 </div>
               );
             })
