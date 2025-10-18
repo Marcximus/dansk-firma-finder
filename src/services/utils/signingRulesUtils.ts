@@ -187,20 +187,20 @@ export const extractSigningRulesData = (cvrData: any) => {
       const personName = medlem.attributter?.find((a: any) => a.type === 'NAVN')?.vaerdier?.[0]?.vaerdi || 'Unknown';
       const functionAttr = medlem.attributter?.find((a: any) => a.type === 'FUNKTION');
       
-      console.log('=== BOARD CHECK ===', {
+      console.log('=== FULL BOARD MEMBER STRUCTURE ===', {
         personName,
-        hoofdtype: org.hovedtype,
+        hovedtype: org.hovedtype,
         function: functionAttr?.vaerdier?.[0]?.vaerdi,
-        gyldigTil: medlem.periode?.gyldigTil,
-        gyldigTilType: typeof medlem.periode?.gyldigTil,
-        gyldigTilIsNull: medlem.periode?.gyldigTil === null,
-        gyldigTilIsUndefined: medlem.periode?.gyldigTil === undefined,
-        gyldigTilValue: JSON.stringify(medlem.periode?.gyldigTil),
-        hasAttributter: !!medlem.attributter,
-        periode: medlem.periode,
+        fullMedlem: medlem,
+        medlemKeys: Object.keys(medlem),
+        periodeOnMedlem: medlem.periode,
         allAttributter: medlem.attributter?.map((a: any) => ({ 
           type: a.type, 
-          values: a.vaerdier?.map((v: any) => v.vaerdi) 
+          values: a.vaerdier?.map((v: any) => ({ 
+            vaerdi: v.vaerdi,
+            periode: v.periode,
+            gyldigTil: v.periode?.gyldigTil
+          })) 
         }))
       });
       
