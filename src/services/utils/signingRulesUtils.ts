@@ -184,6 +184,26 @@ export const extractSigningRulesData = (cvrData: any) => {
       return false;
     }),
     board: filterActiveRelations((org, medlem) => {
+      const personName = medlem.attributter?.find((a: any) => a.type === 'NAVN')?.vaerdier?.[0]?.vaerdi || 'Unknown';
+      const functionAttr = medlem.attributter?.find((a: any) => a.type === 'FUNKTION');
+      
+      console.log('=== BOARD CHECK ===', {
+        personName,
+        hoofdtype: org.hovedtype,
+        function: functionAttr?.vaerdier?.[0]?.vaerdi,
+        gyldigTil: medlem.periode?.gyldigTil,
+        gyldigTilType: typeof medlem.periode?.gyldigTil,
+        gyldigTilIsNull: medlem.periode?.gyldigTil === null,
+        gyldigTilIsUndefined: medlem.periode?.gyldigTil === undefined,
+        gyldigTilValue: JSON.stringify(medlem.periode?.gyldigTil),
+        hasAttributter: !!medlem.attributter,
+        periode: medlem.periode,
+        allAttributter: medlem.attributter?.map((a: any) => ({ 
+          type: a.type, 
+          values: a.vaerdier?.map((v: any) => v.vaerdi) 
+        }))
+      });
+      
       if (org.hovedtype === 'BESTYRELSE') return true;
       if (org.hovedtype === 'LEDELSESORGAN') {
         return medlem.attributter?.some((attr: any) => 
