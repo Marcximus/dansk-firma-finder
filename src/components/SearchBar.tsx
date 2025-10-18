@@ -103,7 +103,7 @@ const SearchBar: React.FC<SearchBarProps> = ({ onSearch, isLoading = false, shou
     <div className="relative w-full max-w-2xl" ref={dropdownRef}>
       <form onSubmit={handleSubmit} className="flex w-full gap-2">
         <div className="relative flex-grow">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Search className="absolute left-3 top-1/2 h-4 w-4 sm:h-5 sm:w-5 -translate-y-1/2 text-muted-foreground" />
           <Input 
             ref={inputRef}
             type="text"
@@ -111,12 +111,12 @@ const SearchBar: React.FC<SearchBarProps> = ({ onSearch, isLoading = false, shou
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             onFocus={handleInputFocus}
-            className="pl-10 h-12"
+            className="pl-9 sm:pl-10 h-10 sm:h-12 text-sm sm:text-base"
           />
           
           {/* Search Results Dropdown */}
           {showDropdown && (searchResults.length > 0 || isSearching) && (
-            <div className="absolute top-full left-0 right-0 z-50 mt-1 bg-background border border-border rounded-lg shadow-lg max-h-[300px] overflow-hidden">
+            <div className="absolute top-full left-0 right-0 z-50 mt-1 bg-background border border-border rounded-lg shadow-lg max-h-[40vh] sm:max-h-[300px] overflow-hidden">
               {isSearching ? (
                 <div className="p-4 text-center text-muted-foreground">
                   <div className="flex items-center justify-center gap-2">
@@ -125,7 +125,7 @@ const SearchBar: React.FC<SearchBarProps> = ({ onSearch, isLoading = false, shou
                   </div>
                 </div>
               ) : searchResults.length > 0 ? (
-                <div className="max-h-[300px] overflow-y-auto">
+                <div className="max-h-[40vh] sm:max-h-[300px] overflow-y-auto">
                   {searchResults.map((company) => (
                     <div
                       key={company.cvr}
@@ -154,11 +154,11 @@ const SearchBar: React.FC<SearchBarProps> = ({ onSearch, isLoading = false, shou
             </div>
           )}
         </div>
-        <Button type="submit" disabled={isLoading} className="h-12 px-6">
+        <Button type="submit" disabled={isLoading} className="h-10 sm:h-12 px-3 sm:px-6 text-sm sm:text-base">
           {isLoading ? (
             <div className="flex items-center gap-2">
               <Spinner variant="default" size={16} />
-              Søger...
+              <span className="hidden sm:inline">Søger...</span>
             </div>
           ) : (
             'Søg'

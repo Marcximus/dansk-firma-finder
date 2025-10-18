@@ -19,10 +19,12 @@ const BasicInfoAccordion: React.FC<BasicInfoAccordionProps> = ({ company, cvrDat
     value: string | null | undefined | React.ReactNode, 
     className?: string 
   }) => (
-    <div className={`flex items-center gap-3 ${className}`}>
-      <Icon className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-      <span className="text-sm text-muted-foreground min-w-[120px]">{label}:</span>
-      <span className="text-sm">{value || 'Ikke tilgængelig'}</span>
+    <div className={`flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3 ${className}`}>
+      <div className="flex items-center gap-2 sm:min-w-[140px]">
+        <Icon className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+        <span className="text-sm text-muted-foreground font-medium">{label}:</span>
+      </div>
+      <span className="text-sm pl-6 sm:pl-0">{value || 'Ikke tilgængelig'}</span>
     </div>
   );
   
@@ -118,14 +120,14 @@ const BasicInfoAccordion: React.FC<BasicInfoAccordionProps> = ({ company, cvrDat
 
   return (
     <AccordionItem value="basic" className="border rounded-lg">
-      <AccordionTrigger className="px-6 py-4 hover:no-underline">
+      <AccordionTrigger className="px-4 sm:px-6 py-4 hover:no-underline">
         <div className="flex items-center gap-2">
           <FileText className="h-5 w-5" />
-          <span className="text-lg font-semibold">Grundoplysninger</span>
+          <span className="text-base sm:text-lg font-semibold">Grundoplysninger</span>
         </div>
       </AccordionTrigger>
-      <AccordionContent className="px-6 pb-6">
-        <div className="space-y-1">
+      <AccordionContent className="px-4 sm:px-6 pb-4 sm:pb-6">
+        <div className="space-y-3 sm:space-y-2">
           <InfoRow 
             icon={Building2} 
             label="Navn" 

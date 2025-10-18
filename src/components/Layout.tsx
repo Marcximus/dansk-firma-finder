@@ -130,14 +130,15 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             </div>
           </form>
           
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2 w-full md:w-auto">
             <NotificationBell />
             <UserMenu />
             
             <Dialog open={isJuridiskDialogOpen} onOpenChange={setIsJuridiskDialogOpen}>
               <DialogTrigger asChild>
-                <Button className="bg-blue-600 hover:bg-blue-700 text-white">
-                  Hjælp til Jura
+                <Button className="bg-blue-600 hover:bg-blue-700 text-white text-sm sm:text-base px-3 sm:px-4">
+                  <span className="hidden sm:inline">Hjælp til Jura</span>
+                  <span className="sm:hidden">Jura</span>
                 </Button>
               </DialogTrigger>
               <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
@@ -313,8 +314,9 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             
             <Dialog open={isRegnskabDialogOpen} onOpenChange={setIsRegnskabDialogOpen}>
               <DialogTrigger asChild>
-                <Button className="bg-green-600 hover:bg-green-700 text-white">
-                  Hjælp til Regnskab
+                <Button className="bg-green-600 hover:bg-green-700 text-white text-sm sm:text-base px-3 sm:px-4">
+                  <span className="hidden sm:inline">Hjælp til Regnskab</span>
+                  <span className="sm:hidden">Regnskab</span>
                 </Button>
               </DialogTrigger>
               <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
