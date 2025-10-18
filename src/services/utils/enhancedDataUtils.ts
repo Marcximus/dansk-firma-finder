@@ -332,58 +332,73 @@ function extractEnhancedFinancialData(vrvirksomhed: any, intelligentData: any) {
 function extractEnhancedManagementData(vrvirksomhed: any) {
   console.log('=== ENHANCED MANAGEMENT DATA EXTRACTION ===');
 
-  const management = (vrvirksomhed.deltagerRelation || []).map((relation: any) => {
+  // Map hovedtype to Danish terms
+  const roleMapping = {
+    'DIREKTION': 'Direktør',
+    'BESTYRELSE': 'Bestyrelse',
+    'FULDT_ANSVARLIG_DELTAGERE': 'Interessent',
+    'KOMPLEMENTAR': 'Komplementar',
+    'KOMMANDITIST': 'Kommanditist',
+    'REVISION': 'Revisor',
+    'REGISTER': 'Register'
+  };
+
+  const management: any[] = [];
+
+  (vrvirksomhed.deltagerRelation || []).forEach((relation: any) => {
     const deltager = relation.deltager;
-    if (!deltager) return null;
+    if (!deltager) return;
 
     const name = getPersonName(deltager);
     const address = getPersonAddress(deltager);
 
-    // Enhanced role determination with more detailed extraction
-    let role = 'Deltager';
-    let roleDetails = {};
-
+    // Process ALL organizations for this person (not just the first one)
     if (relation.organisationer && relation.organisationer.length > 0) {
-      const org = relation.organisationer[0];
-      
-      // Map hovedtype to Danish terms
-      const roleMapping = {
-        'DIREKTION': 'Direktør',
-        'BESTYRELSE': 'Bestyrelse',
-        'FULDT_ANSVARLIG_DELTAGERE': 'Interessent',
-        'KOMPLEMENTAR': 'Komplementar',
-        'KOMMANDITIST': 'Kommanditist'
-      };
-      
-      role = roleMapping[org?.hovedtype as keyof typeof roleMapping] || org?.hovedtype || role;
+      relation.organisationer.forEach((org: any) => {
+        let role = roleMapping[org?.hovedtype as keyof typeof roleMapping] || org?.hovedtype || 'Deltager';
+        let roleDetails = {};
 
-      // Extract additional role details
-      if (org.medlemsData && org.medlemsData.length > 0) {
-        const memberData = org.medlemsData[0];
-        
-        roleDetails = {
-          startDate: memberData.periode?.gyldigFra,
-          endDate: memberData.periode?.gyldigTil,
-          isActive: !memberData.periode?.gyldigTil
-        };
+        // Extract additional role details
+        if (org.medlemsData && org.medlemsData.length > 0) {
+          const memberData = org.medlemsData[0];
+          
+          roleDetails = {
+            startDate: memberData.periode?.gyldigFra,
+            endDate: memberData.periode?.gyldigTil,
+            isActive: !memberData.periode?.gyldigTil
+          };
 
-        // Get specific function/role
-        if (memberData.attributter) {
-          const funkAttribute = memberData.attributter.find((attr: any) => attr.type === 'FUNKTION');
-          if (funkAttribute?.vaerdier?.[0]?.vaerdi) {
-            role = funkAttribute.vaerdier[0].vaerdi;
+          // Get specific function/role from FUNKTION attribute
+          if (memberData.attributter) {
+            const funkAttribute = memberData.attributter.find((attr: any) => attr.type === 'FUNKTION');
+            if (funkAttribute?.vaerdier?.[0]?.vaerdi) {
+              const specificRole = funkAttribute.vaerdier[0].vaerdi;
+              // Only override if it's more specific than the hoofdtype mapping
+              if (specificRole !== org.hovedtype) {
+                role = specificRole;
+              }
+            }
           }
         }
-      }
-    }
 
-    return {
-      role,
-      name,
-      address,
-      ...roleDetails
-    };
-  }).filter(Boolean);
+        // Add each role as a separate entry
+        management.push({
+          role,
+          name,
+          address,
+          hoofdtype: org.hovedtype, // Keep original for filtering
+          ...roleDetails
+        });
+      });
+    } else {
+      // No organization info, add as generic participant
+      management.push({
+        role: 'Deltager',
+        name,
+        address
+      });
+    }
+  });
 
   console.log('Enhanced management data result:', management);
   return management;
