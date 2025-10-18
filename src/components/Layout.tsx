@@ -507,25 +507,26 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             <div>
               <h2 className="text-lg font-semibold mb-4">Tjenester</h2>
               <ul className="space-y-2">
-                <li><Link to="/?focus=search" className="text-muted-foreground hover:text-primary">Virksomhedssøgning</Link></li>
-                <li><Link to="/virksomhedsrapporter" className="text-muted-foreground hover:text-primary">Virksomhedsrapporter</Link></li>
-                <li><Link to="/track-foelg" className="text-muted-foreground hover:text-primary">Track & Følg</Link></li>
+                <li><a href="/?focus=search" className="text-muted-foreground hover:text-primary">Virksomhedssøgning</a></li>
+                <li><a href="/virksomhedsrapporter" className="text-muted-foreground hover:text-primary">Virksomhedsrapporter</a></li>
+                <li><a href="/track-foelg" className="text-muted-foreground hover:text-primary">Track & Følg</a></li>
               </ul>
             </div>
             <div>
               <h2 className="text-lg font-semibold mb-4">Support</h2>
               <ul className="space-y-2">
-                <li><Link to="/hjaelpecenter" className="text-muted-foreground hover:text-primary">Hjælpecenter</Link></li>
-                <li><Link to="/kontakt-os" className="text-muted-foreground hover:text-primary">Kontakt Os</Link></li>
-                <li><Link to="/faq" className="text-muted-foreground hover:text-primary">FAQ</Link></li>
+                <li><a href="/hjaelpecenter" className="text-muted-foreground hover:text-primary">Hjælpecenter</a></li>
+                <li><a href="/kontakt-os" className="text-muted-foreground hover:text-primary">Kontakt Os</a></li>
+                <li><a href="/faq" className="text-muted-foreground hover:text-primary">FAQ</a></li>
+                <li><a href="/soegeguide" className="text-muted-foreground hover:text-primary">Søgeguide</a></li>
               </ul>
             </div>
             <div>
               <h2 className="text-lg font-semibold mb-4">Juridisk</h2>
               <ul className="space-y-2">
-                <li><Link to="/servicevilkaar" className="text-muted-foreground hover:text-primary">Servicevilkår</Link></li>
-                <li><Link to="/privatlivspolitik" className="text-muted-foreground hover:text-primary">Privatlivspolitik</Link></li>
-                <li><Link to="/datakilder" className="text-muted-foreground hover:text-primary">Datakilder</Link></li>
+                <li><a href="/servicevilkaar" className="text-muted-foreground hover:text-primary">Servicevilkår</a></li>
+                <li><a href="/privatlivspolitik" className="text-muted-foreground hover:text-primary">Privatlivspolitik</a></li>
+                <li><a href="/datakilder" className="text-muted-foreground hover:text-primary">Datakilder</a></li>
               </ul>
             </div>
           </div>
