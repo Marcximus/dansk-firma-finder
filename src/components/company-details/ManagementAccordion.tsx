@@ -18,11 +18,34 @@ const ManagementAccordion: React.FC<ManagementAccordionProps> = ({ cvrData }) =>
   const relations = cvrData.deltagerRelation || [];
   console.log('Relations found:', relations.length);
   
-  // Log each relation in detail
+  // Log each relation in detail with deep inspection
   relations.forEach((relation: any, index: number) => {
-    console.log(`Relation ${index}:`, relation);
+    console.log(`\n=== RELATION ${index} DEEP DIVE ===`);
+    console.log(`Full relation object:`, relation);
     console.log(`- Deltager:`, relation.deltager);
-    console.log(`- Organisationer:`, relation.organisationer);
+    console.log(`- Organisationer count:`, relation.organisationer?.length);
+    
+    // Log each organisation in detail
+    relation.organisationer?.forEach((org: any, orgIndex: number) => {
+      console.log(`\n  Organisation ${orgIndex}:`);
+      console.log(`  - hovedtype:`, org.hovedtype);
+      console.log(`  - organisationsNavn:`, org.organisationsNavn);
+      console.log(`  - Full org:`, org);
+      console.log(`  - medlemsData:`, org.medlemsData);
+      
+      // Log member data attributes in detail
+      org.medlemsData?.forEach((medlem: any, medlemIndex: number) => {
+        console.log(`\n    MedlemsData ${medlemIndex}:`);
+        console.log(`    - periode:`, medlem.periode);
+        console.log(`    - attributter:`, medlem.attributter);
+        
+        medlem.attributter?.forEach((attr: any, attrIndex: number) => {
+          console.log(`\n      Attribut ${attrIndex}:`);
+          console.log(`      - type:`, attr.type);
+          console.log(`      - vaerdier:`, attr.vaerdier);
+        });
+      });
+    });
   });
 
   const getPersonName = (deltager: any) => {
