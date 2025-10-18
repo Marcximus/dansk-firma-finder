@@ -45,33 +45,29 @@ const SigningRulesAccordion: React.FC<SigningRulesAccordionProps> = ({ cvrData }
   };
 
   const getRoleDisplayName = (hovedtype: string, memberData?: any) => {
-    let baseName = hovedtype;
-    
-    switch (hovedtype) {
-      case 'DIREKTION':
-        baseName = 'Direktion';
-        break;
-      case 'BESTYRELSE':
-        baseName = 'Bestyrelse';
-        break;
-      case 'REVISION':
-        baseName = 'Revisor';
-        break;
-      default:
-        baseName = hovedtype.replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, l => l.toUpperCase());
-    }
-
+    // First check for specific FUNKTION attribute
     if (memberData && memberData.attributter) {
       const funkAttribute = memberData.attributter.find((attr: any) => attr.type === 'FUNKTION');
-      if (funkAttribute && funkAttribute.vaerdier && funkAttribute.vaerdier.length > 0) {
+      if (funkAttribute?.vaerdier?.[0]?.vaerdi) {
         const specificRole = funkAttribute.vaerdier[0].vaerdi;
-        if (specificRole !== hovedtype) {
-          return `${baseName} - ${specificRole}`;
-        }
+        // Return the specific role directly (e.g., BESTYRELSESFORMAND, DIREKTØR)
+        return specificRole;
       }
     }
 
-    return baseName;
+    // Fallback to hovedtype mapping
+    switch (hovedtype) {
+      case 'DIREKTION':
+        return 'Direktion';
+      case 'BESTYRELSE':
+        return 'Bestyrelse';
+      case 'LEDELSESORGAN':
+        return 'Ledelse';
+      case 'REVISION':
+        return 'Revisor';
+      default:
+        return hovedtype.replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, l => l.toUpperCase());
+    }
   };
 
   const formatPeriod = (periode: any) => {

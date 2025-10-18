@@ -105,51 +105,78 @@ export const extractSigningRulesData = (cvrData: any) => {
 
   // Helper to check if a membership is currently active
   const isActiveMembership = (org: any) => {
-    return org.medlemsData?.some((medlem: any) => 
-      !medlem.periode?.gyldigTil || medlem.periode.gyldigTil === null
-    );
+    if (!org.medlemsData || org.medlemsData.length === 0) return false;
+    
+    return org.medlemsData.some((medlem: any) => {
+      const isActive = !medlem.periode?.gyldigTil || medlem.periode.gyldigTil === null;
+      console.log('Checking membership active status:', {
+        isActive,
+        periode: medlem.periode,
+        attributter: medlem.attributter?.map((a: any) => ({ type: a.type, vaerdier: a.vaerdier }))
+      });
+      return isActive;
+    });
+  };
+
+  // Filter and enrich relations with only active roles
+  const filterActiveRelations = (roleCheck: (org: any, medlem: any) => boolean) => {
+    return relations.filter((relation: any) => {
+      // Check if this person has any active organizations matching the role
+      const hasActiveRole = relation.organisationer?.some((org: any) => {
+        if (!isActiveMembership(org)) return false;
+        
+        // Check each active member's role
+        return org.medlemsData?.some((medlem: any) => {
+          if (medlem.periode?.gyldigTil) return false; // Skip inactive
+          return roleCheck(org, medlem);
+        });
+      });
+      
+      if (hasActiveRole) {
+        console.log('Found active member:', {
+          name: relation.deltager?.navne?.[0]?.navn,
+          organisations: relation.organisationer?.map((o: any) => ({
+            hovedtype: o.hovedtype,
+            active: isActiveMembership(o),
+            functions: o.medlemsData?.map((m: any) => 
+              m.attributter?.find((a: any) => a.type === 'FUNKTION')?.vaerdier?.[0]?.vaerdi
+            )
+          }))
+        });
+      }
+      
+      return hasActiveRole;
+    });
   };
 
   const result = {
     signingRules: getSigningRules(),
-    management: relations.filter((relation: any) => 
-      relation.organisationer?.some((org: any) => {
-        if (!isActiveMembership(org)) return false; // Only active members
-        
-        if (org.hovedtype === 'DIREKTION') return true;
-        if (org.hovedtype === 'LEDELSESORGAN') {
-          return org.medlemsData?.some((medlem: any) => 
-            medlem.attributter?.some((attr: any) => 
-              attr.type === 'FUNKTION' && 
-              attr.vaerdier?.some((v: any) => v.vaerdi?.includes('DIREKTØR'))
-            )
-          );
-        }
-        return false;
-      })
-    ),
-    board: relations.filter((relation: any) => 
-      relation.organisationer?.some((org: any) => {
-        if (!isActiveMembership(org)) return false; // Only active members
-        
-        if (org.hovedtype === 'BESTYRELSE') return true;
-        if (org.hovedtype === 'LEDELSESORGAN') {
-          return org.medlemsData?.some((medlem: any) => 
-            medlem.attributter?.some((attr: any) => 
-              attr.type === 'FUNKTION' && 
-              attr.vaerdier?.some((v: any) => v.vaerdi?.includes('BESTYRELSESMEDLEM'))
-            )
-          );
-        }
-        return false;
-      })
-    ),
-    auditors: relations.filter((relation: any) => 
-      relation.organisationer?.some((org: any) => {
-        if (!isActiveMembership(org)) return false; // Only active members
-        return org.hovedtype === 'REVISION';
-      })
-    )
+    management: filterActiveRelations((org, medlem) => {
+      if (org.hovedtype === 'DIREKTION') return true;
+      if (org.hovedtype === 'LEDELSESORGAN') {
+        return medlem.attributter?.some((attr: any) => 
+          attr.type === 'FUNKTION' && 
+          attr.vaerdier?.some((v: any) => v.vaerdi?.includes('DIREKTØR'))
+        );
+      }
+      return false;
+    }),
+    board: filterActiveRelations((org, medlem) => {
+      if (org.hovedtype === 'BESTYRELSE') return true;
+      if (org.hovedtype === 'LEDELSESORGAN') {
+        return medlem.attributter?.some((attr: any) => 
+          attr.type === 'FUNKTION' && 
+          attr.vaerdier?.some((v: any) => 
+            v.vaerdi?.includes('BESTYRELSESMEDLEM') || 
+            v.vaerdi?.includes('BESTYRELSESFORMAND')
+          )
+        );
+      }
+      return false;
+    }),
+    auditors: filterActiveRelations((org, medlem) => {
+      return org.hovedtype === 'REVISION';
+    })
   };
 
   console.log('extractSigningRulesData - Final result:', result);
