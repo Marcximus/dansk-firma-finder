@@ -103,18 +103,18 @@ export const extractSigningRulesData = (cvrData: any) => {
     return signingRules;
   };
 
-  // Helper to check if a membership is currently active
+  // Helper to check if a membership is currently active  
   const isActiveMembership = (org: any) => {
     if (!org.medlemsData || org.medlemsData.length === 0) return false;
     
     return org.medlemsData.some((medlem: any) => {
-      const isActive = !medlem.periode?.gyldigTil || medlem.periode.gyldigTil === null;
-      console.log('Checking membership active status:', {
-        isActive,
-        periode: medlem.periode,
-        attributter: medlem.attributter?.map((a: any) => ({ type: a.type, vaerdier: a.vaerdier }))
+      // Check if any FUNKTION attribute has an active (gyldigTil === null) value
+      return medlem.attributter?.some((attr: any) => {
+        if (attr.type !== 'FUNKTION') return false;
+        return attr.vaerdier?.some((v: any) => 
+          v.periode?.gyldigTil === null || v.periode?.gyldigTil === undefined
+        );
       });
-      return isActive;
     });
   };
 
@@ -126,10 +126,17 @@ export const extractSigningRulesData = (cvrData: any) => {
         const hasActiveRole = relation.organisationer?.some((org: any) => {
           if (!isActiveMembership(org)) return false;
           
-          // Check each active member's role
+          // Check each member who has an active FUNKTION value
           return org.medlemsData?.some((medlem: any) => {
-            // Skip inactive - check for any value in gyldigTil (including empty strings)
-            if (medlem.periode?.gyldigTil !== null && medlem.periode?.gyldigTil !== undefined) return false;
+            // Check if the FUNKTION attribute has an active value (gyldigTil === null)
+            const hasActiveFunktion = medlem.attributter?.some((attr: any) => {
+              if (attr.type !== 'FUNKTION') return false;
+              return attr.vaerdier?.some((v: any) => 
+                v.periode?.gyldigTil === null || v.periode?.gyldigTil === undefined
+              );
+            });
+            
+            if (!hasActiveFunktion) return false;
             return roleCheck(org, medlem);
           });
         });
@@ -153,19 +160,30 @@ export const extractSigningRulesData = (cvrData: any) => {
         ...relation,
         organisationer: relation.organisationer
           ?.filter((org: any) => {
-            // Only include orgs that match the role check AND have active members
+            // Only include orgs that have active members matching the role
             const hasActiveMatchingRole = org.medlemsData?.some((medlem: any) => {
-              // Skip inactive - check for any value in gyldigTil (including empty strings)
-              if (medlem.periode?.gyldigTil !== null && medlem.periode?.gyldigTil !== undefined) return false;
+              const hasActiveFunktion = medlem.attributter?.some((attr: any) => {
+                if (attr.type !== 'FUNKTION') return false;
+                return attr.vaerdier?.some((v: any) => 
+                  v.periode?.gyldigTil === null || v.periode?.gyldigTil === undefined
+                );
+              });
+              
+              if (!hasActiveFunktion) return false;
               return roleCheck(org, medlem);
             });
             return hasActiveMatchingRole;
           })
           ?.map((org: any) => ({
             ...org,
-            // Filter to only include active memberships
+            // Filter to only include members with active FUNKTION values
             medlemsData: org.medlemsData?.filter((medlem: any) => 
-              medlem.periode?.gyldigTil === null || medlem.periode?.gyldigTil === undefined
+              medlem.attributter?.some((attr: any) => {
+                if (attr.type !== 'FUNKTION') return false;
+                return attr.vaerdier?.some((v: any) => 
+                  v.periode?.gyldigTil === null || v.periode?.gyldigTil === undefined
+                );
+              })
             )
           }))
       }));
@@ -184,26 +202,6 @@ export const extractSigningRulesData = (cvrData: any) => {
       return false;
     }),
     board: filterActiveRelations((org, medlem) => {
-      const personName = medlem.attributter?.find((a: any) => a.type === 'NAVN')?.vaerdier?.[0]?.vaerdi || 'Unknown';
-      const functionAttr = medlem.attributter?.find((a: any) => a.type === 'FUNKTION');
-      
-      console.log('=== FULL BOARD MEMBER STRUCTURE ===', {
-        personName,
-        hovedtype: org.hovedtype,
-        function: functionAttr?.vaerdier?.[0]?.vaerdi,
-        fullMedlem: medlem,
-        medlemKeys: Object.keys(medlem),
-        periodeOnMedlem: medlem.periode,
-        allAttributter: medlem.attributter?.map((a: any) => ({ 
-          type: a.type, 
-          values: a.vaerdier?.map((v: any) => ({ 
-            vaerdi: v.vaerdi,
-            periode: v.periode,
-            gyldigTil: v.periode?.gyldigTil
-          })) 
-        }))
-      });
-      
       if (org.hovedtype === 'BESTYRELSE') return true;
       if (org.hovedtype === 'LEDELSESORGAN') {
         return medlem.attributter?.some((attr: any) => 
