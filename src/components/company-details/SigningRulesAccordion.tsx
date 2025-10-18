@@ -121,9 +121,15 @@ const SigningRulesAccordion: React.FC<SigningRulesAccordionProps> = ({ cvrData }
                           {getRoleDisplayName(org.hovedtype, medlem)}
                         </div>
                         <div className="text-xs text-muted-foreground mt-1">
-                          {medlem.periode && (
-                            <div>Periode: {formatPeriod(medlem.periode)}</div>
-                          )}
+                          {(() => {
+                            const funkAttr = medlem.attributter?.find((attr: any) => attr.type === 'FUNKTION');
+                            const activeFunk = funkAttr?.vaerdier?.find((v: any) => 
+                              v.periode?.gyldigTil === null || v.periode?.gyldigTil === undefined
+                            );
+                            return activeFunk?.periode ? (
+                              <div>Periode: {formatPeriod(activeFunk.periode)}</div>
+                            ) : null;
+                          })()}
                         </div>
                       </div>
                     ));
