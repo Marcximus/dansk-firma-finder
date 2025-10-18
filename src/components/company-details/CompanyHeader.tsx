@@ -214,91 +214,154 @@ const CompanyHeader: React.FC<CompanyHeaderProps> = ({ company }) => {
 
   return (
     <TooltipProvider>
-      <div className="bg-background sticky top-[73px] lg:top-[73px] z-40 rounded-lg shadow-sm p-4 sm:p-6 backdrop-blur-sm border-b mb-4 sm:mb-6">
-        <div className="space-y-4">
-          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold">{company.name}</h1>
-          <div className="flex flex-wrap gap-2 sm:gap-4 text-sm sm:text-base text-muted-foreground">
-            {company.yearFounded && (
-              <div className="flex items-center gap-1.5">
-                <Calendar className="h-4 w-4" />
-                <span>Etableret: {company.yearFounded}</span>
-              </div>
-            )}
-            <div className="flex items-center gap-1.5">
-              <FileText className="h-4 w-4" />
-              <span>CVR: {company.cvr}</span>
-            </div>
-            <div className="flex items-center gap-1.5">
-              <Map className="h-4 w-4" />
-              <span>{company.city}</span>
-            </div>
-            <Badge className={`${statusDisplay.color} text-white ${company.status === 'NORMAL' ? 'animate-pulse' : ''}`}>
-              {statusDisplay.text}
-            </Badge>
-          </div>
-
-          <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
-            <Button 
-              variant="default" 
-              className="w-full sm:w-auto px-4 sm:px-8 py-2 sm:py-4 text-sm sm:text-lg"
-              onClick={handleReportClick}
-            >
-              Virksomhedsrapport
-            </Button>
-            <Button 
-              variant="outline" 
-              className="w-full sm:w-auto px-4 sm:px-8 py-2 sm:py-4 text-sm sm:text-lg"
-              onClick={handleChangesClick}
-            >
-              Seneste Ændringer
-            </Button>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button 
-                  variant={isFollowing ? "default" : "outline"} 
-                  className={`w-full sm:w-auto px-4 sm:px-8 py-2 sm:py-4 text-sm sm:text-lg flex items-center justify-center gap-2 ${
-                    isFollowing 
-                      ? 'bg-green-600 hover:bg-green-700 text-white' 
-                      : 'bg-sky-100 border-sky-300 text-sky-700 hover:bg-sky-200'
-                  }`}
-                  onClick={handleTrackClick}
-                  disabled={loading}
-                >
-                  {isFollowing ? (
-                    <>
-                      <Check className="h-4 w-4 sm:h-5 sm:w-5" />
-                      <span className="hidden sm:inline">Følges</span>
-                      <span className="sm:hidden">Følges</span>
-                    </>
-                  ) : (
-                    <>
-                      <Star className="h-4 w-4 sm:h-5 sm:w-5" />
-                      <span className="hidden sm:inline">Track & Følg Dette Selskab</span>
-                      <span className="sm:hidden">Følg Selskab</span>
-                    </>
-                  )}
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>
-                <div className="max-w-64">
-                  {isFollowing ? (
-                    <div className="space-y-2">
-                      <p>Du følger denne virksomhed</p>
-                      <div className="flex items-center gap-2">
-                        <Mail className="h-4 w-4" />
-                        <span className="text-sm">E-mail notifikationer aktive</span>
-                      </div>
-                      <p className="text-sm text-muted-foreground">Klik for at stoppe med at følge</p>
+      <div className="bg-background sticky top-[73px] lg:top-[73px] z-40 rounded-lg shadow-sm p-4 sm:p-6 backdrop-blur-sm border-b mb-4 sm:mb-6 relative">
+        {/* Desktop buttons - absolute positioned on the right */}
+        <div className="hidden lg:flex absolute top-4 right-4 gap-3">
+          <Button 
+            variant="default" 
+            size="lg" 
+            className="px-8 py-4 text-lg"
+            onClick={handleReportClick}
+          >
+            Virksomhedsrapport
+          </Button>
+          <Button 
+            variant="outline" 
+            size="lg" 
+            className="px-8 py-4 text-lg"
+            onClick={handleChangesClick}
+          >
+            Seneste Ændringer
+          </Button>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button 
+                variant={isFollowing ? "default" : "outline"} 
+                size="lg" 
+                className={`px-8 py-4 text-lg flex items-center gap-2 ${
+                  isFollowing 
+                    ? 'bg-green-600 hover:bg-green-700 text-white' 
+                    : 'bg-sky-100 border-sky-300 text-sky-700 hover:bg-sky-200'
+                }`}
+                onClick={handleTrackClick}
+                disabled={loading}
+              >
+                {isFollowing ? (
+                  <>
+                    <Check className="h-5 w-5" />
+                    Følges
+                  </>
+                ) : (
+                  <>
+                    <Star className="h-5 w-5" />
+                    Track & Følg Dette Selskab
+                  </>
+                )}
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <div className="max-w-64">
+                {isFollowing ? (
+                  <div className="space-y-2">
+                    <p>Du følger denne virksomhed</p>
+                    <div className="flex items-center gap-2">
+                      <Mail className="h-4 w-4" />
+                      <span className="text-sm">E-mail notifikationer aktive</span>
                     </div>
-                  ) : user ? (
-                    <p>Få besked på mail når der er ændringer i selskabet, fx nye bestyrelsesmedlemmer, kapital eller regnskaber</p>
-                  ) : (
-                    <p>Log ind for at følge denne virksomhed og få automatiske opdateringer</p>
-                  )}
-                </div>
-              </TooltipContent>
-            </Tooltip>
+                    <p className="text-sm text-muted-foreground">Klik for at stoppe med at følge</p>
+                  </div>
+                ) : user ? (
+                  <p>Få besked på mail når der er ændringer i selskabet, fx nye bestyrelsesmedlemmer, kapital eller regnskaber</p>
+                ) : (
+                  <p>Log ind for at følge denne virksomhed og få automatiske opdateringer</p>
+                )}
+              </div>
+            </TooltipContent>
+          </Tooltip>
+        </div>
+
+        <h1 className="text-xl sm:text-2xl md:text-3xl font-bold mb-2 lg:pr-52">{company.name}</h1>
+        <div className="flex flex-wrap gap-2 sm:gap-4 text-sm sm:text-base text-muted-foreground mb-4 lg:mb-0">
+          {company.yearFounded && (
+            <div className="flex items-center gap-1.5">
+              <Calendar className="h-4 w-4" />
+              <span>Etableret: {company.yearFounded}</span>
+            </div>
+          )}
+          <div className="flex items-center gap-1.5">
+            <FileText className="h-4 w-4" />
+            <span>CVR: {company.cvr}</span>
           </div>
+          <div className="flex items-center gap-1.5">
+            <Map className="h-4 w-4" />
+            <span>{company.city}</span>
+          </div>
+          <Badge className={`${statusDisplay.color} text-white ${company.status === 'NORMAL' ? 'animate-pulse' : ''}`}>
+            {statusDisplay.text}
+          </Badge>
+        </div>
+
+        {/* Mobile buttons - shown below company info on small screens */}
+        <div className="flex lg:hidden flex-col sm:flex-row gap-2 sm:gap-3">
+          <Button 
+            variant="default" 
+            className="w-full sm:w-auto px-4 sm:px-8 py-2 sm:py-4 text-sm sm:text-lg"
+            onClick={handleReportClick}
+          >
+            Virksomhedsrapport
+          </Button>
+          <Button 
+            variant="outline" 
+            className="w-full sm:w-auto px-4 sm:px-8 py-2 sm:py-4 text-sm sm:text-lg"
+            onClick={handleChangesClick}
+          >
+            Seneste Ændringer
+          </Button>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button 
+                variant={isFollowing ? "default" : "outline"} 
+                className={`w-full sm:w-auto px-4 sm:px-8 py-2 sm:py-4 text-sm sm:text-lg flex items-center justify-center gap-2 ${
+                  isFollowing 
+                    ? 'bg-green-600 hover:bg-green-700 text-white' 
+                    : 'bg-sky-100 border-sky-300 text-sky-700 hover:bg-sky-200'
+                }`}
+                onClick={handleTrackClick}
+                disabled={loading}
+              >
+                {isFollowing ? (
+                  <>
+                    <Check className="h-4 w-4 sm:h-5 sm:w-5" />
+                    <span>Følges</span>
+                  </>
+                ) : (
+                  <>
+                    <Star className="h-4 w-4 sm:h-5 sm:w-5" />
+                    <span className="hidden sm:inline">Track & Følg Dette Selskab</span>
+                    <span className="sm:hidden">Følg Selskab</span>
+                  </>
+                )}
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <div className="max-w-64">
+                {isFollowing ? (
+                  <div className="space-y-2">
+                    <p>Du følger denne virksomhed</p>
+                    <div className="flex items-center gap-2">
+                      <Mail className="h-4 w-4" />
+                      <span className="text-sm">E-mail notifikationer aktive</span>
+                    </div>
+                    <p className="text-sm text-muted-foreground">Klik for at stoppe med at følge</p>
+                  </div>
+                ) : user ? (
+                  <p>Få besked på mail når der er ændringer i selskabet, fx nye bestyrelsesmedlemmer, kapital eller regnskaber</p>
+                ) : (
+                  <p>Log ind for at følge denne virksomhed og få automatiske opdateringer</p>
+                )}
+              </div>
+            </TooltipContent>
+          </Tooltip>
         </div>
       </div>
       <UpgradeDialog 
