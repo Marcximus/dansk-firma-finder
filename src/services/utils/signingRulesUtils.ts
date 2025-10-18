@@ -150,11 +150,20 @@ export const extractSigningRulesData = (cvrData: any) => {
       })
       .map((relation: any) => ({
         ...relation,
-        organisationer: relation.organisationer?.map((org: any) => ({
-          ...org,
-          // Filter to only include active memberships
-          medlemsData: org.medlemsData?.filter((medlem: any) => !medlem.periode?.gyldigTil)
-        }))
+        organisationer: relation.organisationer
+          ?.filter((org: any) => {
+            // Only include orgs that match the role check AND have active members
+            const hasActiveMatchingRole = org.medlemsData?.some((medlem: any) => {
+              if (medlem.periode?.gyldigTil) return false; // Skip inactive
+              return roleCheck(org, medlem);
+            });
+            return hasActiveMatchingRole;
+          })
+          ?.map((org: any) => ({
+            ...org,
+            // Filter to only include active memberships
+            medlemsData: org.medlemsData?.filter((medlem: any) => !medlem.periode?.gyldigTil)
+          }))
       }));
   };
 
