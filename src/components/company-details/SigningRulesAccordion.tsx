@@ -48,10 +48,26 @@ const SigningRulesAccordion: React.FC<SigningRulesAccordionProps> = ({ cvrData }
     // First check for specific FUNKTION attribute
     if (memberData && memberData.attributter) {
       const funkAttribute = memberData.attributter.find((attr: any) => attr.type === 'FUNKTION');
-      if (funkAttribute?.vaerdier?.[0]?.vaerdi) {
-        const specificRole = funkAttribute.vaerdier[0].vaerdi;
-        // Return the specific role directly (e.g., BESTYRELSESFORMAND, DIREKTØR)
-        return specificRole;
+      if (funkAttribute?.vaerdier) {
+        // Find the ACTIVE role (where gyldigTil === null)
+        const activeRole = funkAttribute.vaerdier.find((v: any) => 
+          v.periode?.gyldigTil === null || v.periode?.gyldigTil === undefined
+        );
+        
+        if (activeRole?.vaerdi) {
+          const specificRole = activeRole.vaerdi;
+          
+          // Format specific roles for better display
+          const roleMap: Record<string, string> = {
+            'BESTYRELSESFORMAND': 'Bestyrelsesformand',
+            'BESTYRELSESMEDLEM': 'Bestyrelsesmedlem',
+            'BESTYRELSESMEDLEM.NÆSTFORMAND': 'Næstformand',
+            'DIREKTØR': 'Direktør',
+            'REVISOR': 'Revisor',
+          };
+          
+          return roleMap[specificRole] || specificRole;
+        }
       }
     }
 
