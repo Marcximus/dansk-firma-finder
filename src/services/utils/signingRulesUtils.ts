@@ -103,10 +103,19 @@ export const extractSigningRulesData = (cvrData: any) => {
     return signingRules;
   };
 
+  // Helper to check if a membership is currently active
+  const isActiveMembership = (org: any) => {
+    return org.medlemsData?.some((medlem: any) => 
+      !medlem.periode?.gyldigTil || medlem.periode.gyldigTil === null
+    );
+  };
+
   const result = {
     signingRules: getSigningRules(),
     management: relations.filter((relation: any) => 
       relation.organisationer?.some((org: any) => {
+        if (!isActiveMembership(org)) return false; // Only active members
+        
         if (org.hovedtype === 'DIREKTION') return true;
         if (org.hovedtype === 'LEDELSESORGAN') {
           return org.medlemsData?.some((medlem: any) => 
@@ -121,6 +130,8 @@ export const extractSigningRulesData = (cvrData: any) => {
     ),
     board: relations.filter((relation: any) => 
       relation.organisationer?.some((org: any) => {
+        if (!isActiveMembership(org)) return false; // Only active members
+        
         if (org.hovedtype === 'BESTYRELSE') return true;
         if (org.hovedtype === 'LEDELSESORGAN') {
           return org.medlemsData?.some((medlem: any) => 
@@ -134,7 +145,10 @@ export const extractSigningRulesData = (cvrData: any) => {
       })
     ),
     auditors: relations.filter((relation: any) => 
-      relation.organisationer?.some((org: any) => org.hovedtype === 'REVISION')
+      relation.organisationer?.some((org: any) => {
+        if (!isActiveMembership(org)) return false; // Only active members
+        return org.hovedtype === 'REVISION';
+      })
     )
   };
 
