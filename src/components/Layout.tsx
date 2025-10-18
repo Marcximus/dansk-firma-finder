@@ -518,7 +518,6 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                 <li><a href="/hjaelpecenter" className="text-muted-foreground hover:text-primary">Hjælpecenter</a></li>
                 <li><a href="/kontakt-os" className="text-muted-foreground hover:text-primary">Kontakt Os</a></li>
                 <li><a href="/faq" className="text-muted-foreground hover:text-primary">FAQ</a></li>
-                <li><a href="/soegeguide" className="text-muted-foreground hover:text-primary">Søgeguide</a></li>
               </ul>
             </div>
             <div>

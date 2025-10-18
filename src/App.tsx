@@ -14,7 +14,7 @@ import FAQPage from "./pages/FAQPage";
 import ServicevilkaarPage from "./pages/ServicevilkaarPage";
 import PrivatlivspolitikPage from "./pages/PrivatlivspolitikPage";
 import HjaelpecenterPage from "./pages/HjaelpecenterPage";
-import SearchGuidePage from "./pages/SearchGuidePage";
+
 import TrackFoelgPage from "./pages/TrackFoelgPage";
 import CheckoutPage from "./pages/CheckoutPage";
 import AuthPage from "./pages/AuthPage";
@@ -58,7 +58,7 @@ const App = () => (
             <Route path="/servicevilkaar" element={<ServicevilkaarPage />} />
             <Route path="/privatlivspolitik" element={<PrivatlivspolitikPage />} />
             <Route path="/hjaelpecenter" element={<HjaelpecenterPage />} />
-            <Route path="/soegeguide" element={<SearchGuidePage />} />
+            
             <Route path="/track-foelg" element={<TrackFoelgPage />} />
             <Route path="/checkout" element={<CheckoutPage />} />
             <Route path="/auth" element={<AuthPage />} />

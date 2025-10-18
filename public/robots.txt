@@ -12,7 +12,6 @@ Allow: /faq
 Allow: /servicevilkaar
 Allow: /privatlivspolitik
 Allow: /hjaelpecenter
-Allow: /soegeguide
 Allow: /track-foelg
 Allow: /kontakt-os
 Allow: /virksomhedsrapporter
