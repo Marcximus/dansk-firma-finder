@@ -1,12 +1,20 @@
 
 import React, { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import { getCompanyById, Company } from '@/services/companyAPI';
 import CompanyDetails from '@/components/CompanyDetails';
 import Layout from '@/components/Layout';
 import { useToast } from '@/components/ui/use-toast';
 import SEO from '@/components/SEO';
-import JSONLDScript, { createCompanySchema } from '@/components/JSONLDScript';
+import JSONLDScript, { createCompanySchema, createBreadcrumbSchema } from '@/components/JSONLDScript';
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb";
 
 const CompanyPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -70,6 +78,11 @@ const CompanyPage: React.FC = () => {
     );
   }
 
+  const breadcrumbs = [
+    { name: 'Forside', url: 'https://selskabsinfo.dk/' },
+    { name: company.name, url: `https://selskabsinfo.dk/company/${id}` }
+  ];
+
   return (
     <Layout>
       <SEO 
@@ -79,6 +92,25 @@ const CompanyPage: React.FC = () => {
         keywords={`${company.name}, CVR ${company.cvr}, danske virksomheder, selskabsoplysninger`}
       />
       <JSONLDScript data={createCompanySchema(company)} />
+      <JSONLDScript data={createBreadcrumbSchema(breadcrumbs)} />
+      
+      {/* Breadcrumb Navigation */}
+      <div className="container mx-auto px-3 sm:px-4 py-3 sm:py-4">
+        <Breadcrumb>
+          <BreadcrumbList>
+            <BreadcrumbItem>
+              <BreadcrumbLink asChild>
+                <Link to="/">Forside</Link>
+              </BreadcrumbLink>
+            </BreadcrumbItem>
+            <BreadcrumbSeparator />
+            <BreadcrumbItem>
+              <BreadcrumbPage>{company.name}</BreadcrumbPage>
+            </BreadcrumbItem>
+          </BreadcrumbList>
+        </Breadcrumb>
+      </div>
+      
       <CompanyDetails company={company} />
     </Layout>
   );

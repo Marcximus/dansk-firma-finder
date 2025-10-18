@@ -61,26 +61,61 @@ export const createOrganizationSchema = () => ({
   ]
 });
 
-export const createCompanySchema = (company: any) => ({
-  "@context": "https://schema.org",
-  "@type": "Organization",
-  "name": company.name,
-  "identifier": company.cvr,
-  "address": {
-    "@type": "PostalAddress",
-    "streetAddress": company.address,
-    "addressLocality": company.city,
-    "postalCode": company.postalCode,
-    "addressCountry": "DK"
-  },
-  "foundingDate": company.yearFounded ? `${company.yearFounded}-01-01` : undefined,
-  "numberOfEmployees": company.employeeCount,
-  "industry": company.industry,
-  "url": company.website,
-  "email": company.email,
-  "legalName": company.name,
-  "organizationType": company.legalForm
-});
+export const createCompanySchema = (company: any) => {
+  const schema: any = {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    "name": company.name,
+    "legalName": company.name,
+    "identifier": {
+      "@type": "PropertyValue",
+      "propertyID": "CVR",
+      "value": company.cvr
+    },
+    "address": {
+      "@type": "PostalAddress",
+      "streetAddress": company.address,
+      "addressLocality": company.city,
+      "postalCode": company.postalCode,
+      "addressCountry": "DK"
+    },
+    "organizationType": company.legalForm
+  };
+
+  // Add optional fields if they exist
+  if (company.yearFounded) {
+    schema.foundingDate = `${company.yearFounded}-01-01`;
+  }
+  
+  if (company.employeeCount) {
+    schema.numberOfEmployees = {
+      "@type": "QuantitativeValue",
+      "value": company.employeeCount
+    };
+  }
+  
+  if (company.industry) {
+    schema.industry = company.industry;
+  }
+  
+  if (company.website) {
+    schema.url = company.website;
+  }
+  
+  if (company.email) {
+    schema.email = company.email;
+  }
+  
+  if (company.phone) {
+    schema.telephone = company.phone;
+  }
+  
+  if (company.description) {
+    schema.description = company.description;
+  }
+
+  return schema;
+};
 
 export const createFAQSchema = (faqs: Array<{question: string, answer: string}>) => ({
   "@context": "https://schema.org",

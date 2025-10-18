@@ -137,6 +137,7 @@ const HomePage = () => {
 
         {searchTerm && (
           <div className="mb-4 px-3 sm:px-0">
+            <h1 className="sr-only">Søgeresultater for {searchTerm}</h1>
             <h2 className="text-lg sm:text-xl font-semibold flex items-center gap-2">
               {isLoading ? (
                 <>
