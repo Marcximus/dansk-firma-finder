@@ -4,7 +4,6 @@ import { AccordionContent, AccordionItem, AccordionTrigger } from '@/components/
 import { Company } from '@/services/companyAPI';
 import { extractExtendedInfo } from '@/services/cvrUtils';
 import { Info, Phone, MapPin, Briefcase, Target, TrendingUp, DollarSign, Calendar, FileText, Mail, Activity } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
 
 interface ExtendedInfoAccordionProps {
   company: Company;
@@ -83,19 +82,11 @@ const ExtendedInfoAccordion: React.FC<ExtendedInfoAccordionProps> = ({ company, 
             value={extendedInfo?.phone} 
           />
           
-          <div className="flex items-center gap-3">
-            <Activity className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-            <span className="text-sm text-muted-foreground min-w-[120px]">Status:</span>
-            <span className="text-sm">
-              {(getStatus() === 'NORMAL' || getStatus() === 'Aktiv') ? (
-                <Badge className="animate-pulse bg-green-500/20 text-green-700 dark:text-green-300 border-green-500/30">
-                  {getStatus()}
-                </Badge>
-              ) : (
-                getStatus()
-              )}
-            </span>
-          </div>
+          <InfoRow 
+            icon={Activity} 
+            label="Status" 
+            value={getStatus()} 
+          />
 
           {/* Alternative Names */}
           {extendedInfo?.binavne && extendedInfo.binavne.length > 0 && (
