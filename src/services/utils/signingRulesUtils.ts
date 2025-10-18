@@ -106,10 +106,32 @@ export const extractSigningRulesData = (cvrData: any) => {
   const result = {
     signingRules: getSigningRules(),
     management: relations.filter((relation: any) => 
-      relation.organisationer?.some((org: any) => org.hovedtype === 'DIREKTION')
+      relation.organisationer?.some((org: any) => {
+        if (org.hovedtype === 'DIREKTION') return true;
+        if (org.hovedtype === 'LEDELSESORGAN') {
+          return org.medlemsData?.some((medlem: any) => 
+            medlem.attributter?.some((attr: any) => 
+              attr.type === 'FUNKTION' && 
+              attr.vaerdier?.some((v: any) => v.vaerdi?.includes('DIREKTØR'))
+            )
+          );
+        }
+        return false;
+      })
     ),
     board: relations.filter((relation: any) => 
-      relation.organisationer?.some((org: any) => org.hovedtype === 'BESTYRELSE')
+      relation.organisationer?.some((org: any) => {
+        if (org.hovedtype === 'BESTYRELSE') return true;
+        if (org.hovedtype === 'LEDELSESORGAN') {
+          return org.medlemsData?.some((medlem: any) => 
+            medlem.attributter?.some((attr: any) => 
+              attr.type === 'FUNKTION' && 
+              attr.vaerdier?.some((v: any) => v.vaerdi?.includes('BESTYRELSESMEDLEM'))
+            )
+          );
+        }
+        return false;
+      })
     ),
     auditors: relations.filter((relation: any) => 
       relation.organisationer?.some((org: any) => org.hovedtype === 'REVISION')
