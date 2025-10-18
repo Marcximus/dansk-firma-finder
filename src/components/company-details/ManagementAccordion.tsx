@@ -10,7 +10,20 @@ interface ManagementAccordionProps {
 const ManagementAccordion: React.FC<ManagementAccordionProps> = ({ cvrData }) => {
   if (!cvrData) return null;
 
+  console.log('=== MANAGEMENT ACCORDION DEBUG ===');
+  console.log('Full cvrData:', cvrData);
+  console.log('cvrData.deltagerRelation:', cvrData.deltagerRelation);
+  console.log('cvrData keys:', Object.keys(cvrData));
+  
   const relations = cvrData.deltagerRelation || [];
+  console.log('Relations found:', relations.length);
+  
+  // Log each relation in detail
+  relations.forEach((relation: any, index: number) => {
+    console.log(`Relation ${index}:`, relation);
+    console.log(`- Deltager:`, relation.deltager);
+    console.log(`- Organisationer:`, relation.organisationer);
+  });
 
   const getPersonName = (deltager: any) => {
     if (!deltager) return 'Ukendt';
