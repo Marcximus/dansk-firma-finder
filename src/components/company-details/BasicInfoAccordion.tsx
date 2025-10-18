@@ -2,7 +2,7 @@
 import React from 'react';
 import { AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Company } from '@/services/companyAPI';
-import { FileText, Building2, Hash, MapPin, Calendar, Briefcase, Mail, Phone, Globe, Activity, DollarSign } from 'lucide-react';
+import { FileText, Building2, Hash, MapPin, Calendar, Briefcase, Globe, DollarSign } from 'lucide-react';
 import { format } from 'date-fns';
 import { da } from 'date-fns/locale';
 import { extractExtendedInfo } from '@/services/cvrUtils';
@@ -34,21 +34,6 @@ const BasicInfoAccordion: React.FC<BasicInfoAccordionProps> = ({ company, cvrDat
     } catch {
       return dateString;
     }
-  };
-
-  const getContactInfo = () => {
-    if (!cvrData) return { email: null, phone: null };
-    
-    const currentEmail = cvrData.elektroniskPost?.find((email: any) => email.periode?.gyldigTil === null);
-    const currentPhone = cvrData.telefonNummer?.find((phone: any) => phone.periode?.gyldigTil === null);
-    
-    return {
-      email: currentEmail?.kontaktoplysning || 
-             cvrData.elektroniskPost?.[cvrData.elektroniskPost.length - 1]?.kontaktoplysning || 
-             company.email || null,
-      phone: currentPhone?.kontaktoplysning || 
-             cvrData.telefonNummer?.[cvrData.telefonNummer.length - 1]?.kontaktoplysning || null
-    };
   };
 
   const getWebsite = () => {
@@ -102,16 +87,6 @@ const BasicInfoAccordion: React.FC<BasicInfoAccordionProps> = ({ company, cvrDat
            'Ikke oplyst';
   };
 
-  const getStatus = () => {
-    if (!cvrData) return company.status || 'Ikke oplyst';
-    
-    const currentStatus = cvrData.virksomhedsstatus?.find((status: any) => status.periode?.gyldigTil === null);
-    return currentStatus?.status || 
-           cvrData.virksomhedsstatus?.[cvrData.virksomhedsstatus.length - 1]?.status ||
-           company.status || 
-           'Ikke oplyst';
-  };
-
   const getAddress = () => {
     if (!cvrData?.beliggenhedsadresse) {
       return {
@@ -137,7 +112,6 @@ const BasicInfoAccordion: React.FC<BasicInfoAccordionProps> = ({ company, cvrDat
     };
   };
 
-  const contactInfo = getContactInfo();
   const website = getWebsite();
   const address = getAddress();
   const extendedInfo = extractExtendedInfo(cvrData);
@@ -188,22 +162,6 @@ const BasicInfoAccordion: React.FC<BasicInfoAccordionProps> = ({ company, cvrDat
             value={extendedInfo?.registeredCapital} 
           />
           
-          <InfoRow 
-            icon={Mail} 
-            label="Email"
-            value={contactInfo.email ? (
-              <a href={`mailto:${contactInfo.email}`} className="text-primary hover:underline">
-                {contactInfo.email}
-              </a>
-            ) : undefined}
-          />
-          
-          <InfoRow 
-            icon={Phone} 
-            label="Telefon" 
-            value={extendedInfo?.phone} 
-          />
-          
           {website && (
             <InfoRow 
               icon={Globe} 
@@ -220,12 +178,6 @@ const BasicInfoAccordion: React.FC<BasicInfoAccordionProps> = ({ company, cvrDat
               }
             />
           )}
-          
-          <InfoRow 
-            icon={Activity} 
-            label="Status" 
-            value={getStatus()} 
-          />
         </div>
       </AccordionContent>
     </AccordionItem>

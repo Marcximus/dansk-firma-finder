@@ -3,7 +3,7 @@ import React from 'react';
 import { AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Company } from '@/services/companyAPI';
 import { extractExtendedInfo } from '@/services/cvrUtils';
-import { Info, Phone, MapPin, Briefcase, Target, TrendingUp, DollarSign, Calendar, FileText } from 'lucide-react';
+import { Info, Phone, MapPin, Briefcase, Target, TrendingUp, DollarSign, Calendar, FileText, Mail, Activity } from 'lucide-react';
 
 interface ExtendedInfoAccordionProps {
   company: Company;
@@ -16,10 +16,37 @@ const ExtendedInfoAccordion: React.FC<ExtendedInfoAccordionProps> = ({ company, 
   const extendedInfo = extractExtendedInfo(cvrData);
   console.log('ExtendedInfoAccordion - Extracted Info:', extendedInfo);
 
+  const getContactInfo = () => {
+    if (!cvrData) return { email: null, phone: null };
+    
+    const currentEmail = cvrData.elektroniskPost?.find((email: any) => email.periode?.gyldigTil === null);
+    const currentPhone = cvrData.telefonNummer?.find((phone: any) => phone.periode?.gyldigTil === null);
+    
+    return {
+      email: currentEmail?.kontaktoplysning || 
+             cvrData.elektroniskPost?.[cvrData.elektroniskPost.length - 1]?.kontaktoplysning || 
+             company.email || null,
+      phone: currentPhone?.kontaktoplysning || 
+             cvrData.telefonNummer?.[cvrData.telefonNummer.length - 1]?.kontaktoplysning || null
+    };
+  };
+
+  const getStatus = () => {
+    if (!cvrData) return company.status || 'Ikke oplyst';
+    
+    const currentStatus = cvrData.virksomhedsstatus?.find((status: any) => status.periode?.gyldigTil === null);
+    return currentStatus?.status || 
+           cvrData.virksomhedsstatus?.[cvrData.virksomhedsstatus.length - 1]?.status ||
+           company.status || 
+           'Ikke oplyst';
+  };
+
+  const contactInfo = getContactInfo();
+
   const InfoRow = ({ icon: Icon, label, value, className = "" }: { 
     icon: any, 
     label: string, 
-    value: string | null | undefined, 
+    value: string | null | undefined | React.ReactNode, 
     className?: string 
   }) => (
     <div className={`flex items-center gap-3 ${className}`}>
@@ -39,6 +66,28 @@ const ExtendedInfoAccordion: React.FC<ExtendedInfoAccordionProps> = ({ company, 
       </AccordionTrigger>
       <AccordionContent className="px-6 pb-6">
         <div className="space-y-1">
+          <InfoRow 
+            icon={Mail} 
+            label="Email"
+            value={contactInfo.email ? (
+              <a href={`mailto:${contactInfo.email}`} className="text-primary hover:underline">
+                {contactInfo.email}
+              </a>
+            ) : undefined}
+          />
+          
+          <InfoRow 
+            icon={Phone} 
+            label="Telefon" 
+            value={extendedInfo?.phone} 
+          />
+          
+          <InfoRow 
+            icon={Activity} 
+            label="Status" 
+            value={getStatus()} 
+          />
+
           {/* Alternative Names */}
           {extendedInfo?.binavne && extendedInfo.binavne.length > 0 && (
             <div className="flex items-center gap-3">
