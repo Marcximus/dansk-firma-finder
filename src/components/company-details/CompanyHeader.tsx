@@ -294,7 +294,7 @@ const CompanyHeader: React.FC<CompanyHeaderProps> = ({ company }) => {
             <Map className="h-4 w-4" />
             <span>{company.city}</span>
           </div>
-          <Badge className={`${statusDisplay.color} text-white`}>
+          <Badge className={`${statusDisplay.color} text-white ${company.status === 'NORMAL' ? 'animate-pulse' : ''}`}>
             {statusDisplay.text}
           </Badge>
         </div>
