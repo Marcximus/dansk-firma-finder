@@ -128,7 +128,8 @@ export const extractSigningRulesData = (cvrData: any) => {
           
           // Check each active member's role
           return org.medlemsData?.some((medlem: any) => {
-            if (medlem.periode?.gyldigTil) return false; // Skip inactive
+            // Skip inactive - check for any value in gyldigTil (including empty strings)
+            if (medlem.periode?.gyldigTil !== null && medlem.periode?.gyldigTil !== undefined) return false;
             return roleCheck(org, medlem);
           });
         });
@@ -154,7 +155,8 @@ export const extractSigningRulesData = (cvrData: any) => {
           ?.filter((org: any) => {
             // Only include orgs that match the role check AND have active members
             const hasActiveMatchingRole = org.medlemsData?.some((medlem: any) => {
-              if (medlem.periode?.gyldigTil) return false; // Skip inactive
+              // Skip inactive - check for any value in gyldigTil (including empty strings)
+              if (medlem.periode?.gyldigTil !== null && medlem.periode?.gyldigTil !== undefined) return false;
               return roleCheck(org, medlem);
             });
             return hasActiveMatchingRole;
@@ -162,7 +164,9 @@ export const extractSigningRulesData = (cvrData: any) => {
           ?.map((org: any) => ({
             ...org,
             // Filter to only include active memberships
-            medlemsData: org.medlemsData?.filter((medlem: any) => !medlem.periode?.gyldigTil)
+            medlemsData: org.medlemsData?.filter((medlem: any) => 
+              medlem.periode?.gyldigTil === null || medlem.periode?.gyldigTil === undefined
+            )
           }))
       }));
   };
