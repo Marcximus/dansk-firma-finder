@@ -72,18 +72,6 @@ const ExtendedInfoAccordion: React.FC<ExtendedInfoAccordionProps> = ({ company, 
             label="Regnskabsår" 
             value={extendedInfo?.accountingYear} 
           />
-          
-          <InfoRow 
-            icon={Calendar} 
-            label="Første regnskabsperiode" 
-            value={extendedInfo?.firstAccountingPeriod} 
-          />
-          
-          <InfoRow 
-            icon={FileText} 
-            label="Seneste vedtægtsdato" 
-            value={extendedInfo?.latestStatuteDate} 
-          />
 
           {/* Purpose - Special handling for long text */}
           {extendedInfo?.purpose && (
