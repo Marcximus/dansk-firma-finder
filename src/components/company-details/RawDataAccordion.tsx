@@ -74,14 +74,14 @@ const RawDataAccordion: React.FC<RawDataAccordionProps> = ({ cvrData }) => {
   if (!analysis) {
     return (
       <AccordionItem value="raw-data" className="border rounded-lg">
-        <AccordionTrigger className="px-6 py-4 hover:no-underline">
+        <AccordionTrigger className="px-4 sm:px-6 py-4 hover:no-underline">
           <div className="flex items-center gap-2">
             <Code className="h-5 w-5" />
-            <span className="text-lg font-semibold">Tekniske data & fejlfinding</span>
+            <span className="text-base sm:text-lg font-semibold">Tekniske data & fejlfinding</span>
           </div>
         </AccordionTrigger>
-        <AccordionContent className="px-6 pb-6">
-          <div className="text-center py-8 text-muted-foreground">
+        <AccordionContent className="px-4 sm:px-6 pb-4 sm:pb-6">
+          <div className="text-center py-6 sm:py-8 text-muted-foreground text-sm">
             No data available for analysis
           </div>
         </AccordionContent>
@@ -93,46 +93,46 @@ const RawDataAccordion: React.FC<RawDataAccordionProps> = ({ cvrData }) => {
 
   return (
     <AccordionItem value="raw-data" className="border rounded-lg">
-      <AccordionTrigger className="px-6 py-4 hover:no-underline">
-        <div className="flex items-center gap-2">
+      <AccordionTrigger className="px-4 sm:px-6 py-4 hover:no-underline">
+        <div className="flex items-center gap-2 flex-wrap">
           <Code className="h-5 w-5" />
-          <span className="text-lg font-semibold">Tekniske data & fejlfinding</span>
-          <Badge variant="outline" className="ml-auto">
+          <span className="text-base sm:text-lg font-semibold">Tekniske data & fejlfinding</span>
+          <Badge variant="outline" className="ml-auto text-xs">
             {analysis.totalDataPoints} datapunkter
           </Badge>
         </div>
       </AccordionTrigger>
-      <AccordionContent className="px-6 pb-6">
-        <div className="space-y-6">
-          <div className="text-sm text-muted-foreground">
+      <AccordionContent className="px-4 sm:px-6 pb-4 sm:pb-6">
+        <div className="space-y-4 sm:space-y-6">
+          <div className="text-xs sm:text-sm text-muted-foreground">
             Dette afsnit viser avanceret analyse af CVR-data med intelligent feltopdagelse og datakvalitetsvurdering.
           </div>
 
           {/* Data Quality Overview */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-sm flex items-center gap-2">
+              <CardTitle className="text-sm sm:text-base flex items-center gap-2">
                 <TrendingUp className="w-4 h-4" />
                 Datakvalitetsanalyse
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-3 sm:space-y-4">
               <div className="flex items-center justify-between">
-                <span className="text-sm font-medium">Samlet kvalitet:</span>
+                <span className="text-xs sm:text-sm font-medium">Samlet kvalitet:</span>
                 <Badge className={getQualityBadgeColor(completenessReport.dataQuality)}>
                   {completenessReport.dataQuality.toUpperCase()}
                 </Badge>
               </div>
               
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-2 gap-3 sm:gap-4">
                 <div className="text-center">
-                  <div className="text-2xl font-bold text-green-600">
+                  <div className="text-xl sm:text-2xl font-bold text-green-600">
                     {completenessReport.foundFields}
                   </div>
                   <div className="text-xs text-muted-foreground">Felter fundet</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-2xl font-bold text-red-600">
+                  <div className="text-xl sm:text-2xl font-bold text-red-600">
                     {completenessReport.missingFields.length}
                   </div>
                   <div className="text-xs text-muted-foreground">Felter mangler</div>

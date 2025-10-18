@@ -16,44 +16,44 @@ const OwnershipAccordion: React.FC<OwnershipAccordionProps> = ({ cvrData }) => {
 
   const renderOwners = (owners: any[], title: string, icon: JSX.Element, isFormer: boolean = false) => {
     return (
-      <div className="mb-6">
-        <h4 className="font-semibold mb-3 flex items-center gap-2">
+      <div className="mb-4 sm:mb-6">
+        <h4 className="font-semibold text-sm sm:text-base mb-2 sm:mb-3 flex items-center gap-2">
           {icon}
           {title}
         </h4>
-        <div className="space-y-3">
+        <div className="space-y-2 sm:space-y-3">
           {owners && owners.length > 0 ? (
             owners.map((ejer: any, index: number) => (
-              <div key={index} className={`border-l-4 ${isFormer ? 'border-red-200' : 'border-green-200'} pl-4`}>
-                <div className="font-semibold text-base">{ejer.navn}</div>
-                <div className="text-sm text-muted-foreground flex items-center gap-1 mb-1">
-                  <MapPin className="h-3 w-3" />
-                  {ejer.adresse}
+              <div key={index} className={`border-l-2 sm:border-l-4 ${isFormer ? 'border-red-200' : 'border-green-200'} pl-3 sm:pl-4 py-2`}>
+                <div className="font-semibold text-sm sm:text-base">{ejer.navn}</div>
+                <div className="text-xs sm:text-sm text-muted-foreground flex items-center gap-1 mb-1 break-words">
+                  <MapPin className="h-3 w-3 flex-shrink-0" />
+                  <span className="break-words">{ejer.adresse}</span>
                 </div>
-                <div className="text-sm space-y-0.5">
+                <div className="text-xs sm:text-sm space-y-0.5">
                   {ejer.ejerandel && ejer.ejerandel !== 'Ikke oplyst' && (
                     <div className="flex items-center gap-1">
-                      <Percent className="h-3 w-3" />
+                      <Percent className="h-3 w-3 flex-shrink-0" />
                       <span>Ejerandel: <span className="font-medium">{ejer.ejerandel}</span></span>
                     </div>
                   )}
                   {ejer.stemmerettigheder && ejer.stemmerettigheder !== 'Ikke oplyst' && (
                     <div className="flex items-center gap-1">
-                      <Percent className="h-3 w-3" />
+                      <Percent className="h-3 w-3 flex-shrink-0" />
                       <span>Stemmerettigheder: <span className="font-medium">{ejer.stemmerettigheder}</span></span>
                     </div>
                   )}
                   {ejer.periode && (
                     <div className="flex items-center gap-1">
-                      <Calendar className="h-3 w-3" />
-                      <span>Periode: {ejer.periode.gyldigFra || 'Ukendt'} - {ejer.periode.gyldigTil || 'Nuværende'}</span>
+                      <Calendar className="h-3 w-3 flex-shrink-0" />
+                      <span className="break-words">Periode: {ejer.periode.gyldigFra || 'Ukendt'} - {ejer.periode.gyldigTil || 'Nuværende'}</span>
                     </div>
                   )}
                 </div>
               </div>
             ))
           ) : (
-            <div className="text-muted-foreground text-sm border-l-4 border-gray-200 pl-4 py-2">
+            <div className="text-muted-foreground text-xs sm:text-sm border-l-2 sm:border-l-4 border-gray-200 pl-3 sm:pl-4 py-2">
               Ingen oplysninger tilgængelige
             </div>
           )}
@@ -64,14 +64,14 @@ const OwnershipAccordion: React.FC<OwnershipAccordionProps> = ({ cvrData }) => {
 
   return (
     <AccordionItem value="ownership" className="border rounded-lg">
-      <AccordionTrigger className="px-6 py-4 hover:no-underline">
+      <AccordionTrigger className="px-4 sm:px-6 py-4 hover:no-underline">
         <div className="flex items-center gap-2">
           <Building2 className="h-5 w-5" />
-          <span className="text-lg font-semibold">Ejerforhold & Datterselskaber</span>
+          <span className="text-base sm:text-lg font-semibold">Ejerforhold & Datterselskaber</span>
         </div>
       </AccordionTrigger>
-      <AccordionContent className="px-6 pb-6">
-        <div className="space-y-6">
+      <AccordionContent className="px-4 sm:px-6 pb-4 sm:pb-6">
+        <div className="space-y-4 sm:space-y-6">
           {/* Legale ejere */}
           {renderOwners(ownershipData?.currentOwners || [], 'Legale ejere', <Users className="h-4 w-4 text-green-600" />)}
           
@@ -79,31 +79,31 @@ const OwnershipAccordion: React.FC<OwnershipAccordionProps> = ({ cvrData }) => {
           {renderOwners(ownershipData?.formerOwners || [], 'Ophørte legale ejere', <X className="h-4 w-4 text-red-600" />, true)}
 
           {/* Reelle ejere */}
-          <div className="mb-6">
-            <h4 className="font-semibold mb-3 flex items-center gap-2">
+          <div className="mb-4 sm:mb-6">
+            <h4 className="font-semibold text-sm sm:text-base mb-2 sm:mb-3 flex items-center gap-2">
               <Users className="h-4 w-4 text-blue-600" />
               Reelle ejere
             </h4>
-            <div className="space-y-3">
+            <div className="space-y-2 sm:space-y-3">
               {ownershipData?.rielleEjere && ownershipData.rielleEjere.length > 0 ? (
                 ownershipData.rielleEjere.map((ejer: any, index: number) => (
-                  <div key={index} className="border-l-4 border-blue-200 pl-4">
-                    <div className="font-semibold text-base">{ejer.navn}</div>
-                    <div className="text-sm text-muted-foreground mb-1">{ejer.adresse}</div>
+                  <div key={index} className="border-l-2 sm:border-l-4 border-blue-200 pl-3 sm:pl-4 py-2">
+                    <div className="font-semibold text-sm sm:text-base">{ejer.navn}</div>
+                    <div className="text-xs sm:text-sm text-muted-foreground mb-1 break-words">{ejer.adresse}</div>
                     {ejer.kontrolform && (
-                      <div className="text-sm">
+                      <div className="text-xs sm:text-sm">
                         Kontrolform: <span className="font-medium">{ejer.kontrolform}</span>
                       </div>
                     )}
                     {ejer.periode && (
-                      <div className="text-sm text-muted-foreground">
+                      <div className="text-xs sm:text-sm text-muted-foreground break-words">
                         Periode: {ejer.periode.gyldigFra || 'Ukendt'} - {ejer.periode.gyldigTil || 'Nuværende'}
                       </div>
                     )}
                   </div>
                 ))
               ) : (
-                <div className="text-muted-foreground text-sm border-l-4 border-gray-200 pl-4 py-2">
+                <div className="text-muted-foreground text-xs sm:text-sm border-l-2 sm:border-l-4 border-gray-200 pl-3 sm:pl-4 py-2">
                   Ingen oplysninger tilgængelige
                 </div>
               )}

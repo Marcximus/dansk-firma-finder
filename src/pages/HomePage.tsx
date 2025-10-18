@@ -121,30 +121,30 @@ const HomePage = () => {
       />
       <JSONLDScript data={createWebsiteSchema()} />
       <JSONLDScript data={createOrganizationSchema()} />
-      <div className="max-w-5xl mx-auto">
+      <div className="max-w-5xl mx-auto px-3 sm:px-4">
         {/* Only show hero section if no search has been performed */}
         {!searchTerm && (
-          <div className="py-12 text-center">
-            <h1 className="text-4xl font-bold mb-6">Selskabsinfo</h1>
-            <p className="text-xl text-muted-foreground mb-8">
+          <div className="py-8 sm:py-12 text-center">
+            <h1 className="text-3xl sm:text-4xl font-bold mb-4 sm:mb-6">Selskabsinfo</h1>
+            <p className="text-lg sm:text-xl text-muted-foreground mb-6 sm:mb-8 px-4">
               Søg og udforsk detaljerede oplysninger om danske virksomheder
             </p>
-            <div className="flex justify-center mb-12">
+            <div className="flex justify-center mb-8 sm:mb-12 px-4">
               <SearchBar onSearch={handleSearch} isLoading={isLoading} shouldFocus={shouldFocusSearch} />
             </div>
           </div>
         )}
 
         {searchTerm && (
-          <div className="mb-4">
-            <h2 className="text-xl font-semibold flex items-center gap-2">
+          <div className="mb-4 px-3 sm:px-0">
+            <h2 className="text-lg sm:text-xl font-semibold flex items-center gap-2">
               {isLoading ? (
                 <>
                   <Spinner variant="default" size={20} />
-                  Søger...
+                  <span className="text-sm sm:text-base">Søger...</span>
                 </>
               ) : (
-                `Resultater for "${searchTerm}"`
+                <span className="text-sm sm:text-base break-words">{`Resultater for "${searchTerm}"`}</span>
               )}
             </h2>
           </div>
@@ -153,20 +153,20 @@ const HomePage = () => {
         {/* Render companies in the exact order from backend - NO SORTING ON FRONTEND */}
         {companies.length > 0 && (
           <>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 px-3 sm:px-0">
               {paginatedCompanies.map((company: Company) => (
                 <CompanyCard key={company.id} company={company} />
               ))}
             </div>
             
             {totalPages > 1 && (
-              <div className="mt-8 flex justify-center">
+              <div className="mt-6 sm:mt-8 flex justify-center px-3 sm:px-0">
                 <Pagination>
-                  <PaginationContent>
+                  <PaginationContent className="gap-1 sm:gap-2">
                     <PaginationItem>
                       <PaginationPrevious 
                         onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-                        className={currentPage === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                        className={`${currentPage === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'} min-h-[44px] text-xs sm:text-sm px-2 sm:px-4`}
                       />
                     </PaginationItem>
                     
@@ -182,7 +182,7 @@ const HomePage = () => {
                             <PaginationLink
                               onClick={() => setCurrentPage(page)}
                               isActive={currentPage === page}
-                              className="cursor-pointer"
+                              className="cursor-pointer min-h-[44px] min-w-[44px] text-xs sm:text-sm"
                             >
                               {page}
                             </PaginationLink>
@@ -191,7 +191,7 @@ const HomePage = () => {
                       } else if (page === currentPage - 2 || page === currentPage + 2) {
                         return (
                           <PaginationItem key={page}>
-                            <PaginationEllipsis />
+                            <PaginationEllipsis className="text-xs sm:text-sm" />
                           </PaginationItem>
                         );
                       }
@@ -201,7 +201,7 @@ const HomePage = () => {
                     <PaginationItem>
                       <PaginationNext 
                         onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-                        className={currentPage === totalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                        className={`${currentPage === totalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer'} min-h-[44px] text-xs sm:text-sm px-2 sm:px-4`}
                       />
                     </PaginationItem>
                   </PaginationContent>
@@ -212,8 +212,8 @@ const HomePage = () => {
         )}
 
         {searchTerm && companies.length === 0 && !isLoading && (
-          <div className="text-center py-8">
-            <p className="text-lg text-muted-foreground">
+          <div className="text-center py-6 sm:py-8 px-4">
+            <p className="text-base sm:text-lg text-muted-foreground">
               Ingen virksomheder fundet, der matcher dine søgekriterier.
             </p>
           </div>

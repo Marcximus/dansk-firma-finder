@@ -23,10 +23,10 @@ const CompanyDetails: React.FC<CompanyDetailsProps> = ({ company }) => {
   const cvrDetails = company.realCvrData ? extractCvrDetails(company.realCvrData) : null;
   
   return (
-    <div className="py-6 max-w-7xl mx-auto px-4">
+    <div className="py-4 sm:py-6 max-w-7xl mx-auto px-3 sm:px-4">
       <CompanyHeader company={company} />
 
-      <Accordion type="multiple" defaultValue={["basic", "extended", "signing-rules", "ownership", "financial", "history"]} className="w-full space-y-4">
+      <Accordion type="multiple" defaultValue={["basic", "extended", "signing-rules", "ownership", "financial", "history"]} className="w-full space-y-3 sm:space-y-4">
         <BasicInfoAccordion company={company} cvrData={company.realCvrData} />
         <ExtendedInfoAccordion company={company} cvrData={company.realCvrData} />
         <SigningRulesAccordion cvrData={company.realCvrData} />
@@ -36,10 +36,10 @@ const CompanyDetails: React.FC<CompanyDetailsProps> = ({ company }) => {
         <RawDataAccordion cvrData={company.realCvrData} />
       </Accordion>
       
-      <div className="mt-8 space-y-4">
+      <div className="mt-6 sm:mt-8 space-y-4">
         <DataSourceInfo />
         <div className="flex justify-center">
-          <Button asChild variant="outline" className="flex gap-1.5">
+          <Button asChild variant="outline" className="flex gap-1.5 min-h-[44px] px-6">
             <Link to="/">
               <ArrowLeft className="w-4 h-4" />
               Tilbage til søgning

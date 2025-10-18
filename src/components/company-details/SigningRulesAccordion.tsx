@@ -95,28 +95,28 @@ const SigningRulesAccordion: React.FC<SigningRulesAccordionProps> = ({ cvrData }
 
   const renderPersons = (persons: any[], title: string, icon: JSX.Element) => {
     return (
-      <div className="mb-6">
-        <h4 className="font-semibold mb-3 flex items-center gap-2">
+      <div className="mb-4 sm:mb-6">
+        <h4 className="font-semibold text-sm sm:text-base mb-2 sm:mb-3 flex items-center gap-2">
           {icon}
           {title}
         </h4>
-        <div className="space-y-3">
+        <div className="space-y-2 sm:space-y-3">
           {persons && persons.length > 0 ? (
             persons.map((relation: any, index: number) => {
               const personName = getPersonName(relation.deltager);
               const personAddress = getPersonAddress(relation.deltager);
 
               return (
-                <div key={index} className="border-l-4 border-blue-200 pl-4 py-2">
-                  <div className="font-semibold text-base">{personName}</div>
-                  <div className="text-sm text-muted-foreground mb-2">{personAddress}</div>
+                <div key={index} className="border-l-2 sm:border-l-4 border-blue-200 pl-3 sm:pl-4 py-2">
+                  <div className="font-semibold text-sm sm:text-base">{personName}</div>
+                  <div className="text-xs sm:text-sm text-muted-foreground mb-2 break-words">{personAddress}</div>
                   
                   {relation.organisationer && relation.organisationer.map((org: any, orgIndex: number) => {
                     // Only show active memberships (already filtered by signingRulesUtils)
                     const activeMemberships = org.medlemsData || [];
                     
                     return activeMemberships.map((medlem: any, medlemIndex: number) => (
-                      <div key={`${orgIndex}-${medlemIndex}`} className="text-sm">
+                      <div key={`${orgIndex}-${medlemIndex}`} className="text-xs sm:text-sm">
                         <div className="font-medium">
                           {getRoleDisplayName(org.hovedtype, medlem)}
                         </div>
@@ -138,7 +138,7 @@ const SigningRulesAccordion: React.FC<SigningRulesAccordionProps> = ({ cvrData }
               );
             })
           ) : (
-            <div className="text-muted-foreground text-sm border-l-4 border-gray-200 pl-4 py-2">
+            <div className="text-muted-foreground text-xs sm:text-sm border-l-2 sm:border-l-4 border-gray-200 pl-3 sm:pl-4 py-2">
               Ingen oplysninger tilgængelige
             </div>
           )}
@@ -149,29 +149,29 @@ const SigningRulesAccordion: React.FC<SigningRulesAccordionProps> = ({ cvrData }
 
   return (
     <AccordionItem value="signing-rules" className="border rounded-lg">
-      <AccordionTrigger className="px-6 py-4 hover:no-underline">
+      <AccordionTrigger className="px-4 sm:px-6 py-4 hover:no-underline">
         <div className="flex items-center gap-2">
           <FileText className="h-5 w-5" />
-          <span className="text-lg font-semibold">Tegningsregel og personkreds</span>
+          <span className="text-base sm:text-lg font-semibold">Tegningsregel og personkreds</span>
         </div>
       </AccordionTrigger>
-      <AccordionContent className="px-6 pb-6">
-        <div className="space-y-6">
+      <AccordionContent className="px-4 sm:px-6 pb-4 sm:pb-6">
+        <div className="space-y-4 sm:space-y-6">
           {/* Tegningsregel */}
           <div>
-            <h4 className="font-semibold mb-3 flex items-center gap-2">
+            <h4 className="font-semibold text-sm sm:text-base mb-2 sm:mb-3 flex items-center gap-2">
               <FileText className="h-4 w-4" />
               Tegningsregel
             </h4>
             <div className="space-y-2">
               {signingData?.signingRules && signingData.signingRules.length > 0 ? (
                 signingData.signingRules.map((rule: string, index: number) => (
-                  <div key={index} className="border-l-4 border-green-200 pl-4 py-2">
-                    <div className="font-medium text-sm">{rule}</div>
+                  <div key={index} className="border-l-2 sm:border-l-4 border-green-200 pl-3 sm:pl-4 py-2">
+                    <div className="font-medium text-xs sm:text-sm">{rule}</div>
                   </div>
                 ))
               ) : (
-                <div className="text-muted-foreground text-sm border-l-4 border-gray-200 pl-4 py-2">
+                <div className="text-muted-foreground text-xs sm:text-sm border-l-2 sm:border-l-4 border-gray-200 pl-3 sm:pl-4 py-2">
                   Ingen oplysninger om tegningsregler tilgængelige
                 </div>
               )}

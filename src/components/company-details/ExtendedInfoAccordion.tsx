@@ -49,23 +49,25 @@ const ExtendedInfoAccordion: React.FC<ExtendedInfoAccordionProps> = ({ company, 
     value: string | null | undefined | React.ReactNode, 
     className?: string 
   }) => (
-    <div className={`flex items-center gap-3 ${className}`}>
-      <Icon className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-      <span className="text-sm text-muted-foreground min-w-[120px]">{label}:</span>
-      <span className="text-sm">{value || 'Ikke tilgængelig'}</span>
+    <div className={`flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3 ${className}`}>
+      <div className="flex items-center gap-2 sm:min-w-[140px]">
+        <Icon className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+        <span className="text-sm text-muted-foreground font-medium">{label}:</span>
+      </div>
+      <span className="text-sm pl-6 sm:pl-0 break-words">{value || 'Ikke tilgængelig'}</span>
     </div>
   );
 
   return (
     <AccordionItem value="extended" className="border rounded-lg">
-      <AccordionTrigger className="px-6 py-4 hover:no-underline">
+      <AccordionTrigger className="px-4 sm:px-6 py-4 hover:no-underline">
         <div className="flex items-center gap-2">
           <Info className="h-5 w-5" />
-          <span className="text-lg font-semibold">Udvidede virksomhedsoplysninger</span>
+          <span className="text-base sm:text-lg font-semibold">Udvidede virksomhedsoplysninger</span>
         </div>
       </AccordionTrigger>
-      <AccordionContent className="px-6 pb-6">
-        <div className="space-y-1">
+      <AccordionContent className="px-4 sm:px-6 pb-4 sm:pb-6">
+        <div className="space-y-3 sm:space-y-2">
           <InfoRow 
             icon={Mail} 
             label="Email"
@@ -90,10 +92,12 @@ const ExtendedInfoAccordion: React.FC<ExtendedInfoAccordionProps> = ({ company, 
 
           {/* Alternative Names */}
           {extendedInfo?.binavne && extendedInfo.binavne.length > 0 && (
-            <div className="flex items-center gap-3">
-              <Info className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-              <span className="text-sm text-muted-foreground min-w-[120px]">Binavne:</span>
-              <span className="text-sm">{extendedInfo.binavne.join(', ')}</span>
+            <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3">
+              <div className="flex items-center gap-2 sm:min-w-[140px]">
+                <Info className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                <span className="text-sm text-muted-foreground font-medium">Binavne:</span>
+              </div>
+              <span className="text-sm pl-6 sm:pl-0 break-words">{extendedInfo.binavne.join(', ')}</span>
             </div>
           )}
 
@@ -124,10 +128,10 @@ const ExtendedInfoAccordion: React.FC<ExtendedInfoAccordionProps> = ({ company, 
 
           {/* Purpose - Special handling for long text */}
           {extendedInfo?.purpose && (
-            <div className="flex gap-3 border-t mt-4 pt-4">
+            <div className="flex gap-2 sm:gap-3 border-t mt-3 sm:mt-4 pt-3 sm:pt-4">
               <Target className="h-4 w-4 text-muted-foreground flex-shrink-0 mt-0.5" />
               <div className="flex-1">
-                <span className="text-sm text-muted-foreground">Formål:</span>
+                <span className="text-sm text-muted-foreground font-medium">Formål:</span>
                 <p className="text-sm mt-1 leading-relaxed">{extendedInfo.purpose}</p>
               </div>
             </div>
@@ -135,13 +139,13 @@ const ExtendedInfoAccordion: React.FC<ExtendedInfoAccordionProps> = ({ company, 
 
           {/* Secondary Industries */}
           {extendedInfo?.secondaryIndustries && extendedInfo.secondaryIndustries.length > 0 && (
-            <div className="flex gap-3 border-t mt-4 pt-4">
+            <div className="flex gap-2 sm:gap-3 border-t mt-3 sm:mt-4 pt-3 sm:pt-4">
               <Briefcase className="h-4 w-4 text-muted-foreground flex-shrink-0 mt-0.5" />
               <div className="flex-1">
-                <span className="text-sm text-muted-foreground">Bibrancher:</span>
+                <span className="text-sm text-muted-foreground font-medium">Bibrancher:</span>
                 <div className="mt-1 space-y-1">
                   {extendedInfo.secondaryIndustries.map((branch: any, index: number) => (
-                    <div key={index} className="text-sm">
+                    <div key={index} className="text-xs sm:text-sm break-words">
                       {branch.branchekode} {branch.branchetekst}
                     </div>
                   ))}
@@ -153,13 +157,13 @@ const ExtendedInfoAccordion: React.FC<ExtendedInfoAccordionProps> = ({ company, 
 
           {/* Capital Classes */}
           {extendedInfo?.capitalClasses && extendedInfo.capitalClasses.length > 0 && (
-            <div className="flex gap-3 border-t mt-4 pt-4">
+            <div className="flex gap-2 sm:gap-3 border-t mt-3 sm:mt-4 pt-3 sm:pt-4">
               <DollarSign className="h-4 w-4 text-muted-foreground flex-shrink-0 mt-0.5" />
               <div className="flex-1">
-                <span className="text-sm text-muted-foreground">Kapitalklasser:</span>
+                <span className="text-sm text-muted-foreground font-medium">Kapitalklasser:</span>
                 <div className="mt-1 space-y-2">
                   {extendedInfo.capitalClasses.map((kapital: any, index: number) => (
-                    <div key={index} className="text-sm">
+                    <div key={index} className="text-xs sm:text-sm">
                       <div>{kapital.kapitalklasse || 'Ukendt kapitalklasse'}</div>
                       {kapital.kapitalbeloeb && (
                         <div className="text-muted-foreground">
