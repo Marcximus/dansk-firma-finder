@@ -22,14 +22,14 @@ const FinancialAccordion: React.FC<FinancialAccordionProps> = ({ cvr, cvrData })
 
   return (
     <AccordionItem value="financial" className="border rounded-lg">
-      <AccordionTrigger className="px-6 py-4 hover:no-underline">
-        <div className="flex items-center gap-2">
-          <TrendingUp className="h-5 w-5" />
-          <span className="text-lg font-semibold">Regnskaber & Finansielle data</span>
+      <AccordionTrigger className="px-2 sm:px-4 md:px-6 py-2 sm:py-3 md:py-4 hover:no-underline">
+        <div className="flex items-center gap-1.5 sm:gap-2">
+          <TrendingUp className="h-4 w-4 sm:h-4.5 sm:w-4.5 md:h-5 md:w-5" />
+          <span className="text-sm sm:text-base md:text-lg font-semibold">Regnskaber & Finansielle data</span>
         </div>
       </AccordionTrigger>
-      <AccordionContent className="px-6 pb-6">
-        <div className="space-y-6">
+      <AccordionContent className="px-2 sm:px-4 md:px-6 pb-2 sm:pb-4 md:pb-6">
+        <div className="space-y-3 sm:space-y-4 md:space-y-6">
           {/* Key Financial Figures - Always show these */}
           <FinancialKPICard financialKPIs={financialData?.financialKPIs} />
 

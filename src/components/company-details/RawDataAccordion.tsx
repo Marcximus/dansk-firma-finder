@@ -74,14 +74,14 @@ const RawDataAccordion: React.FC<RawDataAccordionProps> = ({ cvrData }) => {
   if (!analysis) {
     return (
       <AccordionItem value="raw-data" className="border rounded-lg">
-        <AccordionTrigger className="px-4 sm:px-6 py-4 hover:no-underline">
-          <div className="flex items-center gap-2">
-            <Code className="h-5 w-5" />
-            <span className="text-base sm:text-lg font-semibold">Tekniske data & fejlfinding</span>
+        <AccordionTrigger className="px-2 sm:px-4 md:px-6 py-2 sm:py-3 md:py-4 hover:no-underline">
+          <div className="flex items-center gap-1.5 sm:gap-2">
+            <Code className="h-4 w-4 sm:h-4.5 sm:w-4.5 md:h-5 md:w-5" />
+            <span className="text-sm sm:text-base md:text-lg font-semibold">Tekniske data & fejlfinding</span>
           </div>
         </AccordionTrigger>
-        <AccordionContent className="px-4 sm:px-6 pb-4 sm:pb-6">
-          <div className="text-center py-6 sm:py-8 text-muted-foreground text-sm">
+        <AccordionContent className="px-2 sm:px-4 md:px-6 pb-2 sm:pb-4 md:pb-6">
+          <div className="text-center py-4 sm:py-6 md:py-8 text-muted-foreground text-xs sm:text-sm">
             No data available for analysis
           </div>
         </AccordionContent>
@@ -93,16 +93,16 @@ const RawDataAccordion: React.FC<RawDataAccordionProps> = ({ cvrData }) => {
 
   return (
     <AccordionItem value="raw-data" className="border rounded-lg">
-      <AccordionTrigger className="px-4 sm:px-6 py-4 hover:no-underline">
-        <div className="flex items-center gap-2 flex-wrap">
-          <Code className="h-5 w-5" />
-          <span className="text-base sm:text-lg font-semibold">Tekniske data & fejlfinding</span>
-          <Badge variant="outline" className="ml-auto text-xs">
+      <AccordionTrigger className="px-2 sm:px-4 md:px-6 py-2 sm:py-3 md:py-4 hover:no-underline">
+        <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
+          <Code className="h-4 w-4 sm:h-4.5 sm:w-4.5 md:h-5 md:w-5" />
+          <span className="text-sm sm:text-base md:text-lg font-semibold">Tekniske data & fejlfinding</span>
+          <Badge variant="outline" className="ml-auto text-[10px] sm:text-xs">
             {analysis.totalDataPoints} datapunkter
           </Badge>
         </div>
       </AccordionTrigger>
-      <AccordionContent className="px-4 sm:px-6 pb-4 sm:pb-6">
+      <AccordionContent className="px-2 sm:px-4 md:px-6 pb-2 sm:pb-4 md:pb-6">
         <div className="space-y-4 sm:space-y-6">
           <div className="text-xs sm:text-sm text-muted-foreground">
             Dette afsnit viser avanceret analyse af CVR-data med intelligent feltopdagelse og datakvalitetsvurdering.
