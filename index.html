@@ -51,6 +51,49 @@
 
   <body>
     <div id="root"></div>
+    
+    <!-- Static navigation for crawlers (hidden when React loads) -->
+    <noscript>
+      <nav style="padding: 20px;">
+        <h2>Navigation</h2>
+        <ul>
+          <li><a href="/">Hjem</a></li>
+          <li><a href="/virksomhedsrapporter">Virksomhedsrapporter</a></li>
+          <li><a href="/track-foelg">Track & Følg</a></li>
+          <li><a href="/hjaelpecenter">Hjælpecenter</a></li>
+          <li><a href="/kontakt-os">Kontakt Os</a></li>
+          <li><a href="/faq">FAQ</a></li>
+          <li><a href="/servicevilkaar">Servicevilkår</a></li>
+          <li><a href="/privatlivspolitik">Privatlivspolitik</a></li>
+          <li><a href="/datakilder">Datakilder</a></li>
+        </ul>
+      </nav>
+    </noscript>
+    
+    <!-- Crawler-visible links (hidden visually but accessible to crawlers) -->
+    <div style="position: absolute; left: -9999px;" aria-hidden="true">
+      <nav>
+        <h2>Tjenester</h2>
+        <ul>
+          <li><a href="/">Virksomhedssøgning</a></li>
+          <li><a href="/virksomhedsrapporter">Virksomhedsrapporter</a></li>
+          <li><a href="/track-foelg">Track & Følg</a></li>
+        </ul>
+        <h2>Support</h2>
+        <ul>
+          <li><a href="/hjaelpecenter">Hjælpecenter</a></li>
+          <li><a href="/kontakt-os">Kontakt Os</a></li>
+          <li><a href="/faq">FAQ</a></li>
+        </ul>
+        <h2>Juridisk</h2>
+        <ul>
+          <li><a href="/servicevilkaar">Servicevilkår</a></li>
+          <li><a href="/privatlivspolitik">Privatlivspolitik</a></li>
+          <li><a href="/datakilder">Datakilder</a></li>
+        </ul>
+      </nav>
+    </div>
+    
     <!-- IMPORTANT: DO NOT REMOVE THIS SCRIPT TAG OR THIS VERY COMMENT! -->
     <script src="https://cdn.gpteng.co/gptengineer.js" type="module"></script>
     <script type="module" src="/src/main.tsx"></script>
