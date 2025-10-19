@@ -47,48 +47,113 @@ const SigningRulesAccordion: React.FC<SigningRulesAccordionProps> = ({ cvrData }
   const getRoleDisplayName = (hovedtype: string, org?: any, medlem?: any) => {
     console.log('=== getRoleDisplayName DEBUG ===');
     console.log('hovedtype:', hovedtype);
-    console.log('Full org object:', JSON.stringify(org, null, 2));
-    console.log('Full medlem object:', JSON.stringify(medlem, null, 2));
+    
+    // CRITICAL: Check if medlem.attributter exists and log its full structure
+    if (medlem?.attributter) {
+      console.log('✓ medlem.attributter EXISTS');
+      console.log('Number of attributes:', medlem.attributter.length);
+      console.log('All medlem.attributter:', JSON.stringify(medlem.attributter, null, 2));
+      
+      // List all attribute types
+      const attributeTypes = medlem.attributter.map((attr: any) => attr.type);
+      console.log('Available attribute types:', attributeTypes);
+    } else {
+      console.log('✗ medlem.attributter is MISSING or NULL');
+      console.log('Full medlem object:', JSON.stringify(medlem, null, 2));
+    }
     
     // Try to get FUNKTION from medlem.attributter first
     let funkAttribute = medlem?.attributter?.find((attr: any) => attr.type === 'FUNKTION');
-    console.log('FUNKTION from medlem.attributter:', funkAttribute);
     
-    // If not found, try org.attributter
-    if (!funkAttribute && org?.attributter) {
-      funkAttribute = org.attributter.find((attr: any) => attr.type === 'FUNKTION');
-      console.log('FUNKTION from org.attributter:', funkAttribute);
+    if (funkAttribute) {
+      console.log('✓ Found FUNKTION attribute in medlem.attributter');
+      console.log('FUNKTION attribute structure:', JSON.stringify(funkAttribute, null, 2));
+      
+      if (funkAttribute.vaerdier && Array.isArray(funkAttribute.vaerdier)) {
+        console.log(`✓ Found ${funkAttribute.vaerdier.length} vaerdier in FUNKTION`);
+        
+        // Log ALL vaerdier to see the complete picture
+        funkAttribute.vaerdier.forEach((v: any, idx: number) => {
+          console.log(`Vaerdi [${idx}]:`, {
+            vaerdi: v.vaerdi,
+            gyldigFra: v.periode?.gyldigFra,
+            gyldigTil: v.periode?.gyldigTil,
+            isActive: v.periode?.gyldigTil === null || v.periode?.gyldigTil === undefined
+          });
+        });
+        
+        // Find the ACTIVE role (where gyldigTil === null)
+        const activeRole = funkAttribute.vaerdier.find((v: any) => 
+          v.periode?.gyldigTil === null || v.periode?.gyldigTil === undefined
+        );
+        
+        if (activeRole) {
+          console.log('✓ Found ACTIVE role:', JSON.stringify(activeRole, null, 2));
+          
+          if (activeRole.vaerdi) {
+            const specificRole = activeRole.vaerdi;
+            console.log('✓ Extracted specificRole (vaerdi):', specificRole);
+            
+            // Format specific roles for better display
+            const roleMap: Record<string, string> = {
+              'BESTYRELSESFORMAND': 'Bestyrelsesformand',
+              'BESTYRELSESMEDLEM': 'Bestyrelsesmedlem',
+              'BESTYRELSESMEDLEM.NÆSTFORMAND': 'Næstformand',
+              'DIREKTØR': 'Direktør',
+              'REVISOR': 'Revisor',
+            };
+            
+            const mappedRole = roleMap[specificRole] || specificRole;
+            console.log('✓ Final mapped role:', mappedRole);
+            return mappedRole;
+          } else {
+            console.log('✗ Active role found but vaerdi is missing');
+          }
+        } else {
+          console.log('✗ No active role found (all roles have gyldigTil set)');
+        }
+      } else {
+        console.log('✗ FUNKTION attribute has no vaerdier array');
+      }
+    } else {
+      console.log('✗ No FUNKTION attribute found in medlem.attributter');
     }
     
-    if (funkAttribute?.vaerdier) {
-      console.log('All vaerdier in FUNKTION:', JSON.stringify(funkAttribute.vaerdier, null, 2));
+    // If not found in medlem, try org.attributter
+    if (!funkAttribute && org?.attributter) {
+      console.log('→ Trying org.attributter as fallback');
+      funkAttribute = org.attributter.find((attr: any) => attr.type === 'FUNKTION');
       
-      // Find the ACTIVE role (where gyldigTil === null)
-      const activeRole = funkAttribute.vaerdier.find((v: any) => 
-        v.periode?.gyldigTil === null || v.periode?.gyldigTil === undefined
-      );
-      console.log('Selected activeRole:', JSON.stringify(activeRole, null, 2));
-      
-      if (activeRole?.vaerdi) {
-        const specificRole = activeRole.vaerdi;
-        console.log('Extracted specificRole (vaerdi):', specificRole);
-        
-        // Format specific roles for better display
-        const roleMap: Record<string, string> = {
-          'BESTYRELSESFORMAND': 'Bestyrelsesformand',
-          'BESTYRELSESMEDLEM': 'Bestyrelsesmedlem',
-          'BESTYRELSESMEDLEM.NÆSTFORMAND': 'Næstformand',
-          'DIREKTØR': 'Direktør',
-          'REVISOR': 'Revisor',
-        };
-        
-        const mappedRole = roleMap[specificRole] || specificRole;
-        console.log('Final mapped role:', mappedRole);
-        return mappedRole;
+      if (funkAttribute) {
+        console.log('✓ Found FUNKTION in org.attributter:', JSON.stringify(funkAttribute, null, 2));
+        // Same logic as above but for org
+        if (funkAttribute.vaerdier) {
+          const activeRole = funkAttribute.vaerdier.find((v: any) => 
+            v.periode?.gyldigTil === null || v.periode?.gyldigTil === undefined
+          );
+          
+          if (activeRole?.vaerdi) {
+            const specificRole = activeRole.vaerdi;
+            const roleMap: Record<string, string> = {
+              'BESTYRELSESFORMAND': 'Bestyrelsesformand',
+              'BESTYRELSESMEDLEM': 'Bestyrelsesmedlem',
+              'BESTYRELSESMEDLEM.NÆSTFORMAND': 'Næstformand',
+              'DIREKTØR': 'Direktør',
+              'REVISOR': 'Revisor',
+            };
+            
+            const mappedRole = roleMap[specificRole] || specificRole;
+            console.log('✓ Mapped role from org.attributter:', mappedRole);
+            return mappedRole;
+          }
+        }
+      } else {
+        console.log('✗ No FUNKTION attribute found in org.attributter either');
       }
     }
 
     // Fallback to hovedtype mapping
+    console.log('→ Using fallback hoofdtype mapping for:', hovedtype);
     switch (hovedtype) {
       case 'DIREKTION':
         return 'Direktion';
