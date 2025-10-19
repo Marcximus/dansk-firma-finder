@@ -131,15 +131,20 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           </form>
           
           <div className="flex flex-wrap items-center justify-center md:justify-end gap-1 sm:gap-1.5 md:gap-2 w-full md:w-auto">
-            <NotificationBell />
-            <UserMenu />
+            <div className="flex items-center gap-1 sm:gap-1.5 md:gap-2">
+              <NotificationBell />
+              <UserMenu />
+            </div>
             
-            <Dialog open={isJuridiskDialogOpen} onOpenChange={setIsJuridiskDialogOpen}>
-              <DialogTrigger asChild>
-                <Button size="sm" className="bg-blue-600 hover:bg-blue-700 text-white h-8 sm:h-9 md:h-9 px-2 sm:px-3 md:px-3 text-[9px] leading-tight sm:text-xs md:text-sm whitespace-normal max-w-[80px] sm:max-w-none">
-                  Hjælp til Jura
-                </Button>
-              </DialogTrigger>
+            <div className="flex gap-1 w-full md:w-auto">
+              <Dialog open={isJuridiskDialogOpen} onOpenChange={setIsJuridiskDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button size="sm" className="bg-blue-600 hover:bg-blue-700 text-white h-12 sm:h-9 md:h-9 px-2 sm:px-3 md:px-3 text-[10px] leading-tight sm:text-xs md:text-sm flex-1 md:flex-none flex flex-col items-center justify-center gap-0">
+                    <span className="md:hidden">Hjælp til</span>
+                    <span className="md:hidden">Jura</span>
+                    <span className="hidden md:inline">Hjælp til Jura</span>
+                  </Button>
+                </DialogTrigger>
               <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
                   <DialogTitle>Har du brug for hjælp til det juridiske?</DialogTitle>
@@ -311,13 +316,15 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
               </DialogContent>
             </Dialog>
             
-            <Dialog open={isRegnskabDialogOpen} onOpenChange={setIsRegnskabDialogOpen}>
-              <DialogTrigger asChild>
-                <Button size="sm" className="bg-green-600 hover:bg-green-700 text-white h-8 sm:h-9 md:h-9 px-2 sm:px-3 text-[9px] leading-tight sm:text-xs md:text-sm whitespace-normal max-w-[80px] sm:max-w-none">
-                  Hjælp til Regnskab
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
+              <Dialog open={isRegnskabDialogOpen} onOpenChange={setIsRegnskabDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button size="sm" className="bg-green-600 hover:bg-green-700 text-white h-12 sm:h-9 md:h-9 px-2 sm:px-3 text-[10px] leading-tight sm:text-xs md:text-sm flex-1 md:flex-none flex flex-col items-center justify-center gap-0">
+                    <span className="md:hidden">Hjælp til</span>
+                    <span className="md:hidden">Regnskab</span>
+                    <span className="hidden md:inline">Hjælp til Regnskab</span>
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
                   <DialogTitle>Har du brug for hjælp til regnskabet?</DialogTitle>
                 </DialogHeader>
@@ -487,6 +494,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                 </form>
               </DialogContent>
             </Dialog>
+            </div>
           </div>
         </div>
       </header>
