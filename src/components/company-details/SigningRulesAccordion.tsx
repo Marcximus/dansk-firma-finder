@@ -18,7 +18,7 @@ const SigningRulesAccordion: React.FC<SigningRulesAccordionProps> = ({ cvrData }
   console.log('SigningRulesAccordion - Extracted Data:', signingData);
 
   const handleNameClick = (name: string) => {
-    navigate(`/?search=${encodeURIComponent(name)}`);
+    navigate(`/?search=${encodeURIComponent(name)}&type=person`);
   };
 
   const getPersonName = (deltager: any) => {

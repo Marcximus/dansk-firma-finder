@@ -4,8 +4,8 @@ import { Company } from './types';
 import { MOCK_COMPANIES } from './mockData';
 
 // Enhanced search function that uses the Danish Business Authority API
-export const searchCompanies = async (query: string): Promise<Company[]> => {
-  console.log(`🔍 Frontend: Searching for companies with query: "${query}"`);
+export const searchCompanies = async (query: string, isPerson: boolean = false): Promise<Company[]> => {
+  console.log(`🔍 Frontend: Searching for ${isPerson ? 'person' : 'companies'} with query: "${query}"`);
   
   if (!query) {
     console.log('🔍 Frontend: Empty query, returning mock companies');
@@ -15,11 +15,18 @@ export const searchCompanies = async (query: string): Promise<Company[]> => {
   try {
     // Check if query is a CVR number (8 digits)
     const isCVR = /^\d{8}$/.test(query);
-    console.log(`🔍 Frontend: Is CVR number? ${isCVR}`);
+    console.log(`🔍 Frontend: Is CVR number? ${isCVR}, Is person search? ${isPerson}`);
     
-    console.log('🔍 Frontend: Calling supabase edge function...');
+    // Build request body based on search type
+    const requestBody = isCVR 
+      ? { cvr: query } 
+      : isPerson 
+        ? { personName: query }
+        : { companyName: query };
+    
+    console.log('🔍 Frontend: Calling supabase edge function with body:', requestBody);
     const { data, error } = await supabase.functions.invoke('fetch-company-data', {
-      body: isCVR ? { cvr: query } : { companyName: query }
+      body: requestBody
     });
     
     if (error) {

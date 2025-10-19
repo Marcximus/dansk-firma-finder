@@ -48,9 +48,12 @@ const HomePage = () => {
     }
   }, [location, searchParams]);
   
+  const searchType = searchParams.get('type');
+  const isPerson = searchType === 'person';
+  
   const { data: rawCompanies = [], isLoading } = useQuery({
-    queryKey: ['companies', searchTerm],
-    queryFn: () => searchCompanies(searchTerm),
+    queryKey: ['companies', searchTerm, searchType],
+    queryFn: () => searchCompanies(searchTerm, isPerson),
     enabled: !!searchTerm,
   });
 
@@ -137,7 +140,7 @@ const HomePage = () => {
 
         {searchTerm && (
           <div className="mb-2 sm:mb-3 md:mb-4 px-0">
-            <h1 className="sr-only">Søgeresultater for {searchTerm}</h1>
+            <h1 className="sr-only">{isPerson ? `Aktive relationer for ${searchTerm}` : `Søgeresultater for ${searchTerm}`}</h1>
             <h2 className="text-sm sm:text-base md:text-lg lg:text-xl font-semibold flex items-center gap-2">
               {isLoading ? (
                 <>
@@ -145,7 +148,12 @@ const HomePage = () => {
                   <span className="text-[11px] sm:text-xs md:text-sm">Søger...</span>
                 </>
               ) : (
-                <span className="text-[11px] sm:text-xs md:text-sm break-words">{`Resultater for "${searchTerm}"`}</span>
+                <span className="text-[11px] sm:text-xs md:text-sm break-words">
+                  {isPerson 
+                    ? `Virksomheder med aktive relationer til "${searchTerm}"` 
+                    : `Resultater for "${searchTerm}"`
+                  }
+                </span>
               )}
             </h2>
           </div>

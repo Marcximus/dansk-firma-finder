@@ -18,12 +18,12 @@ serve(async (req) => {
 
   try {
     const requestBody = await req.json();
-    const { cvr, companyName } = requestBody;
+    const { cvr, companyName, personName } = requestBody;
     
     // Validate inputs
-    if (!cvr && !companyName) {
+    if (!cvr && !companyName && !personName) {
       return new Response(
-        JSON.stringify({ error: 'Either CVR or company name is required' }),
+        JSON.stringify({ error: 'Either CVR, company name, or person name is required' }),
         { 
           status: 400,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' }
@@ -51,6 +51,16 @@ serve(async (req) => {
       );
     }
     
+    if (personName && (typeof personName !== 'string' || personName.trim().length === 0 || personName.length > 200)) {
+      return new Response(
+        JSON.stringify({ error: 'Person name must be between 1 and 200 characters' }),
+        { 
+          status: 400,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        }
+      );
+    }
+    
     const username = Deno.env.get('DANISH_BUSINESS_API_USERNAME');
     const password = Deno.env.get('DANISH_BUSINESS_API_PASSWORD');
     
@@ -61,7 +71,7 @@ serve(async (req) => {
 
     // Create basic auth header
     const auth = btoa(`${username}:${password}`);
-    const searchQuery = buildSearchQuery(cvr, companyName);
+    const searchQuery = buildSearchQuery(cvr, companyName, personName);
     const searchUrl = 'http://distribution.virk.dk/cvr-permanent/virksomhed/_search';
 
     const response = await fetch(searchUrl, {
@@ -96,7 +106,8 @@ serve(async (req) => {
         _debug: {
           totalHits: data.hits?.total,
           maxScore: data.hits?.max_score,
-          searchQuery: companyName || cvr
+          searchQuery: personName || companyName || cvr,
+          searchType: personName ? 'person' : (cvr ? 'cvr' : 'company')
         }
       }),
       { 

@@ -13,7 +13,7 @@ const ManagementAccordion: React.FC<ManagementAccordionProps> = ({ cvrData }) =>
   const navigate = useNavigate();
 
   const handleNameClick = (name: string) => {
-    navigate(`/?search=${encodeURIComponent(name)}`);
+    navigate(`/?search=${encodeURIComponent(name)}&type=person`);
   };
   if (!cvrData) return null;
 
