@@ -162,7 +162,8 @@ const SigningRulesAccordion: React.FC<SigningRulesAccordionProps> = ({ cvrData }
       case 'DIREKTION':
         return 'Direktion';
       case 'BESTYRELSE':
-        return 'Bestyrelse';
+        // Default to "Bestyrelsesmedlem" for board members without specific role
+        return 'Bestyrelsesmedlem';
       case 'LEDELSESORGAN':
         return 'Ledelse';
       case 'REVISION':

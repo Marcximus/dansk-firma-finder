@@ -109,6 +109,12 @@ export const extractSigningRulesData = (cvrData: any) => {
     
     const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
     
+    // For BESTYRELSE organizations, be more lenient - accept members even without FUNKTION attributes
+    if (org.hovedtype === 'BESTYRELSE') {
+      console.log('Checking BESTYRELSE membership - accepting all members with medlemsData');
+      return true; // If medlemsData exists, consider it active for BESTYRELSE
+    }
+    
     return org.medlemsData.some((medlem: any) => {
       // Check if any FUNKTION attribute has an active value (null end date OR future end date)
       return medlem.attributter?.some((attr: any) => {
@@ -126,13 +132,35 @@ export const extractSigningRulesData = (cvrData: any) => {
   const filterActiveRelations = (roleCheck: (org: any, medlem: any) => boolean) => {
     const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
     
+    console.log('=== filterActiveRelations - Starting with', relations.length, 'relations ===');
+    
     return relations
       .filter((relation: any) => {
+        const personName = relation.deltager?.navne?.[0]?.navn || 'Unknown';
+        console.log(`\n--- Checking relation for: ${personName} ---`);
+        
         // Check if this person has any active organizations matching the role
         const hasActiveRole = relation.organisationer?.some((org: any) => {
-          if (!isActiveMembership(org)) return false;
+          console.log(`  Checking org: ${org.hovedtype}`);
           
-          // Check each member who has an active FUNKTION value
+          if (!isActiveMembership(org)) {
+            console.log(`  ✗ REJECTED: No active membership for ${org.hovedtype}`);
+            return false;
+          }
+          
+          console.log(`  ✓ Has active membership for ${org.hovedtype}`);
+          
+          // For BESTYRELSE, be more lenient - accept all members if roleCheck passes
+          if (org.hovedtype === 'BESTYRELSE') {
+            return org.medlemsData?.some((medlem: any) => {
+              const passed = roleCheck(org, medlem);
+              console.log(`    BESTYRELSE member - roleCheck ${passed ? 'PASSED' : 'FAILED'}`);
+              console.log(`    medlem.attributter:`, medlem.attributter ? 'exists' : 'MISSING');
+              return passed;
+            });
+          }
+          
+          // For other org types, require active FUNKTION
           return org.medlemsData?.some((medlem: any) => {
             // Check if the FUNKTION attribute has an active value (null OR future end date)
             const hasActiveFunktion = medlem.attributter?.some((attr: any) => {
@@ -143,22 +171,21 @@ export const extractSigningRulesData = (cvrData: any) => {
               });
             });
             
-            if (!hasActiveFunktion) return false;
-            return roleCheck(org, medlem);
+            if (!hasActiveFunktion) {
+              console.log(`    ✗ No active FUNKTION for ${org.hovedtype} member`);
+              return false;
+            }
+            
+            const passed = roleCheck(org, medlem);
+            console.log(`    ✓ Active FUNKTION found, roleCheck ${passed ? 'PASSED' : 'FAILED'}`);
+            return passed;
           });
         });
         
         if (hasActiveRole) {
-          console.log('Found active member:', {
-            name: relation.deltager?.navne?.[0]?.navn,
-            organisations: relation.organisationer?.map((o: any) => ({
-              hovedtype: o.hovedtype,
-              active: isActiveMembership(o),
-              functions: o.medlemsData?.map((m: any) => 
-                m.attributter?.find((a: any) => a.type === 'FUNKTION')?.vaerdier?.[0]?.vaerdi
-              )
-            }))
-          });
+          console.log(`✓✓✓ ${personName} INCLUDED in results`);
+        } else {
+          console.log(`✗✗✗ ${personName} EXCLUDED from results`);
         }
         
         return hasActiveRole;
@@ -167,7 +194,12 @@ export const extractSigningRulesData = (cvrData: any) => {
         ...relation,
         organisationer: relation.organisationer
           ?.filter((org: any) => {
-            // Only include orgs that have active members matching the role
+            // For BESTYRELSE, keep all members that pass roleCheck
+            if (org.hovedtype === 'BESTYRELSE') {
+              return org.medlemsData?.some((medlem: any) => roleCheck(org, medlem));
+            }
+            
+            // For other types, only include orgs with active FUNKTION members
             const hasActiveMatchingRole = org.medlemsData?.some((medlem: any) => {
               const hasActiveFunktion = medlem.attributter?.some((attr: any) => {
                 if (attr.type !== 'FUNKTION') return false;
@@ -184,16 +216,19 @@ export const extractSigningRulesData = (cvrData: any) => {
           })
           ?.map((org: any) => ({
             ...org,
-            // Filter to only include members with active FUNKTION values
-            medlemsData: org.medlemsData?.filter((medlem: any) => 
-              medlem.attributter?.some((attr: any) => {
-                if (attr.type !== 'FUNKTION') return false;
-                return attr.vaerdier?.some((v: any) => {
-                  const gyldigTil = v.periode?.gyldigTil;
-                  return gyldigTil === null || gyldigTil === undefined || gyldigTil >= today;
-                });
-              })
-            )
+            // For BESTYRELSE, keep all members
+            // For other types, filter to only include members with active FUNKTION values
+            medlemsData: org.hovedtype === 'BESTYRELSE' 
+              ? org.medlemsData 
+              : org.medlemsData?.filter((medlem: any) => 
+                  medlem.attributter?.some((attr: any) => {
+                    if (attr.type !== 'FUNKTION') return false;
+                    return attr.vaerdier?.some((v: any) => {
+                      const gyldigTil = v.periode?.gyldigTil;
+                      return gyldigTil === null || gyldigTil === undefined || gyldigTil >= today;
+                    });
+                  })
+                )
           }))
       }));
   };
