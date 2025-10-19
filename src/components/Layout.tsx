@@ -500,38 +500,38 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       
       {/* Footer */}
       <footer className="bg-white border-t mt-auto">
-        <div className="container mx-auto px-2 sm:px-4 py-4 sm:py-6 md:py-8">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6 md:gap-8">
+        <div className="container mx-auto px-2 sm:px-4 py-3 sm:py-6 md:py-8">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-6 md:gap-8">
             <div>
-              <h2 className="text-sm sm:text-base md:text-lg font-semibold mb-2 sm:mb-3 md:mb-4">Selskabsinfo</h2>
-              <p className="text-xs sm:text-sm text-muted-foreground">Nem adgang til danske virksomhedsoplysninger siden 2025.</p>
+              <h2 className="text-xs sm:text-base md:text-lg font-semibold mb-1.5 sm:mb-3 md:mb-4">Selskabsinfo</h2>
+              <p className="text-xs sm:text-sm text-muted-foreground leading-tight">Nem adgang til danske virksomhedsoplysninger siden 2025.</p>
             </div>
             <div>
-              <h2 className="text-sm sm:text-base md:text-lg font-semibold mb-2 sm:mb-3 md:mb-4">Tjenester</h2>
-              <ul className="space-y-1 sm:space-y-2">
+              <h2 className="text-xs sm:text-base md:text-lg font-semibold mb-1.5 sm:mb-3 md:mb-4">Tjenester</h2>
+              <ul className="space-y-0.5 sm:space-y-2">
                 <li><a href="/?focus=search" className="text-xs sm:text-sm text-muted-foreground hover:text-primary">Virksomhedssøgning</a></li>
                 <li><a href="/virksomhedsrapporter" className="text-xs sm:text-sm text-muted-foreground hover:text-primary">Virksomhedsrapporter</a></li>
                 <li><a href="/track-foelg" className="text-xs sm:text-sm text-muted-foreground hover:text-primary">Track & Følg</a></li>
               </ul>
             </div>
             <div>
-              <h2 className="text-sm sm:text-base md:text-lg font-semibold mb-2 sm:mb-3 md:mb-4">Support</h2>
-              <ul className="space-y-1 sm:space-y-2">
+              <h2 className="text-xs sm:text-base md:text-lg font-semibold mb-1.5 sm:mb-3 md:mb-4">Support</h2>
+              <ul className="space-y-0.5 sm:space-y-2">
                 <li><a href="/hjaelpecenter" className="text-xs sm:text-sm text-muted-foreground hover:text-primary">Hjælpecenter</a></li>
                 <li><a href="/kontakt-os" className="text-xs sm:text-sm text-muted-foreground hover:text-primary">Kontakt Os</a></li>
                 <li><a href="/faq" className="text-xs sm:text-sm text-muted-foreground hover:text-primary">FAQ</a></li>
               </ul>
             </div>
             <div>
-              <h2 className="text-sm sm:text-base md:text-lg font-semibold mb-2 sm:mb-3 md:mb-4">Juridisk</h2>
-              <ul className="space-y-1 sm:space-y-2">
+              <h2 className="text-xs sm:text-base md:text-lg font-semibold mb-1.5 sm:mb-3 md:mb-4">Juridisk</h2>
+              <ul className="space-y-0.5 sm:space-y-2">
                 <li><a href="/servicevilkaar" className="text-xs sm:text-sm text-muted-foreground hover:text-primary">Servicevilkår</a></li>
                 <li><a href="/privatlivspolitik" className="text-xs sm:text-sm text-muted-foreground hover:text-primary">Privatlivspolitik</a></li>
                 <li><a href="/datakilder" className="text-xs sm:text-sm text-muted-foreground hover:text-primary">Datakilder</a></li>
               </ul>
             </div>
           </div>
-          <div className="text-center text-muted-foreground text-xs sm:text-sm pt-4 sm:pt-6 md:pt-8 mt-4 sm:mt-6 md:mt-8 border-t">
+          <div className="text-center text-muted-foreground text-xs sm:text-sm pt-3 sm:pt-6 md:pt-8 mt-3 sm:mt-6 md:mt-8 border-t">
             © 2025 Selskabsinfo. Alle data kommer fra offentlige registre.
           </div>
         </div>
