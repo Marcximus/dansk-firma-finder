@@ -82,10 +82,12 @@ const SigningRulesAccordion: React.FC<SigningRulesAccordionProps> = ({ cvrData }
           });
         });
         
-        // Find the ACTIVE role (where gyldigTil === null)
-        const activeRole = funkAttribute.vaerdier.find((v: any) => 
-          v.periode?.gyldigTil === null || v.periode?.gyldigTil === undefined
-        );
+        // Find the ACTIVE role (where gyldigTil === null OR future date)
+        const today = new Date().toISOString().split('T')[0];
+        const activeRole = funkAttribute.vaerdier.find((v: any) => {
+          const gyldigTil = v.periode?.gyldigTil;
+          return gyldigTil === null || gyldigTil === undefined || gyldigTil >= today;
+        });
         
         if (activeRole) {
           console.log('✓ Found ACTIVE role:', JSON.stringify(activeRole, null, 2));
@@ -128,9 +130,11 @@ const SigningRulesAccordion: React.FC<SigningRulesAccordionProps> = ({ cvrData }
         console.log('✓ Found FUNKTION in org.attributter:', JSON.stringify(funkAttribute, null, 2));
         // Same logic as above but for org
         if (funkAttribute.vaerdier) {
-          const activeRole = funkAttribute.vaerdier.find((v: any) => 
-            v.periode?.gyldigTil === null || v.periode?.gyldigTil === undefined
-          );
+          const today = new Date().toISOString().split('T')[0];
+          const activeRole = funkAttribute.vaerdier.find((v: any) => {
+            const gyldigTil = v.periode?.gyldigTil;
+            return gyldigTil === null || gyldigTil === undefined || gyldigTil >= today;
+          });
           
           if (activeRole?.vaerdi) {
             const specificRole = activeRole.vaerdi;
@@ -214,9 +218,11 @@ const SigningRulesAccordion: React.FC<SigningRulesAccordionProps> = ({ cvrData }
                           <div className="text-[9px] sm:text-[10px] md:text-xs text-muted-foreground mt-0.5 sm:mt-1">
                             {(() => {
                               const funkAttr = medlem.attributter?.find((attr: any) => attr.type === 'FUNKTION');
-                              const activeFunk = funkAttr?.vaerdier?.find((v: any) => 
-                                v.periode?.gyldigTil === null || v.periode?.gyldigTil === undefined
-                              );
+                              const today = new Date().toISOString().split('T')[0];
+                              const activeFunk = funkAttr?.vaerdier?.find((v: any) => {
+                                const gyldigTil = v.periode?.gyldigTil;
+                                return gyldigTil === null || gyldigTil === undefined || gyldigTil >= today;
+                              });
                               return activeFunk?.periode?.gyldigFra ? (
                                 <div>Siden: {activeFunk.periode.gyldigFra}</div>
                               ) : null;
