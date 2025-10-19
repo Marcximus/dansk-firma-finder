@@ -214,7 +214,7 @@ const CompanyHeader: React.FC<CompanyHeaderProps> = ({ company }) => {
 
   return (
     <TooltipProvider>
-      <div className="bg-background sticky top-[36px] sm:top-[46px] md:top-[54px] lg:top-[66px] z-40 rounded-lg shadow-sm p-1.5 sm:p-2 md:p-3 lg:p-4 backdrop-blur-sm border-b mb-2 sm:mb-3 md:mb-4 lg:mb-6 relative">
+      <div className="bg-background sticky top-[36px] sm:top-[46px] md:top-[54px] lg:top-[66px] z-40 rounded-lg shadow-sm p-1.5 sm:p-2 md:p-3 lg:p-4 backdrop-blur-sm border-b mb-2 sm:mb-3 md:mb-4 lg:mb-6 relative text-center lg:text-left">
         {/* Desktop buttons - absolute positioned on the right */}
         <div className="hidden lg:flex absolute top-3 right-3 gap-2">
           <Button 
@@ -280,8 +280,8 @@ const CompanyHeader: React.FC<CompanyHeaderProps> = ({ company }) => {
           </Tooltip>
         </div>
 
-        <h1 className="text-sm sm:text-lg md:text-xl lg:text-2xl font-bold mb-1 sm:mb-1.5 md:mb-2 lg:pr-52">{company.name}</h1>
-        <div className="flex flex-wrap gap-1 sm:gap-1.5 md:gap-2 lg:gap-4 text-[10px] sm:text-xs md:text-sm lg:text-base text-muted-foreground mb-2 sm:mb-2 lg:mb-0">
+        <h1 className="text-base sm:text-xl md:text-2xl lg:text-2xl font-bold mb-1 sm:mb-1.5 md:mb-2 lg:pr-52">{company.name}</h1>
+        <div className="flex flex-col sm:flex-row flex-wrap justify-center lg:justify-start gap-1 sm:gap-1.5 md:gap-2 lg:gap-4 text-[10px] sm:text-xs md:text-sm lg:text-base text-muted-foreground mb-2 sm:mb-2 lg:mb-0">
           {company.yearFounded && (
             <div className="flex items-center gap-0.5 sm:gap-1">
               <Calendar className="h-2.5 w-2.5 sm:h-3 sm:w-3 md:h-3.5 md:w-3.5" />
@@ -302,11 +302,11 @@ const CompanyHeader: React.FC<CompanyHeaderProps> = ({ company }) => {
         </div>
 
         {/* Mobile buttons - shown below company info on small screens */}
-        <div className="flex lg:hidden flex-row flex-wrap gap-1 sm:gap-1.5">
+        <div className="flex lg:hidden flex-row flex-wrap justify-center gap-1.5 sm:gap-2">
           <Button 
             variant="default"
             size="sm"
-            className="h-7 sm:h-8 px-2 py-1 text-[10px] sm:text-xs md:text-sm"
+            className="h-8 sm:h-9 px-3 py-1.5 text-xs sm:text-sm"
             onClick={handleReportClick}
           >
             <span className="hidden sm:inline">Virksomhedsrapport</span>
@@ -315,7 +315,7 @@ const CompanyHeader: React.FC<CompanyHeaderProps> = ({ company }) => {
           <Button 
             variant="outline"
             size="sm"
-            className="h-7 sm:h-8 px-2 py-1 text-[10px] sm:text-xs md:text-sm"
+            className="h-8 sm:h-9 px-3 py-1.5 text-xs sm:text-sm"
             onClick={handleChangesClick}
           >
             <span className="hidden sm:inline">Seneste Ændringer</span>
@@ -326,7 +326,7 @@ const CompanyHeader: React.FC<CompanyHeaderProps> = ({ company }) => {
               <Button 
                 variant={isFollowing ? "default" : "outline"}
                 size="sm"
-                className={`h-7 sm:h-8 px-2 py-1 text-[10px] sm:text-xs md:text-sm flex items-center justify-center gap-1 ${
+                className={`h-8 sm:h-9 px-3 py-1.5 text-xs sm:text-sm flex items-center justify-center gap-1 ${
                   isFollowing 
                     ? 'bg-green-600 hover:bg-green-700 text-white' 
                     : 'bg-sky-100 border-sky-300 text-sky-700 hover:bg-sky-200'

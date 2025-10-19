@@ -95,7 +95,7 @@ const CompanyPage: React.FC = () => {
       <JSONLDScript data={createBreadcrumbSchema(breadcrumbs)} />
       
       {/* Breadcrumb Navigation */}
-      <div className="container mx-auto px-3 sm:px-4 py-3 sm:py-4">
+      <div className="container mx-auto px-3 sm:px-4 py-3 sm:py-4 hidden md:block">
         <Breadcrumb>
           <BreadcrumbList>
             <BreadcrumbItem>
