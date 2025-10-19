@@ -6,6 +6,7 @@ import { FileText, Building2, Hash, MapPin, Calendar, Briefcase, Globe, DollarSi
 import { format } from 'date-fns';
 import { da } from 'date-fns/locale';
 import { extractExtendedInfo } from '@/services/cvrUtils';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface BasicInfoAccordionProps {
   company: Company;
@@ -13,7 +14,9 @@ interface BasicInfoAccordionProps {
 }
 
 const BasicInfoAccordion: React.FC<BasicInfoAccordionProps> = ({ company, cvrData }) => {
-  const InfoRow = ({ icon: Icon, label, value, className = "" }: { 
+  const isMobile = useIsMobile();
+  
+  const InfoRow = ({ icon: Icon, label, value, className = "" }: {
     icon: any, 
     label: string, 
     value: string | null | undefined | React.ReactNode, 
@@ -154,13 +157,13 @@ const BasicInfoAccordion: React.FC<BasicInfoAccordionProps> = ({ company, cvrDat
           
           <InfoRow 
             icon={Briefcase} 
-            label="Virksomhedsform" 
+            label={isMobile ? "Form" : "Virksomhedsform"} 
             value={getLegalForm()} 
           />
           
           <InfoRow 
             icon={DollarSign} 
-            label="Registreret kapital" 
+            label={isMobile ? "Kapital" : "Registreret kapital"} 
             value={extendedInfo?.registeredCapital} 
           />
           
