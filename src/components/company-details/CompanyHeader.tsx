@@ -214,7 +214,7 @@ const CompanyHeader: React.FC<CompanyHeaderProps> = ({ company }) => {
 
   return (
     <TooltipProvider>
-      <div className="bg-background sticky top-[46px] sm:top-[54px] lg:top-[73px] z-40 rounded-lg shadow-sm p-2 sm:p-3 lg:p-4 backdrop-blur-sm border-b mb-3 sm:mb-4 lg:mb-6 relative">
+      <div className="bg-background sticky top-[36px] sm:top-[46px] md:top-[54px] lg:top-[66px] z-40 rounded-lg shadow-sm p-1.5 sm:p-2 md:p-3 lg:p-4 backdrop-blur-sm border-b mb-2 sm:mb-3 md:mb-4 lg:mb-6 relative">
         {/* Desktop buttons - absolute positioned on the right */}
         <div className="hidden lg:flex absolute top-3 right-3 gap-2">
           <Button 
@@ -280,51 +280,53 @@ const CompanyHeader: React.FC<CompanyHeaderProps> = ({ company }) => {
           </Tooltip>
         </div>
 
-        <h1 className="text-base sm:text-xl lg:text-2xl xl:text-3xl font-bold mb-1 sm:mb-2 lg:pr-52">{company.name}</h1>
-        <div className="flex flex-wrap gap-1.5 sm:gap-2 lg:gap-4 text-xs sm:text-sm lg:text-base text-muted-foreground mb-2 sm:mb-3 lg:mb-0">
+        <h1 className="text-sm sm:text-lg md:text-xl lg:text-2xl font-bold mb-1 sm:mb-1.5 md:mb-2 lg:pr-52">{company.name}</h1>
+        <div className="flex flex-wrap gap-1 sm:gap-1.5 md:gap-2 lg:gap-4 text-[10px] sm:text-xs md:text-sm lg:text-base text-muted-foreground mb-2 sm:mb-2 lg:mb-0">
           {company.yearFounded && (
-            <div className="flex items-center gap-1">
-              <Calendar className="h-3 w-3 sm:h-3.5 sm:w-3.5 lg:h-4 lg:w-4" />
+            <div className="flex items-center gap-0.5 sm:gap-1">
+              <Calendar className="h-2.5 w-2.5 sm:h-3 sm:w-3 md:h-3.5 md:w-3.5" />
               <span>Etableret: {company.yearFounded}</span>
             </div>
           )}
-          <div className="flex items-center gap-1">
-            <FileText className="h-3 w-3 sm:h-3.5 sm:w-3.5 lg:h-4 lg:w-4" />
+          <div className="flex items-center gap-0.5 sm:gap-1">
+            <FileText className="h-2.5 w-2.5 sm:h-3 sm:w-3 md:h-3.5 md:w-3.5" />
             <span>CVR: {company.cvr}</span>
           </div>
-          <div className="flex items-center gap-1">
-            <Map className="h-3 w-3 sm:h-3.5 sm:w-3.5 lg:h-4 lg:w-4" />
+          <div className="flex items-center gap-0.5 sm:gap-1">
+            <Map className="h-2.5 w-2.5 sm:h-3 sm:w-3 md:h-3.5 md:w-3.5" />
             <span>{company.city}</span>
           </div>
-          <Badge className={`text-xs ${statusDisplay.color} text-white ${company.status === 'NORMAL' ? 'animate-pulse' : ''}`}>
+          <Badge className={`text-[10px] sm:text-xs ${statusDisplay.color} text-white ${company.status === 'NORMAL' ? 'animate-pulse' : ''}`}>
             {statusDisplay.text}
           </Badge>
         </div>
 
         {/* Mobile buttons - shown below company info on small screens */}
-        <div className="flex lg:hidden flex-col sm:flex-row gap-1.5 sm:gap-2">
+        <div className="flex lg:hidden flex-row flex-wrap gap-1 sm:gap-1.5">
           <Button 
             variant="default"
             size="sm"
-            className="w-full sm:w-auto px-3 py-1.5 text-xs sm:text-sm"
+            className="h-7 sm:h-8 px-2 py-1 text-[10px] sm:text-xs md:text-sm"
             onClick={handleReportClick}
           >
-            Virksomhedsrapport
+            <span className="hidden sm:inline">Virksomhedsrapport</span>
+            <span className="sm:hidden">Rapport</span>
           </Button>
           <Button 
             variant="outline"
             size="sm"
-            className="w-full sm:w-auto px-3 py-1.5 text-xs sm:text-sm"
+            className="h-7 sm:h-8 px-2 py-1 text-[10px] sm:text-xs md:text-sm"
             onClick={handleChangesClick}
           >
-            Seneste Ændringer
+            <span className="hidden sm:inline">Seneste Ændringer</span>
+            <span className="sm:hidden">Ændringer</span>
           </Button>
           <Tooltip>
             <TooltipTrigger asChild>
               <Button 
                 variant={isFollowing ? "default" : "outline"}
                 size="sm"
-                className={`w-full sm:w-auto px-3 py-1.5 text-xs sm:text-sm flex items-center justify-center gap-1.5 ${
+                className={`h-7 sm:h-8 px-2 py-1 text-[10px] sm:text-xs md:text-sm flex items-center justify-center gap-1 ${
                   isFollowing 
                     ? 'bg-green-600 hover:bg-green-700 text-white' 
                     : 'bg-sky-100 border-sky-300 text-sky-700 hover:bg-sky-200'
@@ -334,14 +336,13 @@ const CompanyHeader: React.FC<CompanyHeaderProps> = ({ company }) => {
               >
                 {isFollowing ? (
                   <>
-                    <Check className="h-3.5 w-3.5" />
+                    <Check className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
                     <span>Følges</span>
                   </>
                 ) : (
                   <>
-                    <Star className="h-3.5 w-3.5" />
-                    <span className="hidden sm:inline">Track & Følg</span>
-                    <span className="sm:hidden">Følg</span>
+                    <Star className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
+                    <span>Følg</span>
                   </>
                 )}
               </Button>

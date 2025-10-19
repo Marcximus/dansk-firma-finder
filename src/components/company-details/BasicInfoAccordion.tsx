@@ -19,12 +19,12 @@ const BasicInfoAccordion: React.FC<BasicInfoAccordionProps> = ({ company, cvrDat
     value: string | null | undefined | React.ReactNode, 
     className?: string 
   }) => (
-    <div className={`flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3 ${className}`}>
-      <div className="flex items-center gap-2 sm:min-w-[140px]">
-        <Icon className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-        <span className="text-sm text-muted-foreground font-medium">{label}:</span>
+    <div className={`flex flex-col sm:flex-row sm:items-center gap-0.5 sm:gap-2 md:gap-3 ${className}`}>
+      <div className="flex items-center gap-1 sm:gap-1.5 md:gap-2 sm:min-w-[140px]">
+        <Icon className="h-3 w-3 sm:h-3.5 sm:w-3.5 md:h-4 md:w-4 text-muted-foreground flex-shrink-0" />
+        <span className="text-xs sm:text-sm text-muted-foreground font-medium">{label}:</span>
       </div>
-      <span className="text-sm pl-6 sm:pl-0">{value || 'Ikke tilgængelig'}</span>
+      <span className="text-xs sm:text-sm pl-4 sm:pl-0">{value || 'Ikke tilgængelig'}</span>
     </div>
   );
   
@@ -120,14 +120,14 @@ const BasicInfoAccordion: React.FC<BasicInfoAccordionProps> = ({ company, cvrDat
 
   return (
     <AccordionItem value="basic" className="border rounded-lg">
-      <AccordionTrigger className="px-4 sm:px-6 py-4 hover:no-underline">
-        <div className="flex items-center gap-2">
-          <FileText className="h-5 w-5" />
-          <span className="text-base sm:text-lg font-semibold">Grundoplysninger</span>
+      <AccordionTrigger className="px-2 sm:px-4 md:px-6 py-2 sm:py-3 md:py-4 hover:no-underline">
+        <div className="flex items-center gap-1.5 sm:gap-2">
+          <FileText className="h-4 w-4 sm:h-4.5 sm:w-4.5 md:h-5 md:w-5" />
+          <span className="text-sm sm:text-base md:text-lg font-semibold">Grundoplysninger</span>
         </div>
       </AccordionTrigger>
-      <AccordionContent className="px-4 sm:px-6 pb-4 sm:pb-6">
-        <div className="space-y-3 sm:space-y-2">
+      <AccordionContent className="px-2 sm:px-4 md:px-6 pb-2 sm:pb-4 md:pb-6">
+        <div className="space-y-1.5 sm:space-y-2">
           <InfoRow 
             icon={Building2} 
             label="Navn" 

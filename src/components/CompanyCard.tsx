@@ -194,9 +194,9 @@ const CompanyCard: React.FC<CompanyCardProps> = ({ company }) => {
 
   return (
     <Card className="h-full flex flex-col hover:shadow-md transition-shadow cursor-pointer">
-      <CardHeader className="pb-1.5 pt-2 sm:pb-2 sm:pt-3">
-        <div className="flex flex-col items-center gap-2 sm:gap-3">
-          <CardTitle className="text-sm sm:text-base lg:text-lg font-bold leading-tight text-center min-h-[1.5rem] sm:min-h-[2rem] flex items-center justify-center px-1">
+      <CardHeader className="pb-1 pt-1.5 sm:pb-1.5 sm:pt-2 md:pb-2 md:pt-3">
+        <div className="flex flex-col items-center gap-1.5 sm:gap-2 md:gap-3">
+          <CardTitle className="text-xs sm:text-sm md:text-base lg:text-lg font-bold leading-tight text-center min-h-[1.25rem] sm:min-h-[1.5rem] md:min-h-[2rem] flex items-center justify-center px-1">
             <Link 
               to={`/company/${company.id}`}
               className="hover:text-primary transition-colors underline-offset-4 hover:underline"
@@ -206,7 +206,7 @@ const CompanyCard: React.FC<CompanyCardProps> = ({ company }) => {
             </Link>
           </CardTitle>
           {company.logo && (
-            <div className="w-12 h-12 sm:w-14 sm:h-14 lg:w-16 lg:h-16 flex items-center justify-center">
+            <div className="w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 lg:w-16 lg:h-16 flex items-center justify-center">
               <img 
                 src={company.logo} 
                 alt={`${company.name} logo`} 
@@ -216,9 +216,9 @@ const CompanyCard: React.FC<CompanyCardProps> = ({ company }) => {
           )}
         </div>
       </CardHeader>
-      <CardContent className="flex-1 flex flex-col pt-1.5 sm:pt-2 px-3 sm:px-6">
-        <div className="space-y-2 sm:space-y-3 lg:space-y-4 text-xs sm:text-sm flex-1">
-          <div className="grid grid-cols-3 gap-1.5 sm:gap-2">
+      <CardContent className="flex-1 flex flex-col pt-1 sm:pt-1.5 md:pt-2 px-2 sm:px-4 md:px-6">
+        <div className="space-y-1 sm:space-y-2 md:space-y-3 lg:space-y-4 text-[11px] sm:text-xs md:text-sm flex-1">
+          <div className="grid grid-cols-3 gap-1 sm:gap-1.5 md:gap-2">
             <span className="font-medium text-muted-foreground">CVR</span>
             <span className="col-span-2">
               <Link 
@@ -259,8 +259,8 @@ const CompanyCard: React.FC<CompanyCardProps> = ({ company }) => {
           </div>
         </div>
         
-        <div className="mt-3 sm:mt-4 lg:mt-6 pt-2 sm:pt-3 lg:pt-4 border-t">
-          <Button asChild size="sm" className="w-full text-xs sm:text-sm">
+        <div className="mt-2 sm:mt-3 md:mt-4 lg:mt-6 pt-1.5 sm:pt-2 md:pt-3 lg:pt-4 border-t">
+          <Button asChild size="sm" className="w-full text-[11px] sm:text-xs md:text-sm">
             <Link to={`/company/${company.id}`}>
               Se Detaljer
             </Link>

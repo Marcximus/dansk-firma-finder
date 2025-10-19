@@ -23,10 +23,10 @@ const CompanyDetails: React.FC<CompanyDetailsProps> = ({ company }) => {
   const cvrDetails = company.realCvrData ? extractCvrDetails(company.realCvrData) : null;
   
   return (
-    <div className="py-4 sm:py-6 max-w-7xl mx-auto px-3 sm:px-4">
+    <div className="py-2 sm:py-4 md:py-6 max-w-7xl mx-auto px-2 sm:px-3 md:px-4">
       <CompanyHeader company={company} />
 
-      <Accordion type="multiple" defaultValue={["basic", "extended", "signing-rules", "ownership", "financial", "history"]} className="w-full space-y-3 sm:space-y-4">
+      <Accordion type="multiple" defaultValue={["basic", "extended", "signing-rules", "ownership", "financial", "history"]} className="w-full space-y-2 sm:space-y-3 md:space-y-4">
         <BasicInfoAccordion company={company} cvrData={company.realCvrData} />
         <ExtendedInfoAccordion company={company} cvrData={company.realCvrData} />
         <SigningRulesAccordion cvrData={company.realCvrData} />
@@ -36,12 +36,12 @@ const CompanyDetails: React.FC<CompanyDetailsProps> = ({ company }) => {
         <RawDataAccordion cvrData={company.realCvrData} />
       </Accordion>
       
-      <div className="mt-6 sm:mt-8 space-y-4">
+      <div className="mt-4 sm:mt-6 md:mt-8 space-y-3 sm:space-y-4">
         <DataSourceInfo />
         <div className="flex justify-center">
-          <Button asChild variant="outline" className="flex gap-1.5 min-h-[44px] px-6">
+          <Button asChild variant="outline" className="flex gap-1 h-8 sm:h-9 md:h-10 px-3 sm:px-4 md:px-6 text-xs sm:text-sm">
             <Link to="/">
-              <ArrowLeft className="w-4 h-4" />
+              <ArrowLeft className="w-3 h-3 sm:w-3.5 sm:h-3.5 md:w-4 md:h-4" />
               Tilbage til søgning
             </Link>
           </Button>

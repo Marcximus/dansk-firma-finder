@@ -121,31 +121,31 @@ const HomePage = () => {
       />
       <JSONLDScript data={createWebsiteSchema()} />
       <JSONLDScript data={createOrganizationSchema()} />
-      <div className="max-w-5xl mx-auto px-2 sm:px-3 md:px-4">
+      <div className="max-w-5xl mx-auto px-1.5 sm:px-2 md:px-3 lg:px-4">
         {/* Only show hero section if no search has been performed */}
         {!searchTerm && (
-          <div className="py-6 sm:py-8 md:py-12 text-center">
-            <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-3 sm:mb-4 md:mb-6">Selskabsinfo</h1>
-            <p className="text-base sm:text-lg md:text-xl text-muted-foreground mb-4 sm:mb-6 md:mb-8 px-4">
+          <div className="py-4 sm:py-6 md:py-8 lg:py-12 text-center">
+            <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold mb-2 sm:mb-3 md:mb-4 lg:mb-6">Selskabsinfo</h1>
+            <p className="text-sm sm:text-base md:text-lg lg:text-xl text-muted-foreground mb-3 sm:mb-4 md:mb-6 lg:mb-8 px-2 sm:px-4">
               Søg og udforsk detaljerede oplysninger om danske virksomheder
             </p>
-            <div className="flex justify-center mb-6 sm:mb-8 md:mb-12 px-4">
+            <div className="flex justify-center mb-4 sm:mb-6 md:mb-8 lg:mb-12 px-2 sm:px-4">
               <SearchBar onSearch={handleSearch} isLoading={isLoading} shouldFocus={shouldFocusSearch} />
             </div>
           </div>
         )}
 
         {searchTerm && (
-          <div className="mb-3 sm:mb-4 px-3 sm:px-0">
+          <div className="mb-2 sm:mb-3 md:mb-4 px-0">
             <h1 className="sr-only">Søgeresultater for {searchTerm}</h1>
-            <h2 className="text-base sm:text-lg md:text-xl font-semibold flex items-center gap-2">
+            <h2 className="text-sm sm:text-base md:text-lg lg:text-xl font-semibold flex items-center gap-2">
               {isLoading ? (
                 <>
                   <Spinner variant="default" size={16} />
-                  <span className="text-xs sm:text-sm md:text-base">Søger...</span>
+                  <span className="text-[11px] sm:text-xs md:text-sm">Søger...</span>
                 </>
               ) : (
-                <span className="text-xs sm:text-sm md:text-base break-words">{`Resultater for "${searchTerm}"`}</span>
+                <span className="text-[11px] sm:text-xs md:text-sm break-words">{`Resultater for "${searchTerm}"`}</span>
               )}
             </h2>
           </div>
@@ -154,7 +154,7 @@ const HomePage = () => {
         {/* Render companies in the exact order from backend - NO SORTING ON FRONTEND */}
         {companies.length > 0 && (
           <>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 lg:gap-6 px-3 sm:px-0">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-3 md:gap-4 lg:gap-6 px-0">
               {paginatedCompanies.map((company: Company) => (
                 <CompanyCard key={company.id} company={company} />
               ))}
