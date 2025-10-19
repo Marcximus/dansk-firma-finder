@@ -45,22 +45,33 @@ const SigningRulesAccordion: React.FC<SigningRulesAccordionProps> = ({ cvrData }
   };
 
   const getRoleDisplayName = (hovedtype: string, org?: any, medlem?: any) => {
+    console.log('=== getRoleDisplayName DEBUG ===');
+    console.log('hovedtype:', hovedtype);
+    console.log('Full org object:', JSON.stringify(org, null, 2));
+    console.log('Full medlem object:', JSON.stringify(medlem, null, 2));
+    
     // Try to get FUNKTION from medlem.attributter first
     let funkAttribute = medlem?.attributter?.find((attr: any) => attr.type === 'FUNKTION');
+    console.log('FUNKTION from medlem.attributter:', funkAttribute);
     
     // If not found, try org.attributter
     if (!funkAttribute && org?.attributter) {
       funkAttribute = org.attributter.find((attr: any) => attr.type === 'FUNKTION');
+      console.log('FUNKTION from org.attributter:', funkAttribute);
     }
     
     if (funkAttribute?.vaerdier) {
+      console.log('All vaerdier in FUNKTION:', JSON.stringify(funkAttribute.vaerdier, null, 2));
+      
       // Find the ACTIVE role (where gyldigTil === null)
       const activeRole = funkAttribute.vaerdier.find((v: any) => 
         v.periode?.gyldigTil === null || v.periode?.gyldigTil === undefined
       );
+      console.log('Selected activeRole:', JSON.stringify(activeRole, null, 2));
       
       if (activeRole?.vaerdi) {
         const specificRole = activeRole.vaerdi;
+        console.log('Extracted specificRole (vaerdi):', specificRole);
         
         // Format specific roles for better display
         const roleMap: Record<string, string> = {
@@ -71,7 +82,9 @@ const SigningRulesAccordion: React.FC<SigningRulesAccordionProps> = ({ cvrData }
           'REVISOR': 'Revisor',
         };
         
-        return roleMap[specificRole] || specificRole;
+        const mappedRole = roleMap[specificRole] || specificRole;
+        console.log('Final mapped role:', mappedRole);
+        return mappedRole;
       }
     }
 
@@ -119,24 +132,34 @@ const SigningRulesAccordion: React.FC<SigningRulesAccordionProps> = ({ cvrData }
                     // Only show active memberships (already filtered by signingRulesUtils)
                     const activeMemberships = org.medlemsData || [];
                     
-                    return activeMemberships.map((medlem: any, medlemIndex: number) => (
-                      <div key={`${orgIndex}-${medlemIndex}`} className="text-[10px] sm:text-xs md:text-sm">
-                        <div className="font-medium">
-                          {getRoleDisplayName(org.hovedtype, org, medlem)}
+                    console.log(`=== ${title} - Organization ${orgIndex} ===`);
+                    console.log('org.hovedtype:', org.hovedtype);
+                    console.log('org.attributter:', org.attributter);
+                    console.log('Number of active memberships:', activeMemberships.length);
+                    
+                    return activeMemberships.map((medlem: any, medlemIndex: number) => {
+                      console.log(`--- Medlem ${medlemIndex} ---`);
+                      console.log('medlem.attributter:', medlem.attributter);
+                      
+                      return (
+                        <div key={`${orgIndex}-${medlemIndex}`} className="text-[10px] sm:text-xs md:text-sm">
+                          <div className="font-medium">
+                            {getRoleDisplayName(org.hovedtype, org, medlem)}
+                          </div>
+                          <div className="text-[9px] sm:text-[10px] md:text-xs text-muted-foreground mt-0.5 sm:mt-1">
+                            {(() => {
+                              const funkAttr = medlem.attributter?.find((attr: any) => attr.type === 'FUNKTION');
+                              const activeFunk = funkAttr?.vaerdier?.find((v: any) => 
+                                v.periode?.gyldigTil === null || v.periode?.gyldigTil === undefined
+                              );
+                              return activeFunk?.periode?.gyldigFra ? (
+                                <div>Siden: {activeFunk.periode.gyldigFra}</div>
+                              ) : null;
+                            })()}
+                          </div>
                         </div>
-                        <div className="text-[9px] sm:text-[10px] md:text-xs text-muted-foreground mt-0.5 sm:mt-1">
-                          {(() => {
-                            const funkAttr = medlem.attributter?.find((attr: any) => attr.type === 'FUNKTION');
-                            const activeFunk = funkAttr?.vaerdier?.find((v: any) => 
-                              v.periode?.gyldigTil === null || v.periode?.gyldigTil === undefined
-                            );
-                            return activeFunk?.periode?.gyldigFra ? (
-                              <div>Siden: {activeFunk.periode.gyldigFra}</div>
-                            ) : null;
-                          })()}
-                        </div>
-                      </div>
-                    ));
+                      );
+                    });
                   })}
                 </div>
               );
