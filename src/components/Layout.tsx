@@ -130,15 +130,14 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             </div>
           </form>
           
-          <div className="flex flex-wrap items-center gap-1 sm:gap-1.5 md:gap-2 w-full md:w-auto">
+          <div className="flex flex-wrap items-center justify-center md:justify-end gap-1 sm:gap-1.5 md:gap-2 w-full md:w-auto">
             <NotificationBell />
             <UserMenu />
             
             <Dialog open={isJuridiskDialogOpen} onOpenChange={setIsJuridiskDialogOpen}>
               <DialogTrigger asChild>
-                <Button size="sm" className="bg-blue-600 hover:bg-blue-700 text-white h-7 sm:h-8 md:h-9 px-1.5 sm:px-2 md:px-3 text-[10px] sm:text-xs md:text-sm">
-                  <span className="hidden sm:inline">Hjælp til Jura</span>
-                  <span className="sm:hidden">Jura</span>
+                <Button size="sm" className="bg-blue-600 hover:bg-blue-700 text-white h-8 sm:h-9 md:h-9 px-2 sm:px-3 md:px-3 text-[9px] leading-tight sm:text-xs md:text-sm whitespace-normal max-w-[80px] sm:max-w-none">
+                  Hjælp til Jura
                 </Button>
               </DialogTrigger>
               <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
@@ -314,9 +313,8 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             
             <Dialog open={isRegnskabDialogOpen} onOpenChange={setIsRegnskabDialogOpen}>
               <DialogTrigger asChild>
-                <Button size="sm" className="bg-green-600 hover:bg-green-700 text-white text-xs sm:text-sm px-2 sm:px-3">
-                  <span className="hidden sm:inline">Hjælp til Regnskab</span>
-                  <span className="sm:hidden">Regnskab</span>
+                <Button size="sm" className="bg-green-600 hover:bg-green-700 text-white h-8 sm:h-9 md:h-9 px-2 sm:px-3 text-[9px] leading-tight sm:text-xs md:text-sm whitespace-normal max-w-[80px] sm:max-w-none">
+                  Hjælp til Regnskab
                 </Button>
               </DialogTrigger>
               <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
