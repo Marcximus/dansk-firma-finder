@@ -214,21 +214,21 @@ const CompanyHeader: React.FC<CompanyHeaderProps> = ({ company }) => {
 
   return (
     <TooltipProvider>
-      <div className="bg-background sticky top-[73px] lg:top-[73px] z-40 rounded-lg shadow-sm p-4 sm:p-6 backdrop-blur-sm border-b mb-4 sm:mb-6 relative">
+      <div className="bg-background sticky top-[46px] sm:top-[54px] lg:top-[73px] z-40 rounded-lg shadow-sm p-2 sm:p-3 lg:p-4 backdrop-blur-sm border-b mb-3 sm:mb-4 lg:mb-6 relative">
         {/* Desktop buttons - absolute positioned on the right */}
-        <div className="hidden lg:flex absolute top-4 right-4 gap-3">
+        <div className="hidden lg:flex absolute top-3 right-3 gap-2">
           <Button 
             variant="default" 
-            size="lg" 
-            className="px-8 py-4 text-lg"
+            size="default" 
+            className="px-4 py-2 text-sm"
             onClick={handleReportClick}
           >
             Virksomhedsrapport
           </Button>
           <Button 
             variant="outline" 
-            size="lg" 
-            className="px-8 py-4 text-lg"
+            size="default" 
+            className="px-4 py-2 text-sm"
             onClick={handleChangesClick}
           >
             Seneste Ændringer
@@ -237,8 +237,8 @@ const CompanyHeader: React.FC<CompanyHeaderProps> = ({ company }) => {
             <TooltipTrigger asChild>
               <Button 
                 variant={isFollowing ? "default" : "outline"} 
-                size="lg" 
-                className={`px-8 py-4 text-lg flex items-center gap-2 ${
+                size="default" 
+                className={`px-4 py-2 text-sm flex items-center gap-2 ${
                   isFollowing 
                     ? 'bg-green-600 hover:bg-green-700 text-white' 
                     : 'bg-sky-100 border-sky-300 text-sky-700 hover:bg-sky-200'
@@ -248,12 +248,12 @@ const CompanyHeader: React.FC<CompanyHeaderProps> = ({ company }) => {
               >
                 {isFollowing ? (
                   <>
-                    <Check className="h-5 w-5" />
+                    <Check className="h-4 w-4" />
                     Følges
                   </>
                 ) : (
                   <>
-                    <Star className="h-5 w-5" />
+                    <Star className="h-4 w-4" />
                     Track & Følg Dette Selskab
                   </>
                 )}
@@ -280,39 +280,41 @@ const CompanyHeader: React.FC<CompanyHeaderProps> = ({ company }) => {
           </Tooltip>
         </div>
 
-        <h1 className="text-xl sm:text-2xl md:text-3xl font-bold mb-2 lg:pr-52">{company.name}</h1>
-        <div className="flex flex-wrap gap-2 sm:gap-4 text-sm sm:text-base text-muted-foreground mb-4 lg:mb-0">
+        <h1 className="text-base sm:text-xl lg:text-2xl xl:text-3xl font-bold mb-1 sm:mb-2 lg:pr-52">{company.name}</h1>
+        <div className="flex flex-wrap gap-1.5 sm:gap-2 lg:gap-4 text-xs sm:text-sm lg:text-base text-muted-foreground mb-2 sm:mb-3 lg:mb-0">
           {company.yearFounded && (
-            <div className="flex items-center gap-1.5">
-              <Calendar className="h-4 w-4" />
+            <div className="flex items-center gap-1">
+              <Calendar className="h-3 w-3 sm:h-3.5 sm:w-3.5 lg:h-4 lg:w-4" />
               <span>Etableret: {company.yearFounded}</span>
             </div>
           )}
-          <div className="flex items-center gap-1.5">
-            <FileText className="h-4 w-4" />
+          <div className="flex items-center gap-1">
+            <FileText className="h-3 w-3 sm:h-3.5 sm:w-3.5 lg:h-4 lg:w-4" />
             <span>CVR: {company.cvr}</span>
           </div>
-          <div className="flex items-center gap-1.5">
-            <Map className="h-4 w-4" />
+          <div className="flex items-center gap-1">
+            <Map className="h-3 w-3 sm:h-3.5 sm:w-3.5 lg:h-4 lg:w-4" />
             <span>{company.city}</span>
           </div>
-          <Badge className={`${statusDisplay.color} text-white ${company.status === 'NORMAL' ? 'animate-pulse' : ''}`}>
+          <Badge className={`text-xs ${statusDisplay.color} text-white ${company.status === 'NORMAL' ? 'animate-pulse' : ''}`}>
             {statusDisplay.text}
           </Badge>
         </div>
 
         {/* Mobile buttons - shown below company info on small screens */}
-        <div className="flex lg:hidden flex-col sm:flex-row gap-2 sm:gap-3">
+        <div className="flex lg:hidden flex-col sm:flex-row gap-1.5 sm:gap-2">
           <Button 
-            variant="default" 
-            className="w-full sm:w-auto px-4 sm:px-8 py-2 sm:py-4 text-sm sm:text-lg"
+            variant="default"
+            size="sm"
+            className="w-full sm:w-auto px-3 py-1.5 text-xs sm:text-sm"
             onClick={handleReportClick}
           >
             Virksomhedsrapport
           </Button>
           <Button 
-            variant="outline" 
-            className="w-full sm:w-auto px-4 sm:px-8 py-2 sm:py-4 text-sm sm:text-lg"
+            variant="outline"
+            size="sm"
+            className="w-full sm:w-auto px-3 py-1.5 text-xs sm:text-sm"
             onClick={handleChangesClick}
           >
             Seneste Ændringer
@@ -320,8 +322,9 @@ const CompanyHeader: React.FC<CompanyHeaderProps> = ({ company }) => {
           <Tooltip>
             <TooltipTrigger asChild>
               <Button 
-                variant={isFollowing ? "default" : "outline"} 
-                className={`w-full sm:w-auto px-4 sm:px-8 py-2 sm:py-4 text-sm sm:text-lg flex items-center justify-center gap-2 ${
+                variant={isFollowing ? "default" : "outline"}
+                size="sm"
+                className={`w-full sm:w-auto px-3 py-1.5 text-xs sm:text-sm flex items-center justify-center gap-1.5 ${
                   isFollowing 
                     ? 'bg-green-600 hover:bg-green-700 text-white' 
                     : 'bg-sky-100 border-sky-300 text-sky-700 hover:bg-sky-200'
@@ -331,14 +334,14 @@ const CompanyHeader: React.FC<CompanyHeaderProps> = ({ company }) => {
               >
                 {isFollowing ? (
                   <>
-                    <Check className="h-4 w-4 sm:h-5 sm:w-5" />
+                    <Check className="h-3.5 w-3.5" />
                     <span>Følges</span>
                   </>
                 ) : (
                   <>
-                    <Star className="h-4 w-4 sm:h-5 sm:w-5" />
-                    <span className="hidden sm:inline">Track & Følg Dette Selskab</span>
-                    <span className="sm:hidden">Følg Selskab</span>
+                    <Star className="h-3.5 w-3.5" />
+                    <span className="hidden sm:inline">Track & Følg</span>
+                    <span className="sm:hidden">Følg</span>
                   </>
                 )}
               </Button>

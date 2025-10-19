@@ -113,30 +113,30 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     <div className="min-h-screen flex flex-col">
       {/* Header */}
       <header className="bg-background border-b sticky top-0 z-50 backdrop-blur-sm shadow-sm">
-        <div className="container mx-auto py-3 px-4 flex flex-col md:flex-row items-center gap-4">
-          <div className="flex items-center gap-6">
-            <Link to="/" className="text-2xl font-bold text-primary">Selskabsinfo</Link>
+        <div className="container mx-auto py-1.5 sm:py-3 px-2 sm:px-4 flex flex-col md:flex-row items-center gap-2 sm:gap-4">
+          <div className="flex items-center gap-3 sm:gap-6">
+            <Link to="/" className="text-lg sm:text-2xl font-bold text-primary">Selskabsinfo</Link>
           </div>
           
           <form onSubmit={handleHeaderSearch} className="flex-1 w-full md:w-auto">
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Search className="absolute left-2 sm:left-3 top-1/2 h-3.5 w-3.5 sm:h-4 sm:w-4 -translate-y-1/2 text-muted-foreground" />
               <Input 
-                className="pl-10"
-                placeholder="Søg efter virksomhedsnavn, CVR, branche eller by..." 
+                className="pl-8 sm:pl-10 h-8 sm:h-10 text-xs sm:text-sm"
+                placeholder="Søg virksomhed..." 
                 value={headerSearchQuery}
                 onChange={(e) => setHeaderSearchQuery(e.target.value)}
               />
             </div>
           </form>
           
-          <div className="flex flex-wrap items-center gap-2 w-full md:w-auto">
+          <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 w-full md:w-auto">
             <NotificationBell />
             <UserMenu />
             
             <Dialog open={isJuridiskDialogOpen} onOpenChange={setIsJuridiskDialogOpen}>
               <DialogTrigger asChild>
-                <Button className="bg-blue-600 hover:bg-blue-700 text-white text-sm sm:text-base px-3 sm:px-4">
+                <Button size="sm" className="bg-blue-600 hover:bg-blue-700 text-white text-xs sm:text-sm px-2 sm:px-3">
                   <span className="hidden sm:inline">Hjælp til Jura</span>
                   <span className="sm:hidden">Jura</span>
                 </Button>
@@ -314,7 +314,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             
             <Dialog open={isRegnskabDialogOpen} onOpenChange={setIsRegnskabDialogOpen}>
               <DialogTrigger asChild>
-                <Button className="bg-green-600 hover:bg-green-700 text-white text-sm sm:text-base px-3 sm:px-4">
+                <Button size="sm" className="bg-green-600 hover:bg-green-700 text-white text-xs sm:text-sm px-2 sm:px-3">
                   <span className="hidden sm:inline">Hjælp til Regnskab</span>
                   <span className="sm:hidden">Regnskab</span>
                 </Button>
@@ -494,44 +494,44 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       </header>
       
       {/* Main Content */}
-      <main className="flex-1 container mx-auto px-4 py-6">
+      <main className="flex-1 container mx-auto px-2 sm:px-4 py-3 sm:py-4 md:py-6">
         {children}
       </main>
       
       {/* Footer */}
       <footer className="bg-white border-t mt-auto">
-        <div className="container mx-auto px-4 py-8">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+        <div className="container mx-auto px-2 sm:px-4 py-4 sm:py-6 md:py-8">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6 md:gap-8">
             <div>
-              <h2 className="text-lg font-semibold mb-4">Selskabsinfo</h2>
-              <p className="text-muted-foreground">Nem adgang til danske virksomhedsoplysninger siden 2025.</p>
+              <h2 className="text-sm sm:text-base md:text-lg font-semibold mb-2 sm:mb-3 md:mb-4">Selskabsinfo</h2>
+              <p className="text-xs sm:text-sm text-muted-foreground">Nem adgang til danske virksomhedsoplysninger siden 2025.</p>
             </div>
             <div>
-              <h2 className="text-lg font-semibold mb-4">Tjenester</h2>
-              <ul className="space-y-2">
-                <li><a href="/?focus=search" className="text-muted-foreground hover:text-primary">Virksomhedssøgning</a></li>
-                <li><a href="/virksomhedsrapporter" className="text-muted-foreground hover:text-primary">Virksomhedsrapporter</a></li>
-                <li><a href="/track-foelg" className="text-muted-foreground hover:text-primary">Track & Følg</a></li>
+              <h2 className="text-sm sm:text-base md:text-lg font-semibold mb-2 sm:mb-3 md:mb-4">Tjenester</h2>
+              <ul className="space-y-1 sm:space-y-2">
+                <li><a href="/?focus=search" className="text-xs sm:text-sm text-muted-foreground hover:text-primary">Virksomhedssøgning</a></li>
+                <li><a href="/virksomhedsrapporter" className="text-xs sm:text-sm text-muted-foreground hover:text-primary">Virksomhedsrapporter</a></li>
+                <li><a href="/track-foelg" className="text-xs sm:text-sm text-muted-foreground hover:text-primary">Track & Følg</a></li>
               </ul>
             </div>
             <div>
-              <h2 className="text-lg font-semibold mb-4">Support</h2>
-              <ul className="space-y-2">
-                <li><a href="/hjaelpecenter" className="text-muted-foreground hover:text-primary">Hjælpecenter</a></li>
-                <li><a href="/kontakt-os" className="text-muted-foreground hover:text-primary">Kontakt Os</a></li>
-                <li><a href="/faq" className="text-muted-foreground hover:text-primary">FAQ</a></li>
+              <h2 className="text-sm sm:text-base md:text-lg font-semibold mb-2 sm:mb-3 md:mb-4">Support</h2>
+              <ul className="space-y-1 sm:space-y-2">
+                <li><a href="/hjaelpecenter" className="text-xs sm:text-sm text-muted-foreground hover:text-primary">Hjælpecenter</a></li>
+                <li><a href="/kontakt-os" className="text-xs sm:text-sm text-muted-foreground hover:text-primary">Kontakt Os</a></li>
+                <li><a href="/faq" className="text-xs sm:text-sm text-muted-foreground hover:text-primary">FAQ</a></li>
               </ul>
             </div>
             <div>
-              <h2 className="text-lg font-semibold mb-4">Juridisk</h2>
-              <ul className="space-y-2">
-                <li><a href="/servicevilkaar" className="text-muted-foreground hover:text-primary">Servicevilkår</a></li>
-                <li><a href="/privatlivspolitik" className="text-muted-foreground hover:text-primary">Privatlivspolitik</a></li>
-                <li><a href="/datakilder" className="text-muted-foreground hover:text-primary">Datakilder</a></li>
+              <h2 className="text-sm sm:text-base md:text-lg font-semibold mb-2 sm:mb-3 md:mb-4">Juridisk</h2>
+              <ul className="space-y-1 sm:space-y-2">
+                <li><a href="/servicevilkaar" className="text-xs sm:text-sm text-muted-foreground hover:text-primary">Servicevilkår</a></li>
+                <li><a href="/privatlivspolitik" className="text-xs sm:text-sm text-muted-foreground hover:text-primary">Privatlivspolitik</a></li>
+                <li><a href="/datakilder" className="text-xs sm:text-sm text-muted-foreground hover:text-primary">Datakilder</a></li>
               </ul>
             </div>
           </div>
-          <div className="text-center text-muted-foreground text-sm pt-8 mt-8 border-t">
+          <div className="text-center text-muted-foreground text-xs sm:text-sm pt-4 sm:pt-6 md:pt-8 mt-4 sm:mt-6 md:mt-8 border-t">
             © 2025 Selskabsinfo. Alle data kommer fra offentlige registre.
           </div>
         </div>

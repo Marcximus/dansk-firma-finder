@@ -118,10 +118,10 @@ const SearchBar: React.FC<SearchBarProps> = ({ onSearch, isLoading = false, shou
           {showDropdown && (searchResults.length > 0 || isSearching) && (
             <div className="absolute top-full left-0 right-0 z-50 mt-1 bg-background border border-border rounded-lg shadow-lg max-h-[40vh] sm:max-h-[300px] overflow-hidden">
               {isSearching ? (
-                <div className="p-4 text-center text-muted-foreground">
+                <div className="p-2 sm:p-3 text-center text-muted-foreground">
                   <div className="flex items-center justify-center gap-2">
-                    <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
-                    Søger...
+                    <div className="w-3.5 h-3.5 sm:w-4 sm:h-4 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
+                    <span className="text-xs sm:text-sm">Søger...</span>
                   </div>
                 </div>
               ) : searchResults.length > 0 ? (
@@ -129,20 +129,20 @@ const SearchBar: React.FC<SearchBarProps> = ({ onSearch, isLoading = false, shou
                   {searchResults.map((company) => (
                     <div
                       key={company.cvr}
-                      className="p-3 hover:bg-accent cursor-pointer border-b border-border last:border-b-0 transition-colors text-left"
+                      className="p-2 sm:p-3 hover:bg-accent cursor-pointer border-b border-border last:border-b-0 transition-colors text-left"
                       onClick={() => handleSuggestionClick(company)}
                     >
-                      <div className="flex items-start gap-3 w-full">
-                        <Building className="h-4 w-4 text-muted-foreground mt-1 flex-shrink-0" />
+                      <div className="flex items-start gap-2 sm:gap-3 w-full">
+                        <Building className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground mt-0.5 sm:mt-1 flex-shrink-0" />
                         <div className="flex-1 min-w-0 text-left">
-                          <div className="font-medium text-sm truncate text-left">
+                          <div className="font-medium text-xs sm:text-sm truncate text-left">
                             {company.name}
                           </div>
-                          <div className="text-xs text-muted-foreground text-left">
+                          <div className="text-[10px] sm:text-xs text-muted-foreground text-left">
                             CVR: {company.cvr}
                           </div>
-                          <div className="flex items-center gap-1 text-xs text-muted-foreground mt-1 justify-start">
-                            <MapPin className="h-3 w-3" />
+                          <div className="flex items-center gap-1 text-[10px] sm:text-xs text-muted-foreground mt-0.5 sm:mt-1 justify-start">
+                            <MapPin className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
                             {company.city}
                           </div>
                         </div>
