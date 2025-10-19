@@ -84,10 +84,23 @@ const SigningRulesAccordion: React.FC<SigningRulesAccordionProps> = ({ cvrData }
         
         // Find the ACTIVE role (where gyldigTil === null OR future date)
         const today = new Date().toISOString().split('T')[0];
-        const activeRole = funkAttribute.vaerdier.find((v: any) => {
+        let activeRole = funkAttribute.vaerdier.find((v: any) => {
           const gyldigTil = v.periode?.gyldigTil;
           return gyldigTil === null || gyldigTil === undefined || gyldigTil >= today;
         });
+        
+        // If no active role found and this is a board member, use the most recent role
+        const orgName = org?.organisationsNavn?.[0]?.navn;
+        if (!activeRole && orgName === 'Bestyrelse' && funkAttribute.vaerdier.length > 0) {
+          console.log('No active role found for board member, using most recent FUNKTION');
+          // Find the role with the latest gyldigFra date
+          activeRole = funkAttribute.vaerdier.reduce((latest: any, current: any) => {
+            if (!latest) return current;
+            const latestDate = latest.periode?.gyldigFra || '';
+            const currentDate = current.periode?.gyldigFra || '';
+            return currentDate > latestDate ? current : latest;
+          }, null);
+        }
         
         if (activeRole) {
           console.log('✓ Found ACTIVE role:', JSON.stringify(activeRole, null, 2));
@@ -99,6 +112,7 @@ const SigningRulesAccordion: React.FC<SigningRulesAccordionProps> = ({ cvrData }
             // Format specific roles for better display
             const roleMap: Record<string, string> = {
               'BESTYRELSESFORMAND': 'Bestyrelsesformand',
+              'FORMAND': 'Formand',
               'BESTYRELSESMEDLEM': 'Bestyrelsesmedlem',
               'BESTYRELSESMEDLEM.NÆSTFORMAND': 'Næstformand',
               'DIREKTØR': 'Direktør',
@@ -131,15 +145,27 @@ const SigningRulesAccordion: React.FC<SigningRulesAccordionProps> = ({ cvrData }
         // Same logic as above but for org
         if (funkAttribute.vaerdier) {
           const today = new Date().toISOString().split('T')[0];
-          const activeRole = funkAttribute.vaerdier.find((v: any) => {
+          let activeRole = funkAttribute.vaerdier.find((v: any) => {
             const gyldigTil = v.periode?.gyldigTil;
             return gyldigTil === null || gyldigTil === undefined || gyldigTil >= today;
           });
+          
+          // If no active role found and this is a board member, use the most recent role
+          const orgName = org?.organisationsNavn?.[0]?.navn;
+          if (!activeRole && orgName === 'Bestyrelse' && funkAttribute.vaerdier.length > 0) {
+            activeRole = funkAttribute.vaerdier.reduce((latest: any, current: any) => {
+              if (!latest) return current;
+              const latestDate = latest.periode?.gyldigFra || '';
+              const currentDate = current.periode?.gyldigFra || '';
+              return currentDate > latestDate ? current : latest;
+            }, null);
+          }
           
           if (activeRole?.vaerdi) {
             const specificRole = activeRole.vaerdi;
             const roleMap: Record<string, string> = {
               'BESTYRELSESFORMAND': 'Bestyrelsesformand',
+              'FORMAND': 'Formand',
               'BESTYRELSESMEDLEM': 'Bestyrelsesmedlem',
               'BESTYRELSESMEDLEM.NÆSTFORMAND': 'Næstformand',
               'DIREKTØR': 'Direktør',
