@@ -214,7 +214,7 @@ const CompanyHeader: React.FC<CompanyHeaderProps> = ({ company }) => {
 
   return (
     <TooltipProvider>
-      <div className="bg-background sticky top-[36px] sm:top-[46px] md:top-[54px] lg:top-[66px] z-40 rounded-lg shadow-sm p-1.5 sm:p-2 md:p-3 lg:p-4 backdrop-blur-sm border-b mb-2 sm:mb-3 md:mb-4 lg:mb-6 relative text-center lg:text-left">
+      <div className="bg-background sticky top-[36px] sm:top-[46px] md:top-[54px] lg:top-[66px] z-40 rounded-lg shadow-sm pt-1 sm:pt-1.5 md:pt-2 lg:pt-3 px-1.5 sm:px-2 md:px-3 lg:px-4 pb-1.5 sm:pb-2 md:pb-3 lg:pb-4 backdrop-blur-sm border-b mb-2 sm:mb-3 md:mb-4 lg:mb-6 relative text-center lg:text-left">
         {/* Desktop buttons - absolute positioned on the right */}
         <div className="hidden lg:flex absolute top-3 right-3 gap-2">
           <Button 
@@ -280,7 +280,7 @@ const CompanyHeader: React.FC<CompanyHeaderProps> = ({ company }) => {
           </Tooltip>
         </div>
 
-        <h1 className="text-base sm:text-xl md:text-2xl lg:text-2xl font-bold mb-1 sm:mb-1.5 md:mb-2 lg:pr-52">{company.name}</h1>
+        <h1 className="text-base sm:text-xl md:text-2xl lg:text-2xl font-bold mb-2 sm:mb-3 md:mb-4 lg:pr-52">{company.name}</h1>
         <div className="hidden md:flex flex-wrap gap-2 lg:gap-4 text-sm lg:text-base text-muted-foreground mb-2 lg:mb-0">
           {company.yearFounded && (
             <div className="flex items-center gap-0.5 sm:gap-1">
