@@ -44,30 +44,34 @@ const SigningRulesAccordion: React.FC<SigningRulesAccordionProps> = ({ cvrData }
     return streetAddress && postalInfo ? `${streetAddress}, ${postalInfo}` : 'Adresse ikke tilgængelig';
   };
 
-  const getRoleDisplayName = (hovedtype: string, memberData?: any) => {
-    // First check for specific FUNKTION attribute
-    if (memberData && memberData.attributter) {
-      const funkAttribute = memberData.attributter.find((attr: any) => attr.type === 'FUNKTION');
-      if (funkAttribute?.vaerdier) {
-        // Find the ACTIVE role (where gyldigTil === null)
-        const activeRole = funkAttribute.vaerdier.find((v: any) => 
-          v.periode?.gyldigTil === null || v.periode?.gyldigTil === undefined
-        );
+  const getRoleDisplayName = (hovedtype: string, org?: any, medlem?: any) => {
+    // Try to get FUNKTION from medlem.attributter first
+    let funkAttribute = medlem?.attributter?.find((attr: any) => attr.type === 'FUNKTION');
+    
+    // If not found, try org.attributter
+    if (!funkAttribute && org?.attributter) {
+      funkAttribute = org.attributter.find((attr: any) => attr.type === 'FUNKTION');
+    }
+    
+    if (funkAttribute?.vaerdier) {
+      // Find the ACTIVE role (where gyldigTil === null)
+      const activeRole = funkAttribute.vaerdier.find((v: any) => 
+        v.periode?.gyldigTil === null || v.periode?.gyldigTil === undefined
+      );
+      
+      if (activeRole?.vaerdi) {
+        const specificRole = activeRole.vaerdi;
         
-        if (activeRole?.vaerdi) {
-          const specificRole = activeRole.vaerdi;
-          
-          // Format specific roles for better display
-          const roleMap: Record<string, string> = {
-            'BESTYRELSESFORMAND': 'Bestyrelsesformand',
-            'BESTYRELSESMEDLEM': 'Bestyrelsesmedlem',
-            'BESTYRELSESMEDLEM.NÆSTFORMAND': 'Næstformand',
-            'DIREKTØR': 'Direktør',
-            'REVISOR': 'Revisor',
-          };
-          
-          return roleMap[specificRole] || specificRole;
-        }
+        // Format specific roles for better display
+        const roleMap: Record<string, string> = {
+          'BESTYRELSESFORMAND': 'Bestyrelsesformand',
+          'BESTYRELSESMEDLEM': 'Bestyrelsesmedlem',
+          'BESTYRELSESMEDLEM.NÆSTFORMAND': 'Næstformand',
+          'DIREKTØR': 'Direktør',
+          'REVISOR': 'Revisor',
+        };
+        
+        return roleMap[specificRole] || specificRole;
       }
     }
 
@@ -118,7 +122,7 @@ const SigningRulesAccordion: React.FC<SigningRulesAccordionProps> = ({ cvrData }
                     return activeMemberships.map((medlem: any, medlemIndex: number) => (
                       <div key={`${orgIndex}-${medlemIndex}`} className="text-[10px] sm:text-xs md:text-sm">
                         <div className="font-medium">
-                          {getRoleDisplayName(org.hovedtype, medlem)}
+                          {getRoleDisplayName(org.hovedtype, org, medlem)}
                         </div>
                         <div className="text-[9px] sm:text-[10px] md:text-xs text-muted-foreground mt-0.5 sm:mt-1">
                           {(() => {
