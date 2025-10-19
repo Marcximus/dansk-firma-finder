@@ -1,18 +1,25 @@
 
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { extractSigningRulesData } from '@/services/cvrUtils';
-import { Users, Crown, Shield, UserCheck, FileText } from 'lucide-react';
+import { Users, Crown, Shield, UserCheck, FileText, Search } from 'lucide-react';
 
 interface SigningRulesAccordionProps {
   cvrData: any;
 }
 
 const SigningRulesAccordion: React.FC<SigningRulesAccordionProps> = ({ cvrData }) => {
+  const navigate = useNavigate();
   console.log('SigningRulesAccordion - Raw CVR Data:', cvrData);
   
   const signingData = extractSigningRulesData(cvrData);
   console.log('SigningRulesAccordion - Extracted Data:', signingData);
+
+  const handleNameClick = (name: string) => {
+    navigate(`/?search=${encodeURIComponent(name)}`);
+  };
 
   const getPersonName = (deltager: any) => {
     if (!deltager) return 'Ukendt';
@@ -221,7 +228,22 @@ const SigningRulesAccordion: React.FC<SigningRulesAccordionProps> = ({ cvrData }
 
               return (
                 <div key={index} className="border-l-2 sm:border-l-3 border-blue-200 pl-2 sm:pl-3 py-1.5 sm:py-2">
-                  <div className="font-semibold text-xs sm:text-sm md:text-base">{personName}</div>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <button
+                          onClick={() => handleNameClick(personName)}
+                          className="font-semibold text-xs sm:text-sm md:text-base text-primary hover:text-primary/80 hover:underline transition-colors flex items-center gap-1.5 cursor-pointer mb-1"
+                        >
+                          {personName}
+                          <Search className="h-3 w-3" />
+                        </button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Søg efter virksomheder tilknyttet denne person</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
                   <div className="text-[10px] sm:text-xs md:text-sm text-muted-foreground mb-1 sm:mb-1.5 break-words">{personAddress}</div>
                   
                   {relation.organisationer && relation.organisationer.map((org: any, orgIndex: number) => {

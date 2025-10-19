@@ -1,13 +1,20 @@
 
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
-import { Users, Crown, Shield, UserCheck, Building } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Users, Crown, Shield, UserCheck, Building, Search } from 'lucide-react';
 
 interface ManagementAccordionProps {
   cvrData: any;
 }
 
 const ManagementAccordion: React.FC<ManagementAccordionProps> = ({ cvrData }) => {
+  const navigate = useNavigate();
+
+  const handleNameClick = (name: string) => {
+    navigate(`/?search=${encodeURIComponent(name)}`);
+  };
   if (!cvrData) return null;
 
   console.log('=== MANAGEMENT ACCORDION DEBUG ===');
@@ -170,7 +177,22 @@ const ManagementAccordion: React.FC<ManagementAccordionProps> = ({ cvrData }) =>
 
             return (
               <div key={index} className="border-l-2 sm:border-l-3 border-blue-200 pl-2 sm:pl-3 py-1.5 sm:py-2">
-                <div className="font-semibold text-xs sm:text-sm md:text-base mb-1 sm:mb-1.5">{personName}</div>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <button
+                        onClick={() => handleNameClick(personName)}
+                        className="font-semibold text-xs sm:text-sm md:text-base text-primary hover:text-primary/80 hover:underline transition-colors flex items-center gap-1.5 cursor-pointer mb-1"
+                      >
+                        {personName}
+                        <Search className="h-3 w-3" />
+                      </button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Søg efter virksomheder tilknyttet denne person</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
                 <div className="text-[10px] sm:text-xs md:text-sm text-muted-foreground mb-1.5 sm:mb-2">{personAddress}</div>
                 
                 {relation.organisationer && relation.organisationer.length > 0 && (
