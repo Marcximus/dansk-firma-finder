@@ -148,15 +148,4 @@ export const createServiceSchema = (service: {name: string, description: string,
   } : undefined
 });
 
-export const createBreadcrumbSchema = (breadcrumbs: Array<{name: string, url: string}>) => ({
-  "@context": "https://schema.org",
-  "@type": "BreadcrumbList",
-  "itemListElement": breadcrumbs.map((crumb, index) => ({
-    "@type": "ListItem",
-    "position": index + 1,
-    "name": crumb.name,
-    "item": crumb.url
-  }))
-});
-
 export default JSONLDScript;
