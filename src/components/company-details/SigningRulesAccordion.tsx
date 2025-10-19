@@ -167,7 +167,7 @@ const SigningRulesAccordion: React.FC<SigningRulesAccordionProps> = ({ cvrData }
               {signingData?.signingRules && signingData.signingRules.length > 0 ? (
                 signingData.signingRules.map((rule: string, index: number) => (
                   <div key={index} className="border-l-2 sm:border-l-3 border-green-200 pl-2 sm:pl-3 py-1.5 sm:py-2">
-                    <div className="font-normal italic text-[10px] sm:text-xs md:text-sm">{rule}</div>
+                    <div className="font-normal italic text-xs sm:text-sm md:text-base text-blue-600">{rule}</div>
                   </div>
                 ))
               ) : (
