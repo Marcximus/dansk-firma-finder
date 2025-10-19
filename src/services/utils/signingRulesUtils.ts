@@ -12,7 +12,35 @@ export const extractSigningRulesData = (cvrData: any) => {
   
   const vrvirksomhed = cvrData.Vrvirksomhed;
   const relations = vrvirksomhed.deltagerRelation || [];
-  console.log('extractSigningRulesData - Processing relations:', relations);
+  
+  console.log('=== FULL DELTAGER RELATION JSON STRUCTURE ===');
+  console.log('Total relations found:', relations.length);
+  relations.forEach((relation: any, index: number) => {
+    console.log(`\n--- RELATION ${index + 1} ---`);
+    console.log('Person name:', relation.deltager?.navne?.[0]?.navn || 'Unknown');
+    console.log('Full deltager object:', JSON.stringify(relation.deltager, null, 2));
+    console.log('Number of organisationer:', relation.organisationer?.length || 0);
+    
+    relation.organisationer?.forEach((org: any, orgIndex: number) => {
+      console.log(`\n  ORGANISATION ${orgIndex + 1}:`);
+      console.log('  hovedtype:', org.hovedtype);
+      console.log('  Number of medlemsData:', org.medlemsData?.length || 0);
+      console.log('  Full organisation object:', JSON.stringify(org, null, 2));
+      
+      org.medlemsData?.forEach((medlem: any, medlemIndex: number) => {
+        console.log(`\n    MEDLEM ${medlemIndex + 1}:`);
+        console.log('    Full medlemsData:', JSON.stringify(medlem, null, 2));
+        console.log('    Number of attributter:', medlem.attributter?.length || 0);
+        
+        medlem.attributter?.forEach((attr: any, attrIndex: number) => {
+          console.log(`\n      ATTRIBUTE ${attrIndex + 1}:`);
+          console.log('      type:', attr.type);
+          console.log('      Full attribute:', JSON.stringify(attr, null, 2));
+        });
+      });
+    });
+  });
+  console.log('\n=== END OF JSON STRUCTURE ===\n');
   
   // Intelligent field discovery for signing rules
   const availablePaths = scanDataStructure(vrvirksomhed);
