@@ -135,24 +135,34 @@ export const extractSigningRulesData = (cvrData: any) => {
   const isActiveMembership = (org: any) => {
     if (!org.medlemsData || org.medlemsData.length === 0) return false;
     
-    // For Bestyrelse organizations, check if they have the most recent FUNKTION entry
+    const today = new Date().toISOString().split('T')[0];
     const orgName = org.organisationsNavn?.[0]?.navn;
+    
+    // For Bestyrelse, check if the most recent FUNKTION has an active period
     if (orgName === 'Bestyrelse') {
-      console.log('Checking Bestyrelse membership - looking for most recent FUNKTION');
+      console.log('Checking Bestyrelse membership - validating most recent FUNKTION');
       return org.medlemsData.some((medlem: any) => {
-        // Find all FUNKTION values and check if at least one exists
         const funktionAttr = medlem.attributter?.find((attr: any) => attr.type === 'FUNKTION');
         if (!funktionAttr || !funktionAttr.vaerdier || funktionAttr.vaerdier.length === 0) {
           return false;
         }
-        // If there are any FUNKTION values, consider it potentially active
-        // (we'll filter by the most recent one later)
-        return true;
+        
+        // Find the most recent FUNKTION by gyldigFra date
+        const mostRecentFunktion = funktionAttr.vaerdier.reduce((latest: any, current: any) => {
+          const latestDate = latest.periode?.gyldigFra || '';
+          const currentDate = current.periode?.gyldigFra || '';
+          return currentDate > latestDate ? current : latest;
+        });
+        
+        // Check if this most recent FUNKTION has an active period
+        const gyldigTil = mostRecentFunktion.periode?.gyldigTil;
+        const isActive = gyldigTil === null || gyldigTil === undefined || gyldigTil >= today;
+        console.log(`  Most recent FUNKTION for member: gyldigTil=${gyldigTil}, isActive=${isActive}`);
+        return isActive;
       });
     }
     
     // For other organizations, require active FUNKTION with null or future end date
-    const today = new Date().toISOString().split('T')[0];
     return org.medlemsData.some((medlem: any) => {
       return medlem.attributter?.some((attr: any) => {
         if (attr.type !== 'FUNKTION') return false;
@@ -186,18 +196,7 @@ export const extractSigningRulesData = (cvrData: any) => {
           
           console.log(`  ✓ Has active membership for ${org.hovedtype}`);
           
-          // For Bestyrelse, accept members with most recent FUNKTION if roleCheck passes
-          const orgName = org.organisationsNavn?.[0]?.navn;
-          if (orgName === 'Bestyrelse') {
-            return org.medlemsData?.some((medlem: any) => {
-              const passed = roleCheck(org, medlem);
-              console.log(`    Bestyrelse member - roleCheck ${passed ? 'PASSED' : 'FAILED'}`);
-              console.log(`    medlem.attributter:`, medlem.attributter ? 'exists' : 'MISSING');
-              return passed;
-            });
-          }
-          
-          // For other org types, require active FUNKTION
+          // All orgs must have active FUNKTION members that pass roleCheck
           return org.medlemsData?.some((medlem: any) => {
             // Check if the FUNKTION attribute has an active value (null OR future end date)
             const hasActiveFunktion = medlem.attributter?.some((attr: any) => {
@@ -231,13 +230,7 @@ export const extractSigningRulesData = (cvrData: any) => {
         ...relation,
         organisationer: relation.organisationer
           ?.filter((org: any) => {
-            const orgName = org.organisationsNavn?.[0]?.navn;
-            // For Bestyrelse, keep all members that pass roleCheck
-            if (orgName === 'Bestyrelse') {
-              return org.medlemsData?.some((medlem: any) => roleCheck(org, medlem));
-            }
-            
-            // For other types, only include orgs with active FUNKTION members
+            // Only include orgs with active FUNKTION members that pass roleCheck
             const hasActiveMatchingRole = org.medlemsData?.some((medlem: any) => {
               const hasActiveFunktion = medlem.attributter?.some((attr: any) => {
                 if (attr.type !== 'FUNKTION') return false;
@@ -254,19 +247,16 @@ export const extractSigningRulesData = (cvrData: any) => {
           })
           ?.map((org: any) => ({
             ...org,
-            // For Bestyrelse, keep all members
-            // For other types, filter to only include members with active FUNKTION values
-            medlemsData: org.organisationsNavn?.[0]?.navn === 'Bestyrelse' 
-              ? org.medlemsData 
-              : org.medlemsData?.filter((medlem: any) => 
-                  medlem.attributter?.some((attr: any) => {
-                    if (attr.type !== 'FUNKTION') return false;
-                    return attr.vaerdier?.some((v: any) => {
-                      const gyldigTil = v.periode?.gyldigTil;
-                      return gyldigTil === null || gyldigTil === undefined || gyldigTil >= today;
-                    });
-                  })
-                )
+            // Filter to only include members with active FUNKTION values
+            medlemsData: org.medlemsData?.filter((medlem: any) => 
+              medlem.attributter?.some((attr: any) => {
+                if (attr.type !== 'FUNKTION') return false;
+                return attr.vaerdier?.some((v: any) => {
+                  const gyldigTil = v.periode?.gyldigTil;
+                  return gyldigTil === null || gyldigTil === undefined || gyldigTil >= today;
+                });
+              })
+            )
           }))
       }));
   };
@@ -284,17 +274,26 @@ export const extractSigningRulesData = (cvrData: any) => {
       return false;
     }),
     board: filterActiveRelations((org, medlem) => {
+      const today = new Date().toISOString().split('T')[0];
       const orgName = org.organisationsNavn?.[0]?.navn;
+      
       if (orgName === 'Bestyrelse') {
-        // For Bestyrelse, check if member has any FUNKTION attribute with board roles
-        return medlem.attributter?.some((attr: any) => 
-          attr.type === 'FUNKTION' && 
-          attr.vaerdier?.some((v: any) => 
-            v.vaerdi?.includes('BESTYRELSESMEDLEM') || 
-            v.vaerdi?.includes('BESTYRELSESFORMAND') ||
-            v.vaerdi?.includes('FORMAND')
-          )
-        );
+        // Check if member has board role in an active FUNKTION value
+        return medlem.attributter?.some((attr: any) => {
+          if (attr.type !== 'FUNKTION') return false;
+          
+          return attr.vaerdier?.some((v: any) => {
+            const hasRole = v.vaerdi?.includes('BESTYRELSESMEDLEM') || 
+                          v.vaerdi?.includes('BESTYRELSESFORMAND') ||
+                          v.vaerdi?.includes('FORMAND');
+            
+            if (!hasRole) return false;
+            
+            // Check if this FUNKTION value has an active period
+            const gyldigTil = v.periode?.gyldigTil;
+            return gyldigTil === null || gyldigTil === undefined || gyldigTil >= today;
+          });
+        });
       }
       return false;
     }),
