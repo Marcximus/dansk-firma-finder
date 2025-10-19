@@ -163,32 +163,32 @@ const ManagementAccordion: React.FC<ManagementAccordionProps> = ({ cvrData }) =>
         </div>
       </AccordionTrigger>
       <AccordionContent className="px-2 sm:px-4 md:px-6 pb-2 sm:pb-4 md:pb-6">
-        <div className="space-y-2 sm:space-y-3 md:space-y-4">
+        <div className="space-y-1.5 sm:space-y-2 md:space-y-3">
           {relations.map((relation: any, index: number) => {
             const personName = getPersonName(relation.deltager);
             const personAddress = getPersonAddress(relation.deltager);
 
             return (
-              <div key={index} className="border-l-4 border-blue-200 pl-4 py-3">
-                <div className="font-semibold text-base mb-2">{personName}</div>
-                <div className="text-sm text-muted-foreground mb-3">{personAddress}</div>
+              <div key={index} className="border-l-2 sm:border-l-3 border-blue-200 pl-2 sm:pl-3 py-1.5 sm:py-2">
+                <div className="font-semibold text-xs sm:text-sm md:text-base mb-1 sm:mb-1.5">{personName}</div>
+                <div className="text-[10px] sm:text-xs md:text-sm text-muted-foreground mb-1.5 sm:mb-2">{personAddress}</div>
                 
                 {relation.organisationer && relation.organisationer.length > 0 && (
-                  <div className="space-y-2">
+                  <div className="space-y-1 sm:space-y-1.5">
                     {relation.organisationer.map((org: any, orgIndex: number) => (
-                      <div key={orgIndex} className="flex items-start gap-3 p-2 bg-gray-50 rounded">
+                      <div key={orgIndex} className="flex items-start gap-1.5 sm:gap-2 p-1.5 sm:p-2 bg-gray-50 rounded">
                         {getRoleIcon(org.hovedtype)}
                         <div className="flex-1">
-                          <div className="font-medium text-sm">
+                          <div className="font-medium text-[10px] sm:text-xs md:text-sm">
                             {getRoleDisplayName(org.hovedtype, org.medlemsData?.[0])}
                           </div>
                           {org.medlemsData && org.medlemsData.map((medlem: any, medlemIndex: number) => (
-                            <div key={medlemIndex} className="text-xs text-muted-foreground mt-1">
+                            <div key={medlemIndex} className="text-[9px] sm:text-[10px] md:text-xs text-muted-foreground mt-0.5 sm:mt-1">
                               {medlem.periode && (
                                 <div>Periode: {formatPeriod(medlem.periode)}</div>
                               )}
                               {medlem.attributter && medlem.attributter.map((attr: any, attrIndex: number) => (
-                                <div key={attrIndex} className="mt-1">
+                                <div key={attrIndex} className="mt-0.5 sm:mt-1">
                                   {attr.type !== 'FUNKTION' && attr.vaerdier && (
                                     <div>
                                       <strong>{attr.type}:</strong> {attr.vaerdier.map((v: any) => v.vaerdi).join(', ')}

@@ -281,7 +281,7 @@ const CompanyHeader: React.FC<CompanyHeaderProps> = ({ company }) => {
         </div>
 
         <h1 className="text-base sm:text-xl md:text-2xl lg:text-2xl font-bold mb-1 sm:mb-1.5 md:mb-2 lg:pr-52">{company.name}</h1>
-        <div className="flex flex-col sm:flex-row flex-wrap justify-center lg:justify-start gap-1 sm:gap-1.5 md:gap-2 lg:gap-4 text-[10px] sm:text-xs md:text-sm lg:text-base text-muted-foreground mb-2 sm:mb-2 lg:mb-0">
+        <div className="hidden md:flex flex-wrap gap-2 lg:gap-4 text-sm lg:text-base text-muted-foreground mb-2 lg:mb-0">
           {company.yearFounded && (
             <div className="flex items-center gap-0.5 sm:gap-1">
               <Calendar className="h-2.5 w-2.5 sm:h-3 sm:w-3 md:h-3.5 md:w-3.5" />
