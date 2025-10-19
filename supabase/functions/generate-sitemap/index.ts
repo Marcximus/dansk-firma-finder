@@ -1,6 +1,23 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
+// Function to generate URL-safe slug from company name
+function generateCompanySlug(companyName: string): string {
+  return companyName
+    .toLowerCase()
+    .trim()
+    // Replace Danish characters with their closest equivalents
+    .replace(/æ/g, 'ae')
+    .replace(/ø/g, 'oe')
+    .replace(/å/g, 'aa')
+    // Replace spaces and special characters with hyphens
+    .replace(/[^a-z0-9]+/g, '-')
+    // Remove leading/trailing hyphens
+    .replace(/^-+|-+$/g, '')
+    // Replace multiple consecutive hyphens with single hyphen
+    .replace(/-+/g, '-');
+}
+
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
@@ -161,9 +178,11 @@ async function generateCompaniesSitemap(supabase: any, page: number): Promise<Re
     const lastmod = company.lastmod 
       ? new Date(company.lastmod).toISOString().split('T')[0]
       : new Date().toISOString().split('T')[0];
+    
+    const slug = generateCompanySlug(company.name);
 
     xml += '  <url>\n';
-    xml += `    <loc>${BASE_URL}/company/${company.cvr}</loc>\n`;
+    xml += `    <loc>${BASE_URL}/virksomhed/${slug}/${company.cvr}</loc>\n`;
     xml += `    <lastmod>${lastmod}</lastmod>\n`;
     xml += `    <changefreq>weekly</changefreq>\n`;
     xml += `    <priority>0.6</priority>\n`;

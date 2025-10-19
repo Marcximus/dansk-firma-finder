@@ -52,6 +52,10 @@ const App = () => (
             <Analytics />
           <Routes>
             <Route path="/" element={<Index />} />
+            {/* New SEO-friendly Danish URLs */}
+            <Route path="/virksomhed/:slug/:cvr" element={<CompanyPage />} />
+            <Route path="/virksomhed/:slug/:cvr/aendringer" element={<CompanyChangesPage />} />
+            {/* Legacy redirects for old URLs */}
             <Route path="/company/:id" element={<CompanyPage />} />
             <Route path="/company/:id/changes" element={<CompanyChangesPage />} />
             <Route path="/faq" element={<FAQPage />} />

@@ -19,6 +19,7 @@ import { getRecentChanges, type CompanyChange } from '@/services/utils/changeUti
 import NotificationSettingsForm from '@/components/NotificationSettingsForm';
 import UpgradeDialog from '@/components/UpgradeDialog';
 import SEO from '@/components/SEO';
+import { generateCompanyUrl } from '@/lib/urlUtils';
 
 interface Profile {
   id: string;
@@ -521,7 +522,7 @@ const ProfilePage: React.FC = () => {
                             <td className="py-3 text-sm text-muted-foreground">{index + 1}.</td>
                             <td className="py-3 font-semibold text-foreground">
                               <Link 
-                                to={`/company/${company.company_cvr}`}
+                                to={generateCompanyUrl(company.company_name, company.company_cvr)}
                                 className="hover:text-primary transition-colors underline-offset-4 hover:underline"
                               >
                                 {company.company_name}
@@ -529,7 +530,7 @@ const ProfilePage: React.FC = () => {
                             </td>
                             <td className="py-3 text-sm font-mono text-muted-foreground">
                               <Link 
-                                to={`/company/${company.company_cvr}`}
+                                to={generateCompanyUrl(company.company_name, company.company_cvr)}
                                 className="hover:text-primary transition-colors underline-offset-4 hover:underline font-medium"
                               >
                                 {company.company_cvr}
@@ -538,7 +539,7 @@ const ProfilePage: React.FC = () => {
                             <td className="py-3 text-sm text-muted-foreground">
                               {latestChange ? (
                                 <Link 
-                                  to={`/company/${company.company_cvr}`}
+                                  to={generateCompanyUrl(company.company_name, company.company_cvr)}
                                   className="hover:text-primary transition-colors underline-offset-4 hover:underline"
                                 >
                                   {latestChange.description}
@@ -575,7 +576,7 @@ const ProfilePage: React.FC = () => {
                             <td className="py-3">
                               <div className="flex items-center gap-1">
                                 <Button variant="ghost" size="sm" asChild>
-                                  <a href={`/company/${company.company_cvr}`}>
+                                  <a href={generateCompanyUrl(company.company_name, company.company_cvr)}>
                                     <Eye className="h-4 w-4" />
                                   </a>
                                 </Button>

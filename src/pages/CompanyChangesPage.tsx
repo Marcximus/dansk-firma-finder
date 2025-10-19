@@ -18,7 +18,7 @@ interface CompanyChange {
 }
 
 const CompanyChangesPage: React.FC = () => {
-  const { id } = useParams<{ id: string }>();
+  const { id, cvr, slug } = useParams<{ id?: string; cvr?: string; slug?: string }>();
   const [company, setCompany] = useState<Company | null>(null);
   const [changes, setChanges] = useState<CompanyChange[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -27,13 +27,16 @@ const CompanyChangesPage: React.FC = () => {
 
   useEffect(() => {
     const fetchCompanyAndChanges = async () => {
-      if (!id) {
+      // Support both old format (/company/:id/changes) and new format (/virksomhed/:slug/:cvr/aendringer)
+      const companyId = cvr || id;
+      
+      if (!companyId) {
         navigate('/');
         return;
       }
 
       try {
-        const companyData = await getCompanyById(id);
+        const companyData = await getCompanyById(companyId);
         if (companyData) {
           setCompany(companyData);
           const extractedChanges = extractChanges(companyData);
@@ -59,7 +62,7 @@ const CompanyChangesPage: React.FC = () => {
     };
 
     fetchCompanyAndChanges();
-  }, [id, navigate, toast]);
+  }, [id, cvr, navigate, toast]);
 
   const extractChanges = (company: Company): CompanyChange[] => {
     const changes: CompanyChange[] = [];
@@ -228,14 +231,14 @@ const CompanyChangesPage: React.FC = () => {
       <SEO 
         title={`Seneste ændringer for ${company.name} - SelskabsInfo`}
         description={`Se de seneste ændringer og historiske data for ${company.name}. CVR: ${company.cvr}.`}
-        canonicalUrl={`https://selskabsinfo.dk/company/${id}/changes`}
+        canonicalUrl={`https://selskabsinfo.dk/virksomhed/${slug || company.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}/${company.cvr}/aendringer`}
         keywords={`${company.name}, CVR ${company.cvr}, virksomhedsændringer, historik`}
       />
       
       <div className="py-6 max-w-4xl mx-auto px-4">
         <div className="mb-6">
           <Button asChild variant="outline" className="mb-4">
-            <Link to={`/company/${id}`}>
+            <Link to={`/virksomhed/${slug || company.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}/${company.cvr}`}>
               <ArrowLeft className="w-4 h-4 mr-2" />
               Tilbage til virksomhed
             </Link>

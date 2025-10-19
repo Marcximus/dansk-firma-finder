@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Company } from '@/services/companyAPI';
 import { Link } from 'react-router-dom';
+import { generateCompanyUrl } from '@/lib/urlUtils';
 
 interface CompanyCardProps {
   company: Company;
@@ -191,6 +192,7 @@ const CompanyCard: React.FC<CompanyCardProps> = ({ company }) => {
   const { name: personName, role: personRole } = getDirectorOrOwner();
   const statusText = cleanStatus(company.status || 'Aktiv');
   const lastChange = getLastChange();
+  const companyUrl = generateCompanyUrl(company.name, company.cvr);
 
   return (
     <Card className="h-full flex flex-col hover:shadow-md transition-shadow cursor-pointer">
@@ -198,7 +200,7 @@ const CompanyCard: React.FC<CompanyCardProps> = ({ company }) => {
         <div className="flex flex-col items-center gap-1.5 sm:gap-2 md:gap-3">
           <CardTitle className="text-xs sm:text-sm md:text-base lg:text-lg font-bold leading-tight text-center min-h-[1.25rem] sm:min-h-[1.5rem] md:min-h-[2rem] flex items-center justify-center px-1">
             <Link 
-              to={`/company/${company.id}`}
+              to={companyUrl}
               className="hover:text-primary transition-colors underline-offset-4 hover:underline"
               onClick={(e) => e.stopPropagation()}
             >
@@ -222,7 +224,7 @@ const CompanyCard: React.FC<CompanyCardProps> = ({ company }) => {
             <span className="font-medium text-muted-foreground">CVR</span>
             <span className="col-span-2">
               <Link 
-                to={`/company/${company.id}`}
+                to={companyUrl}
                 className="hover:text-primary transition-colors underline-offset-4 hover:underline font-medium"
                 onClick={(e) => e.stopPropagation()}
               >
@@ -261,7 +263,7 @@ const CompanyCard: React.FC<CompanyCardProps> = ({ company }) => {
         
         <div className="mt-2 sm:mt-3 md:mt-4 lg:mt-6 pt-1.5 sm:pt-2 md:pt-3 lg:pt-4 border-t">
           <Button asChild size="sm" className="w-full text-[11px] sm:text-xs md:text-sm">
-            <Link to={`/company/${company.id}`}>
+            <Link to={companyUrl}>
               Se Detaljer
             </Link>
           </Button>

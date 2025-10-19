@@ -9,7 +9,7 @@ import SEO from '@/components/SEO';
 import JSONLDScript, { createCompanySchema } from '@/components/JSONLDScript';
 
 const CompanyPage: React.FC = () => {
-  const { id } = useParams<{ id: string }>();
+  const { id, cvr, slug } = useParams<{ id?: string; cvr?: string; slug?: string }>();
   const [company, setCompany] = useState<Company | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
@@ -17,13 +17,16 @@ const CompanyPage: React.FC = () => {
 
   useEffect(() => {
     const fetchCompany = async () => {
-      if (!id) {
+      // Support both old format (/company/:id) and new format (/virksomhed/:slug/:cvr)
+      const companyId = cvr || id;
+      
+      if (!companyId) {
         navigate('/');
         return;
       }
 
       try {
-        const companyData = await getCompanyById(id);
+        const companyData = await getCompanyById(companyId);
         if (companyData) {
           // Keep original data without transformations for detailed view
           setCompany(companyData);
@@ -48,7 +51,7 @@ const CompanyPage: React.FC = () => {
     };
 
     fetchCompany();
-  }, [id, navigate, toast]);
+  }, [id, cvr, navigate, toast]);
 
   if (isLoading) {
     return (
@@ -75,7 +78,7 @@ const CompanyPage: React.FC = () => {
       <SEO 
         title={`${company.name} - Virksomhedsoplysninger | SelskabsInfo`}
         description={`Se detaljerede oplysninger om ${company.name}. CVR: ${company.cvr}. Find regnskaber, ledelse, ejerforhold og historiske data.`}
-        canonicalUrl={`https://selskabsinfo.dk/company/${id}`}
+        canonicalUrl={`https://selskabsinfo.dk/virksomhed/${slug || company.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}/${company.cvr}`}
         keywords={`${company.name}, CVR ${company.cvr}, danske virksomheder, selskabsoplysninger`}
       />
       <JSONLDScript data={createCompanySchema(company)} />

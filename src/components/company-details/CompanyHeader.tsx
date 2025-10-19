@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Company } from '@/services/companyAPI';
+import { generateCompanyChangesUrl } from '@/lib/urlUtils';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
@@ -178,8 +179,9 @@ const CompanyHeader: React.FC<CompanyHeaderProps> = ({ company }) => {
   };
 
   const handleChangesClick = () => {
-    console.log('Changes button clicked, navigating to:', `/company/${company.cvr}/changes`);
-    navigate(`/company/${company.cvr}/changes`);
+    const changesUrl = generateCompanyChangesUrl(company.name, company.cvr);
+    console.log('Changes button clicked, navigating to:', changesUrl);
+    navigate(changesUrl);
   };
 
   const handleReportClick = () => {

@@ -8,6 +8,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { getTotalChangeCount, getRecentChanges, CompanyChange } from '@/services/utils/changeUtils';
 import { useNavigate } from 'react-router-dom';
+import { generateCompanyChangesUrl } from '@/lib/urlUtils';
 
 interface NotificationBellProps {
   className?: string;
@@ -94,9 +95,9 @@ const NotificationBell: React.FC<NotificationBellProps> = ({ className }) => {
   }, []);
 
   // Handle company click in dropdown
-  const handleCompanyClick = (cvr: string) => {
+  const handleCompanyClick = (companyName: string, cvr: string) => {
     setOpen(false);
-    navigate(`/company/${cvr}/changes`);
+    navigate(generateCompanyChangesUrl(companyName, cvr));
   };
 
   const getSeverityColor = (severity: 'low' | 'medium' | 'high') => {
@@ -148,7 +149,7 @@ const NotificationBell: React.FC<NotificationBellProps> = ({ className }) => {
                   <div
                     key={company.company_cvr}
                     className="border rounded-lg p-3 hover:bg-muted/50 cursor-pointer transition-colors"
-                    onClick={() => handleCompanyClick(company.company_cvr)}
+                    onClick={() => handleCompanyClick(company.company_name, company.company_cvr)}
                   >
                     <div className="flex items-center justify-between mb-2">
                       <h4 className="font-medium text-sm">{company.company_name}</h4>
