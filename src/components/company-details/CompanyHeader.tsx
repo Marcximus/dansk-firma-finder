@@ -228,7 +228,7 @@ const CompanyHeader: React.FC<CompanyHeaderProps> = ({ company }) => {
           <Button 
             variant="outline" 
             size="default" 
-            className="px-4 py-2 text-sm"
+            className="px-4 py-2 text-sm bg-orange-100 border-orange-300 text-orange-700 hover:bg-orange-200"
             onClick={handleChangesClick}
           >
             Seneste Ændringer
@@ -315,7 +315,7 @@ const CompanyHeader: React.FC<CompanyHeaderProps> = ({ company }) => {
           <Button 
             variant="outline"
             size="sm"
-            className="h-8 sm:h-9 px-3 py-1.5 text-xs sm:text-sm"
+            className="h-8 sm:h-9 px-3 py-1.5 text-xs sm:text-sm bg-orange-100 border-orange-300 text-orange-700 hover:bg-orange-200"
             onClick={handleChangesClick}
           >
             <span className="hidden sm:inline">Seneste Ændringer</span>
