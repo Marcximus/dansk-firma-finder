@@ -135,10 +135,8 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             <UserMenu />
             <Dialog open={isJuridiskDialogOpen} onOpenChange={setIsJuridiskDialogOpen}>
               <DialogTrigger asChild>
-                <Button size="sm" className="bg-blue-600 hover:bg-blue-700 text-white h-7 sm:h-9 md:h-9 px-2 sm:px-3 md:px-3 text-[10px] leading-tight sm:text-xs md:text-sm flex-1 md:flex-none flex flex-col items-center justify-center gap-0">
-                  <span className="md:hidden">Hjælp til</span>
-                  <span className="md:hidden">Jura</span>
-                  <span className="hidden md:inline">Hjælp til Jura</span>
+                <Button size="sm" className="bg-blue-600 hover:bg-blue-700 text-white h-7 sm:h-9 md:h-9 px-2 sm:px-3 md:px-3 text-[10px] sm:text-xs md:text-sm flex-1 md:flex-none">
+                  Hjælp til Jura
                 </Button>
               </DialogTrigger>
               <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
@@ -314,10 +312,8 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             
             <Dialog open={isRegnskabDialogOpen} onOpenChange={setIsRegnskabDialogOpen}>
               <DialogTrigger asChild>
-                <Button size="sm" className="bg-green-600 hover:bg-green-700 text-white h-7 sm:h-9 md:h-9 px-2 sm:px-3 text-[10px] leading-tight sm:text-xs md:text-sm flex-1 md:flex-none flex flex-col items-center justify-center gap-0">
-                  <span className="md:hidden">Hjælp til</span>
-                  <span className="md:hidden">Regnskab</span>
-                  <span className="hidden md:inline">Hjælp til Regnskab</span>
+                <Button size="sm" className="bg-green-600 hover:bg-green-700 text-white h-7 sm:h-9 md:h-9 px-2 sm:px-3 text-[10px] sm:text-xs md:text-sm flex-1 md:flex-none">
+                  Hjælp til Regnskab
                 </Button>
               </DialogTrigger>
               <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
