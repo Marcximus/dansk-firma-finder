@@ -17,6 +17,21 @@ export const buildCompanyNameQuery = (companyName: string) => {
   console.log(`Query words: ${queryWords.join(', ')}`);
   
   return {
+    "_source": [
+      "Vrvirksomhed.cvrNummer",
+      "Vrvirksomhed.navne",
+      "Vrvirksomhed.beliggenhedsadresse",
+      "Vrvirksomhed.hovedbranche",
+      "Vrvirksomhed.virksomhedsform",
+      "Vrvirksomhed.virksomhedsstatus",
+      "Vrvirksomhed.deltagerRelation",
+      "Vrvirksomhed.virksomhedsRelation",
+      "Vrvirksomhed.attributter",
+      "Vrvirksomhed.livsforloeb",
+      "Vrvirksomhed.telefonNummer",
+      "Vrvirksomhed.elektroniskPost",
+      "Vrvirksomhed.hjemmeside"
+    ],
     "query": {
       "bool": {
         "should": [

@@ -4,6 +4,21 @@ export const buildPersonQuery = (personName: string) => {
   const today = new Date().toISOString().split('T')[0];
   
   return {
+    "_source": [
+      "Vrvirksomhed.cvrNummer",
+      "Vrvirksomhed.navne",
+      "Vrvirksomhed.beliggenhedsadresse",
+      "Vrvirksomhed.hovedbranche",
+      "Vrvirksomhed.virksomhedsform",
+      "Vrvirksomhed.virksomhedsstatus",
+      "Vrvirksomhed.deltagerRelation",
+      "Vrvirksomhed.virksomhedsRelation",
+      "Vrvirksomhed.attributter",
+      "Vrvirksomhed.livsforloeb",
+      "Vrvirksomhed.telefonNummer",
+      "Vrvirksomhed.elektroniskPost",
+      "Vrvirksomhed.hjemmeside"
+    ],
     "query": {
       "nested": {
         "path": "Vrvirksomhed.deltagerRelation",
