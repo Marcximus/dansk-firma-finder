@@ -2,7 +2,7 @@
 import React from 'react';
 import { AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Company } from '@/services/companyAPI';
-import { FileText, Building2, Hash, MapPin, Calendar, Briefcase, Globe, DollarSign } from 'lucide-react';
+import { FileText, Building2, Hash, MapPin, Calendar, Briefcase, Globe, DollarSign, ScrollText } from 'lucide-react';
 import { format } from 'date-fns';
 import { da } from 'date-fns/locale';
 import { extractExtendedInfo } from '@/services/cvrUtils';
@@ -166,6 +166,14 @@ const BasicInfoAccordion: React.FC<BasicInfoAccordionProps> = ({ company, cvrDat
             label={isMobile ? "Kapital" : "Registreret kapital"} 
             value={extendedInfo?.registeredCapital} 
           />
+          
+          {extendedInfo?.purpose && (
+            <InfoRow 
+              icon={ScrollText} 
+              label="Formål" 
+              value={extendedInfo.purpose} 
+            />
+          )}
           
           {website && (
             <InfoRow 
