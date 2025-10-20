@@ -11,6 +11,8 @@ const corsHeaders = {
 }
 
 serve(async (req) => {
+  console.log('[STARTUP] fetch-company-data edge function loaded - version with deltagerRelation & virksomhedsRelation');
+  
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -72,6 +74,12 @@ serve(async (req) => {
     // Create basic auth header
     const auth = btoa(`${username}:${password}`);
     const searchQuery = buildSearchQuery(cvr, companyName, personName);
+    
+    // Log what fields we're requesting from the API
+    console.log('[DEBUG] Query _source fields:', searchQuery._source);
+    console.log('[DEBUG] Requesting deltagerRelation?', searchQuery._source?.includes('Vrvirksomhed.deltagerRelation'));
+    console.log('[DEBUG] Requesting virksomhedsRelation?', searchQuery._source?.includes('Vrvirksomhed.virksomhedsRelation'));
+    
     const searchUrl = 'http://distribution.virk.dk/cvr-permanent/virksomhed/_search';
 
     const response = await fetch(searchUrl, {
