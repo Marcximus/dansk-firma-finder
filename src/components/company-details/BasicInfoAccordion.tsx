@@ -172,7 +172,7 @@ const BasicInfoAccordion: React.FC<BasicInfoAccordionProps> = ({ company, cvrDat
               icon={ScrollText} 
               label="Formål" 
               value={extendedInfo.purpose}
-              className="items-start"
+              className="!items-start"
             />
           )}
           
