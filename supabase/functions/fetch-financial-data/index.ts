@@ -138,22 +138,43 @@ serve(async (req) => {
     // Create basic auth header
     const auth = btoa(`${username}:${password}`);
     
-    // Step 1: Search for financial reports
+    // Step 1: Search for financial reports using POST with Elasticsearch query
     const searchUrl = 'https://distribution.virk.dk/offentliggoerelser/_search';
-    const searchParams = new URLSearchParams();
-    searchParams.append('q', `cvrNummer:${cvr}`);
-    searchParams.append('size', '5'); // Get last 5 reports
-    searchParams.append('sort', 'offentliggoerelsesTidspunkt:desc');
+    
+    // Build Elasticsearch query according to Danish Business Authority documentation
+    const searchQuery = {
+      "query": {
+        "bool": {
+          "must": [
+            {
+              "term": {
+                "cvrNummer": parseInt(cvr)
+              }
+            }
+          ]
+        }
+      },
+      "size": 5,
+      "sort": [
+        {
+          "offentliggoerelsesTidspunkt": {
+            "order": "desc"
+          }
+        }
+      ]
+    };
 
-    console.log(`[STEP 1] Searching for financial reports: ${searchUrl}?${searchParams.toString()}`);
+    console.log(`[STEP 1] Searching for financial reports with POST: ${searchUrl}`);
+    console.log('[STEP 1] Query:', JSON.stringify(searchQuery));
 
-    const searchResponse = await fetch(`${searchUrl}?${searchParams.toString()}`, {
-      method: 'GET',
+    const searchResponse = await fetch(searchUrl, {
+      method: 'POST',
       headers: {
         'Authorization': `Basic ${auth}`,
         'Content-Type': 'application/json',
         'Accept': 'application/json',
       },
+      body: JSON.stringify(searchQuery)
     });
 
     if (!searchResponse.ok) {
