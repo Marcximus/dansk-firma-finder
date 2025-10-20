@@ -38,44 +38,35 @@ export const extractExtendedInfo = (cvrData: any) => {
     return municipality;
   };
 
-  // Fixed purpose extraction with detailed logging
+  // Fixed purpose extraction - checking attributter and formaal
   const getPurpose = () => {
     console.log('=== PURPOSE EXTRACTION DEBUG ===');
-    console.log('vrvirksomhed keys:', Object.keys(vrvirksomhed));
     
-    // Check all possible locations for formaal
-    const formaal = vrvirksomhed.formaal;
-    const virksomhedsform = vrvirksomhed.virksomhedsform;
-    const hovedbranche = vrvirksomhed.hovedbranche;
+    // First check attributter for FORMÅL
+    const attributter = vrvirksomhed.attributter || [];
+    console.log('Checking attributter array:', attributter.length, 'items');
     
-    console.log('Direct formaal:', formaal);
-    console.log('virksomhedsform:', virksomhedsform);
-    console.log('hovedbranche:', hovedbranche);
+    const formaalAttribute = attributter.find((attr: any) => 
+      attr.type === 'FORMÅL' || 
+      attr.type === 'FORMAL' ||
+      attr.type?.toUpperCase().includes('FORMÅL')
+    );
     
-    // Look for formaal in nested structures
-    if (vrvirksomhed.virksomhedMetadata) {
-      console.log('virksomhedMetadata:', vrvirksomhed.virksomhedMetadata);
+    if (formaalAttribute) {
+      console.log('Found formaal in attributter:', formaalAttribute);
+      const currentValue = formaalAttribute.vaerdier?.find((v: any) => !v.periode?.gyldigTil);
+      const value = currentValue?.vaerdi || formaalAttribute.vaerdier?.[formaalAttribute.vaerdier.length - 1]?.vaerdi;
+      console.log('Extracted formaal value from attributter:', value);
+      if (value) return value;
     }
     
-    // Check if formaal is nested under another property
-    Object.keys(vrvirksomhed).forEach(key => {
-      if (typeof vrvirksomhed[key] === 'object' && vrvirksomhed[key] !== null) {
-        if (Array.isArray(vrvirksomhed[key])) {
-          vrvirksomhed[key].forEach((item: any, index: number) => {
-            if (item && typeof item === 'object' && item.vaerdi && typeof item.vaerdi === 'string' && item.vaerdi.toLowerCase().includes('formål')) {
-              console.log(`Found potential formaal in ${key}[${index}]:`, item);
-            }
-          });
-        } else if (vrvirksomhed[key].formaal) {
-          console.log(`Found formaal in ${key}:`, vrvirksomhed[key].formaal);
-        }
-      }
-    });
+    // Then check direct formaal field
+    const formaal = vrvirksomhed.formaal;
+    console.log('Direct formaal field:', formaal);
     
     // Handle array structure with vaerdi field
     if (Array.isArray(formaal) && formaal.length > 0) {
       console.log('Processing formaal as array:', formaal);
-      // Find current purpose (where gyldigTil is null) or use the last one
       const currentPurpose = formaal.find((f: any) => f.periode?.gyldigTil === null) || formaal[formaal.length - 1];
       console.log('Selected purpose:', currentPurpose);
       const result = currentPurpose?.vaerdi || null;
@@ -95,7 +86,7 @@ export const extractExtendedInfo = (cvrData: any) => {
       return result;
     }
     
-    console.log('No formaal found, returning null');
+    console.log('No formaal found anywhere, returning null');
     return null;
   };
 
