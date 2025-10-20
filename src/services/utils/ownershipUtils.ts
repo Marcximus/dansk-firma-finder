@@ -110,19 +110,14 @@ export const extractOwnershipData = (cvrData: any) => {
       });
   };
 
-  const legaleEjere = vrvirksomhed.legaleEjere || [];
   const ownershipFromRelations = getOwnershipFromRelations();
   const subsidiaries = getSubsidiaries();
 
-  console.log('Ownership data - legaleEjere:', legaleEjere);
   console.log('Ownership data - ownershipFromRelations:', ownershipFromRelations);
   console.log('Ownership data - subsidiaries:', subsidiaries);
 
   const result = {
-    currentOwners: [
-      ...legaleEjere.filter((ejer: any) => !ejer.periode?.gyldigTil),
-      ...ownershipFromRelations.filter((owner: any) => owner.isActive)
-    ],
+    currentOwners: ownershipFromRelations.filter((owner: any) => owner.isActive),
     subsidiaries
   };
 
