@@ -146,11 +146,18 @@ export const extractOwnershipData = (cvrData: any) => {
         }
 
         return {
-          name,
-          address: addressString,
-          ownershipPercentage,
-          votingRights,
-          validFrom,
+          navn: name,
+          adresse: addressString,
+          ejerandel: ownershipPercentage 
+            ? `${(ownershipPercentage * 100).toFixed(2)}%` 
+            : 'Ikke oplyst',
+          stemmerettigheder: votingRights 
+            ? `${(votingRights * 100).toFixed(2)}%` 
+            : 'Ikke oplyst',
+          periode: {
+            gyldigFra: validFrom || rel.periode?.gyldigFra,
+            gyldigTil: rel.periode?.gyldigTil
+          },
           _hasEnrichedData: !!enrichedData
         };
       });
