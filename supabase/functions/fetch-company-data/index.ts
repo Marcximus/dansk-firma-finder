@@ -89,6 +89,18 @@ serve(async (req) => {
     }
 
     const data = await response.json();
+    
+    // Log what we received from the API
+    console.log('[DEBUG] API Response hits:', data.hits?.hits?.length);
+    if (data.hits?.hits?.[0]?._source) {
+      const source = data.hits.hits[0]._source;
+      console.log('[DEBUG] Full CVR Data keys:', Object.keys(source));
+      console.log('[DEBUG] Has Vrvirksomhed?', !!source.Vrvirksomhed);
+      console.log('[DEBUG] Has deltagerRelation?', !!source.Vrvirksomhed?.deltagerRelation);
+      console.log('[DEBUG] deltagerRelation count:', source.Vrvirksomhed?.deltagerRelation?.length || 0);
+      console.log('[DEBUG] Has virksomhedsRelation?', !!source.Vrvirksomhed?.virksomhedsRelation);
+      console.log('[DEBUG] virksomhedsRelation count:', source.Vrvirksomhed?.virksomhedsRelation?.length || 0);
+    }
 
     // Transform the API response to match our Company interface
     const companies = data.hits?.hits?.map((hit: any) => {
@@ -98,6 +110,7 @@ serve(async (req) => {
         _debugScore: hit._score
       };
     }) || [];
+    
     return new Response(
       JSON.stringify({ 
         companies,
@@ -107,7 +120,9 @@ serve(async (req) => {
           totalHits: data.hits?.total,
           maxScore: data.hits?.max_score,
           searchQuery: personName || companyName || cvr,
-          searchType: personName ? 'person' : (cvr ? 'cvr' : 'company')
+          searchType: personName ? 'person' : (cvr ? 'cvr' : 'company'),
+          hasDeltagerRelation: !!data.hits?.hits?.[0]?._source?.Vrvirksomhed?.deltagerRelation,
+          hasVirksomhedsRelation: !!data.hits?.hits?.[0]?._source?.Vrvirksomhed?.virksomhedsRelation
         }
       }),
       { 
