@@ -19,7 +19,7 @@ export const extractOwnershipData = (cvrData: any) => {
         
         // Check if this relation has enriched data with ownership info in EJERREGISTER
         const hasOwnershipData = rel._enrichedDeltagerData?.virksomhedSummariskRelation?.some((vrel: any) => {
-          if (vrel.virksomhed?.cvrNummer !== currentCvrNumber) return false;
+          if (String(vrel.virksomhed?.cvrNummer) !== String(currentCvrNumber)) return false;
           return vrel.organisationer?.some((org: any) => 
             org.hovedtype === 'REGISTER' && 
             org.organisationsNavn?.some((n: any) => n.navn === 'EJERREGISTER')
@@ -60,7 +60,7 @@ export const extractOwnershipData = (cvrData: any) => {
           // Extract ownership data from virksomhedSummariskRelation
           const virksomhedRelations = enrichedData.virksomhedSummariskRelation || [];
           const relevantRelation = virksomhedRelations.find((vrel: any) => 
-            vrel.virksomhed?.cvrNummer === currentCvrNumber
+            String(vrel.virksomhed?.cvrNummer) === String(currentCvrNumber)
           );
 
           if (relevantRelation) {
