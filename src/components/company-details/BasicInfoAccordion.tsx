@@ -171,7 +171,8 @@ const BasicInfoAccordion: React.FC<BasicInfoAccordionProps> = ({ company, cvrDat
             <InfoRow 
               icon={ScrollText} 
               label="Formål" 
-              value={extendedInfo.purpose} 
+              value={extendedInfo.purpose}
+              className="items-start"
             />
           )}
           
