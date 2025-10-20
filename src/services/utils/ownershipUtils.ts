@@ -11,6 +11,8 @@ export const extractOwnershipData = (cvrData: any) => {
 
   const getOwnershipFromRelations = () => {
     const relations = cvrData.Vrvirksomhed.deltagerRelation || [];
+    const currentCvrNumber = cvrData.Vrvirksomhed.cvrNummer;
+    
     return relations
       .filter((rel: any) => {
         const isOwner = rel.organisationer?.some((org: any) => 
@@ -25,6 +27,9 @@ export const extractOwnershipData = (cvrData: any) => {
         
         let name = 'Ukendt';
         let addressString = '';
+        let ownershipPercentage: number | undefined;
+        let votingRights: number | undefined;
+        let validFrom: string | undefined;
         
         if (enrichedData) {
           // Use enriched data from Vrdeltagerperson endpoint
@@ -43,6 +48,62 @@ export const extractOwnershipData = (cvrData: any) => {
               parts.push(`${currentAddress.postnummer} ${currentAddress.postdistrikt}`);
             }
             addressString = parts.join(', ');
+          }
+
+          // Extract ownership data from virksomhedSummariskRelation
+          const virksomhedRelations = enrichedData.virksomhedSummariskRelation || [];
+          const relevantRelation = virksomhedRelations.find((vrel: any) => 
+            vrel.virksomhed?.cvrNummer === currentCvrNumber
+          );
+
+          if (relevantRelation) {
+            const organisationer = relevantRelation.organisationer || [];
+            const ejerRegister = organisationer.find((org: any) => 
+              org.hovedtype === 'REGISTER' && 
+              org.organisationsNavn?.some((n: any) => n.navn === 'EJERREGISTER')
+            );
+
+            if (ejerRegister) {
+              const medlemsData = ejerRegister.medlemsData || [];
+              const activeMember = medlemsData.find((m: any) => !m.periode?.gyldigTil) || medlemsData[0];
+              
+              if (activeMember) {
+                const attributter = activeMember.attributter || [];
+                
+                const ejerandelAttr = attributter.find((attr: any) => 
+                  attr.type === 'EJERANDEL_PROCENT'
+                );
+                if (ejerandelAttr) {
+                  const vaerdier = ejerandelAttr.vaerdier || [];
+                  const activeValue = vaerdier.find((v: any) => !v.periode?.gyldigTil) || vaerdier[0];
+                  if (activeValue?.vaerdi) {
+                    ownershipPercentage = parseFloat(activeValue.vaerdi);
+                  }
+                }
+
+                const stemmeretAttr = attributter.find((attr: any) => 
+                  attr.type === 'EJERANDEL_STEMMERET_PROCENT'
+                );
+                if (stemmeretAttr) {
+                  const vaerdier = stemmeretAttr.vaerdier || [];
+                  const activeValue = vaerdier.find((v: any) => !v.periode?.gyldigTil) || vaerdier[0];
+                  if (activeValue?.vaerdi) {
+                    votingRights = parseFloat(activeValue.vaerdi);
+                  }
+                }
+
+                const meddelelseAttr = attributter.find((attr: any) => 
+                  attr.type === 'EJERANDEL_MEDDELELSE_DATO'
+                );
+                if (meddelelseAttr) {
+                  const vaerdier = meddelelseAttr.vaerdier || [];
+                  const activeValue = vaerdier.find((v: any) => !v.periode?.gyldigTil) || vaerdier[0];
+                  if (activeValue?.vaerdi) {
+                    validFrom = activeValue.vaerdi;
+                  }
+                }
+              }
+            }
           }
         } else {
           // Fallback to basic relation data
@@ -65,21 +126,31 @@ export const extractOwnershipData = (cvrData: any) => {
           }
         }
 
-        const ownershipOrgs = rel.organisationer?.filter((org: any) => org.hovedtype === 'EJER') || [];
-        const ownershipPercentage = ownershipOrgs[0]?.attributter?.find((attr: any) => 
-          attr.type === 'EJERANDEL_PROCENT'
-        )?.vaerdier?.[0]?.vaerdi;
+        // Fallback: Try to get ownership from the relation's organisationer if not found in enriched data
+        if (!ownershipPercentage && !votingRights) {
+          const ownershipOrgs = rel.organisationer?.filter((org: any) => org.hovedtype === 'EJER') || [];
+          const ownershipAttr = ownershipOrgs[0]?.attributter?.find((attr: any) => 
+            attr.type === 'EJERANDEL_PROCENT'
+          )?.vaerdier?.[0]?.vaerdi;
 
-        const votingRights = ownershipOrgs[0]?.attributter?.find((attr: any) => 
-          attr.type === 'EJERANDEL_STEMMERET_PROCENT'
-        )?.vaerdier?.[0]?.vaerdi;
+          const votingAttr = ownershipOrgs[0]?.attributter?.find((attr: any) => 
+            attr.type === 'EJERANDEL_STEMMERET_PROCENT'
+          )?.vaerdier?.[0]?.vaerdi;
+
+          if (ownershipAttr) ownershipPercentage = parseFloat(ownershipAttr);
+          if (votingAttr) votingRights = parseFloat(votingAttr);
+        }
+
+        if (!validFrom) {
+          validFrom = rel.periode?.gyldigFra;
+        }
 
         return {
           name,
           address: addressString,
-          ownershipPercentage: ownershipPercentage ? parseFloat(ownershipPercentage) : undefined,
-          votingRights: votingRights ? parseFloat(votingRights) : undefined,
-          validFrom: rel.periode?.gyldigFra,
+          ownershipPercentage,
+          votingRights,
+          validFrom,
           _hasEnrichedData: !!enrichedData
         };
       });
