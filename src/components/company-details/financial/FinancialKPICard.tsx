@@ -53,9 +53,16 @@ const FinancialKPICard: React.FC<FinancialKPICardProps> = ({ financialKPIs }) =>
           <DollarSign className="h-5 w-5" />
           Nøgletal
           {financialKPIs?.periode && (
-            <span className="text-sm font-normal text-muted-foreground">({financialKPIs.periode})</span>
+            <span className="text-sm font-normal text-muted-foreground">
+              ({financialKPIs.periode})
+            </span>
           )}
         </CardTitle>
+        {financialKPIs?.dataSource && (
+          <div className="text-xs text-muted-foreground">
+            Kilde: {financialKPIs.dataSource === 'XBRL' ? 'XBRL-fil (Erhvervsstyrelsen)' : 'CVR API'}
+          </div>
+        )}
       </CardHeader>
       <CardContent>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">

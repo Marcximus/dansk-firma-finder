@@ -1,100 +1,90 @@
 
-import { generateMockFinancialData } from './mockFinancialData';
-
-// Helper functions for extracting financial data
-export const extractFinancialData = (cvrData: any, cvr?: string) => {
-  console.log('extractFinancialData - Input data:', cvrData);
+// Helper functions for extracting financial data from parsed XBRL
+export const extractFinancialData = (cvrData: any, parsedFinancialData?: any) => {
+  console.log('extractFinancialData - Input:', { cvrData, parsedFinancialData });
   
-  // If no real CVR data is available, generate mock data
-  if (!cvrData?.Vrvirksomhed && cvr) {
-    console.log('extractFinancialData - No real data found, generating mock data for CVR:', cvr);
-    return generateMockFinancialData(cvr);
+  // If we have parsed XBRL financial data, use that
+  if (parsedFinancialData?.financialData && parsedFinancialData.financialData.length > 0) {
+    console.log('extractFinancialData - Using parsed XBRL data');
+    const latestData = parsedFinancialData.financialData[0]; // Most recent report
+    
+    return {
+      financialKPIs: {
+        ...latestData,
+        periode: latestData.periode
+      },
+      historicalData: parsedFinancialData.financialData, // All parsed periods
+      yearlyEmployment: cvrData?.Vrvirksomhed?.aarsbeskaeftigelse || [],
+      quarterlyEmployment: cvrData?.Vrvirksomhed?.kvartalsbeskaeftigelse || [],
+      kapitalforhold: cvrData?.Vrvirksomhed?.kapitalforhold || [],
+      regnskabsperiode: cvrData?.Vrvirksomhed?.regnskabsperiode || [],
+      hasRealData: true,
+      dataSource: 'XBRL'
+    };
   }
   
+  // If no parsed data and no CVR data, return null
   if (!cvrData?.Vrvirksomhed) {
-    console.log('extractFinancialData - No Vrvirksomhed data found and no CVR provided');
-    return null;
+    console.log('extractFinancialData - No financial data available');
+    return {
+      financialKPIs: null,
+      historicalData: [],
+      yearlyEmployment: [],
+      quarterlyEmployment: [],
+      kapitalforhold: [],
+      regnskabsperiode: [],
+      hasRealData: false,
+      dataSource: 'none'
+    };
   }
   
   const vrvirksomhed = cvrData.Vrvirksomhed;
-  console.log('extractFinancialData - Processing Vrvirksomhed:', vrvirksomhed);
+  console.log('extractFinancialData - Using CVR Vrvirksomhed data (fallback)');
 
   const getFinancialKPIs = () => {
     const regnskabstal = vrvirksomhed.regnskabstal || [];
     const finansielleNoegletal = vrvirksomhed.finansielleNoegletal || [];
     
-    console.log('Financial KPIs - regnskabstal:', regnskabstal);
-    console.log('Financial KPIs - finansielleNoegletal:', finansielleNoegletal);
-    
     let financialKPIs: any = {};
     
-    // Try to get any financial data from multiple sources
     if (regnskabstal.length > 0) {
       const latest = regnskabstal[regnskabstal.length - 1];
-      console.log('Latest regnskabstal:', latest);
-      
-      // Check all possible field names
       financialKPIs = {
-        nettoomsaetning: latest.nettoomsaetning || latest.revenue || latest.turnover || latest.omsaetning,
-        bruttofortjeneste: latest.bruttofortjeneste || latest.grossProfit || latest.bruttoResults,
-        aaretsResultat: latest.aaretsResultat || latest.netIncome || latest.netResult || latest.resultat,
-        egenkapital: latest.egenkapital || latest.equity || latest.equity_capital,
-        statusBalance: latest.statusBalance || latest.totalAssets || latest.balance || latest.aktiver,
-        periode: latest.periode || latest.year || latest.aar
+        nettoomsaetning: latest.nettoomsaetning || latest.revenue || latest.turnover,
+        bruttofortjeneste: latest.bruttofortjeneste || latest.grossProfit,
+        aaretsResultat: latest.aaretsResultat || latest.netIncome || latest.netResult,
+        egenkapital: latest.egenkapital || latest.equity,
+        statusBalance: latest.statusBalance || latest.totalAssets || latest.balance,
+        periode: latest.periode || latest.year
       };
     }
     
     if (finansielleNoegletal.length > 0) {
       const latest = finansielleNoegletal[finansielleNoegletal.length - 1];
-      console.log('Latest finansielleNoegletal:', latest);
-      
       financialKPIs = {
         ...financialKPIs,
-        nettoomsaetning: financialKPIs.nettoomsaetning || latest.revenue || latest.turnover || latest.omsaetning,
-        bruttofortjeneste: financialKPIs.bruttofortjeneste || latest.grossProfit || latest.bruttoResults,
-        aaretsResultat: financialKPIs.aaretsResultat || latest.netResult || latest.profit || latest.resultat,
-        egenkapital: financialKPIs.egenkapital || latest.equity || latest.equity_capital,
-        statusBalance: financialKPIs.statusBalance || latest.balance || latest.totalAssets || latest.aktiver,
-        periode: financialKPIs.periode || latest.year || latest.periode || latest.aar
+        nettoomsaetning: financialKPIs.nettoomsaetning || latest.revenue,
+        bruttofortjeneste: financialKPIs.bruttofortjeneste || latest.grossProfit,
+        aaretsResultat: financialKPIs.aaretsResultat || latest.netResult,
+        egenkapital: financialKPIs.egenkapital || latest.equity,
+        statusBalance: financialKPIs.statusBalance || latest.balance,
+        periode: financialKPIs.periode || latest.year
       };
     }
     
-    // Try getting data from employment records if no financial data
-    if (Object.keys(financialKPIs).length === 0 && vrvirksomhed.aarsbeskaeftigelse?.length > 0) {
-      const employment = vrvirksomhed.aarsbeskaeftigelse[0];
-      financialKPIs.beskæftigelse = {
-        år: employment.aar,
-        ansatte: employment.antalAnsatte,
-        årsværk: employment.antalAarsvaerk
-      };
-    }
-    
-    console.log('Financial KPIs result:', financialKPIs);
-    return financialKPIs;
+    return Object.keys(financialKPIs).length > 0 ? financialKPIs : null;
   };
 
   const result = {
     financialKPIs: getFinancialKPIs(),
-    historicalData: [], // Placeholder for backward compatibility
+    historicalData: [],
     yearlyEmployment: vrvirksomhed.aarsbeskaeftigelse || [],
     quarterlyEmployment: vrvirksomhed.kvartalsbeskaeftigelse || [],
     kapitalforhold: vrvirksomhed.kapitalforhold || [],
-    regnskabsperiode: vrvirksomhed.regnskabsperiode || []
+    regnskabsperiode: vrvirksomhed.regnskabsperiode || [],
+    hasRealData: false,
+    dataSource: 'CVR'
   };
-
-  // Check if we have meaningful financial data, if not generate mock data
-  const hasFinancialData = result.financialKPIs && (
-    result.financialKPIs.nettoomsaetning || 
-    result.financialKPIs.bruttofortjeneste || 
-    result.financialKPIs.aaretsResultat || 
-    result.financialKPIs.egenkapital || 
-    result.financialKPIs.statusBalance
-  );
-
-  if (!hasFinancialData && cvr) {
-    console.log('extractFinancialData - No meaningful financial data found, generating mock data for CVR:', cvr);
-    return generateMockFinancialData(cvr);
-  }
 
   console.log('extractFinancialData - Final result:', result);
   return result;

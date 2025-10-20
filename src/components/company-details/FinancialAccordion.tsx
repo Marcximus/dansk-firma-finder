@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { extractFinancialData } from '@/services/utils/financialUtils';
 import { TrendingUp } from 'lucide-react';
@@ -8,6 +8,7 @@ import EmploymentDataCard from './financial/EmploymentDataCard';
 import CapitalInformationCard from './financial/CapitalInformationCard';
 import FinancialReportsSection from './financial/FinancialReportsSection';
 import FinancialChartsSection from './financial/FinancialChartsSection';
+import { getFinancialData } from '@/services/companyAPI';
 
 interface FinancialAccordionProps {
   cvr: string;
@@ -17,7 +18,25 @@ interface FinancialAccordionProps {
 const FinancialAccordion: React.FC<FinancialAccordionProps> = ({ cvr, cvrData }) => {
   console.log('FinancialAccordion - Raw CVR Data:', cvrData);
   
-  const financialData = extractFinancialData(cvrData, cvr);
+  const [parsedFinancialData, setParsedFinancialData] = useState<any>(null);
+  
+  // Fetch parsed XBRL financial data
+  useEffect(() => {
+    const fetchParsedData = async () => {
+      try {
+        const data = await getFinancialData(cvr);
+        console.log('FinancialAccordion - Parsed XBRL data:', data);
+        setParsedFinancialData(data);
+      } catch (error) {
+        console.error('Error fetching parsed financial data:', error);
+      }
+    };
+    
+    fetchParsedData();
+  }, [cvr]);
+  
+  // Extract and process financial data (now includes parsed XBRL data)
+  const financialData = extractFinancialData(cvrData, parsedFinancialData);
   console.log('FinancialAccordion - Extracted Data:', financialData);
 
   return (
