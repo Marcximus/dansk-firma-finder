@@ -5,82 +5,88 @@ import { formatAddress, formatPeriod } from './formatUtils';
 import { extractDataIntelligently, scanDataStructure } from './dataDiscovery';
 
 export const extractOwnershipData = (cvrData: any) => {
-  console.log('extractOwnershipData - Input data:', cvrData);
-  
   if (!cvrData?.Vrvirksomhed) {
-    console.log('extractOwnershipData - No Vrvirksomhed data found');
-    return null;
+    return { currentOwners: [], subsidiaries: [] };
   }
-  
-  const vrvirksomhed = cvrData.Vrvirksomhed;
-  console.log('extractOwnershipData - Processing Vrvirksomhed:', vrvirksomhed);
-  
-  // Intelligent field discovery for ownership data
-  const availablePaths = scanDataStructure(vrvirksomhed);
-  console.log('Ownership data - Available field paths:', availablePaths.filter(path => 
-    path.toLowerCase().includes('ejer') || 
-    path.toLowerCase().includes('owner') || 
-    path.toLowerCase().includes('andel') ||
-    path.toLowerCase().includes('stemme') ||
-    path.toLowerCase().includes('virksomhedsrelation')
-  ));
 
   const getOwnershipFromRelations = () => {
-    const relations = vrvirksomhed.deltagerRelation || [];
-    console.log('Ownership relations:', relations);
-    
-    return relations.filter((relation: any) => 
-      relation.organisationer?.some((org: any) => 
-        org.hovedtype === 'EJER' || 
-        org.hovedtype === 'FULDT_ANSVARLIG_DELTAGERE' ||
-        org.medlemsData?.some((medlem: any) => 
-          medlem.attributter?.some((attr: any) => 
-            attr.type === 'EJERANDEL' || attr.type === 'STEMMERETTIGHEDER'
-          )
-        )
-      )
-    ).map((relation: any) => {
-      const deltager = relation.deltager;
-      const personName = deltager?.navne?.find((n: any) => n.periode?.gyldigTil === null)?.navn || 
-                       deltager?.navne?.[deltager.navne.length - 1]?.navn || 'Ukendt';
-      
-      const address = deltager?.adresser?.find((addr: any) => addr.periode?.gyldigTil === null) ||
-                     deltager?.beliggenhedsadresse?.find((addr: any) => addr.periode?.gyldigTil === null) ||
-                     deltager?.adresser?.[0] ||
-                     deltager?.beliggenhedsadresse?.[0];
-
-      let ejerandel = null;
-      let stemmerettigheder = null;
-      let periode = null;
-
-      relation.organisationer?.forEach((org: any) => {
-        org.medlemsData?.forEach((medlem: any) => {
-          periode = periode || medlem.periode;
-          medlem.attributter?.forEach((attr: any) => {
-            if (attr.type === 'EJERANDEL' && attr.vaerdier?.[0]?.vaerdi) {
-              ejerandel = attr.vaerdier[0].vaerdi;
+    const relations = cvrData.Vrvirksomhed.deltagerRelation || [];
+    return relations
+      .filter((rel: any) => {
+        const isOwner = rel.organisationer?.some((org: any) => 
+          org.hovedtype === 'EJER'
+        );
+        const isActive = !rel.periode?.gyldigTil;
+        return isOwner && isActive;
+      })
+      .map((rel: any) => {
+        // Check if we have enriched participant data
+        const enrichedData = rel._enrichedDeltagerData;
+        
+        let name = 'Ukendt';
+        let addressString = '';
+        
+        if (enrichedData) {
+          // Use enriched data from Vrdeltagerperson endpoint
+          const navne = enrichedData.navne || [];
+          const currentName = navne.find((n: any) => !n.periode?.gyldigTil) || navne[0];
+          name = currentName?.navn || 'Ukendt';
+          
+          const beliggenhedsadresse = enrichedData.beliggenhedsadresse || [];
+          const currentAddress = beliggenhedsadresse.find((a: any) => !a.periode?.gyldigTil) || beliggenhedsadresse[0];
+          
+          if (currentAddress) {
+            const parts = [];
+            if (currentAddress.vejnavn) parts.push(currentAddress.vejnavn);
+            if (currentAddress.husnummerFra) parts.push(currentAddress.husnummerFra);
+            if (currentAddress.postnummer && currentAddress.postdistrikt) {
+              parts.push(`${currentAddress.postnummer} ${currentAddress.postdistrikt}`);
             }
-            if (attr.type === 'STEMMERETTIGHEDER' && attr.vaerdier?.[0]?.vaerdi) {
-              stemmerettigheder = attr.vaerdier[0].vaerdi;
+            addressString = parts.join(', ');
+          }
+        } else {
+          // Fallback to basic relation data
+          const deltager = rel.deltager;
+          const navne = deltager?.navne || [];
+          const currentName = navne.find((n: any) => !n.periode?.gyldigTil);
+          name = currentName?.navn || 'Ukendt';
+          
+          const beliggenhedsadresse = deltager?.beliggenhedsadresse || [];
+          const currentAddress = beliggenhedsadresse.find((a: any) => !a.periode?.gyldigTil);
+          
+          if (currentAddress) {
+            const parts = [];
+            if (currentAddress.vejnavn) parts.push(currentAddress.vejnavn);
+            if (currentAddress.husnummerFra) parts.push(currentAddress.husnummerFra);
+            if (currentAddress.postnummer && currentAddress.postdistrikt) {
+              parts.push(`${currentAddress.postnummer} ${currentAddress.postdistrikt}`);
             }
-          });
-        });
+            addressString = parts.join(', ');
+          }
+        }
+
+        const ownershipOrgs = rel.organisationer?.filter((org: any) => org.hovedtype === 'EJER') || [];
+        const ownershipPercentage = ownershipOrgs[0]?.attributter?.find((attr: any) => 
+          attr.type === 'EJERANDEL_PROCENT'
+        )?.vaerdier?.[0]?.vaerdi;
+
+        const votingRights = ownershipOrgs[0]?.attributter?.find((attr: any) => 
+          attr.type === 'EJERANDEL_STEMMERET_PROCENT'
+        )?.vaerdier?.[0]?.vaerdi;
+
+        return {
+          name,
+          address: addressString,
+          ownershipPercentage: ownershipPercentage ? parseFloat(ownershipPercentage) : undefined,
+          votingRights: votingRights ? parseFloat(votingRights) : undefined,
+          validFrom: rel.periode?.gyldigFra,
+          _hasEnrichedData: !!enrichedData
+        };
       });
-
-      return {
-        navn: personName,
-        adresse: formatAddress(address),
-        ejerandel: ejerandel || 'Ikke oplyst',
-        stemmerettigheder: stemmerettigheder || 'Ikke oplyst',
-        periode: periode,
-        isActive: !periode?.gyldigTil
-      };
-    });
   };
 
   const getSubsidiaries = () => {
-    const virksomhedsRelation = vrvirksomhed.virksomhedsRelation || [];
-    console.log('Subsidiary relations (virksomhedsRelation):', virksomhedsRelation);
+    const virksomhedsRelation = cvrData.Vrvirksomhed.virksomhedsRelation || [];
     
     return virksomhedsRelation
       .filter((relation: any) => {
@@ -113,14 +119,8 @@ export const extractOwnershipData = (cvrData: any) => {
   const ownershipFromRelations = getOwnershipFromRelations();
   const subsidiaries = getSubsidiaries();
 
-  console.log('Ownership data - ownershipFromRelations:', ownershipFromRelations);
-  console.log('Ownership data - subsidiaries:', subsidiaries);
-
-  const result = {
-    currentOwners: ownershipFromRelations.filter((owner: any) => owner.isActive),
+  return {
+    currentOwners: ownershipFromRelations,
     subsidiaries
   };
-
-  console.log('extractOwnershipData - Final result:', result);
-  return result;
 };

@@ -10,6 +10,114 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
+// Fetch detailed participant data from deltager endpoint
+async function enrichWithParticipantData(companyData: any, auth: string) {
+  if (!companyData.hits?.hits?.[0]?._source?.Vrvirksomhed?.deltagerRelation) {
+    console.log('[INFO] No deltagerRelation found, skipping participant enrichment');
+    return companyData;
+  }
+
+  const deltagerRelation = companyData.hits.hits[0]._source.Vrvirksomhed.deltagerRelation;
+  console.log(`[INFO] Enriching ${deltagerRelation.length} participants with detailed data`);
+
+  const enrichedParticipants = [];
+
+  for (const relation of deltagerRelation) {
+    const enhedsNummer = relation.deltager?.enhedsNummer;
+    
+    if (!enhedsNummer) {
+      console.log('[WARN] Skipping relation without enhedsNummer');
+      enrichedParticipants.push(relation);
+      continue;
+    }
+
+    try {
+      const deltagerQuery = {
+        "query": {
+          "bool": {
+            "must": [
+              { "term": { "Vrdeltagerperson.enhedsNummer": parseInt(enhedsNummer) } }
+            ]
+          }
+        },
+        "size": 1
+      };
+
+      const deltagerResponse = await fetch('http://distribution.virk.dk/cvr-permanent/deltager/_search', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Basic ${auth}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(deltagerQuery)
+      });
+
+      if (deltagerResponse.ok) {
+        const deltagerData = await deltagerResponse.json();
+        if (deltagerData.hits?.hits?.[0]?._source?.Vrdeltagerperson) {
+          enrichedParticipants.push({
+            ...relation,
+            _enrichedDeltagerData: deltagerData.hits.hits[0]._source.Vrdeltagerperson
+          });
+          console.log(`[SUCCESS] Enriched participant ${enhedsNummer}`);
+        } else {
+          enrichedParticipants.push(relation);
+        }
+      } else {
+        console.log(`[WARN] Failed to fetch participant ${enhedsNummer}: ${deltagerResponse.status}`);
+        enrichedParticipants.push(relation);
+      }
+    } catch (error) {
+      console.error(`[ERROR] Error fetching participant ${enhedsNummer}:`, error.message);
+      enrichedParticipants.push(relation);
+    }
+  }
+
+  // Replace deltagerRelation with enriched data
+  companyData.hits.hits[0]._source.Vrvirksomhed.deltagerRelation = enrichedParticipants;
+  return companyData;
+}
+
+// Fetch production units for a company
+async function fetchProductionUnits(cvr: string, auth: string) {
+  console.log(`[INFO] Fetching production units for CVR ${cvr}`);
+  
+  try {
+    const productionUnitQuery = {
+      "query": {
+        "bool": {
+          "must": [
+            { "term": { "VrproduktionsEnhed.virksomhedMetadata.nyesteVirksomhed.cvrNummer": parseInt(cvr) } }
+          ]
+        }
+      },
+      "size": 100
+    };
+
+    const response = await fetch('http://distribution.virk.dk/cvr-permanent/produktionsenhed/_search', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Basic ${auth}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(productionUnitQuery)
+    });
+
+    if (!response.ok) {
+      console.error(`[ERROR] Failed to fetch production units: ${response.status}`);
+      return [];
+    }
+
+    const data = await response.json();
+    const units = data.hits?.hits?.map((hit: any) => hit._source?.VrproduktionsEnhed) || [];
+    console.log(`[SUCCESS] Found ${units.length} production units`);
+    return units;
+  } catch (error) {
+    console.error('[ERROR] Error fetching production units:', error.message);
+    return [];
+  }
+}
+
 serve(async (req) => {
   console.log('[STARTUP] fetch-company-data edge function loaded - version with deltagerRelation & virksomhedsRelation');
   
@@ -110,8 +218,17 @@ serve(async (req) => {
       console.log('[DEBUG] virksomhedsRelation count:', source.Vrvirksomhed?.virksomhedsRelation?.length || 0);
     }
 
+    // Step 2: Fetch detailed participant data for owners
+    const enrichedData = await enrichWithParticipantData(data, auth);
+    
+    // Step 3: Fetch production units if searching by CVR
+    let productionUnits = [];
+    if (cvr && enrichedData.hits?.hits?.[0]?._source) {
+      productionUnits = await fetchProductionUnits(cvr, auth);
+    }
+
     // Transform the API response to match our Company interface
-    const companies = data.hits?.hits?.map((hit: any) => {
+    const companies = enrichedData.hits?.hits?.map((hit: any) => {
       const transformedCompany = transformCompanyData(hit, determineLegalForm, determineStatus, companyName);
       return {
         ...transformedCompany,
@@ -123,14 +240,17 @@ serve(async (req) => {
       JSON.stringify({ 
         companies,
         // Also return the full data for the first result (useful for detailed view)
-        fullCvrData: data.hits?.hits?.[0]?._source,
+        fullCvrData: enrichedData.hits?.hits?.[0]?._source,
+        productionUnits,
         _debug: {
-          totalHits: data.hits?.total,
-          maxScore: data.hits?.max_score,
+          totalHits: enrichedData.hits?.total,
+          maxScore: enrichedData.hits?.max_score,
           searchQuery: personName || companyName || cvr,
           searchType: personName ? 'person' : (cvr ? 'cvr' : 'company'),
-          hasDeltagerRelation: !!data.hits?.hits?.[0]?._source?.Vrvirksomhed?.deltagerRelation,
-          hasVirksomhedsRelation: !!data.hits?.hits?.[0]?._source?.Vrvirksomhed?.virksomhedsRelation
+          hasDeltagerRelation: !!enrichedData.hits?.hits?.[0]?._source?.Vrvirksomhed?.deltagerRelation,
+          hasVirksomhedsRelation: !!enrichedData.hits?.hits?.[0]?._source?.Vrvirksomhed?.virksomhedsRelation,
+          hasEnrichedParticipants: !!enrichedData.hits?.hits?.[0]?._source?.Vrvirksomhed?.deltagerRelation?.some((r: any) => r._enrichedDeltagerData),
+          productionUnitsCount: productionUnits.length
         }
       }),
       { 

@@ -46,6 +46,12 @@ export const searchCompanies = async (query: string, isPerson: boolean = false):
         console.log(`  ${index + 1}. ${company.name} (Score: ${company._debugScore || 'N/A'})`);
       });
       
+      // Attach production units to the first company if available
+      if (data.productionUnits && data.companies[0]) {
+        data.companies[0].productionUnits = data.productionUnits;
+        console.log(`🔍 Frontend: Attached ${data.productionUnits.length} production units to first company`);
+      }
+      
       // CRITICAL: Return companies in the exact order from backend - DO NOT SORT OR REORDER
       // The backend has already applied the correct ranking based on search tiers
       console.log('🔍 Frontend: Returning companies in exact backend order (no frontend sorting)');
@@ -103,8 +109,10 @@ export const getCompanyById = async (id: string): Promise<Company | undefined> =
       
       if (!error && data && data.companies && data.companies.length > 0) {
         const company = data.companies[0];
-        // Store the full CVR data for use in the details page
+        // Store the full CVR data and production units for use in the details page
         company.realCvrData = data.fullCvrData || data.companies[0].realCvrData;
+        company.productionUnits = data.productionUnits || [];
+        console.log(`Attached ${company.productionUnits.length} production units to company ${company.name}`);
         return company;
       }
     }

@@ -10,6 +10,7 @@ import BasicInfoAccordion from './company-details/BasicInfoAccordion';
 import ExtendedInfoAccordion from './company-details/ExtendedInfoAccordion';
 import SigningRulesAccordion from './company-details/SigningRulesAccordion';
 import OwnershipAccordion from './company-details/OwnershipAccordion';
+import { ProductionUnitsAccordion } from './company-details/ProductionUnitsAccordion';
 import FinancialAccordion from './company-details/FinancialAccordion';
 import HistoryAccordion from './company-details/HistoryAccordion';
 import RawDataAccordion from './company-details/RawDataAccordion';
@@ -26,11 +27,12 @@ const CompanyDetails: React.FC<CompanyDetailsProps> = ({ company }) => {
     <div className="py-2 sm:py-4 md:py-6 max-w-7xl mx-auto px-2 sm:px-3 md:px-4">
       <CompanyHeader company={company} />
 
-      <Accordion type="multiple" defaultValue={["basic", "extended", "signing-rules", "ownership", "financial", "history"]} className="w-full space-y-2 sm:space-y-3 md:space-y-4">
+      <Accordion type="multiple" defaultValue={["basic", "extended", "signing-rules", "ownership", "production-units", "financial", "history"]} className="w-full space-y-2 sm:space-y-3 md:space-y-4">
         <BasicInfoAccordion company={company} cvrData={company.realCvrData} />
         <ExtendedInfoAccordion company={company} cvrData={company.realCvrData} />
         <SigningRulesAccordion cvrData={company.realCvrData} />
         <OwnershipAccordion cvrData={company.realCvrData} />
+        <ProductionUnitsAccordion productionUnits={company.productionUnits || []} />
         <FinancialAccordion cvr={company.cvr} cvrData={company.realCvrData} />
         <HistoryAccordion cvrData={company.realCvrData} />
         <RawDataAccordion cvrData={company.realCvrData} />

@@ -18,4 +18,5 @@ export interface Company {
   status?: string;
   // Additional CVR data
   realCvrData?: any; // Store the full CVR response for detailed view
+  productionUnits?: any[]; // Production units from produktionsenhed endpoint
 }
