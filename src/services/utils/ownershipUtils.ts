@@ -15,11 +15,18 @@ export const extractOwnershipData = (cvrData: any) => {
     
     return relations
       .filter((rel: any) => {
-        const isOwner = rel.organisationer?.some((org: any) => 
-          org.hovedtype === 'EJER'
-        );
         const isActive = !rel.periode?.gyldigTil;
-        return isOwner && isActive;
+        
+        // Check if this relation has enriched data with ownership info in EJERREGISTER
+        const hasOwnershipData = rel._enrichedDeltagerData?.virksomhedSummariskRelation?.some((vrel: any) => {
+          if (vrel.virksomhed?.cvrNummer !== currentCvrNumber) return false;
+          return vrel.organisationer?.some((org: any) => 
+            org.hovedtype === 'REGISTER' && 
+            org.organisationsNavn?.some((n: any) => n.navn === 'EJERREGISTER')
+          );
+        });
+        
+        return isActive && hasOwnershipData;
       })
       .map((rel: any) => {
         // Check if we have enriched participant data
