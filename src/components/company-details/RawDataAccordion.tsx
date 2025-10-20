@@ -456,8 +456,28 @@ const RawDataAccordion: React.FC<RawDataAccordionProps> = ({ cvrData }) => {
               </CardTitle>
             </CardHeader>
             {showRawData && (
-              <CardContent>
-                <pre className="text-xs bg-gray-900 text-green-400 p-4 rounded-md overflow-auto max-h-96 font-mono">
+              <CardContent className="space-y-3">
+                <div className="flex items-center justify-between bg-blue-50 border border-blue-200 rounded p-3">
+                  <div className="text-xs">
+                    <div className="font-semibold">Komplet datasæt størrelse:</div>
+                    <div className="text-muted-foreground mt-1">
+                      {(JSON.stringify(cvrData).length / 1024).toFixed(2)} KB ({JSON.stringify(cvrData).length.toLocaleString()} tegn)
+                    </div>
+                  </div>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={copyToClipboard}
+                    className="flex items-center gap-2"
+                  >
+                    {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                    {copied ? 'Kopieret!' : 'Kopier alt'}
+                  </Button>
+                </div>
+                <div className="text-xs text-muted-foreground bg-yellow-50 border border-yellow-200 rounded p-2">
+                  <strong>OBS:</strong> Boksen nedenfor viser ALT data modtaget fra CVR. Scroll ned i boksen for at se hele datasættet.
+                </div>
+                <pre className="text-xs bg-gray-900 text-green-400 p-4 rounded-md overflow-auto max-h-[600px] font-mono whitespace-pre-wrap break-words">
                   {JSON.stringify(cvrData, null, 2)}
                 </pre>
               </CardContent>
