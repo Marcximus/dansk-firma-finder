@@ -168,11 +168,13 @@ const BasicInfoAccordion: React.FC<BasicInfoAccordionProps> = ({ company, cvrDat
           />
           
           {extendedInfo?.purpose && (
-            <InfoRow 
-              icon={ScrollText} 
-              label="Formål" 
-              value={extendedInfo.purpose} 
-            />
+            <div className="flex gap-1.5 sm:gap-2 md:gap-3 pt-2 sm:pt-3 md:pt-4">
+              <ScrollText className="h-3 w-3 sm:h-3.5 sm:w-3.5 md:h-4 md:w-4 text-muted-foreground flex-shrink-0 mt-0.5" />
+              <div className="flex-1">
+                <span className="text-[10px] sm:text-xs md:text-sm text-muted-foreground font-medium">Formål:</span>
+                <p className="text-[10px] sm:text-xs md:text-sm mt-0.5 sm:mt-1 leading-relaxed">{extendedInfo.purpose}</p>
+              </div>
+            </div>
           )}
           
           {website && (
