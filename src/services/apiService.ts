@@ -148,3 +148,25 @@ export const getFinancialData = async (cvr: string) => {
     return null;
   }
 };
+
+// New function to get subsidiaries - companies where this CVR appears as an owner
+export const getSubsidiaries = async (cvr: string) => {
+  console.log(`Fetching subsidiaries for CVR: ${cvr}`);
+  
+  try {
+    const { data, error } = await supabase.functions.invoke('fetch-subsidiaries', {
+      body: { cvr }
+    });
+    
+    if (error) {
+      console.error('Error calling fetch-subsidiaries function:', error);
+      return [];
+    }
+    
+    return data?.subsidiaries || [];
+    
+  } catch (error) {
+    console.error('Error fetching subsidiaries:', error);
+    return [];
+  }
+};

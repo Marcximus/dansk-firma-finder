@@ -9,10 +9,17 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 
 interface OwnershipAccordionProps {
   cvrData: any;
+  subsidiaries?: any[];
+  loadingSubsidiaries?: boolean;
 }
 
-const OwnershipAccordion: React.FC<OwnershipAccordionProps> = ({ cvrData }) => {
+const OwnershipAccordion: React.FC<OwnershipAccordionProps> = ({ 
+  cvrData, 
+  subsidiaries = [],
+  loadingSubsidiaries = false 
+}) => {
   console.log('OwnershipAccordion - Raw CVR Data:', cvrData);
+  console.log('OwnershipAccordion - Subsidiaries:', subsidiaries);
   
   const navigate = useNavigate();
   const ownershipData = extractOwnershipData(cvrData);
@@ -86,23 +93,27 @@ const OwnershipAccordion: React.FC<OwnershipAccordionProps> = ({ cvrData }) => {
               Datterselskaber
             </h4>
             <div className="space-y-2 sm:space-y-3">
-              {ownershipData?.subsidiaries && ownershipData.subsidiaries.length > 0 ? (
-                ownershipData.subsidiaries.map((subsidiary: any, index: number) => (
+              {loadingSubsidiaries ? (
+                <div className="text-muted-foreground text-xs sm:text-sm border-l-2 sm:border-l-4 border-gray-200 pl-3 sm:pl-4 py-2">
+                  Søger efter datterselskaber...
+                </div>
+              ) : subsidiaries && subsidiaries.length > 0 ? (
+                subsidiaries.map((subsidiary: any, index: number) => (
                   <div key={index} className="border-l-2 sm:border-l-4 border-purple-200 pl-3 sm:pl-4 py-2">
                     <TooltipProvider>
                       <Tooltip>
                         <TooltipTrigger asChild>
                           <button
                             onClick={() => {
-                              if (subsidiary.cvr && subsidiary.navn) {
-                                const url = generateCompanyUrl(subsidiary.navn, subsidiary.cvr.toString());
+                              if (subsidiary.cvr && subsidiary.name) {
+                                const url = generateCompanyUrl(subsidiary.name, subsidiary.cvr.toString());
                                 navigate(url);
                               }
                             }}
                             className="font-semibold text-sm sm:text-base hover:text-primary underline decoration-dotted underline-offset-2 text-left"
                             disabled={!subsidiary.cvr}
                           >
-                            {subsidiary.navn}
+                            {subsidiary.name}
                           </button>
                         </TooltipTrigger>
                         <TooltipContent>
@@ -115,24 +126,30 @@ const OwnershipAccordion: React.FC<OwnershipAccordionProps> = ({ cvrData }) => {
                         CVR: {subsidiary.cvr}
                       </div>
                     )}
-                    <div className="text-xs sm:text-sm text-muted-foreground flex items-center gap-1 mb-1 break-words">
-                      <MapPin className="h-3 w-3 flex-shrink-0" />
-                      <span className="break-words">{subsidiary.adresse}</span>
-                    </div>
-                    <div className="text-xs sm:text-sm">
-                      <span className="font-medium">{subsidiary.relationtype}</span>
-                    </div>
-                    {subsidiary.periode && (
-                      <div className="text-xs sm:text-sm text-muted-foreground flex items-center gap-1 mt-1">
-                        <Calendar className="h-3 w-3 flex-shrink-0" />
-                        <span>Periode: {subsidiary.periode.gyldigFra || 'Ukendt'} - {subsidiary.periode.gyldigTil || 'Nuværende'}</span>
+                    {subsidiary.status && (
+                      <div className="text-xs sm:text-sm text-muted-foreground mb-1">
+                        Status: {subsidiary.status}
                       </div>
                     )}
+                    <div className="text-xs sm:text-sm space-y-0.5">
+                      {subsidiary.ownershipPercentage && (
+                        <div className="flex items-center gap-1">
+                          <Percent className="h-3 w-3 flex-shrink-0" />
+                          <span>Ejerandel: <span className="font-medium">{(subsidiary.ownershipPercentage * 100).toFixed(2)}%</span></span>
+                        </div>
+                      )}
+                      {subsidiary.votingRights && (
+                        <div className="flex items-center gap-1">
+                          <Percent className="h-3 w-3 flex-shrink-0" />
+                          <span>Stemmerettigheder: <span className="font-medium">{(subsidiary.votingRights * 100).toFixed(2)}%</span></span>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 ))
               ) : (
                 <div className="text-muted-foreground text-xs sm:text-sm border-l-2 sm:border-l-4 border-gray-200 pl-3 sm:pl-4 py-2">
-                  Ingen datterselskaber registreret
+                  Ingen datterselskaber fundet
                 </div>
               )}
             </div>

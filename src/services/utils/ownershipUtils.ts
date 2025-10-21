@@ -158,42 +158,14 @@ export const extractOwnershipData = (cvrData: any) => {
       });
   };
 
-  const getSubsidiaries = () => {
-    const virksomhedsRelation = cvrData.Vrvirksomhed.virksomhedsRelation || [];
-    
-    return virksomhedsRelation
-      .filter((relation: any) => {
-        // Filter for active subsidiary relationships
-        const isActive = !relation.periode?.gyldigTil;
-        const isSubsidiary = relation.relationtype?.includes('DATTER') || 
-                           relation.relationtype?.includes('HELEJEDE') ||
-                           relation.relationtype === 'MAJORITETSEJET_AF';
-        return isActive && isSubsidiary;
-      })
-      .map((relation: any) => {
-        const relatedCompany = relation.relation;
-        const navn = relatedCompany?.navne?.find((n: any) => !n.periode?.gyldigTil)?.navn || 
-                    relatedCompany?.navne?.[relatedCompany.navne.length - 1]?.navn || 
-                    'Ukendt virksomhed';
-        
-        const address = relatedCompany?.beliggenhedsadresse?.find((addr: any) => !addr.periode?.gyldigTil) ||
-                       relatedCompany?.beliggenhedsadresse?.[0];
-        
-        return {
-          navn,
-          cvr: relatedCompany?.cvrNummer || null,
-          adresse: formatAddress(address),
-          relationtype: relation.relationtype || 'Datterselskab',
-          periode: relation.periode
-        };
-      });
-  };
+  // Note: Subsidiaries (datterselskaber) are not reliably available in virksomhedsRelation.
+  // They need to be fetched separately using the fetch-subsidiaries edge function,
+  // which searches for companies where this CVR appears as an owner.
 
   const ownershipFromRelations = getOwnershipFromRelations();
-  const subsidiaries = getSubsidiaries();
 
   return {
     currentOwners: ownershipFromRelations,
-    subsidiaries
+    subsidiaries: [] // Subsidiaries must be fetched separately via API
   };
 };
