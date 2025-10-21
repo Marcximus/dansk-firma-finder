@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { useLocation, useSearchParams } from 'react-router-dom';
+import { useLocation, useSearchParams, useNavigate } from 'react-router-dom';
 import { searchCompanies, Company } from '@/services/companyAPI';
 import SearchBar from '@/components/SearchBar';
 import CompanyCard from '@/components/CompanyCard';
@@ -9,6 +9,7 @@ import Layout from '@/components/Layout';
 import { Spinner } from '@/components/ui/spinner';
 import SEO from '@/components/SEO';
 import JSONLDScript, { createWebsiteSchema, createOrganizationSchema } from '@/components/JSONLDScript';
+import { generatePersonUrl } from '@/lib/urlUtils';
 import {
   Pagination,
   PaginationContent,
@@ -28,13 +29,29 @@ const HomePage = () => {
   const queryClient = useQueryClient();
   const location = useLocation();
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+  
+  const searchType = searchParams.get('type');
+  const isPerson = searchType === 'person';
+  
+  // Redirect to PersonPage if this is a person search
+  useEffect(() => {
+    const searchFromUrl = searchParams.get('search');
+    if (isPerson && searchFromUrl) {
+      console.log('[HomePage] Person search detected, redirecting to PersonPage');
+      const personUrl = generatePersonUrl(searchFromUrl);
+      navigate(personUrl, { replace: true });
+      return;
+    }
+  }, [isPerson, searchParams, navigate]);
   
   // Handle search from URL parameters (from header search) and focus trigger
   useEffect(() => {
     const searchFromUrl = searchParams.get('search');
     const focusParam = searchParams.get('focus');
     
-    if (searchFromUrl) {
+    // Don't set search term if it's a person search (we'll redirect)
+    if (searchFromUrl && !isPerson) {
       setSearchTerm(searchFromUrl);
     } else if (location.pathname === '/' && location.search === '') {
       setSearchTerm('');
@@ -46,10 +63,7 @@ const HomePage = () => {
       // Reset the focus trigger after it's been used
       setTimeout(() => setShouldFocusSearch(false), 100);
     }
-  }, [location, searchParams]);
-  
-  const searchType = searchParams.get('type');
-  const isPerson = searchType === 'person';
+  }, [location, searchParams, isPerson]);
   
   const { data: rawCompanies = [], isLoading } = useQuery({
     queryKey: ['companies', searchTerm, searchType],

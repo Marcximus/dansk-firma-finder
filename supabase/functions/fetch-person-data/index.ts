@@ -12,14 +12,18 @@ Deno.serve(async (req) => {
   }
 
   try {
+    console.log('[PERSON-DATA] Function invoked');
     const { personName, enhedsNummer } = await req.json();
     
-    console.log('Received person data request for:', { personName, enhedsNummer });
+    console.log('[PERSON-DATA] Received request:', { personName, enhedsNummer });
     
     if (!personName && !enhedsNummer) {
-      console.error('No person name or ID provided');
+      console.error('[PERSON-DATA] ERROR: No person name or ID provided');
       return new Response(
-        JSON.stringify({ error: 'Person name or enhedsNummer is required' }),
+        JSON.stringify({ 
+          error: 'Person name or enhedsNummer is required',
+          debug: { personName, enhedsNummer }
+        }),
         { 
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
           status: 400 
@@ -31,11 +35,20 @@ Deno.serve(async (req) => {
     const password = Deno.env.get('DANISH_BUSINESS_API_PASSWORD');
 
     if (!username || !password) {
-      console.error('API credentials not configured');
-      throw new Error('Danish Business API credentials not configured');
+      console.error('[PERSON-DATA] ERROR: API credentials not configured');
+      return new Response(
+        JSON.stringify({ 
+          error: 'Danish Business API credentials not configured',
+          debug: { hasUsername: !!username, hasPassword: !!password }
+        }),
+        { 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 500 
+        }
+      );
     }
 
-    console.log('API credentials OK, starting search...');
+    console.log('[PERSON-DATA] API credentials OK, starting search...');
 
     // Helper function to build ID-based search query
     const buildPersonIdQuery = (id: string | number) => {
@@ -160,9 +173,11 @@ Deno.serve(async (req) => {
     
     // Priority 1: If enhedsNummer is provided, use ID-based search (most accurate)
     if (enhedsNummer) {
-      console.log('Using ID-based search with enhedsNummer:', enhedsNummer);
+      console.log('[PERSON-DATA] Using ID-based search with enhedsNummer:', enhedsNummer);
       searchMethod = 'id';
       const idQuery = buildPersonIdQuery(enhedsNummer);
+      console.log('[PERSON-DATA] ID query:', JSON.stringify(idQuery, null, 2));
+      
       const apiResponse = await fetch(
         'http://distribution.virk.dk:80/cvr-permanent/virksomhed/_search',
         {
@@ -175,21 +190,29 @@ Deno.serve(async (req) => {
         }
       );
       
+      console.log('[PERSON-DATA] API response status:', apiResponse.status);
+      
       if (apiResponse.ok) {
         const result = await apiResponse.json();
         searchResults = result.hits?.hits || [];
-        console.log(`ID-based search found ${searchResults.length} results`);
+        console.log(`[PERSON-DATA] ID-based search found ${searchResults.length} results`);
+        if (searchResults.length > 0) {
+          console.log('[PERSON-DATA] First result CVR:', searchResults[0]._source?.Vrvirksomhed?.cvrNummer);
+        }
       } else {
-        console.error('ID-based search failed:', await apiResponse.text());
+        const errorText = await apiResponse.text();
+        console.error('[PERSON-DATA] ID-based search failed with status', apiResponse.status, ':', errorText);
       }
     }
     
     // Fallback to name-based search if ID search failed or no ID provided
     if (searchResults.length === 0 && personName) {
       // Try 1: Exact match
-      console.log('Attempting exact match search...');
+      console.log('[PERSON-DATA] Attempting exact match search for:', personName);
       searchMethod = 'exact';
       const exactQuery = buildPersonSearchQuery(personName, false);
+      console.log('[PERSON-DATA] Exact query:', JSON.stringify(exactQuery, null, 2));
+      
       let apiResponse = await fetch(
         'http://distribution.virk.dk:80/cvr-permanent/virksomhed/_search',
         {
@@ -202,10 +225,15 @@ Deno.serve(async (req) => {
         }
       );
       
+      console.log('[PERSON-DATA] Exact match API response status:', apiResponse.status);
+      
       if (apiResponse.ok) {
         const result = await apiResponse.json();
         searchResults = result.hits?.hits || [];
-        console.log(`Exact match found ${searchResults.length} results`);
+        console.log(`[PERSON-DATA] Exact match found ${searchResults.length} results`);
+      } else {
+        const errorText = await apiResponse.text();
+        console.error('[PERSON-DATA] Exact match failed:', errorText);
       }
       
       // Try 2: Fuzzy match if exact fails
@@ -261,7 +289,7 @@ Deno.serve(async (req) => {
       }
     }
 
-    console.log(`Processing ${searchResults.length} companies`);
+    console.log(`[PERSON-DATA] Processing ${searchResults.length} companies`);
 
     // Process results - use a Map to deduplicate by CVR
     const companiesMap = new Map();
@@ -346,33 +374,57 @@ Deno.serve(async (req) => {
       });
     });
 
-    console.log(`Total unique companies found: ${companiesMap.size}`);
+    console.log(`[PERSON-DATA] Total unique companies found: ${companiesMap.size}`);
     
     // Convert to arrays
     const allRelations = Array.from(companiesMap.values());
     const activeRelations = allRelations.filter(rel => !rel.validTo);
     const historicalRelations = allRelations.filter(rel => rel.validTo);
     
-    console.log(`Active relations: ${activeRelations.length}, Historical: ${historicalRelations.length}`);
+    console.log(`[PERSON-DATA] Active relations: ${activeRelations.length}, Historical: ${historicalRelations.length}`);
+    console.log(`[PERSON-DATA] Returning response with searchMethod: ${searchMethod}`);
+    
+    const response = {
+      personName: personName || 'Ukendt',
+      personId: enhedsNummer || null,
+      activeRelations,
+      historicalRelations,
+      totalCompanies: companiesMap.size,
+      searchMethod,
+      debug: {
+        searchedName: personName,
+        searchedId: enhedsNummer,
+        rawResultsCount: searchResults.length,
+        uniqueCompaniesCount: companiesMap.size
+      }
+    };
+    
+    console.log('[PERSON-DATA] SUCCESS - Response summary:', {
+      totalCompanies: response.totalCompanies,
+      activeCount: response.activeRelations.length,
+      historicalCount: response.historicalRelations.length,
+      searchMethod: response.searchMethod
+    });
     
     return new Response(
-      JSON.stringify({
-        personName: personName || 'Ukendt',
-        personId: enhedsNummer || null,
-        activeRelations,
-        historicalRelations,
-        totalCompanies: companiesMap.size,
-        searchMethod
-      }),
+      JSON.stringify(response),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       }
     );
 
   } catch (error) {
-    console.error('Error in fetch-person-data:', error);
+    console.error('[PERSON-DATA] FATAL ERROR:', error);
+    console.error('[PERSON-DATA] Error stack:', error.stack);
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ 
+        error: error.message,
+        stack: error.stack,
+        debug: {
+          timestamp: new Date().toISOString(),
+          errorType: error.constructor.name
+        }
+      }),
       {
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },

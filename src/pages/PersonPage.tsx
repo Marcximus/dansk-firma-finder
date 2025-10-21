@@ -36,6 +36,7 @@ const PersonPage = () => {
   useEffect(() => {
     const fetchPersonData = async () => {
       if (!personName) {
+        console.error('[PersonPage] No person name provided');
         setError('Ugyldigt personnavn');
         setLoading(false);
         return;
@@ -44,27 +45,35 @@ const PersonPage = () => {
       setLoading(true);
       setError(null);
       
-      console.log('Fetching person data for:', { personName, personId });
+      console.log('[PersonPage] Fetching person data for:', { personName, personId });
       
       try {
         const data = await getPersonData(personName, personId || undefined);
         
-        console.log('Person data received:', {
+        console.log('[PersonPage] Person data received:', {
           personName,
           totalCompanies: data?.totalCompanies,
           activeRelations: data?.activeRelations?.length,
-          historicalRelations: data?.historicalRelations?.length
+          historicalRelations: data?.historicalRelations?.length,
+          searchMethod: data?.searchMethod,
+          debug: data?.debug
         });
         
         if (!data || data.totalCompanies === 0) {
-          setError(`Ingen data fundet for "${personName}"`);
+          console.warn('[PersonPage] No data or no companies found');
+          setError(`Ingen virksomheder fundet for "${personName}". Tjek stavningen eller prøv et andet navn.`);
           setPersonData(null);
         } else {
           setPersonData(data);
         }
-      } catch (error) {
-        console.error('Error fetching person data:', error);
-        setError('Der opstod en fejl ved hentning af persondata');
+      } catch (error: any) {
+        console.error('[PersonPage] Error fetching person data:', error);
+        console.error('[PersonPage] Error details:', {
+          message: error?.message,
+          status: error?.status,
+          response: error?.response
+        });
+        setError(`Kunne ikke hente data for "${personName}". Tjek stavningen eller prøv igen senere.`);
         setPersonData(null);
       } finally {
         setLoading(false);

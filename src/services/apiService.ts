@@ -12,17 +12,21 @@ export const searchCompanies = async (query: string, isPerson: boolean = false):
     return MOCK_COMPANIES;
   }
   
+  // Person searches should not use this function - they should go directly to PersonPage
+  if (isPerson) {
+    console.log('🔍 Frontend: Person search detected - returning empty array (should navigate to person page)');
+    return [];
+  }
+  
   try {
     // Check if query is a CVR number (8 digits)
     const isCVR = /^\d{8}$/.test(query);
-    console.log(`🔍 Frontend: Is CVR number? ${isCVR}, Is person search? ${isPerson}`);
+    console.log(`🔍 Frontend: Is CVR number? ${isCVR}`);
     
     // Build request body based on search type
     const requestBody = isCVR 
       ? { cvr: query } 
-      : isPerson 
-        ? { personName: query }
-        : { companyName: query };
+      : { companyName: query };
     
     console.log('🔍 Frontend: Calling supabase edge function with body:', requestBody);
     const { data, error } = await supabase.functions.invoke('fetch-company-data', {
