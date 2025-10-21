@@ -59,12 +59,12 @@ const OwnershipAccordion: React.FC<OwnershipAccordionProps> = ({
                               }
                               
                               if (isPerson) {
-                                console.log('Navigating to person page:', ejer.navn);
-                                const url = generatePersonUrl(ejer.navn);
+                                console.log('Navigating to person page:', { name: ejer.navn, id: ejer.identifier });
+                                const url = generatePersonUrl(ejer.navn, ejer.identifier);
                                 navigate(url);
-                              } else if (isCompany && ejer.cvr) {
-                                console.log('Navigating to company page:', ejer.navn, ejer.cvr);
-                                const url = generateCompanyUrl(ejer.navn, ejer.cvr);
+                              } else if (isCompany && ejer.identifier) {
+                                console.log('Navigating to company page:', { name: ejer.navn, cvr: ejer.identifier });
+                                const url = generateCompanyUrl(ejer.navn, ejer.identifier);
                                 navigate(url);
                               }
                             }}

@@ -61,11 +61,12 @@ export const generatePersonSlug = (personName: string): string => {
 };
 
 /**
- * Generates a person URL path with original name preserved
- * Format: /person/:slug?name=Original+Name
+ * Generates a person URL path with original name and optional ID preserved
+ * Format: /person/:slug?id=123456789&name=Original+Name
  */
-export const generatePersonUrl = (personName: string): string => {
+export const generatePersonUrl = (personName: string, enhedsNummer?: string | number): string => {
   const slug = generatePersonSlug(personName);
   const encodedName = encodeURIComponent(personName);
-  return `/person/${slug}?name=${encodedName}`;
+  const idParam = enhedsNummer ? `id=${enhedsNummer}&` : '';
+  return `/person/${slug}?${idParam}name=${encodedName}`;
 };

@@ -9,6 +9,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/
 interface PersonDetailsProps {
   personData: {
     personName: string;
+    personId?: string | number;
     activeRelations: any[];
     historicalRelations: any[];
     totalCompanies: number;
@@ -138,6 +139,11 @@ const PersonDetails: React.FC<PersonDetailsProps> = ({ personData }) => {
             <User className="h-8 w-8 text-primary" />
             {personData.personName}
           </CardTitle>
+          {personData.personId && (
+            <p className="text-sm text-muted-foreground mt-1">
+              Person ID: {personData.personId}
+            </p>
+          )}
           <p className="text-muted-foreground mt-2">
             {personData.totalCompanies} {personData.totalCompanies === 1 ? 'tilknytning' : 'tilknytninger'} fundet
           </p>

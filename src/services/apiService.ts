@@ -171,12 +171,12 @@ export const getSubsidiaries = async (cvr: string) => {
   }
 };
 
-export const getPersonData = async (personName: string) => {
-  console.log('[API Service] Fetching person data for:', personName);
+export const getPersonData = async (personName: string, enhedsNummer?: string) => {
+  console.log('[API Service] Fetching person data for:', { personName, enhedsNummer });
   
   try {
     const { data, error } = await supabase.functions.invoke('fetch-person-data', {
-      body: { personName }
+      body: { personName, enhedsNummer }
     });
 
     if (error) {
@@ -186,6 +186,7 @@ export const getPersonData = async (personName: string) => {
     
     console.log('[API Service] Person data received:', {
       personName,
+      personId: data?.personId,
       totalCompanies: data?.totalCompanies,
       activeRelations: data?.activeRelations?.length,
       historicalRelations: data?.historicalRelations?.length

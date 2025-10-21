@@ -16,7 +16,8 @@ const PersonPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Get person name from query parameter first (exact), fallback to slug (approximate)
+  // Get person ID (enhedsNummer) and name from query parameters
+  const personId = searchParams.get('id');
   const personNameFromQuery = searchParams.get('name');
   const personNameFromSlug = slug
     ?.replace(/-/g, ' ')
@@ -26,6 +27,7 @@ const PersonPage = () => {
   
   console.log('PersonPage - Loading person:', {
     slug,
+    personId,
     personNameFromQuery,
     personNameFromSlug,
     finalPersonName: personName
@@ -42,10 +44,10 @@ const PersonPage = () => {
       setLoading(true);
       setError(null);
       
-      console.log('Fetching person data for:', personName);
+      console.log('Fetching person data for:', { personName, personId });
       
       try {
-        const data = await getPersonData(personName);
+        const data = await getPersonData(personName, personId || undefined);
         
         console.log('Person data received:', {
           personName,
@@ -70,7 +72,7 @@ const PersonPage = () => {
     };
 
     fetchPersonData();
-  }, [personName]);
+  }, [personName, personId]);
 
   if (loading) {
     return (
