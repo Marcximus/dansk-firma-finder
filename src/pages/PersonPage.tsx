@@ -1,53 +1,76 @@
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { getPersonData } from '@/services/companyAPI';
 import Layout from '@/components/Layout';
 import PersonDetails from '@/components/PersonDetails';
 import SEO from '@/components/SEO';
-import { Loader2 } from 'lucide-react';
+import { Loader2, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
+import { Button } from '@/components/ui/button';
 
 const PersonPage = () => {
   const { slug } = useParams<{ slug: string }>();
+  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const [personData, setPersonData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  // Convert slug back to person name (approximate)
-  const personName = slug
+  // Get person name from query parameter first (exact), fallback to slug (approximate)
+  const personNameFromQuery = searchParams.get('name');
+  const personNameFromSlug = slug
     ?.replace(/-/g, ' ')
     .replace(/\b\w/g, (char) => char.toUpperCase()) || '';
+  
+  const personName = personNameFromQuery || personNameFromSlug;
+  
+  console.log('PersonPage - Loading person:', {
+    slug,
+    personNameFromQuery,
+    personNameFromSlug,
+    finalPersonName: personName
+  });
 
   useEffect(() => {
     const fetchPersonData = async () => {
       if (!personName) {
-        toast.error('Ugyldigt personnavn');
-        navigate('/');
+        setError('Ugyldigt personnavn');
+        setLoading(false);
         return;
       }
 
       setLoading(true);
+      setError(null);
+      
+      console.log('Fetching person data for:', personName);
+      
       try {
         const data = await getPersonData(personName);
         
+        console.log('Person data received:', {
+          personName,
+          totalCompanies: data?.totalCompanies,
+          activeRelations: data?.activeRelations?.length,
+          historicalRelations: data?.historicalRelations?.length
+        });
+        
         if (!data || data.totalCompanies === 0) {
-          toast.error(`Ingen data fundet for ${personName}`);
-          navigate('/');
-          return;
+          setError(`Ingen data fundet for "${personName}"`);
+          setPersonData(null);
+        } else {
+          setPersonData(data);
         }
-
-        setPersonData(data);
       } catch (error) {
         console.error('Error fetching person data:', error);
-        toast.error('Der opstod en fejl ved hentning af persondata');
-        navigate('/');
+        setError('Der opstod en fejl ved hentning af persondata');
+        setPersonData(null);
       } finally {
         setLoading(false);
       }
     };
 
     fetchPersonData();
-  }, [personName, navigate]);
+  }, [personName]);
 
   if (loading) {
     return (
@@ -59,11 +82,39 @@ const PersonPage = () => {
     );
   }
 
+  if (error) {
+    return (
+      <Layout>
+        <div className="container mx-auto px-4 py-12">
+          <div className="max-w-2xl mx-auto text-center space-y-6">
+            <AlertCircle className="h-16 w-16 text-muted-foreground mx-auto" />
+            <h1 className="text-2xl font-bold">Person ikke fundet</h1>
+            <p className="text-muted-foreground">{error}</p>
+            <p className="text-sm text-muted-foreground">
+              Søgte efter: <span className="font-mono bg-muted px-2 py-1 rounded">{personName}</span>
+            </p>
+            <div className="space-y-2">
+              <p className="text-sm text-muted-foreground">Forslag:</p>
+              <ul className="text-sm text-muted-foreground list-disc list-inside space-y-1">
+                <li>Prøv at søge efter virksomheden i stedet</li>
+                <li>Kontroller stavningen af navnet</li>
+                <li>Personen har muligvis ingen registrerede tilknytninger</li>
+              </ul>
+            </div>
+            <Button onClick={() => navigate('/')} variant="outline">
+              Tilbage til forsiden
+            </Button>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
+
   if (!personData) {
     return (
       <Layout>
         <div className="flex items-center justify-center min-h-[400px]">
-          <p className="text-muted-foreground">Person ikke fundet</p>
+          <p className="text-muted-foreground">Ingen data tilgængelig</p>
         </div>
       </Layout>
     );

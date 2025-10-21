@@ -172,22 +172,28 @@ export const getSubsidiaries = async (cvr: string) => {
 };
 
 export const getPersonData = async (personName: string) => {
+  console.log('[API Service] Fetching person data for:', personName);
+  
   try {
-    console.log('Fetching person data for:', personName);
-    
     const { data, error } = await supabase.functions.invoke('fetch-person-data', {
       body: { personName }
     });
 
     if (error) {
-      console.error('Error fetching person data:', error);
-      return null;
+      console.error('[API Service] Error from edge function:', error);
+      throw error;
     }
-
-    console.log('Person data response:', data);
+    
+    console.log('[API Service] Person data received:', {
+      personName,
+      totalCompanies: data?.totalCompanies,
+      activeRelations: data?.activeRelations?.length,
+      historicalRelations: data?.historicalRelations?.length
+    });
+    
     return data;
   } catch (error) {
-    console.error('Exception in getPersonData:', error);
-    return null;
+    console.error('[API Service] Error fetching person data:', error);
+    throw error;
   }
 };

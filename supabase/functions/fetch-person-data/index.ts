@@ -5,31 +5,10 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-Deno.serve(async (req) => {
-  if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
-  }
-
-  try {
-    const { personName } = await req.json();
-    console.log('Fetching person data for:', personName);
-
-    if (!personName) {
-      throw new Error('Person name is required');
-    }
-
-    const username = Deno.env.get('DANISH_BUSINESS_API_USERNAME');
-    const password = Deno.env.get('DANISH_BUSINESS_API_PASSWORD');
-
-    if (!username || !password) {
-      throw new Error('Danish Business API credentials not configured');
-    }
-
-    const authString = btoa(`${username}:${password}`);
-    const today = new Date().toISOString().split('T')[0];
-
-    // Build query to find all companies where this person has relations
-    const searchQuery = {
+// Helper function to build search query with fuzzy matching
+const buildPersonSearchQuery = (personName: string, fuzzy: boolean = false) => {
+  if (fuzzy) {
+    return {
       "_source": [
         "Vrvirksomhed.cvrNummer",
         "Vrvirksomhed.navne",
@@ -52,24 +31,23 @@ Deno.serve(async (req) => {
                           "bool": {
                             "should": [
                               {
-                                "match_phrase": {
+                                "match": {
                                   "Vrvirksomhed.deltagerRelation.deltager.navne.navn": {
                                     "query": personName,
-                                    "boost": 10
+                                    "fuzziness": "AUTO",
+                                    "operator": "and"
                                   }
                                 }
                               },
                               {
-                                "match": {
+                                "wildcard": {
                                   "Vrvirksomhed.deltagerRelation.deltager.navne.navn": {
-                                    "query": personName,
-                                    "operator": "and",
-                                    "boost": 5
+                                    "value": `*${personName.toLowerCase()}*`,
+                                    "case_insensitive": true
                                   }
                                 }
                               }
-                            ],
-                            "minimum_should_match": 1
+                            ]
                           }
                         }
                       }
@@ -81,16 +59,107 @@ Deno.serve(async (req) => {
           }
         }
       },
+      "size": 100
+    };
+  }
+  
+  // Exact match query (original)
+  return {
+    "_source": [
+      "Vrvirksomhed.cvrNummer",
+      "Vrvirksomhed.navne",
+      "Vrvirksomhed.virksomhedsstatus",
+      "Vrvirksomhed.deltagerRelation"
+    ],
+    "query": {
+      "nested": {
+        "path": "Vrvirksomhed.deltagerRelation",
+        "query": {
+          "bool": {
+            "must": [
+              {
+                "nested": {
+                  "path": "Vrvirksomhed.deltagerRelation.deltager",
+                  "query": {
+                    "nested": {
+                      "path": "Vrvirksomhed.deltagerRelation.deltager.navne",
+                      "query": {
+                        "bool": {
+                          "should": [
+                            {
+                              "match_phrase": {
+                                "Vrvirksomhed.deltagerRelation.deltager.navne.navn": {
+                                  "query": personName,
+                                  "boost": 10
+                                }
+                              }
+                            },
+                            {
+                              "match": {
+                                "Vrvirksomhed.deltagerRelation.deltager.navne.navn": {
+                                  "query": personName,
+                                  "operator": "and",
+                                  "boost": 5
+                                }
+                              }
+                            }
+                          ],
+                          "minimum_should_match": 1
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            ]
+          }
+        }
+      },
       "size": 100,
       "sort": [
         { "_score": { "order": "desc" } }
       ]
     };
+};
 
-    console.log('Searching with query:', JSON.stringify(searchQuery, null, 2));
+Deno.serve(async (req) => {
+  if (req.method === 'OPTIONS') {
+    return new Response(null, { headers: corsHeaders });
+  }
 
+  try {
+    const { personName } = await req.json();
+    console.log('[FETCH-PERSON-DATA] Request received for person:', personName);
+
+    if (!personName) {
+      console.error('[FETCH-PERSON-DATA] No person name provided');
+      return new Response(
+        JSON.stringify({ error: 'Person name is required' }),
+        { 
+          status: 400, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      );
+    }
+
+    const username = Deno.env.get('DANISH_BUSINESS_API_USERNAME');
+    const password = Deno.env.get('DANISH_BUSINESS_API_PASSWORD');
+
+    if (!username || !password) {
+      console.error('[FETCH-PERSON-DATA] API credentials not configured');
+      throw new Error('Danish Business API credentials not configured');
+    }
+
+    console.log('[FETCH-PERSON-DATA] API credentials OK, searching for:', personName);
+
+    const authString = btoa(`${username}:${password}`);
     const apiUrl = 'http://distribution.virk.dk:80/cvr-permanent/virksomhed/_search';
-    const response = await fetch(apiUrl, {
+
+    // Try exact match first
+    let searchQuery = buildPersonSearchQuery(personName, false);
+    console.log('[FETCH-PERSON-DATA] Trying exact match search');
+    
+    let response = await fetch(apiUrl, {
       method: 'POST',
       headers: {
         'Authorization': `Basic ${authString}`,
@@ -101,16 +170,66 @@ Deno.serve(async (req) => {
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('API Error Response:', errorText);
+      console.error('[FETCH-PERSON-DATA] API Error Response:', errorText);
       throw new Error(`API request failed: ${response.status} ${response.statusText}`);
     }
 
-    const data = await response.json();
-    console.log('API Response:', JSON.stringify(data, null, 2));
+    let data = await response.json();
+    let hits = data.hits?.hits || [];
+    
+    console.log('[FETCH-PERSON-DATA] Exact match results:', hits.length);
 
-    const hits = data.hits?.hits || [];
+    // If no results, try fuzzy matching
+    if (hits.length === 0) {
+      console.log('[FETCH-PERSON-DATA] No exact matches, trying fuzzy search');
+      searchQuery = buildPersonSearchQuery(personName, true);
+      
+      response = await fetch(apiUrl, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Basic ${authString}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(searchQuery),
+      });
+
+      if (response.ok) {
+        data = await response.json();
+        hits = data.hits?.hits || [];
+        console.log('[FETCH-PERSON-DATA] Fuzzy match results:', hits.length);
+      }
+    }
+
+    // If still no results, try first + last name only
+    if (hits.length === 0) {
+      const nameParts = personName.trim().split(/\s+/);
+      if (nameParts.length > 2) {
+        const firstLastName = `${nameParts[0]} ${nameParts[nameParts.length - 1]}`;
+        console.log('[FETCH-PERSON-DATA] Trying first+last name only:', firstLastName);
+        
+        searchQuery = buildPersonSearchQuery(firstLastName, false);
+        
+        response = await fetch(apiUrl, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Basic ${authString}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(searchQuery),
+        });
+
+        if (response.ok) {
+          data = await response.json();
+          hits = data.hits?.hits || [];
+          console.log('[FETCH-PERSON-DATA] First+last name results:', hits.length);
+        }
+      }
+    }
+
     const activeRelations: any[] = [];
     const historicalRelations: any[] = [];
+
+    console.log('[FETCH-PERSON-DATA] Processing', hits.length, 'companies');
 
     // Process each company where the person has relations
     hits.forEach((hit: any) => {
@@ -191,14 +310,19 @@ Deno.serve(async (req) => {
       totalCompanies: activeRelations.length + historicalRelations.length
     };
 
-    console.log('Processed result:', result);
+    console.log('[FETCH-PERSON-DATA] Returning results:', {
+      personName,
+      activeRelations: result.activeRelations.length,
+      historicalRelations: result.historicalRelations.length,
+      totalCompanies: result.totalCompanies
+    });
 
     return new Response(JSON.stringify(result), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
 
   } catch (error) {
-    console.error('Error in fetch-person-data:', error);
+    console.error('[FETCH-PERSON-DATA] Error:', error);
     return new Response(JSON.stringify({ error: error.message }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },

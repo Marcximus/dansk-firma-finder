@@ -52,10 +52,18 @@ const OwnershipAccordion: React.FC<OwnershipAccordionProps> = ({
                         <TooltipTrigger asChild>
                           <button
                             onClick={() => {
+                              // Validate before navigation
+                              if (!ejer.navn || !ejer.type) {
+                                console.warn('Invalid owner data:', ejer);
+                                return;
+                              }
+                              
                               if (isPerson) {
+                                console.log('Navigating to person page:', ejer.navn);
                                 const url = generatePersonUrl(ejer.navn);
                                 navigate(url);
                               } else if (isCompany && ejer.cvr) {
+                                console.log('Navigating to company page:', ejer.navn, ejer.cvr);
                                 const url = generateCompanyUrl(ejer.navn, ejer.cvr);
                                 navigate(url);
                               }
