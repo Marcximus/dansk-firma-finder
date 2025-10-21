@@ -9,6 +9,17 @@ export const extractOwnershipData = (cvrData: any) => {
     return { currentOwners: [], subsidiaries: [] };
   }
 
+  // Helper function to check if an organization has actual ownership percentage data
+  const hasOwnershipPercentage = (org: any): boolean => {
+    const medlemsData = org.medlemsData || [];
+    return medlemsData.some((m: any) => {
+      const attributter = m.attributter || [];
+      return attributter.some((attr: any) => 
+        attr.type === 'EJERANDEL_PROCENT' || attr.type === 'EJERANDEL_STEMMERET_PROCENT'
+      );
+    });
+  };
+
   const getOwnershipFromRelations = () => {
     const relations = cvrData.Vrvirksomhed.deltagerRelation || [];
     
@@ -16,21 +27,14 @@ export const extractOwnershipData = (cvrData: any) => {
       .filter((rel: any) => {
         const isActive = !rel.periode?.gyldigTil;
         
-        // Check if this relation has ownership info in EJERREGISTER (directly in rel.organisationer)
+        // Check if this relation has ownership info in EJERREGISTER with actual ownership percentages
         const hasOwnershipData = rel.organisationer?.some((org: any) => 
           org.hovedtype === 'REGISTER' && 
-          org.organisationsNavn?.some((n: any) => n.navn === 'EJERREGISTER')
+          org.organisationsNavn?.some((n: any) => n.navn === 'EJERREGISTER') &&
+          hasOwnershipPercentage(org)
         );
         
-        // Also check enriched data as fallback
-        const hasEnrichedOwnershipData = rel._enrichedDeltagerData?.virksomhedSummariskRelation?.some((vrel: any) => {
-          return vrel.organisationer?.some((org: any) => 
-            org.hovedtype === 'REGISTER' && 
-            org.organisationsNavn?.some((n: any) => n.navn === 'EJERREGISTER')
-          );
-        });
-        
-        return isActive && (hasOwnershipData || hasEnrichedOwnershipData);
+        return isActive && hasOwnershipData;
       })
       .map((rel: any) => {
         let name = 'Ukendt';
