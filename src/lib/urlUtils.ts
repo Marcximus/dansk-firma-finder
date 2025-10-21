@@ -39,3 +39,32 @@ export const generateCompanyChangesUrl = (companyName: string, cvr: string): str
   const slug = generateCompanySlug(companyName);
   return `/virksomhed/${slug}/${cvr}/aendringer`;
 };
+
+/**
+ * Generates a URL-safe slug from a person name
+ * Handles Danish characters (æ, ø, å) properly
+ */
+export const generatePersonSlug = (personName: string): string => {
+  return personName
+    .toLowerCase()
+    .trim()
+    // Replace Danish characters with their closest equivalents
+    .replace(/æ/g, 'ae')
+    .replace(/ø/g, 'oe')
+    .replace(/å/g, 'aa')
+    // Replace spaces and special characters with hyphens
+    .replace(/[^a-z0-9]+/g, '-')
+    // Remove leading/trailing hyphens
+    .replace(/^-+|-+$/g, '')
+    // Replace multiple consecutive hyphens with single hyphen
+    .replace(/-+/g, '-');
+};
+
+/**
+ * Generates a person URL path
+ * Format: /person/:slug
+ */
+export const generatePersonUrl = (personName: string): string => {
+  const slug = generatePersonSlug(personName);
+  return `/person/${slug}`;
+};

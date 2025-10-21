@@ -151,22 +151,43 @@ export const getFinancialData = async (cvr: string) => {
 
 // New function to get subsidiaries - companies where this CVR appears as an owner
 export const getSubsidiaries = async (cvr: string) => {
-  console.log(`Fetching subsidiaries for CVR: ${cvr}`);
-  
   try {
+    console.log('Fetching subsidiaries for CVR:', cvr);
+    
     const { data, error } = await supabase.functions.invoke('fetch-subsidiaries', {
       body: { cvr }
     });
-    
+
     if (error) {
-      console.error('Error calling fetch-subsidiaries function:', error);
+      console.error('Error fetching subsidiaries:', error);
       return [];
     }
-    
+
+    console.log('Subsidiaries response:', data);
     return data?.subsidiaries || [];
-    
   } catch (error) {
-    console.error('Error fetching subsidiaries:', error);
+    console.error('Exception in getSubsidiaries:', error);
     return [];
+  }
+};
+
+export const getPersonData = async (personName: string) => {
+  try {
+    console.log('Fetching person data for:', personName);
+    
+    const { data, error } = await supabase.functions.invoke('fetch-person-data', {
+      body: { personName }
+    });
+
+    if (error) {
+      console.error('Error fetching person data:', error);
+      return null;
+    }
+
+    console.log('Person data response:', data);
+    return data;
+  } catch (error) {
+    console.error('Exception in getPersonData:', error);
+    return null;
   }
 };

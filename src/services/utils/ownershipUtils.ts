@@ -140,6 +140,22 @@ export const extractOwnershipData = (cvrData: any) => {
           validFrom = rel.periode?.gyldigFra;
         }
 
+        // Detect if owner is a person or company
+        const enhedstype = rel.deltager?.enhedstype || 'UNKNOWN';
+        const isPerson = enhedstype === 'PERSON';
+        const isCompany = enhedstype === 'VIRKSOMHED';
+        
+        // Extract identifier based on type
+        let identifier = '';
+        let cvr = undefined;
+        
+        if (isPerson && rel.deltager?.enhedsNummer) {
+          identifier = rel.deltager.enhedsNummer.toString();
+        } else if (isCompany && rel.deltager?.forretningsnoegle) {
+          identifier = rel.deltager.forretningsnoegle.toString();
+          cvr = identifier;
+        }
+
         return {
           navn: name,
           adresse: addressString,
@@ -153,6 +169,9 @@ export const extractOwnershipData = (cvrData: any) => {
             gyldigFra: validFrom || rel.periode?.gyldigFra,
             gyldigTil: rel.periode?.gyldigTil
           },
+          type: enhedstype as 'PERSON' | 'VIRKSOMHED' | 'UNKNOWN',
+          identifier: identifier,
+          cvr: cvr,
           _hasEnrichedData: !!enrichedData
         };
       });

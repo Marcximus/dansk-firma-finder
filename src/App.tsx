@@ -10,6 +10,7 @@ import Analytics from "@/components/Analytics";
 import Index from "./pages/Index";
 import CompanyPage from "./pages/CompanyPage";
 import CompanyChangesPage from "./pages/CompanyChangesPage";
+import PersonPage from "./pages/PersonPage";
 import FAQPage from "./pages/FAQPage";
 import ServicevilkaarPage from "./pages/ServicevilkaarPage";
 import PrivatlivspolitikPage from "./pages/PrivatlivspolitikPage";
@@ -55,6 +56,7 @@ const App = () => (
             {/* New SEO-friendly Danish URLs */}
             <Route path="/virksomhed/:slug/:cvr" element={<CompanyPage />} />
             <Route path="/virksomhed/:slug/:cvr/aendringer" element={<CompanyChangesPage />} />
+            <Route path="/person/:slug" element={<PersonPage />} />
             {/* Legacy redirects for old URLs */}
             <Route path="/company/:id" element={<CompanyPage />} />
             <Route path="/company/:id/changes" element={<CompanyChangesPage />} />

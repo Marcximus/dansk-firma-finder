@@ -2,10 +2,11 @@
 import React from 'react';
 import { AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { extractOwnershipData } from '@/services/cvrUtils';
-import { Building2, MapPin, Calendar, Percent, Users, Network } from 'lucide-react';
+import { Building2, MapPin, Calendar, Percent, Users, Network, User } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { generateCompanyUrl } from '@/lib/urlUtils';
+import { generateCompanyUrl, generatePersonUrl } from '@/lib/urlUtils';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Badge } from '@/components/ui/badge';
 
 interface OwnershipAccordionProps {
   cvrData: any;
@@ -34,35 +35,89 @@ const OwnershipAccordion: React.FC<OwnershipAccordionProps> = ({
         </h4>
         <div className="space-y-2 sm:space-y-3">
           {owners && owners.length > 0 ? (
-            owners.map((ejer: any, index: number) => (
-              <div key={index} className={`border-l-2 sm:border-l-4 ${isFormer ? 'border-red-200' : 'border-green-200'} pl-3 sm:pl-4 py-2`}>
-                <div className="font-semibold text-sm sm:text-base">{ejer.navn}</div>
-                <div className="text-xs sm:text-sm text-muted-foreground flex items-center gap-1 mb-1 break-words">
-                  <MapPin className="h-3 w-3 flex-shrink-0" />
-                  <span className="break-words">{ejer.adresse}</span>
+            owners.map((ejer: any, index: number) => {
+              const isPerson = ejer.type === 'PERSON';
+              const isCompany = ejer.type === 'VIRKSOMHED';
+              const borderColor = isFormer 
+                ? 'border-red-200' 
+                : isPerson 
+                  ? 'border-teal-200' 
+                  : 'border-purple-200';
+              
+              return (
+                <div key={index} className={`border-l-2 sm:border-l-4 ${borderColor} pl-3 sm:pl-4 py-2`}>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <button
+                            onClick={() => {
+                              if (isPerson) {
+                                const url = generatePersonUrl(ejer.navn);
+                                navigate(url);
+                              } else if (isCompany && ejer.cvr) {
+                                const url = generateCompanyUrl(ejer.navn, ejer.cvr);
+                                navigate(url);
+                              }
+                            }}
+                            className="font-semibold text-sm sm:text-base hover:text-primary underline decoration-dotted underline-offset-2 text-left flex items-center gap-1.5"
+                            disabled={!isPerson && !isCompany}
+                          >
+                            {isPerson ? (
+                              <User className="h-4 w-4 text-teal-600 flex-shrink-0" />
+                            ) : isCompany ? (
+                              <Building2 className="h-4 w-4 text-purple-600 flex-shrink-0" />
+                            ) : null}
+                            {ejer.navn}
+                          </button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>
+                            {isPerson && 'Se personens tilknytninger'}
+                            {isCompany && 'Se virksomhedsoplysninger'}
+                            {!isPerson && !isCompany && 'Ingen detaljer tilgængelige'}
+                          </p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                    {isPerson && (
+                      <Badge variant="outline" className="text-xs">
+                        Person
+                      </Badge>
+                    )}
+                    {isCompany && ejer.cvr && (
+                      <Badge variant="outline" className="text-xs">
+                        CVR: {ejer.cvr}
+                      </Badge>
+                    )}
+                  </div>
+                  <div className="text-xs sm:text-sm text-muted-foreground flex items-center gap-1 mb-1 break-words mt-1">
+                    <MapPin className="h-3 w-3 flex-shrink-0" />
+                    <span className="break-words">{ejer.adresse}</span>
+                  </div>
+                  <div className="text-xs sm:text-sm space-y-0.5">
+                    {ejer.ejerandel && ejer.ejerandel !== 'Ikke oplyst' && (
+                      <div className="flex items-center gap-1">
+                        <Percent className="h-3 w-3 flex-shrink-0" />
+                        <span>Ejerandel: <span className="font-medium">{ejer.ejerandel}</span></span>
+                      </div>
+                    )}
+                    {ejer.stemmerettigheder && ejer.stemmerettigheder !== 'Ikke oplyst' && (
+                      <div className="flex items-center gap-1">
+                        <Percent className="h-3 w-3 flex-shrink-0" />
+                        <span>Stemmerettigheder: <span className="font-medium">{ejer.stemmerettigheder}</span></span>
+                      </div>
+                    )}
+                    {ejer.periode && (
+                      <div className="flex items-center gap-1">
+                        <Calendar className="h-3 w-3 flex-shrink-0" />
+                        <span className="break-words">Periode: {ejer.periode.gyldigFra || 'Ukendt'} - {ejer.periode.gyldigTil || 'Nuværende'}</span>
+                      </div>
+                    )}
+                  </div>
                 </div>
-                <div className="text-xs sm:text-sm space-y-0.5">
-                  {ejer.ejerandel && ejer.ejerandel !== 'Ikke oplyst' && (
-                    <div className="flex items-center gap-1">
-                      <Percent className="h-3 w-3 flex-shrink-0" />
-                      <span>Ejerandel: <span className="font-medium">{ejer.ejerandel}</span></span>
-                    </div>
-                  )}
-                  {ejer.stemmerettigheder && ejer.stemmerettigheder !== 'Ikke oplyst' && (
-                    <div className="flex items-center gap-1">
-                      <Percent className="h-3 w-3 flex-shrink-0" />
-                      <span>Stemmerettigheder: <span className="font-medium">{ejer.stemmerettigheder}</span></span>
-                    </div>
-                  )}
-                  {ejer.periode && (
-                    <div className="flex items-center gap-1">
-                      <Calendar className="h-3 w-3 flex-shrink-0" />
-                      <span className="break-words">Periode: {ejer.periode.gyldigFra || 'Ukendt'} - {ejer.periode.gyldigTil || 'Nuværende'}</span>
-                    </div>
-                  )}
-                </div>
-              </div>
-            ))
+              );
+            })
           ) : (
             <div className="text-muted-foreground text-xs sm:text-sm border-l-2 sm:border-l-4 border-gray-200 pl-3 sm:pl-4 py-2">
               Ingen oplysninger tilgængelige
