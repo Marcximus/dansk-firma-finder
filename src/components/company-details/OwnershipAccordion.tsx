@@ -52,19 +52,27 @@ const OwnershipAccordion: React.FC<OwnershipAccordionProps> = ({
                         <TooltipTrigger asChild>
                           <button
                             onClick={() => {
+                              console.log('[OwnershipAccordion] Clicking owner:', {
+                                navn: ejer.navn,
+                                type: ejer.type,
+                                identifier: ejer.identifier,
+                                cvr: ejer.cvr,
+                                fullObject: ejer
+                              });
+                              
                               // Validate before navigation
                               if (!ejer.navn || !ejer.type) {
-                                console.warn('Invalid owner data:', ejer);
+                                console.warn('[OwnershipAccordion] Invalid owner data:', ejer);
                                 return;
                               }
                               
                               if (isPerson) {
-                                console.log('Navigating to person page:', { name: ejer.navn, id: ejer.identifier });
                                 const url = generatePersonUrl(ejer.navn, ejer.identifier);
+                                console.log('[OwnershipAccordion] Generated person URL:', url);
                                 navigate(url);
                               } else if (isCompany && ejer.identifier) {
-                                console.log('Navigating to company page:', { name: ejer.navn, cvr: ejer.identifier });
                                 const url = generateCompanyUrl(ejer.navn, ejer.identifier);
+                                console.log('[OwnershipAccordion] Generated company URL:', url);
                                 navigate(url);
                               }
                             }}

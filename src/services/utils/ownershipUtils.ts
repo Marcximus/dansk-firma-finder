@@ -145,15 +145,32 @@ export const extractOwnershipData = (cvrData: any) => {
         const isPerson = enhedstype === 'PERSON';
         const isCompany = enhedstype === 'VIRKSOMHED';
         
+        console.log('[ownershipUtils] Processing deltager:', {
+          navn: name,
+          enhedstype,
+          isPerson,
+          isCompany,
+          deltager: rel.deltager,
+          hasEnhedsNummer: !!rel.deltager?.enhedsNummer,
+          hasForretningsnoegle: !!rel.deltager?.forretningsnoegle
+        });
+        
         // Extract identifier based on type
         let identifier = '';
         let cvr = undefined;
         
         if (isPerson && rel.deltager?.enhedsNummer) {
           identifier = rel.deltager.enhedsNummer.toString();
+          console.log('[ownershipUtils] Extracted person identifier:', identifier);
         } else if (isCompany && rel.deltager?.forretningsnoegle) {
           identifier = rel.deltager.forretningsnoegle.toString();
           cvr = identifier;
+          console.log('[ownershipUtils] Extracted company identifier/CVR:', identifier);
+        } else {
+          console.warn('[ownershipUtils] No identifier found for:', {
+            enhedstype,
+            deltagerKeys: rel.deltager ? Object.keys(rel.deltager) : []
+          });
         }
 
         return {

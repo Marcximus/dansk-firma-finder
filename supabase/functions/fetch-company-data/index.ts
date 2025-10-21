@@ -25,6 +25,13 @@ async function enrichWithParticipantData(companyData: any, auth: string) {
   for (const relation of deltagerRelation) {
     const enhedsNummer = relation.deltager?.enhedsNummer;
     
+    console.log('[DEBUG] Processing relation:', {
+      hasEnhedsNummer: !!enhedsNummer,
+      enhedstype: relation.deltager?.enhedstype,
+      deltagerKeys: relation.deltager ? Object.keys(relation.deltager) : [],
+      enhedsNummer: enhedsNummer
+    });
+    
     if (!enhedsNummer) {
       console.log('[WARN] Skipping relation without enhedsNummer');
       enrichedParticipants.push(relation);
@@ -75,6 +82,16 @@ async function enrichWithParticipantData(companyData: any, auth: string) {
 
   // Replace deltagerRelation with enriched data
   companyData.hits.hits[0]._source.Vrvirksomhed.deltagerRelation = enrichedParticipants;
+  
+  console.log('[DEBUG] After enrichment, sample deltager:', {
+    count: enrichedParticipants.length,
+    sample: enrichedParticipants[0] ? {
+      hasEnhedsNummer: !!enrichedParticipants[0].deltager?.enhedsNummer,
+      enhedstype: enrichedParticipants[0].deltager?.enhedstype,
+      hasEnrichedData: !!enrichedParticipants[0]._enrichedDeltagerData
+    } : null
+  });
+  
   return companyData;
 }
 
