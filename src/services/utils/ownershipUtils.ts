@@ -145,30 +145,37 @@ export const extractOwnershipData = (cvrData: any) => {
         const isPerson = enhedstype === 'PERSON';
         const isCompany = enhedstype === 'VIRKSOMHED';
         
+        // Extract identifier based on type - check enriched data first
+        let identifier = '';
+        let cvr = undefined;
+        
+        // Try enriched data first, then fallback to original deltager data
+        const enhedsNummer = rel._enrichedDeltagerData?.enhedsNummer || rel.deltager?.enhedsNummer;
+        const forretningsnoegle = rel._enrichedDeltagerData?.forretningsnoegle || rel.deltager?.forretningsnoegle;
+        
         console.log('[ownershipUtils] Processing deltager:', {
           navn: name,
           enhedstype,
           isPerson,
           isCompany,
-          deltager: rel.deltager,
-          hasEnhedsNummer: !!rel.deltager?.enhedsNummer,
-          hasForretningsnoegle: !!rel.deltager?.forretningsnoegle
+          hasEnrichedData: !!rel._enrichedDeltagerData,
+          enhedsNummer,
+          forretningsnoegle,
+          source: rel._enrichedDeltagerData?.enhedsNummer ? 'enriched' : 'deltager'
         });
         
-        // Extract identifier based on type
-        let identifier = '';
-        let cvr = undefined;
-        
-        if (isPerson && rel.deltager?.enhedsNummer) {
-          identifier = rel.deltager.enhedsNummer.toString();
-          console.log('[ownershipUtils] Extracted person identifier:', identifier);
-        } else if (isCompany && rel.deltager?.forretningsnoegle) {
-          identifier = rel.deltager.forretningsnoegle.toString();
+        if (isPerson && enhedsNummer) {
+          identifier = enhedsNummer.toString();
+          console.log('[ownershipUtils] ✓ Extracted person identifier:', identifier);
+        } else if (isCompany && forretningsnoegle) {
+          identifier = forretningsnoegle.toString();
           cvr = identifier;
-          console.log('[ownershipUtils] Extracted company identifier/CVR:', identifier);
+          console.log('[ownershipUtils] ✓ Extracted company identifier/CVR:', identifier);
         } else {
-          console.warn('[ownershipUtils] No identifier found for:', {
+          console.warn('[ownershipUtils] ✗ No identifier found for:', {
             enhedstype,
+            hasEnrichedData: !!rel._enrichedDeltagerData,
+            enrichedKeys: rel._enrichedDeltagerData ? Object.keys(rel._enrichedDeltagerData) : [],
             deltagerKeys: rel.deltager ? Object.keys(rel.deltager) : []
           });
         }
