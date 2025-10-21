@@ -179,12 +179,26 @@ export const getPersonData = async (personName: string, enhedsNummer?: string) =
   console.log('[API Service] Fetching person data for:', { personName, enhedsNummer });
   
   try {
+    // Only include enhedsNummer if it's a valid value (not undefined, null, or string versions)
+    const body: any = { personName };
+    if (enhedsNummer && enhedsNummer !== 'null' && enhedsNummer !== 'undefined') {
+      body.enhedsNummer = enhedsNummer;
+      console.log('[API Service] Including enhedsNummer in request:', enhedsNummer);
+    } else {
+      console.log('[API Service] Excluding enhedsNummer from request (invalid value)');
+    }
+    
     const { data, error } = await supabase.functions.invoke('fetch-person-data', {
-      body: { personName, enhedsNummer }
+      body
     });
 
     if (error) {
       console.error('[API Service] Error from edge function:', error);
+      console.error('[API Service] Error details:', {
+        message: error.message,
+        status: error.context?.status,
+        statusText: error.context?.statusText
+      });
       throw error;
     }
     
