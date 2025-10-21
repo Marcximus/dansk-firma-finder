@@ -5,9 +5,24 @@ import { formatAddress, formatPeriod } from './formatUtils';
 import { extractDataIntelligently, scanDataStructure } from './dataDiscovery';
 
 export const extractOwnershipData = (cvrData: any) => {
-  if (!cvrData?.Vrvirksomhed) {
+  // Handle both wrapped and unwrapped Vrvirksomhed data structures
+  const vrvirksomhed = cvrData?.Vrvirksomhed || cvrData;
+  
+  if (!vrvirksomhed || !vrvirksomhed.deltagerRelation) {
+    console.log('[ownershipUtils] No valid data structure found:', {
+      hasCvrData: !!cvrData,
+      hasVrvirksomhed: !!cvrData?.Vrvirksomhed,
+      isUnwrapped: !!cvrData?.deltagerRelation,
+      structure: cvrData ? Object.keys(cvrData).slice(0, 5) : []
+    });
     return { currentOwners: [], subsidiaries: [] };
   }
+
+  console.log('[ownershipUtils] ✓ Data structure detected:', {
+    isWrapped: !!cvrData?.Vrvirksomhed,
+    hasRelations: !!vrvirksomhed.deltagerRelation,
+    relationCount: vrvirksomhed.deltagerRelation?.length || 0
+  });
 
   // Helper function to check if an organization has actual ownership percentage data
   const hasOwnershipPercentage = (org: any): boolean => {
@@ -21,7 +36,7 @@ export const extractOwnershipData = (cvrData: any) => {
   };
 
   const getOwnershipFromRelations = () => {
-    const relations = cvrData.Vrvirksomhed.deltagerRelation || [];
+    const relations = vrvirksomhed.deltagerRelation || [];
     
     return relations
       .filter((rel: any) => {
