@@ -164,6 +164,18 @@ export const extractOwnershipData = (cvrData: any) => {
         let identifier = '';
         let cvr = undefined;
         
+        // DEBUG: Log complete enriched data structure if available
+        if (rel._enrichedDeltagerData) {
+          console.log('[ownershipUtils] 🔍 COMPLETE ENRICHED DATA STRUCTURE for', name, ':', {
+            topLevelKeys: Object.keys(rel._enrichedDeltagerData),
+            enhedsNummer: rel._enrichedDeltagerData.enhedsNummer,
+            forretningsnoegle: rel._enrichedDeltagerData.forretningsnoegle,
+            cvrNummer: rel._enrichedDeltagerData.cvrNummer,
+            enhedstype: rel._enrichedDeltagerData.enhedstype,
+            fullData: JSON.stringify(rel._enrichedDeltagerData, null, 2).substring(0, 500) + '...'
+          });
+        }
+        
         // Try enriched data first, then fallback to original deltager data
         const enhedsNummer = rel._enrichedDeltagerData?.enhedsNummer || rel.deltager?.enhedsNummer;
         const forretningsnoegle = rel._enrichedDeltagerData?.forretningsnoegle || rel.deltager?.forretningsnoegle;
@@ -176,7 +188,7 @@ export const extractOwnershipData = (cvrData: any) => {
           hasEnrichedData: !!rel._enrichedDeltagerData,
           enhedsNummer,
           forretningsnoegle,
-          source: rel._enrichedDeltagerData?.enhedsNummer ? 'enriched' : 'deltager'
+          source: rel._enrichedDeltagerData?.enhedsNummer ? 'enriched' : (rel.deltager?.enhedsNummer ? 'deltager' : 'none')
         });
         
         if (isPerson && enhedsNummer) {
