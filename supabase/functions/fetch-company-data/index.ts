@@ -18,11 +18,10 @@ async function enrichWithParticipantData(companyData: any, auth: string) {
   }
 
   const deltagerRelation = companyData.hits.hits[0]._source.Vrvirksomhed.deltagerRelation;
-  console.log(`[INFO] Enriching ${deltagerRelation.length} participants with detailed data`);
+  console.log(`[INFO] Enriching ${deltagerRelation.length} participants with detailed data IN PARALLEL`);
 
-  const enrichedParticipants = [];
-
-  for (const relation of deltagerRelation) {
+  // Enrich all participants in parallel using Promise.all
+  const enrichmentPromises = deltagerRelation.map(async (relation) => {
     const enhedsNummer = relation.deltager?.enhedsNummer;
     
     console.log('[DEBUG] Processing relation:', {
@@ -34,8 +33,7 @@ async function enrichWithParticipantData(companyData: any, auth: string) {
     
     if (!enhedsNummer) {
       console.log('[WARN] Skipping relation without enhedsNummer');
-      enrichedParticipants.push(relation);
-      continue;
+      return relation;
     }
 
     try {
@@ -62,23 +60,26 @@ async function enrichWithParticipantData(companyData: any, auth: string) {
       if (deltagerResponse.ok) {
         const deltagerData = await deltagerResponse.json();
         if (deltagerData.hits?.hits?.[0]?._source?.Vrdeltagerperson) {
-          enrichedParticipants.push({
+          console.log(`[SUCCESS] Enriched participant ${enhedsNummer}`);
+          return {
             ...relation,
             _enrichedDeltagerData: deltagerData.hits.hits[0]._source.Vrdeltagerperson
-          });
-          console.log(`[SUCCESS] Enriched participant ${enhedsNummer}`);
+          };
         } else {
-          enrichedParticipants.push(relation);
+          return relation;
         }
       } else {
         console.log(`[WARN] Failed to fetch participant ${enhedsNummer}: ${deltagerResponse.status}`);
-        enrichedParticipants.push(relation);
+        return relation;
       }
     } catch (error) {
       console.error(`[ERROR] Error fetching participant ${enhedsNummer}:`, error.message);
-      enrichedParticipants.push(relation);
+      return relation;
     }
-  }
+  });
+
+  // Wait for all enrichments to complete
+  const enrichedParticipants = await Promise.all(enrichmentPromises);
 
   // Replace deltagerRelation with enriched data
   companyData.hits.hits[0]._source.Vrvirksomhed.deltagerRelation = enrichedParticipants;
