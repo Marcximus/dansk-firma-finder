@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { extractSigningRulesData } from '@/services/cvrUtils';
+import { generatePersonUrl } from '@/lib/urlUtils';
 import { Users, Crown, Shield, UserCheck, FileText, Search } from 'lucide-react';
 
 interface SigningRulesAccordionProps {
@@ -17,8 +18,14 @@ const SigningRulesAccordion: React.FC<SigningRulesAccordionProps> = ({ cvrData }
   const signingData = extractSigningRulesData(cvrData);
   console.log('SigningRulesAccordion - Extracted Data:', signingData);
 
-  const handleNameClick = (name: string) => {
-    navigate(`/?search=${encodeURIComponent(name)}&type=person`);
+  const handleNameClick = (name: string, enhedsNummer?: string | number) => {
+    if (enhedsNummer) {
+      const url = generatePersonUrl(name, enhedsNummer);
+      navigate(url);
+    } else {
+      // Fallback to search if no ID available
+      navigate(`/?search=${encodeURIComponent(name)}&type=person`);
+    }
   };
 
   const getPersonName = (deltager: any) => {
@@ -225,6 +232,7 @@ const SigningRulesAccordion: React.FC<SigningRulesAccordionProps> = ({ cvrData }
             persons.map((relation: any, index: number) => {
               const personName = getPersonName(relation.deltager);
               const personAddress = getPersonAddress(relation.deltager);
+              const enhedsNummer = relation.deltager?.enhedsNummer;
 
               return (
                 <div key={index} className="border-l-2 sm:border-l-3 border-blue-200 pl-2 sm:pl-3 py-1.5 sm:py-2">
@@ -232,7 +240,7 @@ const SigningRulesAccordion: React.FC<SigningRulesAccordionProps> = ({ cvrData }
                     <Tooltip>
                       <TooltipTrigger asChild>
                         <button
-                          onClick={() => handleNameClick(personName)}
+                          onClick={() => handleNameClick(personName, enhedsNummer)}
                           className="font-semibold text-xs sm:text-sm md:text-base text-primary hover:text-primary/80 hover:underline transition-colors flex items-center gap-1.5 cursor-pointer mb-1"
                         >
                           {personName}
@@ -240,7 +248,7 @@ const SigningRulesAccordion: React.FC<SigningRulesAccordionProps> = ({ cvrData }
                         </button>
                       </TooltipTrigger>
                       <TooltipContent>
-                        <p>Søg efter virksomheder tilknyttet denne person</p>
+                        <p>Se personens profil og tilknyttede virksomheder</p>
                       </TooltipContent>
                     </Tooltip>
                   </TooltipProvider>
