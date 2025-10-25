@@ -50,7 +50,31 @@ Deno.serve(async (req) => {
 
     console.log('[PERSON-DATA] API credentials OK, starting search...');
 
-    // Helper function to build ID-based search query
+    // Helper function to build direct deltager endpoint query (most accurate)
+    const buildDeltagerQuery = (id: string | number) => {
+      return {
+        query: {
+          bool: {
+            must: [
+              {
+                term: {
+                  "Vrdeltagerperson.enhedsNummer": Number(id)
+                }
+              }
+            ]
+          }
+        },
+        _source: [
+          "Vrdeltagerperson.enhedsNummer",
+          "Vrdeltagerperson.navne",
+          "Vrdeltagerperson.beliggenhedsadresse",
+          "Vrdeltagerperson.deltagelseInformation"
+        ],
+        size: 1
+      };
+    };
+
+    // Helper function to build ID-based search query on virksomhed (fallback)
     const buildPersonIdQuery = (id: string | number) => {
       return {
         query: {
@@ -170,38 +194,67 @@ Deno.serve(async (req) => {
 
     let searchResults: any[] = [];
     let searchMethod = 'unknown';
+    let deltagerResponse: any = null;
     
-    // Priority 1: If enhedsNummer is provided, use ID-based search (most accurate)
+    // Priority 1: If enhedsNummer is provided, use direct deltager endpoint (most accurate)
     if (enhedsNummer) {
-      console.log('[PERSON-DATA] Using ID-based search with enhedsNummer:', enhedsNummer);
-      searchMethod = 'id';
-      const idQuery = buildPersonIdQuery(enhedsNummer);
-      console.log('[PERSON-DATA] ID query:', JSON.stringify(idQuery, null, 2));
+      console.log('[PERSON-DATA] Using direct deltager endpoint with enhedsNummer:', enhedsNummer);
+      searchMethod = 'deltager-direct';
+      const deltagerQuery = buildDeltagerQuery(enhedsNummer);
+      console.log('[PERSON-DATA] Deltager query:', JSON.stringify(deltagerQuery, null, 2));
       
       const apiResponse = await fetch(
-        'http://distribution.virk.dk:80/cvr-permanent/virksomhed/_search',
+        'http://distribution.virk.dk:80/cvr-permanent/deltager/_search',
         {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
             'Authorization': 'Basic ' + btoa(`${username}:${password}`),
           },
-          body: JSON.stringify(idQuery),
+          body: JSON.stringify(deltagerQuery),
         }
       );
       
-      console.log('[PERSON-DATA] API response status:', apiResponse.status);
+      console.log('[PERSON-DATA] Deltager API response status:', apiResponse.status);
       
       if (apiResponse.ok) {
         const result = await apiResponse.json();
-        searchResults = result.hits?.hits || [];
-        console.log(`[PERSON-DATA] ID-based search found ${searchResults.length} results`);
-        if (searchResults.length > 0) {
-          console.log('[PERSON-DATA] First result CVR:', searchResults[0]._source?.Vrvirksomhed?.cvrNummer);
+        const hits = result.hits?.hits || [];
+        console.log(`[PERSON-DATA] Deltager search found ${hits.length} results`);
+        
+        if (hits.length > 0) {
+          deltagerResponse = hits[0]._source?.Vrdeltagerperson;
+          console.log('[PERSON-DATA] Found deltager person:', deltagerResponse?.navne?.[0]?.navn);
+          console.log('[PERSON-DATA] Deltager has', deltagerResponse?.deltagelseInformation?.length || 0, 'company relations');
         }
       } else {
         const errorText = await apiResponse.text();
-        console.error('[PERSON-DATA] ID-based search failed with status', apiResponse.status, ':', errorText);
+        console.error('[PERSON-DATA] Deltager search failed with status', apiResponse.status, ':', errorText);
+      }
+      
+      // If deltager search failed, fall back to virksomhed endpoint
+      if (!deltagerResponse) {
+        console.log('[PERSON-DATA] Deltager search failed, falling back to virksomhed endpoint');
+        searchMethod = 'id-fallback';
+        const idQuery = buildPersonIdQuery(enhedsNummer);
+        
+        const fallbackResponse = await fetch(
+          'http://distribution.virk.dk:80/cvr-permanent/virksomhed/_search',
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': 'Basic ' + btoa(`${username}:${password}`),
+            },
+            body: JSON.stringify(idQuery),
+          }
+        );
+        
+        if (fallbackResponse.ok) {
+          const result = await fallbackResponse.json();
+          searchResults = result.hits?.hits || [];
+          console.log(`[PERSON-DATA] Fallback ID search found ${searchResults.length} results`);
+        }
       }
     }
     
@@ -289,11 +342,74 @@ Deno.serve(async (req) => {
       }
     }
 
-    console.log(`[PERSON-DATA] Processing ${searchResults.length} companies`);
+    console.log(`[PERSON-DATA] Processing results...`);
 
     // Process results - use a Map to deduplicate by CVR
     const companiesMap = new Map();
+    
+    // If we have deltager response, process it directly (cleaner data structure)
+    if (deltagerResponse) {
+      console.log('[PERSON-DATA] Processing deltager response');
+      const deltagelseInfo = deltagerResponse.deltagelseInformation || [];
+      console.log(`[PERSON-DATA] Found ${deltagelseInfo.length} company relations in deltager data`);
+      
+      deltagelseInfo.forEach((deltagelse: any) => {
+        const deltagende = deltagelse.deltagende;
+        if (!deltagende) return;
+        
+        const companyCvr = deltagende.enhedsNummer?.toString() || '';
+        const companyName = deltagende.navne?.[0]?.navn || 'Ukendt virksomhed';
+        const companyStatus = deltagende.virksomhedsstatus?.[0]?.status || 'Ukendt';
+        
+        // Extract roles from organizations
+        const roles: any[] = [];
+        const organisationer = deltagelse.organisationer || [];
+        
+        organisationer.forEach((org: any) => {
+          const orgType = org.hovedtype || '';
+          const orgName = org.organisationsNavn?.[0]?.navn || orgType;
+          
+          (org.medlemsData || []).forEach((member: any) => {
+            const role: any = {
+              type: orgName,
+              validFrom: member.periode?.gyldigFra || deltagelse.periode?.gyldigFra,
+              validTo: member.periode?.gyldigTil || deltagelse.periode?.gyldigTil
+            };
+            
+            // Extract attributes (FUNKTION, ownership, etc.)
+            (member.attributter || []).forEach((attr: any) => {
+              if (attr.type === 'FUNKTION') {
+                role.title = attr.vaerdier?.[0]?.vaerdi;
+              }
+              if (attr.type === 'EJERANDEL_PROCENT') {
+                role.ownershipPercentage = parseFloat(attr.vaerdier?.[0]?.vaerdi || '0');
+              }
+              if (attr.type === 'EJERANDEL_STEMMERET_PROCENT') {
+                role.votingRights = parseFloat(attr.vaerdier?.[0]?.vaerdi || '0');
+              }
+            });
+            
+            roles.push(role);
+          });
+        });
+        
+        if (companyCvr) {
+          companiesMap.set(companyCvr, {
+            companyName,
+            companyCvr,
+            companyStatus,
+            roles,
+            validTo: deltagelse.periode?.gyldigTil
+          });
+        }
+      });
+      
+      console.log(`[PERSON-DATA] Processed ${companiesMap.size} companies from deltager data`);
+    } else {
+      console.log(`[PERSON-DATA] Processing ${searchResults.length} company search results`);
+    }
 
+    // Process virksomhed search results (fallback method)
     searchResults.forEach((hit: any) => {
       const company = hit._source?.Vrvirksomhed;
       if (!company) return;
