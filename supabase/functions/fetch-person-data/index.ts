@@ -341,6 +341,18 @@ Deno.serve(async (req) => {
 
     console.log(`[PERSON-DATA] Processing results...`);
 
+    // Extract person address from deltager response
+    let personAddress = undefined;
+    if (deltagerResponse?.beliggenhedsadresse?.[0]) {
+      const addr = deltagerResponse.beliggenhedsadresse[0];
+      personAddress = {
+        street: [addr.vejnavn, addr.husnummerFra].filter(Boolean).join(' '),
+        zipCode: addr.postnummer?.toString() || '',
+        city: addr.postdistrikt || ''
+      };
+      console.log('[PERSON-DATA] Extracted address:', personAddress);
+    }
+
     // Process results - use a Map to deduplicate by CVR
     const companiesMap = new Map();
     
@@ -500,6 +512,7 @@ Deno.serve(async (req) => {
     const response = {
       personName: personName || 'Ukendt',
       personId: enhedsNummer || null,
+      address: personAddress,
       activeRelations,
       historicalRelations,
       totalCompanies: companiesMap.size,
