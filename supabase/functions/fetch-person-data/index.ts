@@ -81,20 +81,20 @@ Deno.serve(async (req) => {
           nested: {
             path: "Vrvirksomhed.deltagerRelation",
             query: {
-              nested: {
-                path: "Vrvirksomhed.deltagerRelation.deltager",
-                query: {
-                  term: {
-                    "Vrvirksomhed.deltagerRelation.deltager.enhedsNummer": Number(id)
-                  }
-                }
+              term: {
+                "Vrvirksomhed.deltagerRelation.deltager.enhedsNummer": parseInt(id.toString())
               }
             }
           }
         },
         size: 100,
-        _source: ["Vrvirksomhed.cvrNummer", "Vrvirksomhed.virksomhedMetadata.nyesteNavn.navn", 
-                  "Vrvirksomhed.virksomhedsstatus", "Vrvirksomhed.deltagerRelation"]
+        _source: [
+          "Vrvirksomhed.cvrNummer", 
+          "Vrvirksomhed.navne",
+          "Vrvirksomhed.virksomhedMetadata.nyesteNavn.navn", 
+          "Vrvirksomhed.virksomhedsstatus", 
+          "Vrvirksomhed.deltagerRelation"
+        ]
       };
     };
 
@@ -204,6 +204,8 @@ Deno.serve(async (req) => {
       const deltagerQuery = buildDeltagerQuery(enhedsNummer);
       const virksomhedQuery = buildPersonIdQuery(enhedsNummer);
       
+      console.log('[DEBUG] Virksomhed query:', JSON.stringify(virksomhedQuery, null, 2));
+      
       // Run both searches in parallel
       const [deltagerResult, virksomhedResult] = await Promise.all([
         fetch('http://distribution.virk.dk:80/cvr-permanent/deltager/_search', {
@@ -242,6 +244,15 @@ Deno.serve(async (req) => {
       // Extract virksomhed search results (for company relations via deltagerRelation)
       searchResults = virksomhedResult?.hits?.hits || [];
       console.log('[PERSON-DATA] Virksomhed search found', searchResults.length, 'companies with person in deltagerRelation');
+      console.log('[DEBUG] Virksomhed result total:', virksomhedResult?.hits?.total);
+      console.log('[DEBUG] Virksomhed result status:', virksomhedResult?.status || 'unknown');
+      if (searchResults.length > 0) {
+        console.log('[DEBUG] First company CVR:', searchResults[0]._source?.Vrvirksomhed?.cvrNummer);
+        console.log('[DEBUG] First company relations count:', searchResults[0]._source?.Vrvirksomhed?.deltagerRelation?.length);
+      } else {
+        console.log('[DEBUG] No companies found in virksomhed search - checking raw response');
+        console.log('[DEBUG] Raw virksomhed response:', JSON.stringify(virksomhedResult, null, 2).substring(0, 1000));
+      }
     }
     
     // Fallback to name search ONLY if no enhedsNummer was provided
@@ -414,7 +425,7 @@ Deno.serve(async (req) => {
         
         // Match by enhedsNummer if provided, otherwise by name
         const isMatch = enhedsNummer 
-          ? deltagerEnhedsNummer?.toString() === enhedsNummer.toString()
+          ? parseInt(deltagerEnhedsNummer?.toString() || '0') === parseInt(enhedsNummer.toString())
           : deltagerNavn.toLowerCase().includes((personName || '').toLowerCase());
           
         if (isMatch) {
