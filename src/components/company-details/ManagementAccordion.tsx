@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Users, Crown, Shield, UserCheck, Building, Search } from 'lucide-react';
+import { generatePersonUrl } from '@/lib/urlUtils';
 
 interface ManagementAccordionProps {
   cvrData: any;
@@ -12,8 +13,14 @@ interface ManagementAccordionProps {
 const ManagementAccordion: React.FC<ManagementAccordionProps> = ({ cvrData }) => {
   const navigate = useNavigate();
 
-  const handleNameClick = (name: string) => {
-    navigate(`/?search=${encodeURIComponent(name)}&type=person`);
+  const handleNameClick = (name: string, enhedsNummer?: string | number) => {
+    if (enhedsNummer) {
+      const url = generatePersonUrl(name, enhedsNummer);
+      navigate(url);
+    } else {
+      // Fallback to search if no ID available
+      navigate(`/?search=${encodeURIComponent(name)}&type=person`);
+    }
   };
   if (!cvrData) return null;
 
@@ -174,6 +181,7 @@ const ManagementAccordion: React.FC<ManagementAccordionProps> = ({ cvrData }) =>
           {relations.map((relation: any, index: number) => {
             const personName = getPersonName(relation.deltager);
             const personAddress = getPersonAddress(relation.deltager);
+            const enhedsNummer = relation.deltager?.enhedsNummer;
 
             return (
               <div key={index} className="border-l-2 sm:border-l-3 border-blue-200 pl-2 sm:pl-3 py-1.5 sm:py-2">
@@ -181,7 +189,7 @@ const ManagementAccordion: React.FC<ManagementAccordionProps> = ({ cvrData }) =>
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <button
-                        onClick={() => handleNameClick(personName)}
+                        onClick={() => handleNameClick(personName, enhedsNummer)}
                         className="font-semibold text-xs sm:text-sm md:text-base text-primary hover:text-primary/80 hover:underline transition-colors flex items-center gap-1.5 cursor-pointer mb-1"
                       >
                         {personName}
@@ -189,7 +197,7 @@ const ManagementAccordion: React.FC<ManagementAccordionProps> = ({ cvrData }) =>
                       </button>
                     </TooltipTrigger>
                     <TooltipContent>
-                      <p>Søg efter virksomheder tilknyttet denne person</p>
+                      <p>Se personens profil og tilknytninger</p>
                     </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>

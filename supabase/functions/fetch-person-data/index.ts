@@ -196,70 +196,56 @@ Deno.serve(async (req) => {
     let searchMethod = 'unknown';
     let deltagerResponse: any = null;
     
-    // Priority 1: If enhedsNummer is provided, use direct deltager endpoint (most accurate)
+    // When we have enhedsNummer, run BOTH searches in parallel for best results
     if (enhedsNummer) {
-      console.log('[PERSON-DATA] Using direct deltager endpoint with enhedsNummer:', enhedsNummer);
-      searchMethod = 'deltager-direct';
-      const deltagerQuery = buildDeltagerQuery(enhedsNummer);
-      console.log('[PERSON-DATA] Deltager query:', JSON.stringify(deltagerQuery, null, 2));
+      console.log('[PERSON-DATA] Running parallel searches with enhedsNummer:', enhedsNummer);
+      searchMethod = 'parallel-id-search';
       
-      const apiResponse = await fetch(
-        'http://distribution.virk.dk:80/cvr-permanent/deltager/_search',
-        {
+      const deltagerQuery = buildDeltagerQuery(enhedsNummer);
+      const virksomhedQuery = buildPersonIdQuery(enhedsNummer);
+      
+      // Run both searches in parallel
+      const [deltagerResult, virksomhedResult] = await Promise.all([
+        fetch('http://distribution.virk.dk:80/cvr-permanent/deltager/_search', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
             'Authorization': 'Basic ' + btoa(`${username}:${password}`),
           },
           body: JSON.stringify(deltagerQuery),
-        }
-      );
-      
-      console.log('[PERSON-DATA] Deltager API response status:', apiResponse.status);
-      
-      if (apiResponse.ok) {
-        const result = await apiResponse.json();
-        const hits = result.hits?.hits || [];
-        console.log(`[PERSON-DATA] Deltager search found ${hits.length} results`);
+        }).then(r => r.ok ? r.json() : { hits: { hits: [] } }).catch(e => { 
+          console.error('[PERSON-DATA] Deltager search error:', e); 
+          return { hits: { hits: [] } }; 
+        }),
         
-        if (hits.length > 0) {
-          deltagerResponse = hits[0]._source?.Vrdeltagerperson;
-          console.log('[PERSON-DATA] Found deltager person:', deltagerResponse?.navne?.[0]?.navn);
-          console.log('[PERSON-DATA] Deltager has', deltagerResponse?.deltagelseInformation?.length || 0, 'company relations');
-        }
-      } else {
-        const errorText = await apiResponse.text();
-        console.error('[PERSON-DATA] Deltager search failed with status', apiResponse.status, ':', errorText);
+        fetch('http://distribution.virk.dk:80/cvr-permanent/virksomhed/_search', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Basic ' + btoa(`${username}:${password}`),
+          },
+          body: JSON.stringify(virksomhedQuery),
+        }).then(r => r.ok ? r.json() : { hits: { hits: [] } }).catch(e => { 
+          console.error('[PERSON-DATA] Virksomhed search error:', e); 
+          return { hits: { hits: [] } }; 
+        })
+      ]);
+      
+      // Extract deltager person info (for name, address, basic info)
+      const deltagerHits = deltagerResult?.hits?.hits || [];
+      if (deltagerHits.length > 0) {
+        deltagerResponse = deltagerHits[0]._source?.Vrdeltagerperson;
+        console.log('[PERSON-DATA] Deltager found:', deltagerResponse?.navne?.[0]?.navn);
+        console.log('[PERSON-DATA] Deltager deltagelseInformation count:', deltagerResponse?.deltagelseInformation?.length || 0);
       }
       
-      // If deltager search failed, fall back to virksomhed endpoint
-      if (!deltagerResponse) {
-        console.log('[PERSON-DATA] Deltager search failed, falling back to virksomhed endpoint');
-        searchMethod = 'id-fallback';
-        const idQuery = buildPersonIdQuery(enhedsNummer);
-        
-        const fallbackResponse = await fetch(
-          'http://distribution.virk.dk:80/cvr-permanent/virksomhed/_search',
-          {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': 'Basic ' + btoa(`${username}:${password}`),
-            },
-            body: JSON.stringify(idQuery),
-          }
-        );
-        
-        if (fallbackResponse.ok) {
-          const result = await fallbackResponse.json();
-          searchResults = result.hits?.hits || [];
-          console.log(`[PERSON-DATA] Fallback ID search found ${searchResults.length} results`);
-        }
-      }
+      // Extract virksomhed search results (for company relations via deltagerRelation)
+      searchResults = virksomhedResult?.hits?.hits || [];
+      console.log('[PERSON-DATA] Virksomhed search found', searchResults.length, 'companies with person in deltagerRelation');
     }
     
-    // Fallback to name-based search if ID search failed or no ID provided
-    if (searchResults.length === 0 && personName) {
+    // Fallback to name search ONLY if no enhedsNummer was provided
+    if (!enhedsNummer && searchResults.length === 0 && personName) {
       // Try 1: Exact match
       console.log('[PERSON-DATA] Attempting exact match search for:', personName);
       searchMethod = 'exact';
