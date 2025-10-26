@@ -367,7 +367,10 @@ Deno.serve(async (req) => {
         if (!deltagende) return;
         
         const companyCvr = deltagende.enhedsNummer?.toString() || '';
-        const companyName = deltagende.navne?.[0]?.navn || 'Ukendt virksomhed';
+        const companyName = deltagende.virksomhedMetadata?.nyesteNavn?.navn 
+          || deltagende.navne?.[deltagende.navne?.length - 1]?.navn 
+          || deltagende.navne?.[0]?.navn 
+          || 'Ukendt virksomhed';
         const companyStatus = deltagende.virksomhedsstatus?.[0]?.status || 'Ukendt';
         
         // Extract roles from organizations
@@ -379,11 +382,38 @@ Deno.serve(async (req) => {
           const orgName = org.organisationsNavn?.[0]?.navn || orgType;
           
           (org.medlemsData || []).forEach((member: any) => {
+            // Extract dates from multiple sources
+            let validFrom = member.periode?.gyldigFra || org.periode?.gyldigFra || deltagelse.periode?.gyldigFra;
+            let validTo = member.periode?.gyldigTil || org.periode?.gyldigTil || deltagelse.periode?.gyldigTil;
+            
+            // Check attributter for dates if not found yet
+            if (!validFrom && member.attributter) {
+              member.attributter.forEach((attr: any) => {
+                if ((attr.type === 'STARTDATO' || attr.type === 'INDTRAEDELSESDATO') && !validFrom) {
+                  validFrom = attr.vaerdier?.[0]?.periode?.gyldigFra || attr.vaerdier?.[0]?.vaerdi;
+                }
+              });
+            }
+            
             const role: any = {
               type: orgName,
-              validFrom: member.periode?.gyldigFra || deltagelse.periode?.gyldigFra,
-              validTo: member.periode?.gyldigTil || deltagelse.periode?.gyldigTil
+              validFrom,
+              validTo
             };
+            
+            // Debug logging for missing dates
+            if (!role.validFrom) {
+              console.log('[DEBUG] Missing validFrom for role:', {
+                companyName: deltagende?.virksomhedMetadata?.nyesteNavn?.navn || deltagende?.navne?.[0]?.navn,
+                orgType,
+                orgName,
+                memberPeriode: member.periode,
+                orgPeriode: org.periode,
+                detagelsePeriode: deltagelse.periode,
+                hasAttributter: !!(member.attributter && member.attributter.length > 0),
+                attributterTypes: member.attributter?.map((a: any) => a.type)
+              });
+            }
             
             // Extract attributes (FUNKTION, ownership, etc.)
             (member.attributter || []).forEach((attr: any) => {
@@ -423,7 +453,10 @@ Deno.serve(async (req) => {
       const company = hit._source?.Vrvirksomhed;
       if (!company) return;
 
-      const companyName = company.navne?.[0]?.navn || company.virksomhedMetadata?.nyesteNavn?.navn || 'Ukendt virksomhed';
+      const companyName = company.virksomhedMetadata?.nyesteNavn?.navn 
+        || company.navne?.[company.navne?.length - 1]?.navn 
+        || company.navne?.[0]?.navn 
+        || 'Ukendt virksomhed';
       const companyCvr = company.cvrNummer?.toString() || '';
       const companyStatus = company.virksomhedsstatus?.[0]?.status || 'Ukendt';
 
@@ -450,11 +483,38 @@ Deno.serve(async (req) => {
             const orgName = org.organisationsNavn?.[0]?.navn || '';
             
             (org.medlemsData || []).forEach((member: any) => {
+              // Extract dates from multiple sources
+              let validFrom = member.periode?.gyldigFra || org.periode?.gyldigFra || rel.periode?.gyldigFra;
+              let validTo = member.periode?.gyldigTil || org.periode?.gyldigTil || rel.periode?.gyldigTil;
+              
+              // Check attributter for dates if not found yet
+              if (!validFrom && member.attributter) {
+                member.attributter.forEach((attr: any) => {
+                  if ((attr.type === 'STARTDATO' || attr.type === 'INDTRAEDELSESDATO') && !validFrom) {
+                    validFrom = attr.vaerdier?.[0]?.periode?.gyldigFra || attr.vaerdier?.[0]?.vaerdi;
+                  }
+                });
+              }
+              
               const role: any = {
                 type: orgName || orgType,
-                validFrom: member.periode?.gyldigFra || rel.periode?.gyldigFra,
-                validTo: member.periode?.gyldigTil || rel.periode?.gyldigTil
+                validFrom,
+                validTo
               };
+              
+              // Debug logging for missing dates
+              if (!role.validFrom) {
+                console.log('[DEBUG] Missing validFrom for role (virksomhed search):', {
+                  companyName: company.virksomhedMetadata?.nyesteNavn?.navn || company.navne?.[0]?.navn,
+                  orgType,
+                  orgName,
+                  memberPeriode: member.periode,
+                  orgPeriode: org.periode,
+                  relPeriode: rel.periode,
+                  hasAttributter: !!(member.attributter && member.attributter.length > 0),
+                  attributterTypes: member.attributter?.map((a: any) => a.type)
+                });
+              }
               
               // Extract title for LEDELSE roles
               if (orgName === 'LEDELSE' && member.attributter) {
