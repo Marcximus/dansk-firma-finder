@@ -90,11 +90,11 @@ const PersonDetails: React.FC<PersonDetailsProps> = ({ personData }) => {
     }
 
     return (
-      <div className="space-y-6">
+      <div className="space-y-4">
         {allRelations.map((item: any, index: number) => (
           <div 
             key={index}
-            className="pb-6 border-b last:border-b-0 hover:bg-muted/20 transition-colors cursor-pointer p-4 rounded-lg -mx-4"
+            className="border rounded-lg p-4 hover:border-primary/50 hover:bg-muted/30 transition-all cursor-pointer"
             onClick={() => {
               if (item.companyCvr && item.companyName) {
                 const url = generateCompanyUrl(item.companyName, item.companyCvr);
