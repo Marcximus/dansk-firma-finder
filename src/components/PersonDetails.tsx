@@ -75,21 +75,21 @@ const PersonDetails: React.FC<PersonDetailsProps> = ({ personData }) => {
             }}
           >
             {/* Company Header Row */}
-            <div className="bg-muted/30 px-4 py-3 border-b">
+            <div className="bg-muted/20 px-4 py-3 border-b">
               <div className="flex items-center justify-between gap-4">
                 <div className="flex items-center gap-3 flex-1 min-w-0">
-                  <Building2 className="h-4 w-4 text-primary flex-shrink-0" />
+                  <Building2 className="h-4 w-4 flex-shrink-0" />
                   <div className="font-semibold truncate">{relation.companyName}</div>
-                  <Badge variant="outline" className="font-mono text-xs">
+                  <Badge variant="outline" className="font-mono text-xs flex-shrink-0">
                     CVR: {relation.companyCvr}
                   </Badge>
                   {relation.companyStatus === 'NORMAL' ? (
-                    <Badge className="bg-green-500/10 text-green-700 border-green-500/20 text-xs">
+                    <Badge variant="outline" className="text-xs flex-shrink-0">
                       <CheckCircle className="h-3 w-3 mr-1" />
                       Aktiv
                     </Badge>
                   ) : (
-                    <Badge variant="destructive" className="opacity-60 text-xs">
+                    <Badge variant="outline" className="text-xs flex-shrink-0">
                       <XCircle className="h-3 w-3 mr-1" />
                       {relation.companyStatus}
                     </Badge>
@@ -113,9 +113,9 @@ const PersonDetails: React.FC<PersonDetailsProps> = ({ personData }) => {
                         <span className="text-xs font-medium text-muted-foreground block mb-1">Rolle</span>
                         <div className="flex items-center gap-2">
                           {role.type === 'EJERREGISTER' || role.ownershipPercentage !== undefined ? (
-                            <Briefcase className="h-4 w-4 text-purple-600 dark:text-purple-400" />
+                            <Briefcase className="h-3.5 w-3.5 text-muted-foreground" />
                           ) : (
-                            <Users className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                            <Users className="h-3.5 w-3.5 text-muted-foreground" />
                           )}
                           <span className="font-medium">
                             {role.type === 'EJERREGISTER' && 'Ejer'}
@@ -129,7 +129,7 @@ const PersonDetails: React.FC<PersonDetailsProps> = ({ personData }) => {
                       <div>
                         <span className="text-xs font-medium text-muted-foreground block mb-1">Ejerandel</span>
                         {role.ownershipPercentage !== undefined ? (
-                          <span className="font-bold text-purple-700 dark:text-purple-400">
+                          <span className="font-medium">
                             {role.ownershipPercentage.toFixed(2)}%
                           </span>
                         ) : (
@@ -141,7 +141,7 @@ const PersonDetails: React.FC<PersonDetailsProps> = ({ personData }) => {
                       <div>
                         <span className="text-xs font-medium text-muted-foreground block mb-1">Stemmerettigheder</span>
                         {role.votingRights !== undefined ? (
-                          <span className="font-bold text-blue-700 dark:text-blue-400">
+                          <span className="font-medium">
                             {role.votingRights.toFixed(2)}%
                           </span>
                         ) : (
@@ -243,19 +243,19 @@ const PersonDetails: React.FC<PersonDetailsProps> = ({ personData }) => {
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <div>
                 <span className="text-sm font-medium text-muted-foreground">Tilknytninger i alt</span>
-                <div className="text-2xl font-bold">{personData.totalCompanies}</div>
+                <div className="font-medium">{personData.totalCompanies}</div>
               </div>
               <div>
                 <span className="text-sm font-medium text-muted-foreground">Aktive</span>
-                <div className="text-2xl font-bold text-green-600 dark:text-green-500">{personData.activeRelations.length}</div>
+                <div className="font-medium">{personData.activeRelations.length}</div>
               </div>
               <div>
                 <span className="text-sm font-medium text-muted-foreground">Historiske</span>
-                <div className="text-2xl font-bold text-amber-600 dark:text-amber-500">{personData.historicalRelations.length}</div>
+                <div className="font-medium">{personData.historicalRelations.length}</div>
               </div>
               <div>
                 <span className="text-sm font-medium text-muted-foreground">Samlet ejerskab</span>
-                <div className="text-2xl font-bold text-purple-600 dark:text-purple-500">{calculateTotalOwnership()}%</div>
+                <div className="font-medium">{calculateTotalOwnership()}%</div>
               </div>
             </div>
           </CardContent>
@@ -266,7 +266,7 @@ const PersonDetails: React.FC<PersonDetailsProps> = ({ personData }) => {
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <CheckCircle className="h-5 w-5 text-green-600" />
+                <CheckCircle className="h-5 w-5" />
                 Aktive tilknytninger ({personData.activeRelations.length})
               </CardTitle>
             </CardHeader>
@@ -281,7 +281,7 @@ const PersonDetails: React.FC<PersonDetailsProps> = ({ personData }) => {
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <History className="h-5 w-5 text-amber-600" />
+                <History className="h-5 w-5" />
                 Historiske tilknytninger ({personData.historicalRelations.length})
               </CardTitle>
             </CardHeader>
