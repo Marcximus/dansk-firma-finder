@@ -54,21 +54,19 @@ const PersonDetails: React.FC<PersonDetailsProps> = ({ personData }) => {
   const renderRelationsTable = (relations: any[], isActive: boolean) => {
     if (!relations || relations.length === 0) {
       return (
-        <Card className="p-12 text-center">
-          <Building2 className="h-12 w-12 text-muted-foreground mx-auto mb-4 opacity-50" />
-          <p className="text-muted-foreground">
-            {isActive ? 'Ingen aktive tilknytninger' : 'Ingen tidligere tilknytninger'}
-          </p>
-        </Card>
+        <div className="p-8 text-center text-muted-foreground">
+          <Building2 className="h-8 w-8 mx-auto mb-2 opacity-50" />
+          <p>{isActive ? 'Ingen aktive tilknytninger' : 'Ingen tidligere tilknytninger'}</p>
+        </div>
       );
     }
 
     return (
-      <div className="space-y-3">
+      <div className="space-y-4">
         {relations.map((relation: any, index: number) => (
-          <Card 
+          <div 
             key={index} 
-            className="group hover:shadow-lg hover:border-primary/50 transition-all duration-200 cursor-pointer overflow-hidden"
+            className="border rounded-lg hover:border-primary/50 transition-colors cursor-pointer"
             onClick={() => {
               if (relation.companyCvr && relation.companyName) {
                 const url = generateCompanyUrl(relation.companyName, relation.companyCvr);
@@ -76,122 +74,101 @@ const PersonDetails: React.FC<PersonDetailsProps> = ({ personData }) => {
               }
             }}
           >
-            <CardContent className="p-0">
-              {/* Company Header */}
-              <div className="p-4 border-b bg-gradient-to-r from-muted/30 to-transparent">
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-2 flex-wrap">
-                      <Building2 className="h-5 w-5 text-primary flex-shrink-0" />
-                      <h3 className="text-lg font-semibold group-hover:text-primary transition-colors">
-                        {relation.companyName}
-                      </h3>
-                      <Badge variant="outline" className="font-mono text-xs">
-                        CVR: {relation.companyCvr}
-                      </Badge>
-                    </div>
-                    
-                    {/* Status Badge */}
-                    <div className="flex items-center gap-2">
-                      {relation.companyStatus === 'NORMAL' ? (
-                        <Badge className="bg-green-500/10 text-green-700 border-green-500/20">
-                          <CheckCircle className="h-3 w-3 mr-1" />
-                          Aktiv virksomhed
-                        </Badge>
-                      ) : (
-                        <Badge variant="destructive" className="opacity-60">
-                          <XCircle className="h-3 w-3 mr-1" />
-                          {relation.companyStatus}
-                        </Badge>
-                      )}
-                    </div>
-                  </div>
-                  
-                  <ArrowRight className="h-5 w-5 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all flex-shrink-0" />
+            {/* Company Header Row */}
+            <div className="bg-muted/30 px-4 py-3 border-b">
+              <div className="flex items-center justify-between gap-4">
+                <div className="flex items-center gap-3 flex-1 min-w-0">
+                  <Building2 className="h-4 w-4 text-primary flex-shrink-0" />
+                  <div className="font-semibold truncate">{relation.companyName}</div>
+                  <Badge variant="outline" className="font-mono text-xs">
+                    CVR: {relation.companyCvr}
+                  </Badge>
+                  {relation.companyStatus === 'NORMAL' ? (
+                    <Badge className="bg-green-500/10 text-green-700 border-green-500/20 text-xs">
+                      <CheckCircle className="h-3 w-3 mr-1" />
+                      Aktiv
+                    </Badge>
+                  ) : (
+                    <Badge variant="destructive" className="opacity-60 text-xs">
+                      <XCircle className="h-3 w-3 mr-1" />
+                      {relation.companyStatus}
+                    </Badge>
+                  )}
                 </div>
+                <ArrowRight className="h-4 w-4 text-muted-foreground flex-shrink-0" />
               </div>
+            </div>
 
-              {/* Roles Grid */}
-              {relation.roles && relation.roles.length > 0 && (
-                <div className="p-4">
-                  <div className="grid gap-3">
-                    {relation.roles.map((role: any, roleIndex: number) => (
-                      <div
-                        key={roleIndex}
-                        className={`flex items-start gap-4 p-3 rounded-lg border ${
-                          role.type === 'EJERREGISTER' || role.ownershipPercentage !== undefined
-                            ? 'bg-purple-50 border-purple-200 dark:bg-purple-950/20 dark:border-purple-900/30' 
-                            : 'bg-blue-50 border-blue-200 dark:bg-blue-950/20 dark:border-blue-900/30'
-                        }`}
-                      >
-                        {/* Role Icon */}
-                        <div className={`p-2 rounded-lg flex-shrink-0 ${
-                          role.type === 'EJERREGISTER' || role.ownershipPercentage !== undefined
-                            ? 'bg-purple-100 dark:bg-purple-900/30' 
-                            : 'bg-blue-100 dark:bg-blue-900/30'
-                        }`}>
+            {/* Roles Grid - Spreadsheet Style */}
+            {relation.roles && relation.roles.length > 0 && (
+              <div className="p-4">
+                <div className="space-y-3">
+                  {relation.roles.map((role: any, roleIndex: number) => (
+                    <div
+                      key={roleIndex}
+                      className="grid grid-cols-1 md:grid-cols-4 gap-3 text-sm pb-3 border-b last:border-b-0 last:pb-0"
+                    >
+                      {/* Role Type */}
+                      <div>
+                        <span className="text-xs font-medium text-muted-foreground block mb-1">Rolle</span>
+                        <div className="flex items-center gap-2">
                           {role.type === 'EJERREGISTER' || role.ownershipPercentage !== undefined ? (
-                            <Briefcase className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+                            <Briefcase className="h-4 w-4 text-purple-600 dark:text-purple-400" />
                           ) : (
-                            <Users className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                            <Users className="h-4 w-4 text-blue-600 dark:text-blue-400" />
                           )}
-                        </div>
-                        
-                        {/* Role Details */}
-                        <div className="flex-1 min-w-0">
-                          <p className="font-semibold text-sm mb-1">
+                          <span className="font-medium">
                             {role.type === 'EJERREGISTER' && 'Ejer'}
                             {role.type === 'LEDELSE' && (role.title || 'Ledelsesmedlem')}
                             {!['EJERREGISTER', 'LEDELSE'].includes(role.type) && (role.title || role.type)}
-                          </p>
-                          
-                          {/* Ownership metrics */}
-                          {(role.ownershipPercentage !== undefined || role.votingRights !== undefined) && (
-                            <div className="flex flex-wrap gap-3 mt-2">
-                              {role.ownershipPercentage !== undefined && (
-                                <div className="flex items-center gap-1.5 text-xs">
-                                  <div className="w-2 h-2 rounded-full bg-purple-500" />
-                                  <span className="text-muted-foreground">Ejerandel:</span>
-                                  <span className="font-bold text-purple-700 dark:text-purple-400">
-                                    {role.ownershipPercentage.toFixed(2)}%
-                                  </span>
-                                </div>
-                              )}
-                              {role.votingRights !== undefined && (
-                                <div className="flex items-center gap-1.5 text-xs">
-                                  <div className="w-2 h-2 rounded-full bg-blue-500" />
-                                  <span className="text-muted-foreground">Stemmer:</span>
-                                  <span className="font-bold text-blue-700 dark:text-blue-400">
-                                    {role.votingRights.toFixed(2)}%
-                                  </span>
-                                </div>
-                              )}
-                            </div>
-                          )}
-                          
-                          {/* Period with better formatting */}
-                          {(role.validFrom || role.validTo) && (
-                            <div className="flex items-center gap-2 mt-2 text-xs text-muted-foreground flex-wrap">
-                              <Calendar className="h-3.5 w-3.5 flex-shrink-0" />
-                              <span className="font-medium">
-                                {role.validFrom ? formatDate(role.validFrom) : 'Ukendt'}
-                              </span>
-                              <ArrowRight className="h-3 w-3 flex-shrink-0" />
-                              <span className="font-medium">
-                                {role.validTo ? formatDate(role.validTo) : (
-                                  <Badge variant="outline" className="h-5 text-xs">Nuværende</Badge>
-                                )}
-                              </span>
-                            </div>
-                          )}
+                          </span>
                         </div>
                       </div>
-                    ))}
-                  </div>
+
+                      {/* Ownership */}
+                      <div>
+                        <span className="text-xs font-medium text-muted-foreground block mb-1">Ejerandel</span>
+                        {role.ownershipPercentage !== undefined ? (
+                          <span className="font-bold text-purple-700 dark:text-purple-400">
+                            {role.ownershipPercentage.toFixed(2)}%
+                          </span>
+                        ) : (
+                          <span className="text-muted-foreground">-</span>
+                        )}
+                      </div>
+
+                      {/* Voting Rights */}
+                      <div>
+                        <span className="text-xs font-medium text-muted-foreground block mb-1">Stemmerettigheder</span>
+                        {role.votingRights !== undefined ? (
+                          <span className="font-bold text-blue-700 dark:text-blue-400">
+                            {role.votingRights.toFixed(2)}%
+                          </span>
+                        ) : (
+                          <span className="text-muted-foreground">-</span>
+                        )}
+                      </div>
+
+                      {/* Period */}
+                      <div>
+                        <span className="text-xs font-medium text-muted-foreground block mb-1">Periode</span>
+                        <div className="flex items-center gap-1.5 text-xs">
+                          <Calendar className="h-3 w-3 flex-shrink-0" />
+                          <span>{role.validFrom ? formatDate(role.validFrom) : 'Ukendt'}</span>
+                          <ArrowRight className="h-2.5 w-2.5 flex-shrink-0" />
+                          <span>
+                            {role.validTo ? formatDate(role.validTo) : (
+                              <Badge variant="outline" className="h-4 text-[10px] px-1">Nu</Badge>
+                            )}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
                 </div>
-              )}
-            </CardContent>
-          </Card>
+              </div>
+            )}
+          </div>
         ))}
       </div>
     );
@@ -252,91 +229,67 @@ const PersonDetails: React.FC<PersonDetailsProps> = ({ personData }) => {
         </div>
       </div>
 
-      {/* Statistics Dashboard */}
-      <div className="container mx-auto px-4 py-6">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          {/* Total Companies */}
-          <Card className="border-l-4 border-l-blue-500">
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Tilknytninger</p>
-                  <h3 className="text-3xl font-bold mt-1">{personData.totalCompanies}</h3>
-                </div>
-                <Building2 className="h-8 w-8 text-blue-500 opacity-50" />
+      {/* Relations Details - Spreadsheet Style */}
+      <div className="container mx-auto px-4 py-6 space-y-6">
+        {/* Summary Stats in Simple Grid */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Building2 className="h-5 w-5" />
+              Oversigt
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div>
+                <span className="text-sm font-medium text-muted-foreground">Tilknytninger i alt</span>
+                <div className="text-2xl font-bold">{personData.totalCompanies}</div>
               </div>
-            </CardContent>
-          </Card>
-          
-          {/* Active Relations */}
-          <Card className="border-l-4 border-l-green-500">
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Aktive</p>
-                  <h3 className="text-3xl font-bold mt-1 text-green-600 dark:text-green-500">
-                    {personData.activeRelations.length}
-                  </h3>
-                </div>
-                <CheckCircle className="h-8 w-8 text-green-500 opacity-50" />
+              <div>
+                <span className="text-sm font-medium text-muted-foreground">Aktive</span>
+                <div className="text-2xl font-bold text-green-600 dark:text-green-500">{personData.activeRelations.length}</div>
               </div>
-            </CardContent>
-          </Card>
-          
-          {/* Historical Relations */}
-          <Card className="border-l-4 border-l-amber-500">
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Historiske</p>
-                  <h3 className="text-3xl font-bold mt-1 text-amber-600 dark:text-amber-500">
-                    {personData.historicalRelations.length}
-                  </h3>
-                </div>
-                <History className="h-8 w-8 text-amber-500 opacity-50" />
+              <div>
+                <span className="text-sm font-medium text-muted-foreground">Historiske</span>
+                <div className="text-2xl font-bold text-amber-600 dark:text-amber-500">{personData.historicalRelations.length}</div>
               </div>
-            </CardContent>
-          </Card>
-          
-          {/* Total Ownership */}
-          <Card className="border-l-4 border-l-purple-500">
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Samlet Ejerskab</p>
-                  <h3 className="text-3xl font-bold mt-1 text-purple-600 dark:text-purple-500">
-                    {calculateTotalOwnership()}%
-                  </h3>
-                </div>
-                <TrendingUp className="h-8 w-8 text-purple-500 opacity-50" />
+              <div>
+                <span className="text-sm font-medium text-muted-foreground">Samlet ejerskab</span>
+                <div className="text-2xl font-bold text-purple-600 dark:text-purple-500">{calculateTotalOwnership()}%</div>
               </div>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
+            </div>
+          </CardContent>
+        </Card>
 
-      {/* Relations Table View */}
-      <div className="container mx-auto px-4 pb-8">
-        <Tabs defaultValue="active" className="w-full">
-          <TabsList className="grid w-full max-w-md grid-cols-2 mb-6">
-            <TabsTrigger value="active" className="flex items-center gap-2">
-              <CheckCircle className="h-4 w-4" />
-              Aktive ({personData.activeRelations.length})
-            </TabsTrigger>
-            <TabsTrigger value="historical" className="flex items-center gap-2">
-              <History className="h-4 w-4" />
-              Historiske ({personData.historicalRelations.length})
-            </TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value="active">
-            {renderRelationsTable(personData.activeRelations, true)}
-          </TabsContent>
-          
-          <TabsContent value="historical">
-            {renderRelationsTable(personData.historicalRelations, false)}
-          </TabsContent>
-        </Tabs>
+        {/* Active Relations */}
+        {personData.activeRelations.length > 0 && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <CheckCircle className="h-5 w-5 text-green-600" />
+                Aktive tilknytninger ({personData.activeRelations.length})
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {renderRelationsTable(personData.activeRelations, true)}
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Historical Relations */}
+        {personData.historicalRelations.length > 0 && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <History className="h-5 w-5 text-amber-600" />
+                Historiske tilknytninger ({personData.historicalRelations.length})
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {renderRelationsTable(personData.historicalRelations, false)}
+            </CardContent>
+          </Card>
+        )}
       </div>
 
       {/* Data Source Footer */}
