@@ -367,8 +367,7 @@ Deno.serve(async (req) => {
         if (!deltagende) return;
         
         const companyCvr = deltagende.enhedsNummer?.toString() || '';
-        // Use the most recent name (last in array)
-        const companyName = deltagende.navne?.[deltagende.navne?.length - 1]?.navn || 'Ukendt virksomhed';
+        const companyName = deltagende.navne?.[0]?.navn || 'Ukendt virksomhed';
         const companyStatus = deltagende.virksomhedsstatus?.[0]?.status || 'Ukendt';
         
         // Extract roles from organizations
@@ -380,14 +379,10 @@ Deno.serve(async (req) => {
           const orgName = org.organisationsNavn?.[0]?.navn || orgType;
           
           (org.medlemsData || []).forEach((member: any) => {
-            // Try multiple sources for dates
-            const validFrom = member.periode?.gyldigFra || org.periode?.gyldigFra || deltagelse.periode?.gyldigFra;
-            const validTo = member.periode?.gyldigTil || org.periode?.gyldigTil || deltagelse.periode?.gyldigTil;
-            
             const role: any = {
               type: orgName,
-              validFrom: validFrom,
-              validTo: validTo
+              validFrom: member.periode?.gyldigFra || deltagelse.periode?.gyldigFra,
+              validTo: member.periode?.gyldigTil || deltagelse.periode?.gyldigTil
             };
             
             // Extract attributes (FUNKTION, ownership, etc.)
@@ -428,8 +423,7 @@ Deno.serve(async (req) => {
       const company = hit._source?.Vrvirksomhed;
       if (!company) return;
 
-      // Prioritize nyesteNavn (current name) over old names in navne array
-      const companyName = company.virksomhedMetadata?.nyesteNavn?.navn || company.navne?.[company.navne?.length - 1]?.navn || 'Ukendt virksomhed';
+      const companyName = company.navne?.[0]?.navn || company.virksomhedMetadata?.nyesteNavn?.navn || 'Ukendt virksomhed';
       const companyCvr = company.cvrNummer?.toString() || '';
       const companyStatus = company.virksomhedsstatus?.[0]?.status || 'Ukendt';
 
@@ -456,14 +450,10 @@ Deno.serve(async (req) => {
             const orgName = org.organisationsNavn?.[0]?.navn || '';
             
             (org.medlemsData || []).forEach((member: any) => {
-              // Try multiple sources for dates
-              const validFrom = member.periode?.gyldigFra || rel.periode?.gyldigFra || org.periode?.gyldigFra;
-              const validTo = member.periode?.gyldigTil || rel.periode?.gyldigTil || org.periode?.gyldigTil;
-              
               const role: any = {
                 type: orgName || orgType,
-                validFrom: validFrom,
-                validTo: validTo
+                validFrom: member.periode?.gyldigFra || rel.periode?.gyldigFra,
+                validTo: member.periode?.gyldigTil || rel.periode?.gyldigTil
               };
               
               // Extract title for LEDELSE roles
