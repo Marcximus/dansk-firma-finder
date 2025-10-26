@@ -504,15 +504,13 @@ Deno.serve(async (req) => {
               
               // Debug logging for missing dates
               if (!role.validFrom) {
-                console.log('[DEBUG] Missing validFrom for role (virksomhed search):', {
+                console.log('[DEBUG] Missing validFrom - full data dump:', {
                   companyName: company.virksomhedMetadata?.nyesteNavn?.navn || company.navne?.[0]?.navn,
                   orgType,
                   orgName,
-                  memberPeriode: member.periode,
-                  orgPeriode: org.periode,
-                  relPeriode: rel.periode,
-                  hasAttributter: !!(member.attributter && member.attributter.length > 0),
-                  attributterTypes: member.attributter?.map((a: any) => a.type)
+                  member: JSON.stringify(member, null, 2),
+                  org: JSON.stringify(org, null, 2),
+                  rel: JSON.stringify(rel, null, 2)
                 });
               }
               

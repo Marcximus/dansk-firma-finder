@@ -90,79 +90,103 @@ const PersonDetails: React.FC<PersonDetailsProps> = ({ personData }) => {
     }
 
     return (
-      <div className="space-y-4">
+      <div className="space-y-3">
         {allRelations.map((item: any, index: number) => (
           <div 
             key={index}
-            className="border rounded-lg p-4 hover:border-primary/50 hover:bg-muted/30 transition-all cursor-pointer"
-            onClick={() => {
-              if (item.companyCvr && item.companyName) {
-                const url = generateCompanyUrl(item.companyName, item.companyCvr);
-                navigate(url);
-              }
-            }}
+            className="border rounded-lg p-4 hover:border-primary/50 hover:bg-muted/30 transition-all"
           >
-            {/* Company Name */}
-            <h3 className="text-xl font-bold mb-3">{item.companyName}</h3>
-            
-            {/* Status Indicator */}
-            <div className="flex items-center gap-2 mb-4">
-              <span 
-                className={`h-2.5 w-2.5 rounded-full ${item.isActive ? 'animate-pulse bg-green-500' : 'animate-pulse bg-red-500'}`}
-              />
-              <span className="text-sm font-medium">
-                {item.isActive ? 'Aktiv Relation' : 'Ophørt Relation'}
+            {/* Single line layout with all info */}
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm">
+              {/* Status Indicator */}
+              <div className="flex items-center gap-2">
+                <span 
+                  className={`h-2 w-2 rounded-full ${item.isActive ? 'bg-green-500' : 'bg-red-500'}`}
+                />
+                <span className="text-xs font-medium text-muted-foreground">
+                  {item.isActive ? 'Aktiv' : 'Ophørt'}
+                </span>
+              </div>
+
+              {/* Company Name - Clickable */}
+              <button
+                onClick={() => {
+                  if (item.companyCvr && item.companyName) {
+                    const url = generateCompanyUrl(item.companyName, item.companyCvr);
+                    navigate(url);
+                  }
+                }}
+                className="font-bold text-base hover:text-primary underline-offset-4 hover:underline transition-colors"
+              >
+                {item.companyName}
+              </button>
+
+              {/* CVR - Clickable */}
+              <button
+                onClick={() => {
+                  if (item.companyCvr && item.companyName) {
+                    const url = generateCompanyUrl(item.companyName, item.companyCvr);
+                    navigate(url);
+                  }
+                }}
+                className="font-mono text-muted-foreground hover:text-primary transition-colors"
+              >
+                CVR: {item.companyCvr}
+              </button>
+
+              {/* Divider */}
+              <span className="text-muted-foreground">•</span>
+
+              {/* Role */}
+              <span className="text-muted-foreground">
+                {item.role.type === 'EJERREGISTER' && 'Ejer'}
+                {item.role.type === 'LEDELSE' && (item.role.title || 'Ledelsesmedlem')}
+                {!['EJERREGISTER', 'LEDELSE'].includes(item.role.type) && (item.role.title || item.role.type)}
               </span>
-            </div>
 
-            {/* Key-Value Pairs */}
-            <div className="space-y-2 text-sm">
-              <div className="grid grid-cols-[140px_1fr] gap-2">
-                <span className="text-muted-foreground">CVR-nummer</span>
-                <span className="font-medium font-mono">{item.companyCvr}</span>
-              </div>
+              {/* Divider */}
+              <span className="text-muted-foreground">•</span>
 
-              <div className="grid grid-cols-[140px_1fr] gap-2">
-                <span className="text-muted-foreground">Virksomhedsstatus</span>
-                <span className="font-medium">{item.companyStatus || 'Ukendt'}</span>
-              </div>
+              {/* Join Date */}
+              <span className="text-muted-foreground">
+                Tiltrådt: {item.role.validFrom ? formatDate(item.role.validFrom) : 'Ukendt'}
+              </span>
 
-              <div className="grid grid-cols-[140px_1fr] gap-2">
-                <span className="text-muted-foreground">Tilknyttet som</span>
-                <span className="font-medium">
-                  {item.role.type === 'EJERREGISTER' && 'Ejer'}
-                  {item.role.type === 'LEDELSE' && (item.role.title || 'Ledelsesmedlem')}
-                  {!['EJERREGISTER', 'LEDELSE'].includes(item.role.type) && (item.role.title || item.role.type)}
-                </span>
-              </div>
-
-              <div className="grid grid-cols-[140px_1fr] gap-2">
-                <span className="text-muted-foreground">Tiltrædelsesdato</span>
-                <span className="font-medium">
-                  {item.role.validFrom ? formatDate(item.role.validFrom) : 'Ukendt'}
-                </span>
-              </div>
-
+              {/* Exit Date */}
               {item.role.validTo && (
-                <div className="grid grid-cols-[140px_1fr] gap-2">
-                  <span className="text-muted-foreground">Fratrådt</span>
-                  <span className="font-medium">{formatDate(item.role.validTo)}</span>
-                </div>
+                <>
+                  <span className="text-muted-foreground">•</span>
+                  <span className="text-muted-foreground">
+                    Fratrådt: {formatDate(item.role.validTo)}
+                  </span>
+                </>
               )}
 
+              {/* Ownership */}
               {item.role.ownershipPercentage !== undefined && (
-                <div className="grid grid-cols-[140px_1fr] gap-2">
-                  <span className="text-muted-foreground">Ejerandel</span>
-                  <span className="font-medium">{item.role.ownershipPercentage.toFixed(2)}%</span>
-                </div>
+                <>
+                  <span className="text-muted-foreground">•</span>
+                  <span className="font-medium">
+                    Ejerandel: {item.role.ownershipPercentage.toFixed(2)}%
+                  </span>
+                </>
               )}
 
+              {/* Voting Rights */}
               {item.role.votingRights !== undefined && (
-                <div className="grid grid-cols-[140px_1fr] gap-2">
-                  <span className="text-muted-foreground">Stemmerettigheder</span>
-                  <span className="font-medium">{item.role.votingRights.toFixed(2)}%</span>
-                </div>
+                <>
+                  <span className="text-muted-foreground">•</span>
+                  <span className="text-muted-foreground">
+                    Stemmer: {item.role.votingRights.toFixed(2)}%
+                  </span>
+                </>
               )}
+
+              {/* Company Status */}
+              <span className="text-muted-foreground">•</span>
+              <span className="text-muted-foreground">
+                {item.companyStatus || 'Ukendt status'}
+              </span>
             </div>
           </div>
         ))}
