@@ -94,21 +94,27 @@ const PersonDetails: React.FC<PersonDetailsProps> = ({ personData }) => {
         {allRelations.map((item: any, index: number) => (
           <div 
             key={index}
-            className="border rounded-lg p-4 hover:border-primary/50 hover:bg-muted/30 transition-all cursor-pointer"
-            onClick={() => {
-              if (item.companyCvr && item.companyName) {
-                const url = generateCompanyUrl(item.companyName, item.companyCvr);
-                navigate(url);
-              }
-            }}
+            className="border rounded-lg p-4 transition-all"
           >
             {/* Company Name */}
-            <h3 className="text-xl font-bold mb-3">{item.companyName}</h3>
+            <h3 className="text-xl font-bold mb-3">
+              <button
+                onClick={() => {
+                  if (item.companyCvr && item.companyName) {
+                    const url = generateCompanyUrl(item.companyName, item.companyCvr);
+                    navigate(url);
+                  }
+                }}
+                className="hover:text-primary hover:underline transition-colors text-left"
+              >
+                {item.companyName}
+              </button>
+            </h3>
             
             {/* Status Indicator */}
             <div className="flex items-center gap-2 mb-4">
               <span 
-                className={`h-2.5 w-2.5 rounded-full ${item.isActive ? 'animate-pulse bg-green-500' : 'animate-pulse bg-red-500'}`}
+                className={`h-2.5 w-2.5 rounded-full ${item.isActive ? 'bg-green-500' : 'bg-red-500'}`}
               />
               <span className="text-sm font-medium">
                 {item.isActive ? 'Aktiv Relation' : 'Ophørt Relation'}
@@ -119,7 +125,17 @@ const PersonDetails: React.FC<PersonDetailsProps> = ({ personData }) => {
             <div className="space-y-2 text-sm">
               <div className="grid grid-cols-[140px_1fr] gap-2">
                 <span className="text-muted-foreground">CVR-nummer</span>
-                <span className="font-medium font-mono">{item.companyCvr}</span>
+                <button
+                  onClick={() => {
+                    if (item.companyCvr && item.companyName) {
+                      const url = generateCompanyUrl(item.companyName, item.companyCvr);
+                      navigate(url);
+                    }
+                  }}
+                  className="font-medium font-mono hover:text-primary hover:underline transition-colors text-left"
+                >
+                  {item.companyCvr}
+                </button>
               </div>
 
               <div className="grid grid-cols-[140px_1fr] gap-2">

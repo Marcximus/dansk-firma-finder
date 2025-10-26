@@ -386,11 +386,19 @@ Deno.serve(async (req) => {
             let validFrom = member.periode?.gyldigFra || org.periode?.gyldigFra || deltagelse.periode?.gyldigFra;
             let validTo = member.periode?.gyldigTil || org.periode?.gyldigTil || deltagelse.periode?.gyldigTil;
             
-            // Check attributter for dates if not found yet
+            // Check attributter for dates if not found yet - check ALL attributter
             if (!validFrom && member.attributter) {
               member.attributter.forEach((attr: any) => {
-                if ((attr.type === 'STARTDATO' || attr.type === 'INDTRAEDELSESDATO') && !validFrom) {
-                  validFrom = attr.vaerdier?.[0]?.periode?.gyldigFra || attr.vaerdier?.[0]?.vaerdi;
+                if (!validFrom && attr.vaerdier?.[0]?.periode?.gyldigFra) {
+                  validFrom = attr.vaerdier[0].periode.gyldigFra;
+                }
+              });
+            }
+            
+            if (!validTo && member.attributter) {
+              member.attributter.forEach((attr: any) => {
+                if (!validTo && attr.vaerdier?.[0]?.periode?.gyldigTil) {
+                  validTo = attr.vaerdier[0].periode.gyldigTil;
                 }
               });
             }
@@ -487,11 +495,19 @@ Deno.serve(async (req) => {
               let validFrom = member.periode?.gyldigFra || org.periode?.gyldigFra || rel.periode?.gyldigFra;
               let validTo = member.periode?.gyldigTil || org.periode?.gyldigTil || rel.periode?.gyldigTil;
               
-              // Check attributter for dates if not found yet
+              // Check attributter for dates if not found yet - check ALL attributter
               if (!validFrom && member.attributter) {
                 member.attributter.forEach((attr: any) => {
-                  if ((attr.type === 'STARTDATO' || attr.type === 'INDTRAEDELSESDATO') && !validFrom) {
-                    validFrom = attr.vaerdier?.[0]?.periode?.gyldigFra || attr.vaerdier?.[0]?.vaerdi;
+                  if (!validFrom && attr.vaerdier?.[0]?.periode?.gyldigFra) {
+                    validFrom = attr.vaerdier[0].periode.gyldigFra;
+                  }
+                });
+              }
+              
+              if (!validTo && member.attributter) {
+                member.attributter.forEach((attr: any) => {
+                  if (!validTo && attr.vaerdier?.[0]?.periode?.gyldigTil) {
+                    validTo = attr.vaerdier[0].periode.gyldigTil;
                   }
                 });
               }
