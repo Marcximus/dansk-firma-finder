@@ -147,26 +147,24 @@ const PersonDetails: React.FC<PersonDetailsProps> = ({ personData }) => {
         {/* Status Indicator */}
         <div className="grid grid-cols-[140px_1fr] gap-2">
           <span className="text-muted-foreground">Status</span>
-          <div className="relative inline-flex">
+          <div className="relative inline-flex items-center">
             <div className={`
-              relative px-4 py-1.5 rounded-full font-medium text-sm
+              absolute inset-0 rounded-full blur-sm opacity-40 animate-pulse
+              ${item.isActive ? 'bg-green-500/50' : 'bg-red-500/50'}
+            `} />
+            <div className={`
+              relative flex items-center gap-2 px-2.5 py-0.5 rounded-full font-medium text-xs
+              bg-white dark:bg-gray-900
               ${item.isActive 
-                ? 'bg-gradient-to-r from-green-500/20 to-emerald-500/20 text-green-600 dark:text-green-400 border border-green-500/30' 
-                : 'bg-gradient-to-r from-red-500/20 to-rose-500/20 text-red-600 dark:text-red-400 border border-red-500/30'
+                ? 'text-green-600 dark:text-green-400 border border-green-500/40' 
+                : 'text-red-600 dark:text-red-400 border border-red-500/40'
               }
-              transition-all duration-300
             `}>
-              <div className={`
-                absolute inset-0 rounded-full blur-md opacity-50 animate-pulse
-                ${item.isActive ? 'bg-green-500/30' : 'bg-red-500/30'}
+              <span className={`
+                h-1.5 w-1.5 rounded-full animate-pulse
+                ${item.isActive ? 'bg-green-500 shadow-md shadow-green-500/50' : 'bg-red-500 shadow-md shadow-red-500/50'}
               `} />
-              <div className="relative flex items-center gap-2">
-                <span className={`
-                  h-2 w-2 rounded-full animate-pulse
-                  ${item.isActive ? 'bg-green-500 shadow-lg shadow-green-500/50' : 'bg-red-500 shadow-lg shadow-red-500/50'}
-                `} />
-                <span>{item.isActive ? 'Aktiv Relation' : 'Ophørt Relation'}</span>
-              </div>
+              <span>{item.isActive ? 'Aktiv Relation' : 'Ophørt Relation'}</span>
             </div>
           </div>
         </div>
