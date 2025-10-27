@@ -102,33 +102,12 @@ const SigningRulesAccordion: React.FC<SigningRulesAccordionProps> = ({ cvrData }
           'BESTYRELSESMEDLEM.NÆSTFORMAND': 'Næstformand',
           'DIREKTØR': 'Direktør',
           'REVISOR': 'Revisor',
-          'SUPPLEANT': isEmployeeElected ? 'Medarbejdervalgt suppleant' : 'Suppleant',
+          // Don't map SUPPLEANT here - role name will just be base role, badge will show suppleant status
         };
         
         let mappedRole = roleMap[specificRole] || specificRole;
         
-        // Check for Suppleant status
-        let isSuppleant = specificRole === 'SUPPLEANT';
-        
-        // Also check in relation._medlemsData (enriched from backend)
-        if (!isSuppleant && relation?._medlemsData?.attributter) {
-          const medlemsDataFunktion = relation._medlemsData.attributter.find(
-            (attr: any) => attr.type === 'FUNKTION'
-          );
-          
-          if (medlemsDataFunktion?.vaerdier) {
-            isSuppleant = medlemsDataFunktion.vaerdier.some((v: any) => {
-              const gyldigTil = v.periode?.gyldigTil;
-              const isActive = gyldigTil === null || gyldigTil === undefined || gyldigTil >= today;
-              return isActive && v.vaerdi === 'SUPPLEANT';
-            });
-          }
-        }
-        
-        // Add (Suppleant) suffix if this is a board member who is a Suppleant
-        if (isSuppleant && mappedRole !== 'Suppleant') {
-          mappedRole += ' (Suppleant)';
-        }
+        // Don't add (Suppleant) suffix here - we'll show suppleant status separately with proper styling
         
         return mappedRole;
       }
@@ -384,8 +363,22 @@ const SigningRulesAccordion: React.FC<SigningRulesAccordionProps> = ({ cvrData }
                                 return gyldigTil === null || gyldigTil === undefined || gyldigTil >= today;
                               });
                               
+                              // Check if person is a Suppleant
+                              const isSuppleant = funkAttr?.vaerdier?.some((v: any) => {
+                                const gyldigTil = v.periode?.gyldigTil;
+                                const isActive = gyldigTil === null || gyldigTil === undefined || gyldigTil >= today;
+                                return isActive && v.vaerdi?.includes('SUPPLEANT');
+                              });
+                              
+                              const isEmployeeElectedSuppleant = isSuppleant && activeValgform?.vaerdi?.includes('medarbejdere i selskabet');
+                              
                               return (
                                 <>
+                                  {isSuppleant && (
+                                    <div className={`text-[10px] sm:text-xs font-medium mb-1 ${isEmployeeElectedSuppleant ? 'text-orange-600 dark:text-orange-500' : 'text-amber-600 dark:text-amber-500'}`}>
+                                      {isEmployeeElectedSuppleant ? 'Medarbejdervalgt suppleant' : 'Suppleant'}
+                                    </div>
+                                  )}
                                   {activeFunk?.periode?.gyldigFra && (
                                     <div>Siden: {activeFunk.periode.gyldigFra}</div>
                                   )}

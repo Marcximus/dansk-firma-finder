@@ -152,9 +152,7 @@ const ManagementAccordion: React.FC<ManagementAccordionProps> = ({ cvrData }) =>
           return 'Medarbejdervalgt bestyrelsesmedlem';
         }
         
-        if (specificRole === 'SUPPLEANT' && isEmployeeElected) {
-          return 'Medarbejdervalgt suppleant';
-        }
+        // Don't handle SUPPLEANT here - let the separate badge display it
         
         if (specificRole !== hovedtype) {
           return `${baseName} - ${specificRole}`;
