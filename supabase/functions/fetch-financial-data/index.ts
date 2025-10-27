@@ -39,6 +39,7 @@ const parseXBRL = (xmlContent: string, period: string) => {
     // Extract financial KPIs with multiple possible tag names (Danish and English)
     const financialData = {
       periode: period,
+      // Income Statement
       nettoomsaetning: extractValue([
         'Revenue', 'Nettoomsætning', 'NetRevenue', 'Omsætning',
         'fsa\\:Revenue', 'fsa\\:Nettoomsætning'
@@ -47,13 +48,42 @@ const parseXBRL = (xmlContent: string, period: string) => {
         'GrossProfit', 'GrossResult', 'Bruttofortjeneste', 'Bruttoavance',
         'fsa\\:GrossProfit', 'fsa\\:Bruttofortjeneste'
       ]),
+      driftsresultat: extractValue([
+        'ProfitLossFromOperatingActivities', 'OperatingProfitLoss', 'Driftsresultat', 'EBIT',
+        'fsa\\:ProfitLossFromOperatingActivities', 'fsa\\:Driftsresultat'
+      ]),
+      resultatFoerSkat: extractValue([
+        'ProfitLossBeforeTax', 'ResultatFørSkat', 'ProfitBeforeTax',
+        'fsa\\:ProfitLossBeforeTax', 'fsa\\:ResultatFørSkat'
+      ]),
       aaretsResultat: extractValue([
         'ProfitLoss', 'NetIncome', 'ÅretsResultat', 'Resultat',
         'fsa\\:ProfitLoss', 'fsa\\:ÅretsResultat'
       ]),
+      // Balance Sheet
+      anlaegsaktiverValue: extractValue([
+        'NoncurrentAssets', 'Anlægsaktiver', 'FixedAssets', 'LongtermAssets',
+        'fsa\\:NoncurrentAssets', 'fsa\\:Anlægsaktiver'
+      ]),
+      omsaetningsaktiver: extractValue([
+        'CurrentAssets', 'Omsætningsaktiver', 'ShorttermAssets',
+        'fsa\\:CurrentAssets', 'fsa\\:Omsætningsaktiver'
+      ]),
       egenkapital: extractValue([
         'Equity', 'Egenkapital', 'ShareholdersEquity',
         'fsa\\:Equity', 'fsa\\:Egenkapital'
+      ]),
+      hensatteForpligtelser: extractValue([
+        'Provisions', 'HensatteForpligtelser', 'ProvisionsForLiabilities',
+        'fsa\\:Provisions', 'fsa\\:HensatteForpligtelser'
+      ]),
+      gaeldsforpligtelser: extractValue([
+        'Liabilities', 'Gældsforpligtelser', 'ShortTermLiabilities', 'LongTermLiabilities',
+        'fsa\\:Liabilities', 'fsa\\:Gældsforpligtelser'
+      ]),
+      kortfristetGaeld: extractValue([
+        'ShorttermLiabilitiesOtherThanProvisions', 'KortfristetGæld', 'CurrentLiabilities',
+        'fsa\\:ShorttermLiabilitiesOtherThanProvisions', 'fsa\\:KortfristetGæld'
       ]),
       statusBalance: extractValue([
         'Assets', 'TotalAssets', 'AktiverIAlt', 'Balance',

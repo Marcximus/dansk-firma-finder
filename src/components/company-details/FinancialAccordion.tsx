@@ -8,6 +8,7 @@ import EmploymentDataCard from './financial/EmploymentDataCard';
 import CapitalInformationCard from './financial/CapitalInformationCard';
 import FinancialReportsSection from './financial/FinancialReportsSection';
 import FinancialChartsSection from './financial/FinancialChartsSection';
+import FinancialSpreadsheet from './financial/FinancialSpreadsheet';
 import { getFinancialData } from '@/services/companyAPI';
 
 interface FinancialAccordionProps {
@@ -49,8 +50,15 @@ const FinancialAccordion: React.FC<FinancialAccordionProps> = ({ cvr, cvrData })
       </AccordionTrigger>
       <AccordionContent className="px-2 sm:px-4 md:px-6 pb-2 sm:pb-4 md:pb-6">
         <div className="space-y-3 sm:space-y-4 md:space-y-6">
-          {/* Key Financial Figures - Always show these */}
-          <FinancialKPICard financialKPIs={financialData?.financialKPIs} />
+          {/* Financial Spreadsheet - Show comprehensive data if available */}
+          {financialData?.historicalData && financialData.historicalData.length > 0 && (
+            <FinancialSpreadsheet historicalData={financialData.historicalData} />
+          )}
+
+          {/* Key Financial Figures - Show if no spreadsheet data */}
+          {(!financialData?.historicalData || financialData.historicalData.length === 0) && (
+            <FinancialKPICard financialKPIs={financialData?.financialKPIs} />
+          )}
 
           {/* Financial Charts - Show historical data if available */}
           {financialData?.historicalData && financialData.historicalData.length > 0 && (

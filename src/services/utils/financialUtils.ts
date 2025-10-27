@@ -1,4 +1,31 @@
 
+// Helper function to calculate financial ratios
+export const calculateFinancialRatios = (data: any) => {
+  const ratios: any = {};
+  
+  // Soliditetsgrad (Equity Ratio): Egenkapital / Aktiver * 100
+  if (data.egenkapital && data.statusBalance && data.statusBalance !== 0) {
+    ratios.soliditetsgrad = (data.egenkapital / data.statusBalance) * 100;
+  }
+  
+  // Likviditetsgrad (Liquidity Ratio): Omsætningsaktiver / Kortfristet gæld * 100
+  if (data.omsaetningsaktiver && data.kortfristetGaeld && data.kortfristetGaeld !== 0) {
+    ratios.likviditetsgrad = (data.omsaetningsaktiver / data.kortfristetGaeld) * 100;
+  }
+  
+  // Afkastningsgrad (Return on Assets): Årets resultat / Aktiver * 100
+  if (data.aaretsResultat && data.statusBalance && data.statusBalance !== 0) {
+    ratios.afkastningsgrad = (data.aaretsResultat / data.statusBalance) * 100;
+  }
+  
+  // Overskudsgrad (Profit Margin): Årets resultat / Omsætning * 100
+  if (data.aaretsResultat && data.nettoomsaetning && data.nettoomsaetning !== 0) {
+    ratios.overskudsgrad = (data.aaretsResultat / data.nettoomsaetning) * 100;
+  }
+  
+  return ratios;
+};
+
 // Helper functions for extracting financial data from parsed XBRL
 export const extractFinancialData = (cvrData: any, parsedFinancialData?: any) => {
   console.log('extractFinancialData - Input:', { cvrData, parsedFinancialData });
@@ -6,14 +33,24 @@ export const extractFinancialData = (cvrData: any, parsedFinancialData?: any) =>
   // If we have parsed XBRL financial data, use that
   if (parsedFinancialData?.financialData && parsedFinancialData.financialData.length > 0) {
     console.log('extractFinancialData - Using parsed XBRL data');
-    const latestData = parsedFinancialData.financialData[0]; // Most recent report
+    
+    // Calculate ratios for each period
+    const enrichedData = parsedFinancialData.financialData.map((periodData: any) => {
+      const ratios = calculateFinancialRatios(periodData);
+      return {
+        ...periodData,
+        ...ratios
+      };
+    });
+    
+    const latestData = enrichedData[0]; // Most recent report
     
     return {
       financialKPIs: {
         ...latestData,
         periode: latestData.periode
       },
-      historicalData: parsedFinancialData.financialData, // All parsed periods
+      historicalData: enrichedData, // All parsed periods with ratios
       yearlyEmployment: cvrData?.Vrvirksomhed?.aarsbeskaeftigelse || [],
       quarterlyEmployment: cvrData?.Vrvirksomhed?.kvartalsbeskaeftigelse || [],
       kapitalforhold: cvrData?.Vrvirksomhed?.kapitalforhold || [],
