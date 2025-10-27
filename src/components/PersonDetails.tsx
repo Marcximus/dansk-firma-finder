@@ -2,6 +2,7 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { StatusBadge } from '@/components/ui/status-badge';
 import { useNavigate } from 'react-router-dom';
 import { generateCompanyUrl } from '@/lib/urlUtils';
 import { 
@@ -145,16 +146,11 @@ const PersonDetails: React.FC<PersonDetailsProps> = ({ personData }) => {
         </div>
 
         {/* Status Indicator */}
-        <div className="grid grid-cols-[140px_1fr] gap-2">
-          <span className="text-muted-foreground">Status</span>
-          <div className="flex items-center gap-2">
-            <span 
-              className={`h-2.5 w-2.5 rounded-full animate-pulse ${item.isActive ? 'bg-green-500' : 'bg-red-500'}`}
-            />
-            <span className="font-medium">
-              {item.isActive ? 'Aktiv Relation' : 'Ophørt Relation'}
-            </span>
-          </div>
+        <div className="mb-2">
+          <StatusBadge 
+            text={item.isActive ? 'Aktiv Relation' : 'Ophørt Relation'}
+            variant={item.isActive ? 'active' : 'inactive'}
+          />
         </div>
 
         <div className="grid grid-cols-[140px_1fr] gap-2">
