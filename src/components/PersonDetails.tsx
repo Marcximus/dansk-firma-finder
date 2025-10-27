@@ -137,17 +137,33 @@ const PersonDetails: React.FC<PersonDetailsProps> = ({ personData }) => {
 
         <div className="grid grid-cols-[140px_1fr] gap-2">
           <span className="text-muted-foreground">Tilknyttet som</span>
-          <span className="font-medium">
+          <button
+            onClick={() => {
+              if (item.companyCvr && item.companyName) {
+                const url = generateCompanyUrl(item.companyName, item.companyCvr);
+                navigate(url);
+              }
+            }}
+            className="font-medium hover:text-primary hover:underline transition-colors text-left"
+          >
             {item.role.type === 'EJERREGISTER' && 'Ejer'}
             {item.role.type === 'LEDELSE' && (item.role.title || 'Ledelsesmedlem')}
             {!['EJERREGISTER', 'LEDELSE'].includes(item.role.type) && (item.role.title || item.role.type)}
-          </span>
+          </button>
         </div>
 
         {/* Status Indicator */}
         <div className="grid grid-cols-[140px_1fr] gap-2">
           <span className="text-muted-foreground">Status</span>
-          <div className="w-fit">
+          <button
+            onClick={() => {
+              if (item.companyCvr && item.companyName) {
+                const url = generateCompanyUrl(item.companyName, item.companyCvr);
+                navigate(url);
+              }
+            }}
+            className="w-fit hover:opacity-80 transition-opacity"
+          >
             <div className={`
               inline-flex items-center gap-2 px-2.5 py-0.5 rounded-full font-medium text-xs
               bg-white dark:bg-gray-900
@@ -162,34 +178,72 @@ const PersonDetails: React.FC<PersonDetailsProps> = ({ personData }) => {
               `} />
               <span>{item.isActive ? 'Aktiv Relation' : 'Ophørt Relation'}</span>
             </div>
-          </div>
+          </button>
         </div>
 
         <div className="grid grid-cols-[140px_1fr] gap-2">
           <span className="text-muted-foreground">Tiltrædelsesdato</span>
-          <span className="font-medium">
+          <button
+            onClick={() => {
+              if (item.companyCvr && item.companyName) {
+                const url = generateCompanyUrl(item.companyName, item.companyCvr);
+                navigate(url);
+              }
+            }}
+            className="font-medium hover:text-primary hover:underline transition-colors text-left"
+          >
             {item.role.validFrom ? formatDate(item.role.validFrom) : 'Ukendt'}
-          </span>
+          </button>
         </div>
 
         {item.role.validTo && (
           <div className="grid grid-cols-[140px_1fr] gap-2">
             <span className="text-muted-foreground">Fratrådt</span>
-            <span className="font-medium">{formatDate(item.role.validTo)}</span>
+            <button
+              onClick={() => {
+                if (item.companyCvr && item.companyName) {
+                  const url = generateCompanyUrl(item.companyName, item.companyCvr);
+                  navigate(url);
+                }
+              }}
+              className="font-medium hover:text-primary hover:underline transition-colors text-left"
+            >
+              {formatDate(item.role.validTo)}
+            </button>
           </div>
         )}
 
         {item.role.ownershipPercentage !== undefined && (
           <div className="grid grid-cols-[140px_1fr] gap-2">
             <span className="text-muted-foreground">Ejerandel</span>
-            <span className="font-medium">{item.role.ownershipPercentage.toFixed(2)}%</span>
+            <button
+              onClick={() => {
+                if (item.companyCvr && item.companyName) {
+                  const url = generateCompanyUrl(item.companyName, item.companyCvr);
+                  navigate(url);
+                }
+              }}
+              className="font-medium hover:text-primary hover:underline transition-colors text-left"
+            >
+              {item.role.ownershipPercentage.toFixed(2)}%
+            </button>
           </div>
         )}
 
         {item.role.votingRights !== undefined && (
           <div className="grid grid-cols-[140px_1fr] gap-2">
             <span className="text-muted-foreground">Stemmerettigheder</span>
-            <span className="font-medium">{item.role.votingRights.toFixed(2)}%</span>
+            <button
+              onClick={() => {
+                if (item.companyCvr && item.companyName) {
+                  const url = generateCompanyUrl(item.companyName, item.companyCvr);
+                  navigate(url);
+                }
+              }}
+              className="font-medium hover:text-primary hover:underline transition-colors text-left"
+            >
+              {item.role.votingRights.toFixed(2)}%
+            </button>
           </div>
         )}
       </div>
