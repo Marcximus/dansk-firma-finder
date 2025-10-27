@@ -170,125 +170,157 @@ serve(async (req) => {
     // Step 1: Search for financial reports using POST with Elasticsearch query
     const searchUrl = 'https://distribution.virk.dk/offentliggoerelser/_search';
     
-    // Add date range to reduce query scope (last 5 years only)
-    const fiveYearsAgo = new Date();
-    fiveYearsAgo.setFullYear(fiveYearsAgo.getFullYear() - 5);
+    // Add date range to reduce query scope (last 2 years only for better performance)
+    const twoYearsAgo = new Date();
+    twoYearsAgo.setFullYear(twoYearsAgo.getFullYear() - 2);
     
-    // Build Elasticsearch query using official documentation pattern
-    // The dokumenter.dokumentMimeType field is tokenized, so "application/xml" becomes ["application", "xml"]
-    // This allows us to match both tokens with separate term filters
-    const searchQuery = {
-      "query": {
-        "bool": {
-          "must": [
-            {
-              "term": {
-                "cvrNummer": parseInt(cvr)
-              }
-            },
-            {
-              "term": {
-                "dokumenter.dokumentMimeType": "application"
-              }
-            },
-            {
-              "term": {
-                "dokumenter.dokumentMimeType": "xml"
-              }
-            },
-            {
-              "range": {
-                "offentliggoerelsesTidspunkt": {
-                  "gte": fiveYearsAgo.toISOString(),
-                  "lte": new Date().toISOString()
-                }
-              }
-            }
-          ]
+    // Progressive query strategies - simple to complex
+    // We'll try each strategy until one succeeds
+    const queryStrategies = [
+      {
+        name: 'CVR Only (Simplest)',
+        query: {
+          "query": {
+            "term": { "cvrNummer": parseInt(cvr) }
+          },
+          "size": 10,
+          "sort": [{ "offentliggoerelsesTidspunkt": { "order": "desc" }}]
         }
       },
-      "size": 10,
-      "sort": [
-        {
-          "offentliggoerelsesTidspunkt": {
-            "order": "desc"
-          }
+      {
+        name: 'CVR + Document Type',
+        query: {
+          "query": {
+            "bool": {
+              "must": [
+                { "term": { "cvrNummer": parseInt(cvr) }},
+                { "term": { "dokumenttype": "AARSRAPPORT" }}
+              ]
+            }
+          },
+          "size": 10,
+          "sort": [{ "offentliggoerelsesTidspunkt": { "order": "desc" }}]
         }
-      ]
-    };
-
-    console.log(`[STEP 1] Searching for financial reports with POST: ${searchUrl}`);
-    console.log('[STEP 1] Query:', JSON.stringify(searchQuery));
-    console.log('[STEP 1] Request details:', {
-      hasAuth: !!auth,
-      cvrParsed: parseInt(cvr),
-      queryType: 'tokenized term filters + date range',
-      filters: ['application', 'xml'],
-      dateRange: `${fiveYearsAgo.toISOString().split('T')[0]} to ${new Date().toISOString().split('T')[0]}`
-    });
-
-    // Add timeout protection for main API request
-    const SEARCH_TIMEOUT_MS = 30000;
-    const searchController = new AbortController();
-    const searchTimeoutId = setTimeout(() => searchController.abort(), SEARCH_TIMEOUT_MS);
-
-    let searchResponse;
-    try {
-      console.log('[STEP 1.5] Sending search request to Danish Business API...');
-      const startTime = Date.now();
-      
-      const headers: Record<string, string> = {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-        'Accept-Encoding': 'gzip, deflate'
-      };
-      
-      // Only add auth if we have credentials
-      if (auth) {
-        headers['Authorization'] = `Basic ${auth}`;
+      },
+      {
+        name: 'CVR + Date Range (2 years)',
+        query: {
+          "query": {
+            "bool": {
+              "must": [
+                { "term": { "cvrNummer": parseInt(cvr) }},
+                { 
+                  "range": { 
+                    "offentliggoerelsesTidspunkt": {
+                      "gte": twoYearsAgo.toISOString(),
+                      "lte": new Date().toISOString()
+                    }
+                  }
+                }
+              ]
+            }
+          },
+          "size": 10,
+          "sort": [{ "offentliggoerelsesTidspunkt": { "order": "desc" }}]
+        }
+      },
+      {
+        name: 'CVR + Document Type + MIME Type (Complex)',
+        query: {
+          "query": {
+            "bool": {
+              "must": [
+                { "term": { "cvrNummer": parseInt(cvr) }},
+                { "term": { "dokumenttype": "AARSRAPPORT" }},
+                { "term": { "dokumenter.dokumentMimeType": "application" }},
+                { "term": { "dokumenter.dokumentMimeType": "xml" }}
+              ]
+            }
+          },
+          "size": 10,
+          "sort": [{ "offentliggoerelsesTidspunkt": { "order": "desc" }}]
+        }
       }
+    ];
+
+    console.log(`[STEP 1] Progressive query fallback with ${queryStrategies.length} strategies`);
+    console.log('[STEP 1] Will try each strategy with 20s timeout until one succeeds');
+
+    // Try each strategy until one works
+    const STRATEGY_TIMEOUT_MS = 20000; // 20 seconds per strategy
+    let searchResponse = null;
+    let successfulStrategy = null;
+
+    for (const strategy of queryStrategies) {
+      console.log(`[STRATEGY] Trying: ${strategy.name}`);
+      console.log(`[STRATEGY] Query:`, JSON.stringify(strategy.query));
       
-      searchResponse = await fetch(searchUrl, {
-        method: 'POST',
-        headers,
-        body: JSON.stringify(searchQuery),
-        signal: searchController.signal
-      });
-      
-      clearTimeout(searchTimeoutId);
-      const elapsed = Date.now() - startTime;
-      console.log(`[STEP 2] Search API response received in ${elapsed}ms`);
-      console.log(`[STEP 2] Response status: ${searchResponse.status}`);
-    } catch (fetchError) {
-      clearTimeout(searchTimeoutId);
-      if (fetchError.name === 'AbortError') {
-        console.error(`[ERROR] Search request timed out after ${SEARCH_TIMEOUT_MS}ms`);
-        return new Response(
-          JSON.stringify({ 
-            financialReports: [],
-            financialData: [],
-            error: 'Erhvervsstyrelsens API er i øjeblikket langsom eller utilgængelig. Prøv igen senere.',
-            fallbackToMockData: true
-          }),
-          { 
-            status: 504,
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-          }
-        );
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), STRATEGY_TIMEOUT_MS);
+
+      try {
+        const startTime = Date.now();
+        
+        const headers: Record<string, string> = {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'Accept-Encoding': 'gzip, deflate'
+        };
+        
+        // Only add auth if we have credentials
+        if (auth) {
+          headers['Authorization'] = `Basic ${auth}`;
+        }
+        
+        const response = await fetch(searchUrl, {
+          method: 'POST',
+          headers,
+          body: JSON.stringify(strategy.query),
+          signal: controller.signal
+        });
+        
+        clearTimeout(timeoutId);
+        const elapsed = Date.now() - startTime;
+        
+        if (response.ok) {
+          console.log(`[SUCCESS] ✅ Strategy "${strategy.name}" succeeded in ${elapsed}ms!`);
+          searchResponse = response;
+          successfulStrategy = strategy.name;
+          break; // Exit loop on first success
+        } else {
+          console.warn(`[STRATEGY] ⚠️ Strategy "${strategy.name}" returned ${response.status}`);
+        }
+        
+      } catch (fetchError) {
+        clearTimeout(timeoutId);
+        if (fetchError.name === 'AbortError') {
+          console.warn(`[STRATEGY] ⏱️ Strategy "${strategy.name}" timed out after ${STRATEGY_TIMEOUT_MS}ms`);
+        } else {
+          console.warn(`[STRATEGY] ❌ Strategy "${strategy.name}" failed:`, fetchError.message);
+        }
+        // Continue to next strategy
       }
-      console.error('[ERROR] Search request failed:', fetchError);
+    }
+
+    // If all strategies failed
+    if (!searchResponse) {
+      console.error('[ERROR] All query strategies failed or timed out');
       return new Response(
         JSON.stringify({ 
           financialReports: [],
           financialData: [],
-          error: 'Der opstod en fejl ved hentning af regnskabsdata'
+          error: 'Erhvervsstyrelsens API er i øjeblikket langsom eller utilgængelig. Alle forsøg fejlede.',
+          fallbackToMockData: true
         }),
         { 
-          status: 500,
+          status: 504,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' }
         }
       );
     }
+
+    console.log(`[STEP 2] Using successful strategy: ${successfulStrategy}`);
+    console.log(`[STEP 2] Response status: ${searchResponse.status}`);
 
     if (!searchResponse.ok) {
       const errorText = await searchResponse.text();
