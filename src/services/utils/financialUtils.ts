@@ -34,14 +34,43 @@ export const extractFinancialData = (cvrData: any, parsedFinancialData?: any) =>
   if (parsedFinancialData?.financialData && parsedFinancialData.financialData.length > 0) {
     console.log('extractFinancialData - Using parsed XBRL data');
     
-    // Calculate ratios for each period
+    // Transform and enrich XBRL data to match FinancialYearData interface
     const enrichedData = parsedFinancialData.financialData.map((periodData: any) => {
+      // Extract year from periode (format: "2024-12" or "2024-01-01")
+      let year = new Date().getFullYear();
+      if (periodData.periode) {
+        const yearMatch = periodData.periode.match(/(\d{4})/);
+        if (yearMatch) {
+          year = parseInt(yearMatch[1]);
+        }
+      }
+      
       const ratios = calculateFinancialRatios(periodData);
+      
+      // Transform XBRL data structure to match FinancialYearData interface
       return {
-        ...periodData,
-        ...ratios
+        year, // Add year field
+        periode: periodData.periode,
+        nettoomsaetning: periodData.nettoomsaetning || 0,
+        bruttofortjeneste: periodData.bruttofortjeneste || 0,
+        driftsresultat: periodData.driftsresultat || 0,
+        resultatFoerSkat: periodData.resultatFoerSkat || 0,
+        aaretsResultat: periodData.aaretsResultat || 0,
+        anlaegsaktiverValue: periodData.anlaegsaktiverValue || 0,
+        omsaetningsaktiver: periodData.omsaetningsaktiver || 0,
+        statusBalance: periodData.statusBalance || 0,
+        egenkapital: periodData.egenkapital || 0,
+        hensatteForpligtelser: periodData.hensatteForpligtelser || 0,
+        gaeldsforpligtelser: periodData.gaeldsforpligtelser || 0,
+        kortfristetGaeld: periodData.kortfristetGaeld || 0,
+        antalAnsatte: periodData.antalAnsatte || 0,
+        antalAarsvaerk: periodData.antalAarsvaerk || 0,
+        ...ratios // Add calculated ratios
       };
     });
+    
+    // Sort by year descending (most recent first)
+    enrichedData.sort((a, b) => b.year - a.year);
     
     const latestData = enrichedData[0]; // Most recent report
     
@@ -50,7 +79,7 @@ export const extractFinancialData = (cvrData: any, parsedFinancialData?: any) =>
         ...latestData,
         periode: latestData.periode
       },
-      historicalData: enrichedData, // All parsed periods with ratios
+      historicalData: enrichedData, // All parsed periods with ratios, properly structured
       yearlyEmployment: cvrData?.Vrvirksomhed?.aarsbeskaeftigelse || [],
       quarterlyEmployment: cvrData?.Vrvirksomhed?.kvartalsbeskaeftigelse || [],
       kapitalforhold: cvrData?.Vrvirksomhed?.kapitalforhold || [],
