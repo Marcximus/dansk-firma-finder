@@ -6,26 +6,63 @@ const corsHeaders = {
 }
 
 // Helper to extract the period end date from XBRL context
-const extractPeriodFromXBRL = (xmlContent: string): string => {
-  // Try to find period end date in context elements
+const extractPeriodFromXBRL = (xmlContent: string, fallbackPeriod?: string): string => {
+  console.log('[Period Extract] Attempting to extract period from XBRL');
+  
+  // Strategy 1: Try to find period end date in context elements
   const endDatePattern = /<[^:]+:endDate>(\d{4}-\d{2}-\d{2})<\/[^:]+:endDate>/i;
   const match = xmlContent.match(endDatePattern);
   
   if (match && match[1]) {
-    // Format as YYYY-MM for display
     const date = new Date(match[1]);
-    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+    const period = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+    console.log(`[Period Extract] ✅ Found endDate: ${period}`);
+    return period;
   }
   
-  // Fallback: try instant date
+  // Strategy 2: Try instant date
   const instantPattern = /<[^:]+:instant>(\d{4}-\d{2}-\d{2})<\/[^:]+:instant>/i;
   const instantMatch = xmlContent.match(instantPattern);
   
   if (instantMatch && instantMatch[1]) {
     const date = new Date(instantMatch[1]);
-    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+    const period = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+    console.log(`[Period Extract] ✅ Found instant: ${period}`);
+    return period;
   }
   
+  // Strategy 3: Look for regnskabsperiode or accountingPeriod tags
+  const periodTagPattern = /<[^>]*(?:regnskabsperiode|accountingPeriod|period)[^>]*>([^<]+)<\/[^>]+>/i;
+  const periodMatch = xmlContent.match(periodTagPattern);
+  
+  if (periodMatch && periodMatch[1]) {
+    // Try to parse various date formats
+    const periodText = periodMatch[1].trim();
+    
+    // Format: YYYY-MM-DD or YYYY/MM/DD
+    const dateMatch = periodText.match(/(\d{4})[-/](\d{2})[-/](\d{2})/);
+    if (dateMatch) {
+      const period = `${dateMatch[1]}-${dateMatch[2]}`;
+      console.log(`[Period Extract] ✅ Found period tag: ${period}`);
+      return period;
+    }
+    
+    // Format: DD-MM-YYYY or DD/MM/YYYY
+    const euDateMatch = periodText.match(/(\d{2})[-/](\d{2})[-/](\d{4})/);
+    if (euDateMatch) {
+      const period = `${euDateMatch[3]}-${euDateMatch[2]}`;
+      console.log(`[Period Extract] ✅ Found EU date format: ${period}`);
+      return period;
+    }
+  }
+  
+  // Strategy 4: Use fallback period from metadata
+  if (fallbackPeriod && fallbackPeriod !== 'N/A') {
+    console.log(`[Period Extract] ⚠️ Using fallback period from metadata: ${fallbackPeriod}`);
+    return fallbackPeriod;
+  }
+  
+  console.log('[Period Extract] ❌ Could not extract period, returning N/A');
   return 'N/A';
 };
 
@@ -68,12 +105,13 @@ const parseXBRL = (xmlContent: string, period: string) => {
       // Income Statement (Resultatopgørelse)
       nettoomsaetning: extractValue([
         'Revenue', 'Nettoomsætning', 'NetRevenue', 'Omsætning',
-        'GrossProfitLoss', 'TotalRevenue'
+        'GrossProfitLoss', 'TotalRevenue', 'Omsaetning',
+        'NetTurnover', 'Turnover', 'Sales'
       ]),
       
       bruttofortjeneste: extractValue([
         'GrossProfit', 'GrossResult', 'Bruttofortjeneste', 'Bruttoavance',
-        'GrossProfitOrLoss'
+        'GrossProfitOrLoss', 'GrossProfitLoss', 'Bruttoavanse'
       ]),
       
       driftsresultat: extractValue([
@@ -110,7 +148,8 @@ const parseXBRL = (xmlContent: string, period: string) => {
       // Balance Sheet - Equity & Liabilities (Passiver)
       egenkapital: extractValue([
         'Equity', 'Egenkapital', 'ShareholdersEquity',
-        'TotalEquity', 'EquityAttributableToOwnersOfParent'
+        'TotalEquity', 'EquityAttributableToOwnersOfParent',
+        'EquityAttributableToEquityHoldersOfParent', 'TotalShareholdersEquity'
       ]),
       
       hensatteForpligtelser: extractValue([
@@ -225,9 +264,9 @@ serve(async (req) => {
     // Step 1: Search for financial reports using POST with Elasticsearch query
     const searchUrl = 'http://distribution.virk.dk/offentliggoerelser/_search';
     
-    // Add date range to reduce query scope (last 2 years only for better performance)
-    const twoYearsAgo = new Date();
-    twoYearsAgo.setFullYear(twoYearsAgo.getFullYear() - 2);
+    // Add date range to reduce query scope (last 6 years for comprehensive data)
+    const sixYearsAgo = new Date();
+    sixYearsAgo.setFullYear(sixYearsAgo.getFullYear() - 6);
     
     // Progressive query strategies - simple to complex
     // We'll try each strategy until one succeeds
@@ -258,7 +297,7 @@ serve(async (req) => {
         }
       },
       {
-        name: 'CVR + Date Range (2 years)',
+        name: 'CVR + Date Range (6 years)',
         query: {
           "query": {
             "bool": {
@@ -267,7 +306,7 @@ serve(async (req) => {
                 { 
                   "range": { 
                     "offentliggoerelsesTidspunkt": {
-                      "gte": twoYearsAgo.toISOString(),
+                      "gte": sixYearsAgo.toISOString(),
                       "lte": new Date().toISOString()
                     }
                   }
@@ -275,7 +314,7 @@ serve(async (req) => {
               ]
             }
           },
-          "size": 10,
+          "size": 20,
           "sort": [{ "offentliggoerelsesTidspunkt": { "order": "desc" }}]
         }
       },
@@ -433,9 +472,10 @@ serve(async (req) => {
     const financialReports = [];
     const financialData = [];
     
-    // Process up to 10 most recent reports to ensure we get 5 years of data
+    // Process up to 15 most recent reports to ensure we get 5 years of data
     const hits = searchData.hits?.hits || [];
-    const reportsToProcess = Math.min(hits.length, 10);
+    const reportsToProcess = Math.min(hits.length, 15);
+    console.log(`[STEP 3] Processing ${reportsToProcess} reports out of ${hits.length} found`);
 
     for (let i = 0; i < reportsToProcess; i++) {
       const hit = hits[i];
@@ -517,12 +557,14 @@ serve(async (req) => {
             const xbrlContent = await xbrlResponse.text();
             console.log(`[STEP 2] Downloaded XBRL file (${xbrlContent.length} bytes)`);
             
-            // Extract the actual period from XBRL file
-            const actualPeriod = extractPeriodFromXBRL(xbrlContent);
+            // Extract the actual period from XBRL file with metadata fallback
+            const actualPeriod = extractPeriodFromXBRL(xbrlContent, period);
+            console.log(`[DEBUG] Report ${i+1}/${reportsToProcess}: Metadata period = ${period}, Extracted XBRL period = ${actualPeriod}`);
             console.log(`[STEP 3] Parsing XBRL for period ${actualPeriod}...`);
             const parsedData = parseXBRL(xbrlContent, actualPeriod);
             
             if (parsedData) {
+              console.log(`[DEBUG] ✅ Successfully parsed data with ${Object.keys(parsedData).filter(k => parsedData[k] !== null).length} fields`);
               financialData.push(parsedData);
               
               // Stop once we have 5 parsed financial datasets
@@ -530,6 +572,8 @@ serve(async (req) => {
                 console.log(`✅ Successfully parsed 5 periods of financial data - stopping`);
                 break;
               }
+            } else {
+              console.log(`[DEBUG] ⚠️ No data extracted from XBRL for period ${actualPeriod}`);
             }
           } else {
             console.warn(`⚠️ Failed to download XBRL: ${xbrlResponse.status} - ${documentUrl}`);

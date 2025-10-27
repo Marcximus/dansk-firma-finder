@@ -7,9 +7,20 @@ interface FinancialSpreadsheetProps {
 }
 
 const FinancialSpreadsheet: React.FC<FinancialSpreadsheetProps> = ({ historicalData }) => {
+  console.log('[FinancialSpreadsheet] Received data:', historicalData.map(d => ({ 
+    year: d.year, 
+    periode: d.periode,
+    hasData: !!d.nettoomsaetning || !!d.egenkapital
+  })));
+  
   // Sort by year descending and get up to 5 most recent years
   const sortedData = [...historicalData].sort((a, b) => (b.year || 0) - (a.year || 0));
   const periods = sortedData.slice(0, 5);
+  
+  console.log('[FinancialSpreadsheet] Sorted & sliced to 5 periods:', periods.map(d => ({ 
+    year: d.year, 
+    periode: d.periode 
+  })));
   
   // Format number in thousands with Danish locale
   const formatThousands = (value: number | null | undefined): string => {
