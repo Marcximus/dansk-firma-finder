@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Company, extractCvrDetails } from '@/services/companyAPI';
+import { Company, extractCvrDetails, extractOwnershipData } from '@/services/companyAPI';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
 import { Link } from 'react-router-dom';
@@ -26,7 +26,6 @@ const CompanyDetails: React.FC<CompanyDetailsProps> = ({ company }) => {
   // Extract subsidiaries directly from CVR data
   const subsidiaries = React.useMemo(() => {
     if (!company.realCvrData) return [];
-    const { extractOwnershipData } = require('@/services/cvrUtils');
     const ownershipData = extractOwnershipData(company.realCvrData);
     return ownershipData.subsidiaries || [];
   }, [company.realCvrData]);
