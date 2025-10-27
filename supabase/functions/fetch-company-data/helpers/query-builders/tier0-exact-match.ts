@@ -5,6 +5,33 @@ export const buildTier0ExactMatchQuery = (cleanedQuery: string, originalQuery: s
   return {
     "bool": {
       "should": [
+        // HIGHEST PRIORITY: Phrase match for cleaned query (handles "novo nordisk" → "NOVO NORDISK A/S")
+        {
+          "match_phrase": {
+            "Vrvirksomhed.navne.navn": {
+              "query": cleanedQuery,
+              "boost": SEARCH_TIERS.SHORTEST_EXACT_MATCH * 1.1 // Slightly higher to prioritize
+            }
+          }
+        },
+        // HIGHEST PRIORITY: Phrase match for original query 
+        {
+          "match_phrase": {
+            "Vrvirksomhed.navne.navn": {
+              "query": originalQuery,
+              "boost": SEARCH_TIERS.SHORTEST_EXACT_MATCH * 1.1
+            }
+          }
+        },
+        // Phrase match on secondary names (binavne)
+        {
+          "match_phrase": {
+            "Vrvirksomhed.binavne.navn": {
+              "query": cleanedQuery,
+              "boost": SEARCH_TIERS.SHORTEST_EXACT_MATCH
+            }
+          }
+        },
         // Case-insensitive exact match for company names using match with strict operator
         {
           "bool": {
