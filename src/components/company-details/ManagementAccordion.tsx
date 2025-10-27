@@ -140,10 +140,10 @@ const ManagementAccordion: React.FC<ManagementAccordionProps> = ({ cvrData }) =>
       if (funkAttribute && funkAttribute.vaerdier && funkAttribute.vaerdier.length > 0) {
         const specificRole = funkAttribute.vaerdier[0].vaerdi;
         
-        // If the role is a SUPPLEANT role, just return the base name
+        // If the role is a SUPPLEANT role, return null
         // The suppleant badge will be displayed separately
         if (specificRole?.includes('SUPPLEANT')) {
-          return baseName;
+          return null;
         }
         
         // Check if this is an employee-elected board member
@@ -253,13 +253,7 @@ const ManagementAccordion: React.FC<ManagementAccordionProps> = ({ cvrData }) =>
                       <div key={orgIndex} className="flex items-start gap-1.5 sm:gap-2 p-1.5 sm:p-2 bg-gray-50 rounded">
                         {getRoleIcon(org.hovedtype)}
                         <div className="flex-1">
-                          {/* Only show role name if not a suppleant - suppleants are shown via badge */}
-                          {!org.medlemsData?.[0]?.attributter?.find((attr: any) => attr.type === 'FUNKTION')?.vaerdier?.some((v: any) => {
-                            const today = new Date().toISOString().split('T')[0];
-                            const gyldigTil = v.periode?.gyldigTil;
-                            const isActive = gyldigTil === null || gyldigTil === undefined || gyldigTil >= today;
-                            return isActive && v.vaerdi?.includes('SUPPLEANT');
-                          }) && (
+                          {getRoleDisplayName(org.hovedtype, org.medlemsData?.[0]) && (
                             <div className="font-medium text-[10px] sm:text-xs md:text-sm">
                               {getRoleDisplayName(org.hovedtype, org.medlemsData?.[0])}
                             </div>
