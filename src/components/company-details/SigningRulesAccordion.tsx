@@ -97,12 +97,12 @@ const SigningRulesAccordion: React.FC<SigningRulesAccordionProps> = ({ cvrData }
         const roleMap: Record<string, string> = {
           'BESTYRELSESFORMAND': 'Bestyrelsesformand',
           'FORMAND': 'Formand',
-          'BESTYRELSESMEDLEM': isEmployeeElected ? 'Medarbejdervalgt Bestyrelsesmedlem' : 'Bestyrelsesmedlem',
+          'BESTYRELSESMEDLEM': isEmployeeElected ? 'Medarbejdervalgt bestyrelsesmedlem' : 'Bestyrelsesmedlem',
           'NÆSTFORMAND': 'Næstformand',
           'BESTYRELSESMEDLEM.NÆSTFORMAND': 'Næstformand',
           'DIREKTØR': 'Direktør',
           'REVISOR': 'Revisor',
-          'SUPPLEANT': 'Suppleant',
+          'SUPPLEANT': isEmployeeElected ? 'Medarbejdervalgt suppleant' : 'Suppleant',
         };
         
         let mappedRole = roleMap[specificRole] || specificRole;
@@ -388,11 +388,6 @@ const SigningRulesAccordion: React.FC<SigningRulesAccordionProps> = ({ cvrData }
                                 <>
                                   {activeFunk?.periode?.gyldigFra && (
                                     <div>Siden: {activeFunk.periode.gyldigFra}</div>
-                                  )}
-                                  {activeValgform?.vaerdi && (
-                                    <div className="mt-0.5">
-                                      <strong>Valgform:</strong> {activeValgform.vaerdi}
-                                    </div>
                                   )}
                                 </>
                               );

@@ -82,7 +82,11 @@ const ComprehensiveManagementCard: React.FC<ComprehensiveManagementCardProps> = 
         const isEmployeeElected = activeValgform?.vaerdi?.includes('medarbejdere i selskabet');
         
         if (specificRole === 'BESTYRELSESMEDLEM' && isEmployeeElected) {
-          return 'Medarbejdervalgt Bestyrelsesmedlem';
+          return 'Medarbejdervalgt bestyrelsesmedlem';
+        }
+        
+        if (specificRole === 'SUPPLEANT' && isEmployeeElected) {
+          return 'Medarbejdervalgt suppleant';
         }
         
         if (specificRole !== hovedtype) {
@@ -163,20 +167,17 @@ const ComprehensiveManagementCard: React.FC<ComprehensiveManagementCardProps> = 
                             return isActive && v.vaerdi?.includes('SUPPLEANT');
                           });
                           
+                          const isEmployeeElectedSuppleant = isSuppleant && activeValgform?.vaerdi?.includes('medarbejdere i selskabet');
+                          
                           return (
                             <div key={medlemIndex} className="text-sm text-muted-foreground mt-1">
                               {isSuppleant && (
-                                <div className="text-sm text-amber-600 dark:text-amber-500 font-medium mb-1">
-                                  Suppleant
+                                <div className={`text-sm font-medium mb-1 ${isEmployeeElectedSuppleant ? 'text-orange-600 dark:text-orange-500' : 'text-amber-600 dark:text-amber-500'}`}>
+                                  {isEmployeeElectedSuppleant ? 'Medarbejdervalgt suppleant' : 'Suppleant'}
                                 </div>
                               )}
                               {activeFunk?.periode?.gyldigFra && (
                                 <div>Siden: {activeFunk.periode.gyldigFra}</div>
-                              )}
-                              {activeValgform?.vaerdi && (
-                                <div className="mt-0.5">
-                                  <strong>Valgform:</strong> {activeValgform.vaerdi}
-                                </div>
                               )}
                               {medlem.periode && (
                                 <div>

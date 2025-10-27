@@ -149,7 +149,11 @@ const ManagementAccordion: React.FC<ManagementAccordionProps> = ({ cvrData }) =>
         const isEmployeeElected = activeValgform?.vaerdi?.includes('medarbejdere i selskabet');
         
         if (specificRole === 'BESTYRELSESMEDLEM' && isEmployeeElected) {
-          return 'Medarbejdervalgt Bestyrelsesmedlem';
+          return 'Medarbejdervalgt bestyrelsesmedlem';
+        }
+        
+        if (specificRole === 'SUPPLEANT' && isEmployeeElected) {
+          return 'Medarbejdervalgt suppleant';
         }
         
         if (specificRole !== hovedtype) {
@@ -272,20 +276,17 @@ const ManagementAccordion: React.FC<ManagementAccordionProps> = ({ cvrData }) =>
                               return isActive && v.vaerdi?.includes('SUPPLEANT');
                             });
                             
+                            const isEmployeeElectedSuppleant = isSuppleant && activeValgform?.vaerdi?.includes('medarbejdere i selskabet');
+                            
                             return (
                               <div key={medlemIndex} className="text-[9px] sm:text-[10px] md:text-xs text-muted-foreground mt-0.5 sm:mt-1">
                                 {isSuppleant && (
-                                  <div className="text-xs text-amber-600 dark:text-amber-500 font-medium mb-1">
-                                    Suppleant
+                                  <div className={`text-xs font-medium mb-1 ${isEmployeeElectedSuppleant ? 'text-orange-600 dark:text-orange-500' : 'text-amber-600 dark:text-amber-500'}`}>
+                                    {isEmployeeElectedSuppleant ? 'Medarbejdervalgt suppleant' : 'Suppleant'}
                                   </div>
                                 )}
                                 {activeFunk?.periode?.gyldigFra && (
                                   <div>Siden: {activeFunk.periode.gyldigFra}</div>
-                                )}
-                                {activeValgform?.vaerdi && (
-                                  <div className="mt-0.5">
-                                    <strong>Valgform:</strong> {activeValgform.vaerdi}
-                                  </div>
                                 )}
                                 {medlem.attributter && medlem.attributter.map((attr: any, attrIndex: number) => (
                                   <div key={attrIndex} className="mt-0.5 sm:mt-1">
