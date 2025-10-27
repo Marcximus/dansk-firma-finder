@@ -107,24 +107,60 @@ const ComprehensiveManagementCard: React.FC<ComprehensiveManagementCardProps> = 
                         <div className="font-medium">
                           {getRoleDisplayName(org.hovedtype, org.medlemsData?.[0])}
                         </div>
-                        {org.medlemsData && org.medlemsData.map((medlem: any, medlemIndex: number) => (
-                          <div key={medlemIndex} className="text-sm text-muted-foreground mt-1">
-                            {medlem.periode && (
-                              <div>
-                                Periode: {medlem.periode.gyldigFra || 'Ukendt'} - {medlem.periode.gyldigTil || 'Nuværende'}
-                              </div>
-                            )}
-                            {medlem.attributter && medlem.attributter.map((attr: any, attrIndex: number) => (
-                              <div key={attrIndex} className="mt-1">
-                                {attr.type !== 'FUNKTION' && attr.vaerdier && (
-                                  <div>
-                                    <strong>{attr.type}:</strong> {attr.vaerdier.map((v: any) => v.vaerdi).join(', ')}
-                                  </div>
-                                )}
-                              </div>
-                            ))}
-                          </div>
-                        ))}
+                        {org.medlemsData && org.medlemsData.map((medlem: any, medlemIndex: number) => {
+                          const funkAttr = medlem.attributter?.find((attr: any) => attr.type === 'FUNKTION');
+                          const valgformAttr = medlem.attributter?.find((attr: any) => attr.type === 'VALGFORM');
+                          const today = new Date().toISOString().split('T')[0];
+                          
+                          const activeFunk = funkAttr?.vaerdier?.find((v: any) => {
+                            const gyldigTil = v.periode?.gyldigTil;
+                            return gyldigTil === null || gyldigTil === undefined || gyldigTil >= today;
+                          });
+                          
+                          const activeValgform = valgformAttr?.vaerdier?.find((v: any) => {
+                            const gyldigTil = v.periode?.gyldigTil;
+                            return gyldigTil === null || gyldigTil === undefined || gyldigTil >= today;
+                          });
+                          
+                          // Check if person is a Suppleant
+                          const isSuppleant = funkAttr?.vaerdier?.some((v: any) => {
+                            const gyldigTil = v.periode?.gyldigTil;
+                            const isActive = gyldigTil === null || gyldigTil === undefined || gyldigTil >= today;
+                            return isActive && v.vaerdi?.includes('SUPPLEANT');
+                          });
+                          
+                          return (
+                            <div key={medlemIndex} className="text-sm text-muted-foreground mt-1">
+                              {isSuppleant && (
+                                <div className="text-sm text-amber-600 dark:text-amber-500 font-medium mb-1">
+                                  Suppleant
+                                </div>
+                              )}
+                              {activeFunk?.periode?.gyldigFra && (
+                                <div>Siden: {activeFunk.periode.gyldigFra}</div>
+                              )}
+                              {activeValgform?.vaerdi && (
+                                <div className="mt-0.5">
+                                  <strong>Valgform:</strong> {activeValgform.vaerdi}
+                                </div>
+                              )}
+                              {medlem.periode && (
+                                <div>
+                                  Periode: {medlem.periode.gyldigFra || 'Ukendt'} - {medlem.periode.gyldigTil || 'Nuværende'}
+                                </div>
+                              )}
+                              {medlem.attributter && medlem.attributter.map((attr: any, attrIndex: number) => (
+                                <div key={attrIndex} className="mt-1">
+                                  {attr.type !== 'FUNKTION' && attr.type !== 'VALGFORM' && attr.vaerdier && (
+                                    <div>
+                                      <strong>{attr.type}:</strong> {attr.vaerdier.map((v: any) => v.vaerdi).join(', ')}
+                                    </div>
+                                  )}
+                                </div>
+                              ))}
+                            </div>
+                          );
+                        })}
                       </div>
                     </div>
                   ))}

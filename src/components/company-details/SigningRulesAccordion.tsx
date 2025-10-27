@@ -275,14 +275,43 @@ const SigningRulesAccordion: React.FC<SigningRulesAccordionProps> = ({ cvrData }
                           <div className="text-[9px] sm:text-[10px] md:text-xs text-muted-foreground mt-0.5 sm:mt-1">
                             {(() => {
                               const funkAttr = medlem.attributter?.find((attr: any) => attr.type === 'FUNKTION');
+                              const valgformAttr = medlem.attributter?.find((attr: any) => attr.type === 'VALGFORM');
                               const today = new Date().toISOString().split('T')[0];
+                              
                               const activeFunk = funkAttr?.vaerdier?.find((v: any) => {
                                 const gyldigTil = v.periode?.gyldigTil;
                                 return gyldigTil === null || gyldigTil === undefined || gyldigTil >= today;
                               });
-                              return activeFunk?.periode?.gyldigFra ? (
-                                <div>Siden: {activeFunk.periode.gyldigFra}</div>
-                              ) : null;
+                              
+                              const activeValgform = valgformAttr?.vaerdier?.find((v: any) => {
+                                const gyldigTil = v.periode?.gyldigTil;
+                                return gyldigTil === null || gyldigTil === undefined || gyldigTil >= today;
+                              });
+                              
+                              // Check if person is a Suppleant
+                              const isSuppleant = funkAttr?.vaerdier?.some((v: any) => {
+                                const gyldigTil = v.periode?.gyldigTil;
+                                const isActive = gyldigTil === null || gyldigTil === undefined || gyldigTil >= today;
+                                return isActive && v.vaerdi?.includes('SUPPLEANT');
+                              });
+                              
+                              return (
+                                <>
+                                  {isSuppleant && (
+                                    <div className="text-xs text-amber-600 dark:text-amber-500 font-medium mb-1">
+                                      Suppleant
+                                    </div>
+                                  )}
+                                  {activeFunk?.periode?.gyldigFra && (
+                                    <div>Siden: {activeFunk.periode.gyldigFra}</div>
+                                  )}
+                                  {activeValgform?.vaerdi && (
+                                    <div className="mt-0.5">
+                                      <strong>Valgform:</strong> {activeValgform.vaerdi}
+                                    </div>
+                                  )}
+                                </>
+                              );
                             })()}
                           </div>
                         </div>
