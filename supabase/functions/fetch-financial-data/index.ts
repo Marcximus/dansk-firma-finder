@@ -17,9 +17,10 @@ const parseXBRL = (xmlContent: string, period: string) => {
       return null;
     }
 
-    // Helper to extract numeric value from XML element
+    // Helper to extract numeric value from XML element - supports Danish XBRL namespaces
     const extractValue = (selectors: string[]): number | null => {
       for (const selector of selectors) {
+        // Try with and without namespace prefixes
         const elements = doc.querySelectorAll(selector);
         for (const element of elements) {
           const text = element.textContent?.trim();
@@ -28,6 +29,7 @@ const parseXBRL = (xmlContent: string, period: string) => {
             const numericText = text.replace(/[^\d.-]/g, '');
             const value = parseFloat(numericText);
             if (!isNaN(value)) {
+              console.log(`✅ Found ${selector}: ${value}`);
               return value;
             }
           }
@@ -172,6 +174,7 @@ serve(async (req) => {
     const searchUrl = 'https://distribution.virk.dk/offentliggoerelser/_search';
     
     // Build Elasticsearch query according to Danish Business Authority documentation
+    // Filter for XBRL documents (application/xml mime type)
     const searchQuery = {
       "query": {
         "bool": {
@@ -180,11 +183,21 @@ serve(async (req) => {
               "term": {
                 "cvrNummer": parseInt(cvr)
               }
+            },
+            {
+              "term": {
+                "dokumenter.dokumentMimeType": "application"
+              }
+            },
+            {
+              "term": {
+                "dokumenter.dokumentMimeType": "xml"
+              }
             }
           ]
         }
       },
-      "size": 5,
+      "size": 10,
       "sort": [
         {
           "offentliggoerelsesTidspunkt": {
@@ -203,6 +216,7 @@ serve(async (req) => {
         'Authorization': `Basic ${auth}`,
         'Content-Type': 'application/json',
         'Accept': 'application/json',
+        'Accept-Encoding': 'gzip, deflate'
       },
       body: JSON.stringify(searchQuery)
     });
@@ -225,7 +239,21 @@ serve(async (req) => {
     }
 
     const searchData = await searchResponse.json();
+    console.log(`[STEP 1] Search response status: ${searchResponse.status}`);
     console.log(`[STEP 1] Found ${searchData.hits?.hits?.length || 0} financial reports`);
+    
+    if (!searchData.hits || !searchData.hits.hits || searchData.hits.hits.length === 0) {
+      console.log('[STEP 1] No XBRL reports found - returning empty result');
+      return new Response(
+        JSON.stringify({ 
+          financialReports: [],
+          financialData: [],
+          hasRealData: false,
+          message: 'No XBRL financial reports found for this CVR'
+        }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
 
     // Step 2: Download and parse XBRL files
     const financialReports = [];
@@ -248,30 +276,35 @@ serve(async (req) => {
         companyName: source.navne?.[0] || source.virksomhedsnavn || 'N/A'
       };
 
-      // Try to find document URL/GUID
+      // Try to find XBRL document URL/GUID
       let documentUrl = null;
       
-      // Check for dokumentUrl directly in source
-      if (source.dokumentUrl) {
-        documentUrl = source.dokumentUrl;
-        reportMetadata.documentUrl = documentUrl;
-      } 
-      // Check for dokument array
-      else if (source.dokument && source.dokument.length > 0) {
-        const doc = source.dokument[0];
-        if (doc.dokumentUrl) {
-          documentUrl = doc.dokumentUrl;
+      // Look for XBRL document specifically (application/xml)
+      const xbrlDoc = source.dokumenter?.find((doc: any) => 
+        (doc.dokumentMimeType?.toLowerCase().includes('xml') || 
+         doc.dokumentType?.toLowerCase().includes('xbrl')) &&
+        doc.dokumentMimeType?.toLowerCase().includes('application')
+      );
+      
+      if (xbrlDoc) {
+        if (xbrlDoc.dokumentUrl) {
+          documentUrl = xbrlDoc.dokumentUrl;
           reportMetadata.documentUrl = documentUrl;
-        } else if (doc.id || doc.guid) {
-          const guid = doc.id || doc.guid;
-          documentUrl = `https://distribution.virk.dk/offentliggoerelser/${guid}`;
+        } else if (xbrlDoc.dokumentGuid || xbrlDoc.guid) {
+          const guid = xbrlDoc.dokumentGuid || xbrlDoc.guid;
+          documentUrl = `https://distribution.virk.dk/dokumenter/${guid}/download`;
           reportMetadata.documentGuid = guid;
           reportMetadata.documentUrl = documentUrl;
         }
       }
-      // Check for _id from the hit itself
+      // Fallback: check for dokumentUrl directly in source
+      else if (source.dokumentUrl) {
+        documentUrl = source.dokumentUrl;
+        reportMetadata.documentUrl = documentUrl;
+      }
+      // Fallback: use _id from the hit itself
       else if (hit._id) {
-        documentUrl = `https://distribution.virk.dk/offentliggoerelser/${hit._id}`;
+        documentUrl = `https://distribution.virk.dk/dokumenter/${hit._id}/download`;
         reportMetadata.documentGuid = hit._id;
         reportMetadata.documentUrl = documentUrl;
       }
@@ -283,12 +316,21 @@ serve(async (req) => {
         console.log(`[STEP 2] Downloading XBRL file for period ${period}: ${documentUrl}`);
         
         try {
+          // Add timeout protection (8 seconds per document)
+          const TIMEOUT_MS = 8000;
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), TIMEOUT_MS);
+          
           const xbrlResponse = await fetch(documentUrl, {
             headers: {
               'Authorization': `Basic ${auth}`,
               'Accept': 'application/xml, text/xml, */*',
+              'Accept-Encoding': 'gzip, deflate'
             },
+            signal: controller.signal
           });
+          
+          clearTimeout(timeoutId);
 
           if (xbrlResponse.ok) {
             const xbrlContent = await xbrlResponse.text();
@@ -302,13 +344,17 @@ serve(async (req) => {
               financialData.push(parsedData);
             }
           } else {
-            console.warn(`Failed to download XBRL: ${xbrlResponse.status} - ${documentUrl}`);
+            console.warn(`⚠️ Failed to download XBRL: ${xbrlResponse.status} - ${documentUrl}`);
           }
         } catch (error) {
-          console.error(`Error downloading/parsing XBRL for ${period}:`, error);
+          if (error.name === 'AbortError') {
+            console.warn(`⏱️ Timeout downloading XBRL for ${period}`);
+          } else {
+            console.error(`❌ Error downloading/parsing XBRL for ${period}:`, error);
+          }
         }
       } else {
-        console.warn(`No document URL found for period ${period}`);
+        console.warn(`⚠️ No XBRL document URL found for period ${period}`);
       }
     }
 

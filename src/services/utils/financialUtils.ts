@@ -81,8 +81,20 @@ export const extractFinancialData = (cvrData: any, parsedFinancialData?: any) =>
   const getFinancialKPIs = () => {
     const regnskabstal = vrvirksomhed.regnskabstal || [];
     const finansielleNoegletal = vrvirksomhed.finansielleNoegletal || [];
+    const regnskabsperiode = vrvirksomhed.regnskabsperiode || [];
     
     let financialKPIs: any = {};
+    
+    // Get the latest period from regnskabsperiode
+    let latestPeriod = null;
+    if (regnskabsperiode.length > 0) {
+      const sorted = [...regnskabsperiode].sort((a, b) => {
+        const dateA = new Date(a.periode?.gyldigTil || a.slutDato || 0);
+        const dateB = new Date(b.periode?.gyldigTil || b.slutDato || 0);
+        return dateB.getTime() - dateA.getTime();
+      });
+      latestPeriod = sorted[0];
+    }
     
     if (regnskabstal.length > 0) {
       const latest = regnskabstal[regnskabstal.length - 1];
@@ -92,7 +104,8 @@ export const extractFinancialData = (cvrData: any, parsedFinancialData?: any) =>
         aaretsResultat: latest.aaretsResultat || latest.netIncome || latest.netResult,
         egenkapital: latest.egenkapital || latest.equity,
         statusBalance: latest.statusBalance || latest.totalAssets || latest.balance,
-        periode: latest.periode || latest.year
+        periode: latest.periode || latest.year || 
+                 (latestPeriod ? `${latestPeriod.periode?.gyldigFra || latestPeriod.startDato} - ${latestPeriod.periode?.gyldigTil || latestPeriod.slutDato}` : null)
       };
     }
     
@@ -105,10 +118,12 @@ export const extractFinancialData = (cvrData: any, parsedFinancialData?: any) =>
         aaretsResultat: financialKPIs.aaretsResultat || latest.netResult,
         egenkapital: financialKPIs.egenkapital || latest.equity,
         statusBalance: financialKPIs.statusBalance || latest.balance,
-        periode: financialKPIs.periode || latest.year
+        periode: financialKPIs.periode || latest.year || 
+                (latestPeriod ? `${latestPeriod.periode?.gyldigFra || latestPeriod.startDato} - ${latestPeriod.periode?.gyldigTil || latestPeriod.slutDato}` : null)
       };
     }
     
+    console.log('CVR fallback - extracted financialKPIs:', financialKPIs);
     return Object.keys(financialKPIs).length > 0 ? financialKPIs : null;
   };
 
