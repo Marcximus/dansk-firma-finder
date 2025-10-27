@@ -7,8 +7,9 @@ interface FinancialSpreadsheetProps {
 }
 
 const FinancialSpreadsheet: React.FC<FinancialSpreadsheetProps> = ({ historicalData }) => {
-  // Get up to 5 most recent years
-  const periods = historicalData.slice(0, 5);
+  // Sort by year descending and get up to 5 most recent years
+  const sortedData = [...historicalData].sort((a, b) => (b.year || 0) - (a.year || 0));
+  const periods = sortedData.slice(0, 5);
   
   // Format number in thousands with Danish locale
   const formatThousands = (value: number | null | undefined): string => {
@@ -29,52 +30,54 @@ const FinancialSpreadsheet: React.FC<FinancialSpreadsheetProps> = ({ historicalD
 
   return (
     <Card>
-      <CardHeader>
-        <CardTitle>Regnskabsdata</CardTitle>
+      <CardHeader className="pb-3">
+        <CardTitle className="text-lg">Regnskabsdata</CardTitle>
       </CardHeader>
-      <CardContent className="overflow-x-auto">
-        <div className="space-y-6">
+      <CardContent className="overflow-x-auto p-0">
+        <div className="border-t">
           {/* Income Statement */}
-          <div>
-            <h3 className="font-semibold mb-2">Resultat i 1000 DKK</h3>
+          <div className="border-b">
+            <div className="bg-muted/30 px-4 py-2">
+              <h3 className="font-semibold text-sm">Resultat i 1000 DKK</h3>
+            </div>
             <Table>
               <TableHeader>
-                <TableRow>
-                  <TableHead className="sticky left-0 bg-background min-w-[180px]">Post</TableHead>
+                <TableRow className="border-b">
+                  <TableHead className="sticky left-0 bg-background min-w-[160px] h-8 text-xs font-medium">Post</TableHead>
                   {periods.map((period, idx) => (
-                    <TableHead key={idx} className="text-right">{period.periode}</TableHead>
+                    <TableHead key={idx} className="text-right h-8 text-xs font-medium px-3">{period.periode}</TableHead>
                   ))}
                 </TableRow>
               </TableHeader>
               <TableBody>
-                <TableRow>
-                  <TableCell className="sticky left-0 bg-background font-medium">Nettoomsætning</TableCell>
+                <TableRow className="hover:bg-muted/30">
+                  <TableCell className="sticky left-0 bg-background font-medium text-xs py-1.5">Nettoomsætning</TableCell>
                   {periods.map((period, idx) => (
-                    <TableCell key={idx} className="text-right">{formatThousands(period.nettoomsaetning)}</TableCell>
+                    <TableCell key={idx} className="text-right text-xs py-1.5 px-3">{formatThousands(period.nettoomsaetning)}</TableCell>
                   ))}
                 </TableRow>
-                <TableRow>
-                  <TableCell className="sticky left-0 bg-background font-medium">Bruttofortjeneste</TableCell>
+                <TableRow className="hover:bg-muted/30">
+                  <TableCell className="sticky left-0 bg-background font-medium text-xs py-1.5">Bruttofortjeneste</TableCell>
                   {periods.map((period, idx) => (
-                    <TableCell key={idx} className="text-right">{formatThousands(period.bruttofortjeneste)}</TableCell>
+                    <TableCell key={idx} className="text-right text-xs py-1.5 px-3">{formatThousands(period.bruttofortjeneste)}</TableCell>
                   ))}
                 </TableRow>
-                <TableRow>
-                  <TableCell className="sticky left-0 bg-background font-medium">Driftsresultat (EBIT)</TableCell>
+                <TableRow className="hover:bg-muted/30">
+                  <TableCell className="sticky left-0 bg-background font-medium text-xs py-1.5">Driftsresultat (EBIT)</TableCell>
                   {periods.map((period, idx) => (
-                    <TableCell key={idx} className="text-right">{formatThousands(period.driftsresultat)}</TableCell>
+                    <TableCell key={idx} className="text-right text-xs py-1.5 px-3">{formatThousands(period.driftsresultat)}</TableCell>
                   ))}
                 </TableRow>
-                <TableRow>
-                  <TableCell className="sticky left-0 bg-background font-medium">Resultat før skat</TableCell>
+                <TableRow className="hover:bg-muted/30">
+                  <TableCell className="sticky left-0 bg-background font-medium text-xs py-1.5">Resultat før skat</TableCell>
                   {periods.map((period, idx) => (
-                    <TableCell key={idx} className="text-right">{formatThousands(period.resultatFoerSkat)}</TableCell>
+                    <TableCell key={idx} className="text-right text-xs py-1.5 px-3">{formatThousands(period.resultatFoerSkat)}</TableCell>
                   ))}
                 </TableRow>
-                <TableRow>
-                  <TableCell className="sticky left-0 bg-background font-medium">Årets Resultat</TableCell>
+                <TableRow className="hover:bg-muted/30">
+                  <TableCell className="sticky left-0 bg-background font-medium text-xs py-1.5">Årets Resultat</TableCell>
                   {periods.map((period, idx) => (
-                    <TableCell key={idx} className="text-right">{formatThousands(period.aaretsResultat)}</TableCell>
+                    <TableCell key={idx} className="text-right text-xs py-1.5 px-3">{formatThousands(period.aaretsResultat)}</TableCell>
                   ))}
                 </TableRow>
               </TableBody>
@@ -82,52 +85,54 @@ const FinancialSpreadsheet: React.FC<FinancialSpreadsheetProps> = ({ historicalD
           </div>
 
           {/* Balance Sheet */}
-          <div>
-            <h3 className="font-semibold mb-2">Balance i 1000 DKK</h3>
+          <div className="border-b">
+            <div className="bg-muted/30 px-4 py-2">
+              <h3 className="font-semibold text-sm">Balance i 1000 DKK</h3>
+            </div>
             <Table>
               <TableHeader>
-                <TableRow>
-                  <TableHead className="sticky left-0 bg-background min-w-[180px]">Post</TableHead>
+                <TableRow className="border-b">
+                  <TableHead className="sticky left-0 bg-background min-w-[160px] h-8 text-xs font-medium">Post</TableHead>
                   {periods.map((period, idx) => (
-                    <TableHead key={idx} className="text-right">{period.periode}</TableHead>
+                    <TableHead key={idx} className="text-right h-8 text-xs font-medium px-3">{period.periode}</TableHead>
                   ))}
                 </TableRow>
               </TableHeader>
               <TableBody>
-                <TableRow>
-                  <TableCell className="sticky left-0 bg-background font-medium">Anlægsaktiver</TableCell>
+                <TableRow className="hover:bg-muted/30">
+                  <TableCell className="sticky left-0 bg-background font-medium text-xs py-1.5">Anlægsaktiver</TableCell>
                   {periods.map((period, idx) => (
-                    <TableCell key={idx} className="text-right">{formatThousands(period.anlaegsaktiverValue)}</TableCell>
+                    <TableCell key={idx} className="text-right text-xs py-1.5 px-3">{formatThousands(period.anlaegsaktiverValue)}</TableCell>
                   ))}
                 </TableRow>
-                <TableRow>
-                  <TableCell className="sticky left-0 bg-background font-medium">Omsætningsaktiver</TableCell>
+                <TableRow className="hover:bg-muted/30">
+                  <TableCell className="sticky left-0 bg-background font-medium text-xs py-1.5">Omsætningsaktiver</TableCell>
                   {periods.map((period, idx) => (
-                    <TableCell key={idx} className="text-right">{formatThousands(period.omsaetningsaktiver)}</TableCell>
+                    <TableCell key={idx} className="text-right text-xs py-1.5 px-3">{formatThousands(period.omsaetningsaktiver)}</TableCell>
                   ))}
                 </TableRow>
-                <TableRow>
-                  <TableCell className="sticky left-0 bg-background font-medium">Egenkapital</TableCell>
+                <TableRow className="hover:bg-muted/30">
+                  <TableCell className="sticky left-0 bg-background font-medium text-xs py-1.5">Egenkapital</TableCell>
                   {periods.map((period, idx) => (
-                    <TableCell key={idx} className="text-right">{formatThousands(period.egenkapital)}</TableCell>
+                    <TableCell key={idx} className="text-right text-xs py-1.5 px-3">{formatThousands(period.egenkapital)}</TableCell>
                   ))}
                 </TableRow>
-                <TableRow>
-                  <TableCell className="sticky left-0 bg-background font-medium">Hensatte forpligtelser</TableCell>
+                <TableRow className="hover:bg-muted/30">
+                  <TableCell className="sticky left-0 bg-background font-medium text-xs py-1.5">Hensatte forpligtelser</TableCell>
                   {periods.map((period, idx) => (
-                    <TableCell key={idx} className="text-right">{formatThousands(period.hensatteForpligtelser)}</TableCell>
+                    <TableCell key={idx} className="text-right text-xs py-1.5 px-3">{formatThousands(period.hensatteForpligtelser)}</TableCell>
                   ))}
                 </TableRow>
-                <TableRow>
-                  <TableCell className="sticky left-0 bg-background font-medium">Gældsforpligtelser</TableCell>
+                <TableRow className="hover:bg-muted/30">
+                  <TableCell className="sticky left-0 bg-background font-medium text-xs py-1.5">Gældsforpligtelser</TableCell>
                   {periods.map((period, idx) => (
-                    <TableCell key={idx} className="text-right">{formatThousands(period.gaeldsforpligtelser)}</TableCell>
+                    <TableCell key={idx} className="text-right text-xs py-1.5 px-3">{formatThousands(period.gaeldsforpligtelser)}</TableCell>
                   ))}
                 </TableRow>
-                <TableRow>
-                  <TableCell className="sticky left-0 bg-background font-medium">Årets balance</TableCell>
+                <TableRow className="hover:bg-muted/30">
+                  <TableCell className="sticky left-0 bg-background font-medium text-xs py-1.5">Årets balance</TableCell>
                   {periods.map((period, idx) => (
-                    <TableCell key={idx} className="text-right">{formatThousands(period.statusBalance)}</TableCell>
+                    <TableCell key={idx} className="text-right text-xs py-1.5 px-3">{formatThousands(period.statusBalance)}</TableCell>
                   ))}
                 </TableRow>
               </TableBody>
@@ -136,39 +141,41 @@ const FinancialSpreadsheet: React.FC<FinancialSpreadsheetProps> = ({ historicalD
 
           {/* Key Ratios */}
           <div>
-            <h3 className="font-semibold mb-2">Nøgletal i %</h3>
+            <div className="bg-muted/30 px-4 py-2">
+              <h3 className="font-semibold text-sm">Nøgletal i %</h3>
+            </div>
             <Table>
               <TableHeader>
-                <TableRow>
-                  <TableHead className="sticky left-0 bg-background min-w-[180px]">Nøgletal</TableHead>
+                <TableRow className="border-b">
+                  <TableHead className="sticky left-0 bg-background min-w-[160px] h-8 text-xs font-medium">Nøgletal</TableHead>
                   {periods.map((period, idx) => (
-                    <TableHead key={idx} className="text-right">{period.periode}</TableHead>
+                    <TableHead key={idx} className="text-right h-8 text-xs font-medium px-3">{period.periode}</TableHead>
                   ))}
                 </TableRow>
               </TableHeader>
               <TableBody>
-                <TableRow>
-                  <TableCell className="sticky left-0 bg-background font-medium">Soliditetsgrad</TableCell>
+                <TableRow className="hover:bg-muted/30">
+                  <TableCell className="sticky left-0 bg-background font-medium text-xs py-1.5">Soliditetsgrad</TableCell>
                   {periods.map((period, idx) => (
-                    <TableCell key={idx} className="text-right">{formatPercent(period.soliditetsgrad)}</TableCell>
+                    <TableCell key={idx} className="text-right text-xs py-1.5 px-3">{formatPercent(period.soliditetsgrad)}</TableCell>
                   ))}
                 </TableRow>
-                <TableRow>
-                  <TableCell className="sticky left-0 bg-background font-medium">Likviditetsgrad</TableCell>
+                <TableRow className="hover:bg-muted/30">
+                  <TableCell className="sticky left-0 bg-background font-medium text-xs py-1.5">Likviditetsgrad</TableCell>
                   {periods.map((period, idx) => (
-                    <TableCell key={idx} className="text-right">{formatPercent(period.likviditetsgrad)}</TableCell>
+                    <TableCell key={idx} className="text-right text-xs py-1.5 px-3">{formatPercent(period.likviditetsgrad)}</TableCell>
                   ))}
                 </TableRow>
-                <TableRow>
-                  <TableCell className="sticky left-0 bg-background font-medium">Afkastningsgrad</TableCell>
+                <TableRow className="hover:bg-muted/30">
+                  <TableCell className="sticky left-0 bg-background font-medium text-xs py-1.5">Afkastningsgrad</TableCell>
                   {periods.map((period, idx) => (
-                    <TableCell key={idx} className="text-right">{formatPercent(period.afkastningsgrad)}</TableCell>
+                    <TableCell key={idx} className="text-right text-xs py-1.5 px-3">{formatPercent(period.afkastningsgrad)}</TableCell>
                   ))}
                 </TableRow>
-                <TableRow>
-                  <TableCell className="sticky left-0 bg-background font-medium">Overskudsgrad</TableCell>
+                <TableRow className="hover:bg-muted/30">
+                  <TableCell className="sticky left-0 bg-background font-medium text-xs py-1.5">Overskudsgrad</TableCell>
                   {periods.map((period, idx) => (
-                    <TableCell key={idx} className="text-right">{formatPercent(period.overskudsgrad)}</TableCell>
+                    <TableCell key={idx} className="text-right text-xs py-1.5 px-3">{formatPercent(period.overskudsgrad)}</TableCell>
                   ))}
                 </TableRow>
               </TableBody>
