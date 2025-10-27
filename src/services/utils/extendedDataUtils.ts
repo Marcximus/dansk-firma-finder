@@ -230,7 +230,7 @@ export const extractExtendedInfo = (cvrData: any) => {
     return directValue === true || directValue === 'true' || directValue === 'Ja';
   };
 
-  // Extract ticker symbol from attributter
+  // Extract ticker symbol from attributter or fallback to known mappings
   const getTicker = () => {
     const attributter = vrvirksomhed.attributter || [];
     const tickerAttr = attributter.find((attr: any) => 
@@ -243,11 +243,27 @@ export const extractExtendedInfo = (cvrData: any) => {
       const currentValue = tickerAttr.vaerdier.find((v: any) => v.periode?.gyldigTil === null);
       const value = currentValue || tickerAttr.vaerdier[tickerAttr.vaerdier.length - 1];
       console.log('Ticker extraction - found attribute:', tickerAttr, 'value:', value?.vaerdi);
-      return value?.vaerdi || null;
+      if (value?.vaerdi) return value.vaerdi;
     }
     
-    console.log('Ticker extraction - no ticker found');
-    return null;
+    // Fallback to manual mapping for major Danish publicly traded companies
+    const cvrNumber = vrvirksomhed.cvrNummer?.toString();
+    const tickerMappings: { [key: string]: string } = {
+      '24256790': 'NOVO-B',  // Novo Nordisk
+      '10103940': 'MAERSK-B', // A.P. Møller - Mærsk
+      '36213728': 'DSV',      // DSV
+      '61056416': 'ORSTED',   // Ørsted
+      '30799101': 'CARLB',    // Carlsberg
+      '10529638': 'DEMANT',   // Demant
+      '56828119': 'COLO-B',   // Coloplast
+      '69749917': 'TRYG',     // Tryg
+      '41578702': 'PNDORA',   // Pandora
+      '47458714': 'VWS',      // Vestas Wind Systems
+    };
+    
+    const ticker = tickerMappings[cvrNumber || ''];
+    console.log('Ticker extraction - CVR mapping result:', cvrNumber, '->', ticker);
+    return ticker || null;
   };
 
   const result = {
