@@ -125,7 +125,23 @@ const ExtendedInfoAccordion: React.FC<ExtendedInfoAccordionProps> = ({ company, 
           <InfoRow 
             icon={TrendingUp} 
             label="Børsnoteret" 
-            value={extendedInfo?.isListed !== undefined ? (extendedInfo.isListed ? 'Ja' : 'Nej') : undefined} 
+            value={extendedInfo?.isListed !== undefined ? (
+              extendedInfo.isListed ? (
+                <span className="flex items-center gap-2">
+                  Ja
+                  {extendedInfo.ticker && (
+                    <a
+                      href={`https://finance.yahoo.com/quote/${extendedInfo.ticker}.CO`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-primary hover:underline font-medium"
+                    >
+                      ({extendedInfo.ticker})
+                    </a>
+                  )}
+                </span>
+              ) : 'Nej'
+            ) : undefined} 
           />
           
           <InfoRow 

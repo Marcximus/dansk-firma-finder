@@ -230,6 +230,26 @@ export const extractExtendedInfo = (cvrData: any) => {
     return directValue === true || directValue === 'true' || directValue === 'Ja';
   };
 
+  // Extract ticker symbol from attributter
+  const getTicker = () => {
+    const attributter = vrvirksomhed.attributter || [];
+    const tickerAttr = attributter.find((attr: any) => 
+      attr.type === 'TICKER' || 
+      attr.type === 'BØRS_TICKER' ||
+      attr.type?.toUpperCase().includes('TICKER')
+    );
+    
+    if (tickerAttr?.vaerdier) {
+      const currentValue = tickerAttr.vaerdier.find((v: any) => v.periode?.gyldigTil === null);
+      const value = currentValue || tickerAttr.vaerdier[tickerAttr.vaerdier.length - 1];
+      console.log('Ticker extraction - found attribute:', tickerAttr, 'value:', value?.vaerdi);
+      return value?.vaerdi || null;
+    }
+    
+    console.log('Ticker extraction - no ticker found');
+    return null;
+  };
+
   const result = {
     phone: getPhone(),
     municipality: getMunicipality(),
@@ -238,6 +258,7 @@ export const extractExtendedInfo = (cvrData: any) => {
     secondaryIndustries: getSecondaryIndustries(),
     primaryIndustry: getPrimaryIndustry(),
     isListed: getIsListed(),
+    ticker: getTicker(),
     accountingYear: getAccountingYear(),
     firstAccountingPeriod: getFirstAccountingPeriod(),
     latestStatuteDate: (() => {
