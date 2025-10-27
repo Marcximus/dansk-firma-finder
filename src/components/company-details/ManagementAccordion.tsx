@@ -278,13 +278,11 @@ const ManagementAccordion: React.FC<ManagementAccordionProps> = ({ cvrData }) =>
                               return isActive && v.vaerdi?.includes('SUPPLEANT');
                             });
                             
-                            const isEmployeeElectedSuppleant = isSuppleant && activeValgform?.vaerdi?.includes('medarbejdere i selskabet');
-                            
                             return (
                               <div key={medlemIndex} className="text-[9px] sm:text-[10px] md:text-xs text-muted-foreground mt-0.5 sm:mt-1">
                                 {isSuppleant && (
-                                  <div className={`text-xs font-medium mb-1 ${isEmployeeElectedSuppleant ? 'text-orange-600 dark:text-orange-500' : 'text-amber-600 dark:text-amber-500'}`}>
-                                    {isEmployeeElectedSuppleant ? 'Medarbejdervalgt suppleant' : 'Suppleant'}
+                                  <div className="text-xs font-medium mb-1 text-amber-600 dark:text-amber-500">
+                                    Medarbejdervalgt suppleant
                                   </div>
                                 )}
                                 {activeFunk?.periode?.gyldigFra && (

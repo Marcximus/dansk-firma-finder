@@ -169,13 +169,11 @@ const ComprehensiveManagementCard: React.FC<ComprehensiveManagementCardProps> = 
                             return isActive && v.vaerdi?.includes('SUPPLEANT');
                           });
                           
-                          const isEmployeeElectedSuppleant = isSuppleant && activeValgform?.vaerdi?.includes('medarbejdere i selskabet');
-                          
                           return (
                             <div key={medlemIndex} className="text-sm text-muted-foreground mt-1">
                               {isSuppleant && (
-                                <div className={`text-sm font-medium mb-1 ${isEmployeeElectedSuppleant ? 'text-orange-600 dark:text-orange-500' : 'text-amber-600 dark:text-amber-500'}`}>
-                                  {isEmployeeElectedSuppleant ? 'Medarbejdervalgt suppleant' : 'Suppleant'}
+                                <div className="text-sm font-medium mb-1 text-amber-600 dark:text-amber-500">
+                                  Medarbejdervalgt suppleant
                                 </div>
                               )}
                               {activeFunk?.periode?.gyldigFra && (
