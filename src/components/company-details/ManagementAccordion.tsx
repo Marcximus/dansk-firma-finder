@@ -292,7 +292,7 @@ const ManagementAccordion: React.FC<ManagementAccordionProps> = ({ cvrData }) =>
                                 )}
                                 {medlem.attributter && medlem.attributter.map((attr: any, attrIndex: number) => (
                                   <div key={attrIndex} className="mt-0.5 sm:mt-1">
-                                    {attr.type !== 'FUNKTION' && attr.type !== 'VALGFORM' && attr.vaerdier && !attr.vaerdier.some((v: any) => v.vaerdi?.includes('SUPPLEANT')) && (
+                                    {attr.type !== 'FUNKTION' && attr.type !== 'VALGFORM' && !attr.type?.includes('SUPPLEANT') && attr.vaerdier && !attr.vaerdier.some((v: any) => v.vaerdi?.includes('SUPPLEANT')) && (
                                       <div>
                                         <strong>{attr.type}:</strong> {attr.vaerdier.map((v: any) => v.vaerdi).join(', ')}
                                       </div>
