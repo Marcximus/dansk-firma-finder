@@ -120,19 +120,6 @@ const PersonDetails: React.FC<PersonDetailsProps> = ({ personData }) => {
 
       {/* Key-Value Pairs */}
       <div className="space-y-2 text-sm">
-        {/* Status Indicator */}
-        <div className="grid grid-cols-[140px_1fr] gap-2">
-          <span className="text-muted-foreground">Status</span>
-          <div className="flex items-center gap-2">
-            <span 
-              className={`h-2.5 w-2.5 rounded-full pulse ${item.isActive ? 'bg-green-500' : 'bg-red-500'}`}
-            />
-            <span className="font-medium">
-              {item.isActive ? 'Aktiv Relation' : 'Ophørt Relation'}
-            </span>
-          </div>
-        </div>
-
         <div className="grid grid-cols-[140px_1fr] gap-2">
           <span className="text-muted-foreground">CVR-nummer</span>
           <button
@@ -160,6 +147,19 @@ const PersonDetails: React.FC<PersonDetailsProps> = ({ personData }) => {
             {item.role.type === 'LEDELSE' && (item.role.title || 'Ledelsesmedlem')}
             {!['EJERREGISTER', 'LEDELSE'].includes(item.role.type) && (item.role.title || item.role.type)}
           </span>
+        </div>
+
+        {/* Status Indicator */}
+        <div className="grid grid-cols-[140px_1fr] gap-2">
+          <span className="text-muted-foreground">Status</span>
+          <div className="flex items-center gap-2">
+            <span 
+              className={`h-2.5 w-2.5 rounded-full animate-pulse ${item.isActive ? 'bg-green-500' : 'bg-red-500'}`}
+            />
+            <span className="font-medium">
+              {item.isActive ? 'Aktiv Relation' : 'Ophørt Relation'}
+            </span>
+          </div>
         </div>
 
         <div className="grid grid-cols-[140px_1fr] gap-2">
