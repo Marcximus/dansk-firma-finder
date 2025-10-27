@@ -55,39 +55,40 @@ const PersonDetails: React.FC<PersonDetailsProps> = ({ personData }) => {
     const activeRelations: any[] = [];
     const historicalRelations: any[] = [];
     
-    // Process active relations
-    personData.activeRelations.forEach((relation: any) => {
-      if (relation.roles && relation.roles.length > 0) {
-        relation.roles.forEach((role: any) => {
-          activeRelations.push({
-            ...relation,
-            role,
-            isActive: true
-          });
-        });
-      }
-    });
+    // Process ALL relations and check each role's validTo field
+    const allRelationsSources = [
+      ...(personData.activeRelations || []),
+      ...(personData.historicalRelations || [])
+    ];
     
-    // Process historical relations
-    personData.historicalRelations.forEach((relation: any) => {
+    allRelationsSources.forEach((relation: any) => {
       if (relation.roles && relation.roles.length > 0) {
         relation.roles.forEach((role: any) => {
-          historicalRelations.push({
+          const relationWithRole = {
             ...relation,
             role,
-            isActive: false
-          });
+            isActive: !role.validTo // Active if no validTo date
+          };
+          
+          if (role.validTo) {
+            // Has validTo date = historical
+            historicalRelations.push(relationWithRole);
+          } else {
+            // No validTo date = active
+            activeRelations.push(relationWithRole);
+          }
         });
       }
     });
 
-    // Sort by date (newest first)
+    // Sort active by validFrom date (newest first)
     activeRelations.sort((a, b) => {
       const dateA = a.role.validFrom ? new Date(a.role.validFrom).getTime() : 0;
       const dateB = b.role.validFrom ? new Date(b.role.validFrom).getTime() : 0;
       return dateB - dateA;
     });
 
+    // Sort historical by validTo date (newest first)
     historicalRelations.sort((a, b) => {
       const dateA = a.role.validTo ? new Date(a.role.validTo).getTime() : 0;
       const dateB = b.role.validTo ? new Date(b.role.validTo).getTime() : 0;
