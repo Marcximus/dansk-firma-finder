@@ -1,7 +1,7 @@
 
 import { SEARCH_TIERS } from '../search-tiers.ts';
 
-export const buildTier0ExactMatchQuery = (cleanedQuery: string) => {
+export const buildTier0ExactMatchQuery = (cleanedQuery: string, originalQuery: string) => {
   return {
     "bool": {
       "should": [
@@ -91,6 +91,75 @@ export const buildTier0ExactMatchQuery = (cleanedQuery: string) => {
               {
                 "term": {
                   "Vrvirksomhed.navne.navn.keyword": cleanedQuery
+                }
+              }
+            ],
+            "boost": SEARCH_TIERS.SHORTEST_EXACT_MATCH
+          }
+        },
+        // ORIGINAL QUERY (with legal form) - lowercase
+        {
+          "bool": {
+            "must": [
+              {
+                "match": {
+                  "Vrvirksomhed.navne.navn": {
+                    "query": originalQuery,
+                    "operator": "and"
+                  }
+                }
+              }
+            ],
+            "filter": [
+              {
+                "term": {
+                  "Vrvirksomhed.navne.navn.keyword": originalQuery.toLowerCase()
+                }
+              }
+            ],
+            "boost": SEARCH_TIERS.SHORTEST_EXACT_MATCH
+          }
+        },
+        // ORIGINAL QUERY (with legal form) - uppercase
+        {
+          "bool": {
+            "must": [
+              {
+                "match": {
+                  "Vrvirksomhed.navne.navn": {
+                    "query": originalQuery,
+                    "operator": "and"
+                  }
+                }
+              }
+            ],
+            "filter": [
+              {
+                "term": {
+                  "Vrvirksomhed.navne.navn.keyword": originalQuery.toUpperCase()
+                }
+              }
+            ],
+            "boost": SEARCH_TIERS.SHORTEST_EXACT_MATCH
+          }
+        },
+        // ORIGINAL QUERY (with legal form) - original case
+        {
+          "bool": {
+            "must": [
+              {
+                "match": {
+                  "Vrvirksomhed.navne.navn": {
+                    "query": originalQuery,
+                    "operator": "and"
+                  }
+                }
+              }
+            ],
+            "filter": [
+              {
+                "term": {
+                  "Vrvirksomhed.navne.navn.keyword": originalQuery
                 }
               }
             ],

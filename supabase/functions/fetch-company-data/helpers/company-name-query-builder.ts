@@ -36,7 +36,7 @@ export const buildCompanyNameQuery = (companyName: string) => {
       "bool": {
         "should": [
           // TIER 0: TRUE EXACT MATCHES - only companies with exactly this name
-          buildTier0ExactMatchQuery(cleanedQuery),
+          buildTier0ExactMatchQuery(cleanedQuery, companyName),
           
           // TIER 1: PHRASE matches for complete company names (case-insensitive)
           buildTier1PhraseMatchQuery(cleanedQuery),
