@@ -210,10 +210,11 @@ const SigningRulesAccordion: React.FC<SigningRulesAccordionProps> = ({ cvrData }
     const today = new Date().toISOString().split('T')[0];
     
     return [...persons].sort((a, b) => {
-      // Helper function to get role and valgform for a person
+      // Helper function to get role, valgform, and suppleant status for a person
       const getPersonInfo = (relation: any) => {
         let role = '';
         let valgform = '';
+        let isSuppleant = false;
         
         relation.organisationer?.forEach((org: any) => {
           org.medlemsData?.forEach((medlem: any) => {
@@ -230,18 +231,21 @@ const SigningRulesAccordion: React.FC<SigningRulesAccordionProps> = ({ cvrData }
               return gyldigTil === null || gyldigTil === undefined || gyldigTil >= today;
             });
             
-            if (activeFunk?.vaerdi) role = activeFunk.vaerdi;
+            if (activeFunk?.vaerdi) {
+              role = activeFunk.vaerdi;
+              if (role === 'SUPPLEANT') isSuppleant = true;
+            }
             if (activeValgform?.vaerdi) valgform = activeValgform.vaerdi.toLowerCase();
           });
         });
         
-        return { role, valgform };
+        return { role, valgform, isSuppleant };
       };
       
       const infoA = getPersonInfo(a);
       const infoB = getPersonInfo(b);
       
-      // Priority order: Formand > Næstformand > Generalforsamling > Medarbejdere
+      // Priority order: Formand > Næstformand > Regular members > Suppleants, then by valgform
       const getRolePriority = (role: string) => {
         if (role.includes('FORMAND') && !role.includes('NÆSTFORMAND')) return 1; // Formand/Bestyrelsesformand
         if (role.includes('NÆSTFORMAND')) return 2; // Næstformand
@@ -262,7 +266,19 @@ const SigningRulesAccordion: React.FC<SigningRulesAccordionProps> = ({ cvrData }
       }
       
       // If roles are equal, sort by valgform
-      return getValgformPriority(infoA.valgform) - getValgformPriority(infoB.valgform);
+      const valgformAPriority = getValgformPriority(infoA.valgform);
+      const valgformBPriority = getValgformPriority(infoB.valgform);
+      
+      if (valgformAPriority !== valgformBPriority) {
+        return valgformAPriority - valgformBPriority;
+      }
+      
+      // If valgform is also equal, non-suppleants come before suppleants
+      if (infoA.isSuppleant !== infoB.isSuppleant) {
+        return infoA.isSuppleant ? 1 : -1;
+      }
+      
+      return 0;
     });
   };
 
@@ -351,37 +367,8 @@ const SigningRulesAccordion: React.FC<SigningRulesAccordionProps> = ({ cvrData }
                                 return gyldigTil === null || gyldigTil === undefined || gyldigTil >= today;
                               });
                               
-                              // Check if person is a Suppleant - check relation._medlemsData first (enriched backend data)
-                              let isSuppleant = false;
-                              if (relation._medlemsData?.attributter) {
-                                const medlemsDataFunktion = relation._medlemsData.attributter.find(
-                                  (attr: any) => attr.type === 'FUNKTION'
-                                );
-                                if (medlemsDataFunktion?.vaerdier) {
-                                  isSuppleant = medlemsDataFunktion.vaerdier.some((v: any) => {
-                                    const gyldigTil = v.periode?.gyldigTil;
-                                    const isActive = gyldigTil === null || gyldigTil === undefined || gyldigTil >= today;
-                                    return isActive && v.vaerdi === 'SUPPLEANT';
-                                  });
-                                }
-                              }
-                              
-                              // Fallback: check medlem.attributter for direct SUPPLEANT role
-                              if (!isSuppleant) {
-                                isSuppleant = funkAttr?.vaerdier?.some((v: any) => {
-                                  const gyldigTil = v.periode?.gyldigTil;
-                                  const isActive = gyldigTil === null || gyldigTil === undefined || gyldigTil >= today;
-                                  return isActive && v.vaerdi === 'SUPPLEANT';
-                                });
-                              }
-                              
                               return (
                                 <>
-                                  {isSuppleant && (
-                                    <div className="text-xs text-amber-600 dark:text-amber-500 font-medium mb-1">
-                                      Suppleant
-                                    </div>
-                                  )}
                                   {activeFunk?.periode?.gyldigFra && (
                                     <div>Siden: {activeFunk.periode.gyldigFra}</div>
                                   )}
