@@ -175,40 +175,40 @@ serve(async (req) => {
     
     // Build Elasticsearch query according to Danish Business Authority documentation
     // Filter for XBRL documents (application/xml mime type)
-    const searchQuery = {
-      "query": {
-        "bool": {
-          "must": [
-            {
-              "term": {
-                "cvrNummer": parseInt(cvr)
-              }
-            },
-            {
-              "term": {
-                "dokumenter.dokumentMimeType": "application"
-              }
-            },
-            {
-              "term": {
-                "dokumenter.dokumentMimeType": "xml"
-              }
+  const searchQuery = {
+    "query": {
+      "bool": {
+        "must": [
+          {
+            "term": {
+              "cvrNummer": parseInt(cvr)
             }
-          ]
-        }
-      },
-      "size": 10,
-      "sort": [
-        {
-          "offentliggoerelsesTidspunkt": {
-            "order": "desc"
+          },
+          {
+            "match": {
+              "dokumenter.dokumentMimeType": "xml"
+            }
           }
+        ]
+      }
+    },
+    "size": 10,
+    "sort": [
+      {
+        "offentliggoerelsesTidspunkt": {
+          "order": "desc"
         }
-      ]
-    };
+      }
+    ]
+  };
 
     console.log(`[STEP 1] Searching for financial reports with POST: ${searchUrl}`);
     console.log('[STEP 1] Query:', JSON.stringify(searchQuery));
+    console.log('[STEP 1] Request details:', {
+      hasAuth: !!auth,
+      cvrParsed: parseInt(cvr),
+      queryType: 'match on xml MIME type'
+    });
 
     const searchResponse = await fetch(searchUrl, {
       method: 'POST',
@@ -221,8 +221,12 @@ serve(async (req) => {
       body: JSON.stringify(searchQuery)
     });
 
+    console.log(`[STEP 2] Search API response status: ${searchResponse.status}`);
+
     if (!searchResponse.ok) {
-      console.error(`Financial API request failed: ${searchResponse.status} ${searchResponse.statusText}`);
+      const errorText = await searchResponse.text();
+      console.error(`[ERROR] Financial API request failed: ${searchResponse.status}`);
+      console.error(`[ERROR] Error response: ${errorText.substring(0, 500)}`);
       return new Response(
         JSON.stringify({ 
           financialReports: [],
@@ -238,9 +242,29 @@ serve(async (req) => {
       );
     }
 
-    const searchData = await searchResponse.json();
-    console.log(`[STEP 1] Search response status: ${searchResponse.status}`);
-    console.log(`[STEP 1] Found ${searchData.hits?.hits?.length || 0} financial reports`);
+    let searchData;
+    try {
+      searchData = await searchResponse.json();
+      console.log(`[STEP 2] JSON parsed successfully`);
+      console.log(`[STEP 2] Response structure keys:`, Object.keys(searchData));
+      console.log(`[STEP 2] Found ${searchData.hits?.hits?.length || 0} financial reports`);
+    } catch (jsonError) {
+      console.error('[ERROR] Failed to parse JSON response:', jsonError);
+      try {
+        const responseText = await searchResponse.text();
+        console.error('[ERROR] Raw response text:', responseText.substring(0, 500));
+      } catch (textError) {
+        console.error('[ERROR] Could not read response as text either');
+      }
+      return new Response(
+        JSON.stringify({ 
+          financialReports: [],
+          financialData: [],
+          error: 'Failed to parse API response'
+        }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
     
     if (!searchData.hits || !searchData.hits.hits || searchData.hits.hits.length === 0) {
       console.log('[STEP 1] No XBRL reports found - returning empty result');
