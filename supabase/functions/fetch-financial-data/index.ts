@@ -183,6 +183,10 @@ serve(async (req) => {
     // Step 1: Search for financial reports using POST with Elasticsearch query
     const searchUrl = 'https://distribution.virk.dk/offentliggoerelser/_search';
     
+    // Add date range to reduce query scope (last 5 years only)
+    const fiveYearsAgo = new Date();
+    fiveYearsAgo.setFullYear(fiveYearsAgo.getFullYear() - 5);
+    
     // Build Elasticsearch query using official documentation pattern
     // The dokumenter.dokumentMimeType field is tokenized, so "application/xml" becomes ["application", "xml"]
     // This allows us to match both tokens with separate term filters
@@ -204,6 +208,14 @@ serve(async (req) => {
               "term": {
                 "dokumenter.dokumentMimeType": "xml"
               }
+            },
+            {
+              "range": {
+                "offentliggoerelsesTidspunkt": {
+                  "gte": fiveYearsAgo.toISOString(),
+                  "lte": new Date().toISOString()
+                }
+              }
             }
           ]
         }
@@ -223,8 +235,9 @@ serve(async (req) => {
     console.log('[STEP 1] Request details:', {
       hasAuth: !!auth,
       cvrParsed: parseInt(cvr),
-      queryType: 'tokenized term filters (official pattern)',
-      filters: ['application', 'xml']
+      queryType: 'tokenized term filters + date range',
+      filters: ['application', 'xml'],
+      dateRange: `${fiveYearsAgo.toISOString().split('T')[0]} to ${new Date().toISOString().split('T')[0]}`
     });
 
     // Add timeout protection for main API request
@@ -235,6 +248,8 @@ serve(async (req) => {
     let searchResponse;
     try {
       console.log('[STEP 1.5] Sending search request to Danish Business API...');
+      const startTime = Date.now();
+      
       searchResponse = await fetch(searchUrl, {
         method: 'POST',
         headers: {
@@ -246,8 +261,11 @@ serve(async (req) => {
         body: JSON.stringify(searchQuery),
         signal: searchController.signal
       });
+      
       clearTimeout(searchTimeoutId);
-      console.log(`[STEP 2] Search API response status: ${searchResponse.status}`);
+      const elapsed = Date.now() - startTime;
+      console.log(`[STEP 2] Search API response received in ${elapsed}ms`);
+      console.log(`[STEP 2] Response status: ${searchResponse.status}`);
     } catch (fetchError) {
       clearTimeout(searchTimeoutId);
       if (fetchError.name === 'AbortError') {

@@ -75,7 +75,11 @@ const FinancialAccordion: React.FC<FinancialAccordionProps> = ({ cvr, cvrData })
           {/* Error state */}
           {error && !isLoading && (
             <div className="text-sm text-amber-600 dark:text-amber-500 p-3 bg-amber-50 dark:bg-amber-950/20 rounded-lg border border-amber-200 dark:border-amber-800">
-              ⚠️ {error}
+              <div className="font-semibold mb-1">⚠️ Regnskabsdata midlertidigt utilgængelig</div>
+              <div className="text-xs">{error}</div>
+              <div className="text-xs mt-2 opacity-80">
+                Vi viser tilgængelige data fra CVR nedenfor. XBRL regnskabsdata fra Erhvervsstyrelsen kan ikke hentes lige nu.
+              </div>
             </div>
           )}
           {/* Financial Spreadsheet - Show comprehensive data if available */}
