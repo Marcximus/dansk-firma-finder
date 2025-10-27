@@ -160,7 +160,7 @@ serve(async (req) => {
     });
     
     // Step 1: Search for financial reports using POST with Elasticsearch query
-    const searchUrl = 'https://distribution.virk.dk/offentliggoerelser/_search';
+    const searchUrl = 'http://distribution.virk.dk/offentliggoerelser/_search';
     
     // Add date range to reduce query scope (last 2 years only for better performance)
     const twoYearsAgo = new Date();
@@ -403,7 +403,7 @@ serve(async (req) => {
           reportMetadata.documentUrl = documentUrl;
         } else if (xbrlDoc.dokumentGuid || xbrlDoc.guid) {
           const guid = xbrlDoc.dokumentGuid || xbrlDoc.guid;
-          documentUrl = `https://distribution.virk.dk/dokumenter/${guid}/download`;
+          documentUrl = `http://distribution.virk.dk/dokumenter/${guid}/download`;
           reportMetadata.documentGuid = guid;
           reportMetadata.documentUrl = documentUrl;
         }
@@ -415,7 +415,7 @@ serve(async (req) => {
       }
       // Fallback: use _id from the hit itself
       else if (hit._id) {
-        documentUrl = `https://distribution.virk.dk/dokumenter/${hit._id}/download`;
+        documentUrl = `http://distribution.virk.dk/dokumenter/${hit._id}/download`;
         reportMetadata.documentGuid = hit._id;
         reportMetadata.documentUrl = documentUrl;
       }
