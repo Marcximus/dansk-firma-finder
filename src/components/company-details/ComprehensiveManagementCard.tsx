@@ -66,9 +66,25 @@ const ComprehensiveManagementCard: React.FC<ComprehensiveManagementCardProps> = 
 
     // Get more specific role from member data
     if (memberData && memberData.attributter) {
+      const today = new Date().toISOString().split('T')[0];
       const funkAttribute = memberData.attributter.find((attr: any) => attr.type === 'FUNKTION');
+      const valgformAttr = memberData.attributter.find((attr: any) => attr.type === 'VALGFORM');
+      
       if (funkAttribute && funkAttribute.vaerdier && funkAttribute.vaerdier.length > 0) {
         const specificRole = funkAttribute.vaerdier[0].vaerdi;
+        
+        // Check if this is an employee-elected board member
+        const activeValgform = valgformAttr?.vaerdier?.find((v: any) => {
+          const gyldigTil = v.periode?.gyldigTil;
+          return gyldigTil === null || gyldigTil === undefined || gyldigTil >= today;
+        });
+        
+        const isEmployeeElected = activeValgform?.vaerdi?.includes('medarbejdere i selskabet');
+        
+        if (specificRole === 'BESTYRELSESMEDLEM' && isEmployeeElected) {
+          return 'Medarbejdervalgt Bestyrelsesmedlem';
+        }
+        
         if (specificRole !== hovedtype) {
           return `${baseName} (${specificRole})`;
         }

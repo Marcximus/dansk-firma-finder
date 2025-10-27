@@ -85,11 +85,19 @@ const SigningRulesAccordion: React.FC<SigningRulesAccordionProps> = ({ cvrData }
       if (activeRole?.vaerdi) {
         const specificRole = activeRole.vaerdi;
         
+        // Check if this is an employee-elected board member
+        const valgformAttr = medlem?.attributter?.find((attr: any) => attr.type === 'VALGFORM');
+        const activeValgform = valgformAttr?.vaerdier?.find((v: any) => {
+          const gyldigTil = v.periode?.gyldigTil;
+          return gyldigTil === null || gyldigTil === undefined || gyldigTil >= today;
+        });
+        const isEmployeeElected = activeValgform?.vaerdi?.includes('medarbejdere i selskabet');
+        
         // Format specific roles for better display
         const roleMap: Record<string, string> = {
           'BESTYRELSESFORMAND': 'Bestyrelsesformand',
           'FORMAND': 'Formand',
-          'BESTYRELSESMEDLEM': 'Bestyrelsesmedlem',
+          'BESTYRELSESMEDLEM': isEmployeeElected ? 'Medarbejdervalgt Bestyrelsesmedlem' : 'Bestyrelsesmedlem',
           'NÆSTFORMAND': 'Næstformand',
           'BESTYRELSESMEDLEM.NÆSTFORMAND': 'Næstformand',
           'DIREKTØR': 'Direktør',
@@ -154,10 +162,19 @@ const SigningRulesAccordion: React.FC<SigningRulesAccordionProps> = ({ cvrData }
           
           if (activeRole?.vaerdi) {
             const specificRole = activeRole.vaerdi;
+            
+            // Check if this is an employee-elected board member (for org.attributter fallback)
+            const orgValgformAttr = org?.attributter?.find((attr: any) => attr.type === 'VALGFORM');
+            const activeOrgValgform = orgValgformAttr?.vaerdier?.find((v: any) => {
+              const gyldigTil = v.periode?.gyldigTil;
+              return gyldigTil === null || gyldigTil === undefined || gyldigTil >= today;
+            });
+            const isEmployeeElectedOrg = activeOrgValgform?.vaerdi?.includes('medarbejdere i selskabet');
+            
             const roleMap: Record<string, string> = {
               'BESTYRELSESFORMAND': 'Bestyrelsesformand',
               'FORMAND': 'Formand',
-              'BESTYRELSESMEDLEM': 'Bestyrelsesmedlem',
+              'BESTYRELSESMEDLEM': isEmployeeElectedOrg ? 'Medarbejdervalgt Bestyrelsesmedlem' : 'Bestyrelsesmedlem',
               'BESTYRELSESMEDLEM.NÆSTFORMAND': 'Næstformand',
               'DIREKTØR': 'Direktør',
               'REVISOR': 'Revisor',
