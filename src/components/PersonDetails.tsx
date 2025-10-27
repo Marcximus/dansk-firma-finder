@@ -50,18 +50,19 @@ const PersonDetails: React.FC<PersonDetailsProps> = ({ personData }) => {
     return total.toFixed(2);
   };
 
-  // Flatten all relations into a single list with role details
-  const renderAllRelations = () => {
-    const allRelations: any[] = [];
+  // Process relations into active and historical arrays
+  const processRelations = () => {
+    const activeRelations: any[] = [];
+    const historicalRelations: any[] = [];
     
     // Process active relations
     personData.activeRelations.forEach((relation: any) => {
       if (relation.roles && relation.roles.length > 0) {
         relation.roles.forEach((role: any) => {
-          allRelations.push({
+          activeRelations.push({
             ...relation,
             role,
-            isActive: !role.validTo
+            isActive: true
           });
         });
       }
@@ -71,7 +72,7 @@ const PersonDetails: React.FC<PersonDetailsProps> = ({ personData }) => {
     personData.historicalRelations.forEach((relation: any) => {
       if (relation.roles && relation.roles.length > 0) {
         relation.roles.forEach((role: any) => {
-          allRelations.push({
+          historicalRelations.push({
             ...relation,
             role,
             isActive: false
@@ -80,111 +81,115 @@ const PersonDetails: React.FC<PersonDetailsProps> = ({ personData }) => {
       }
     });
 
-    if (allRelations.length === 0) {
-      return (
-        <div className="py-12 text-center text-muted-foreground">
-          <Building2 className="h-12 w-12 mx-auto mb-3 opacity-20" />
-          <p>Ingen tilknytninger fundet</p>
-        </div>
-      );
-    }
+    // Sort by date (newest first)
+    activeRelations.sort((a, b) => {
+      const dateA = a.role.validFrom ? new Date(a.role.validFrom).getTime() : 0;
+      const dateB = b.role.validFrom ? new Date(b.role.validFrom).getTime() : 0;
+      return dateB - dateA;
+    });
 
-    return (
-      <div className="space-y-4">
-        {allRelations.map((item: any, index: number) => (
-          <div 
-            key={index}
-            className="border rounded-lg p-4 transition-all"
-          >
-            {/* Company Name */}
-            <h3 className="text-xl font-bold mb-3">
-              <button
-                onClick={() => {
-                  if (item.companyCvr && item.companyName) {
-                    const url = generateCompanyUrl(item.companyName, item.companyCvr);
-                    navigate(url);
-                  }
-                }}
-                className="hover:text-primary hover:underline transition-colors text-left"
-              >
-                {item.companyName}
-              </button>
-            </h3>
-            
-            {/* Status Indicator */}
-            <div className="flex items-center gap-2 mb-4">
-              <span 
-                className={`h-2.5 w-2.5 rounded-full ${item.isActive ? 'bg-green-500' : 'bg-red-500'}`}
-              />
-              <span className="text-sm font-medium">
-                {item.isActive ? 'Aktiv Relation' : 'Ophørt Relation'}
-              </span>
-            </div>
+    historicalRelations.sort((a, b) => {
+      const dateA = a.role.validTo ? new Date(a.role.validTo).getTime() : 0;
+      const dateB = b.role.validTo ? new Date(b.role.validTo).getTime() : 0;
+      return dateB - dateA;
+    });
 
-            {/* Key-Value Pairs */}
-            <div className="space-y-2 text-sm">
-              <div className="grid grid-cols-[140px_1fr] gap-2">
-                <span className="text-muted-foreground">CVR-nummer</span>
-                <button
-                  onClick={() => {
-                    if (item.companyCvr && item.companyName) {
-                      const url = generateCompanyUrl(item.companyName, item.companyCvr);
-                      navigate(url);
-                    }
-                  }}
-                  className="font-medium font-mono hover:text-primary hover:underline transition-colors text-left"
-                >
-                  {item.companyCvr}
-                </button>
-              </div>
-
-              <div className="grid grid-cols-[140px_1fr] gap-2">
-                <span className="text-muted-foreground">Virksomhedsstatus</span>
-                <span className="font-medium">{item.companyStatus || 'Ukendt'}</span>
-              </div>
-
-              <div className="grid grid-cols-[140px_1fr] gap-2">
-                <span className="text-muted-foreground">Tilknyttet som</span>
-                <span className="font-medium">
-                  {item.role.type === 'EJERREGISTER' && 'Ejer'}
-                  {item.role.type === 'LEDELSE' && (item.role.title || 'Ledelsesmedlem')}
-                  {!['EJERREGISTER', 'LEDELSE'].includes(item.role.type) && (item.role.title || item.role.type)}
-                </span>
-              </div>
-
-              <div className="grid grid-cols-[140px_1fr] gap-2">
-                <span className="text-muted-foreground">Tiltrædelsesdato</span>
-                <span className="font-medium">
-                  {item.role.validFrom ? formatDate(item.role.validFrom) : 'Ukendt'}
-                </span>
-              </div>
-
-              {item.role.validTo && (
-                <div className="grid grid-cols-[140px_1fr] gap-2">
-                  <span className="text-muted-foreground">Fratrådt</span>
-                  <span className="font-medium">{formatDate(item.role.validTo)}</span>
-                </div>
-              )}
-
-              {item.role.ownershipPercentage !== undefined && (
-                <div className="grid grid-cols-[140px_1fr] gap-2">
-                  <span className="text-muted-foreground">Ejerandel</span>
-                  <span className="font-medium">{item.role.ownershipPercentage.toFixed(2)}%</span>
-                </div>
-              )}
-
-              {item.role.votingRights !== undefined && (
-                <div className="grid grid-cols-[140px_1fr] gap-2">
-                  <span className="text-muted-foreground">Stemmerettigheder</span>
-                  <span className="font-medium">{item.role.votingRights.toFixed(2)}%</span>
-                </div>
-              )}
-            </div>
-          </div>
-        ))}
-      </div>
-    );
+    return { activeRelations, historicalRelations };
   };
+
+  const renderRelationCard = (item: any, index: number) => (
+    <div 
+      key={index}
+      className="border rounded-lg p-4 transition-all"
+    >
+      {/* Company Name */}
+      <h3 className="text-xl font-bold mb-3">
+        <button
+          onClick={() => {
+            if (item.companyCvr && item.companyName) {
+              const url = generateCompanyUrl(item.companyName, item.companyCvr);
+              navigate(url);
+            }
+          }}
+          className="hover:text-primary hover:underline transition-colors text-left"
+        >
+          {item.companyName}
+        </button>
+      </h3>
+      
+      {/* Status Indicator */}
+      <div className="flex items-center gap-2 mb-4">
+        <span 
+          className={`h-2.5 w-2.5 rounded-full ${item.isActive ? 'bg-green-500' : 'bg-red-500'}`}
+        />
+        <span className="text-sm font-medium">
+          {item.isActive ? 'Aktiv Relation' : 'Ophørt Relation'}
+        </span>
+      </div>
+
+      {/* Key-Value Pairs */}
+      <div className="space-y-2 text-sm">
+        <div className="grid grid-cols-[140px_1fr] gap-2">
+          <span className="text-muted-foreground">CVR-nummer</span>
+          <button
+            onClick={() => {
+              if (item.companyCvr && item.companyName) {
+                const url = generateCompanyUrl(item.companyName, item.companyCvr);
+                navigate(url);
+              }
+            }}
+            className="font-medium font-mono hover:text-primary hover:underline transition-colors text-left"
+          >
+            {item.companyCvr}
+          </button>
+        </div>
+
+        <div className="grid grid-cols-[140px_1fr] gap-2">
+          <span className="text-muted-foreground">Virksomhedsstatus</span>
+          <span className="font-medium">{item.companyStatus || 'Ukendt'}</span>
+        </div>
+
+        <div className="grid grid-cols-[140px_1fr] gap-2">
+          <span className="text-muted-foreground">Tilknyttet som</span>
+          <span className="font-medium">
+            {item.role.type === 'EJERREGISTER' && 'Ejer'}
+            {item.role.type === 'LEDELSE' && (item.role.title || 'Ledelsesmedlem')}
+            {!['EJERREGISTER', 'LEDELSE'].includes(item.role.type) && (item.role.title || item.role.type)}
+          </span>
+        </div>
+
+        <div className="grid grid-cols-[140px_1fr] gap-2">
+          <span className="text-muted-foreground">Tiltrædelsesdato</span>
+          <span className="font-medium">
+            {item.role.validFrom ? formatDate(item.role.validFrom) : 'Ukendt'}
+          </span>
+        </div>
+
+        {item.role.validTo && (
+          <div className="grid grid-cols-[140px_1fr] gap-2">
+            <span className="text-muted-foreground">Fratrådt</span>
+            <span className="font-medium">{formatDate(item.role.validTo)}</span>
+          </div>
+        )}
+
+        {item.role.ownershipPercentage !== undefined && (
+          <div className="grid grid-cols-[140px_1fr] gap-2">
+            <span className="text-muted-foreground">Ejerandel</span>
+            <span className="font-medium">{item.role.ownershipPercentage.toFixed(2)}%</span>
+          </div>
+        )}
+
+        {item.role.votingRights !== undefined && (
+          <div className="grid grid-cols-[140px_1fr] gap-2">
+            <span className="text-muted-foreground">Stemmerettigheder</span>
+            <span className="font-medium">{item.role.votingRights.toFixed(2)}%</span>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+
+  const { activeRelations, historicalRelations } = processRelations();
 
   return (
     <div>
@@ -241,9 +246,46 @@ const PersonDetails: React.FC<PersonDetailsProps> = ({ personData }) => {
         </div>
       </div>
 
-      {/* Relations - Flat List */}
+      {/* Relations - Separated into Active and Historical */}
       <div className="container mx-auto px-4 py-6">
-        {renderAllRelations()}
+        {activeRelations.length === 0 && historicalRelations.length === 0 ? (
+          <div className="py-12 text-center text-muted-foreground">
+            <Building2 className="h-12 w-12 mx-auto mb-3 opacity-20" />
+            <p>Ingen tilknytninger fundet</p>
+          </div>
+        ) : (
+          <>
+            {/* Active Relations Section */}
+            {activeRelations.length > 0 && (
+              <div className="mb-8">
+                <div className="flex items-center gap-2 mb-4">
+                  <CheckCircle className="h-5 w-5 text-green-500" />
+                  <h2 className="text-2xl font-semibold">
+                    Aktive Relationer ({activeRelations.length})
+                  </h2>
+                </div>
+                <div className="space-y-4">
+                  {activeRelations.map((item, index) => renderRelationCard(item, index))}
+                </div>
+              </div>
+            )}
+
+            {/* Historical Relations Section */}
+            {historicalRelations.length > 0 && (
+              <div>
+                <div className="flex items-center gap-2 mb-4">
+                  <History className="h-5 w-5 text-muted-foreground" />
+                  <h2 className="text-2xl font-semibold">
+                    Ophørte Relationer ({historicalRelations.length})
+                  </h2>
+                </div>
+                <div className="space-y-4 opacity-80">
+                  {historicalRelations.map((item, index) => renderRelationCard(item, index))}
+                </div>
+              </div>
+            )}
+          </>
+        )}
       </div>
 
       {/* Data Source Footer */}
