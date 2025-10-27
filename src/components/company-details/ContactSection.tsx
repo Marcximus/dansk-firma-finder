@@ -3,6 +3,7 @@ import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Mail, Phone, Globe, Printer, MapPin } from 'lucide-react';
 import { Company } from '@/services/companyAPI';
+import { formatPhoneNumber } from '@/services/utils/formatUtils';
 
 interface ContactSectionProps {
   company: Company;
@@ -63,7 +64,14 @@ const ContactSection: React.FC<ContactSectionProps> = ({ company, cvrData }) => 
                 <Phone className="h-4 w-4 text-muted-foreground" />
                 <div>
                   <span className="text-sm font-medium text-muted-foreground">Telefon</span>
-                  <div className="font-medium">{currentPhone.kontaktoplysning}</div>
+                  <div>
+                    <a 
+                      href={`tel:${currentPhone.kontaktoplysning.replace(/[\s\-()]/g, '')}`} 
+                      className="font-medium text-primary hover:underline"
+                    >
+                      {formatPhoneNumber(currentPhone.kontaktoplysning)}
+                    </a>
+                  </div>
                 </div>
               </div>
             )}
@@ -73,7 +81,14 @@ const ContactSection: React.FC<ContactSectionProps> = ({ company, cvrData }) => 
                 <Phone className="h-4 w-4 text-muted-foreground" />
                 <div>
                   <span className="text-sm font-medium text-muted-foreground">Sekundær telefon</span>
-                  <div className="font-medium">{secondaryPhone.kontaktoplysning}</div>
+                  <div>
+                    <a 
+                      href={`tel:${secondaryPhone.kontaktoplysning.replace(/[\s\-()]/g, '')}`} 
+                      className="font-medium text-primary hover:underline"
+                    >
+                      {formatPhoneNumber(secondaryPhone.kontaktoplysning)}
+                    </a>
+                  </div>
                 </div>
               </div>
             )}

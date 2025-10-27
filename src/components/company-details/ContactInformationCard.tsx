@@ -1,6 +1,7 @@
 import React from 'react';
 import { Company } from '@/services/companyAPI';
 import { Mail, Phone, Globe, Printer } from 'lucide-react';
+import { formatPhoneNumber } from '@/services/utils/formatUtils';
 
 interface ContactInformationCardProps {
   company: Company;
@@ -44,7 +45,14 @@ const ContactInformationCard: React.FC<ContactInformationCardProps> = ({ company
             <Phone className="h-4 w-4 text-muted-foreground" />
             <div>
               <span className="text-sm font-medium text-muted-foreground">Phone</span>
-              <div className="font-medium">{currentPhone.kontaktoplysning}</div>
+              <div>
+                <a 
+                  href={`tel:${currentPhone.kontaktoplysning.replace(/[\s\-()]/g, '')}`} 
+                  className="font-medium text-primary hover:underline"
+                >
+                  {formatPhoneNumber(currentPhone.kontaktoplysning)}
+                </a>
+              </div>
             </div>
           </div>
         )}
@@ -54,7 +62,14 @@ const ContactInformationCard: React.FC<ContactInformationCardProps> = ({ company
             <Phone className="h-4 w-4 text-muted-foreground" />
             <div>
               <span className="text-sm font-medium text-muted-foreground">Secondary Phone</span>
-              <div className="font-medium">{secondaryPhone.kontaktoplysning}</div>
+              <div>
+                <a 
+                  href={`tel:${secondaryPhone.kontaktoplysning.replace(/[\s\-()]/g, '')}`} 
+                  className="font-medium text-primary hover:underline"
+                >
+                  {formatPhoneNumber(secondaryPhone.kontaktoplysning)}
+                </a>
+              </div>
             </div>
           </div>
         )}

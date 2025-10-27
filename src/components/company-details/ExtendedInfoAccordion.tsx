@@ -4,6 +4,7 @@ import { AccordionContent, AccordionItem, AccordionTrigger } from '@/components/
 import { Company } from '@/services/companyAPI';
 import { extractExtendedInfo } from '@/services/cvrUtils';
 import { Info, Phone, MapPin, Briefcase, TrendingUp, DollarSign, Calendar, FileText, Mail, Activity } from 'lucide-react';
+import { formatPhoneNumber } from '@/services/utils/formatUtils';
 
 interface ExtendedInfoAccordionProps {
   company: Company;
@@ -81,7 +82,14 @@ const ExtendedInfoAccordion: React.FC<ExtendedInfoAccordionProps> = ({ company, 
           <InfoRow 
             icon={Phone} 
             label="Telefon" 
-            value={extendedInfo?.phone} 
+            value={extendedInfo?.phone ? (
+              <a 
+                href={`tel:${extendedInfo.phone.replace(/[\s\-()]/g, '')}`} 
+                className="text-primary hover:underline"
+              >
+                {formatPhoneNumber(extendedInfo.phone)}
+              </a>
+            ) : undefined}
           />
           
           <InfoRow 

@@ -47,3 +47,23 @@ export const getPersonAddress = (deltager: any): string => {
   
   return formatAddress(addr);
 };
+
+export const formatPhoneNumber = (phone: string): string => {
+  if (!phone) return '';
+  
+  // Remove all spaces, dashes, and other formatting
+  const cleaned = phone.replace(/[\s\-()]/g, '');
+  
+  // Handle international numbers with country code
+  if (cleaned.startsWith('+')) {
+    return cleaned;
+  }
+  
+  // Format 8-digit Danish numbers as XX XX XX XX
+  if (cleaned.length === 8) {
+    return `${cleaned.slice(0, 2)} ${cleaned.slice(2, 4)} ${cleaned.slice(4, 6)} ${cleaned.slice(6, 8)}`;
+  }
+  
+  // Return as-is if not matching expected format
+  return cleaned;
+};

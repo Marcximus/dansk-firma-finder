@@ -3,6 +3,7 @@ import React from 'react';
 import { Company } from '@/services/companyAPI';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Building, MapPin, Calendar, Users, Globe, Mail, Phone } from 'lucide-react';
+import { formatPhoneNumber } from '@/services/utils/formatUtils';
 
 interface BasicInformationSectionProps {
   company: Company;
@@ -104,7 +105,12 @@ const BasicInformationSection: React.FC<BasicInformationSectionProps> = ({ compa
           {currentPhone && (
             <div className="flex items-center gap-2">
               <Phone className="h-4 w-4 text-muted-foreground" />
-              <span>{currentPhone.kontaktoplysning}</span>
+              <a 
+                href={`tel:${currentPhone.kontaktoplysning.replace(/[\s\-()]/g, '')}`} 
+                className="text-primary hover:underline"
+              >
+                {formatPhoneNumber(currentPhone.kontaktoplysning)}
+              </a>
             </div>
           )}
           
