@@ -7,7 +7,7 @@ import { generateCompanyUrl } from '@/lib/urlUtils';
 import { 
   User, Building2, Calendar, Briefcase, ArrowLeft, ArrowRight,
   CheckCircle, XCircle, MapPin, TrendingUp, History, Users, 
-  Database, Clock
+  Database, Clock, ShieldOff
 } from 'lucide-react';
 
 interface PersonDetailsProps {
@@ -294,12 +294,21 @@ const PersonDetails: React.FC<PersonDetailsProps> = ({ personData }) => {
               )}
               
               {/* Person address */}
-              {personData.address && (
+              {personData.address ? (
                 <div className="flex items-center gap-2 text-sm text-muted-foreground flex-wrap">
                   <MapPin className="h-4 w-4 flex-shrink-0" />
                   <span>{personData.address.street}</span>
-                  <span>•</span>
-                  <span>{personData.address.zipCode} {personData.address.city}</span>
+                  {personData.address.zipCode && (
+                    <>
+                      <span>•</span>
+                      <span>{personData.address.zipCode} {personData.address.city}</span>
+                    </>
+                  )}
+                </div>
+              ) : (
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <ShieldOff className="h-4 w-4 flex-shrink-0" />
+                  <span>Adressebeskyttelse</span>
                 </div>
               )}
             </div>
