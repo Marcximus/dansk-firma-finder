@@ -184,7 +184,7 @@ serve(async (req) => {
     const searchUrl = 'https://distribution.virk.dk/offentliggoerelser/_search';
     
     // Build Elasticsearch query according to Danish Business Authority documentation
-    // Filter for XBRL documents (application/xml mime type)
+    // Using exact structure: two separate term filters for MIME type
   const searchQuery = {
     "query": {
       "bool": {
@@ -195,7 +195,12 @@ serve(async (req) => {
             }
           },
           {
-            "match": {
+            "term": {
+              "dokumenter.dokumentMimeType": "application"
+            }
+          },
+          {
+            "term": {
               "dokumenter.dokumentMimeType": "xml"
             }
           }
@@ -217,11 +222,11 @@ serve(async (req) => {
     console.log('[STEP 1] Request details:', {
       hasAuth: !!auth,
       cvrParsed: parseInt(cvr),
-      queryType: 'match on xml MIME type'
+      queryType: 'two term filters: application AND xml'
     });
 
-    // Add timeout protection for main API request (30 seconds)
-    const SEARCH_TIMEOUT_MS = 30000;
+    // Add timeout protection for main API request (15 seconds for faster failure)
+    const SEARCH_TIMEOUT_MS = 15000;
     const searchController = new AbortController();
     const searchTimeoutId = setTimeout(() => searchController.abort(), SEARCH_TIMEOUT_MS);
 
@@ -244,12 +249,13 @@ serve(async (req) => {
     } catch (fetchError) {
       clearTimeout(searchTimeoutId);
       if (fetchError.name === 'AbortError') {
-        console.error('[ERROR] Search request timed out after 30 seconds');
+        console.error(`[ERROR] Search request timed out after ${SEARCH_TIMEOUT_MS}ms`);
         return new Response(
           JSON.stringify({ 
             financialReports: [],
             financialData: [],
-            error: 'Search request timed out'
+            error: 'Erhvervsstyrelsens API er i øjeblikket langsom eller utilgængelig. Prøv igen senere.',
+            fallbackToMockData: true
           }),
           { 
             status: 504,
@@ -262,7 +268,7 @@ serve(async (req) => {
         JSON.stringify({ 
           financialReports: [],
           financialData: [],
-          error: `Search request failed: ${fetchError.message}`
+          error: 'Der opstod en fejl ved hentning af regnskabsdata'
         }),
         { 
           status: 500,
