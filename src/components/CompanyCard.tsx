@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Company } from '@/services/companyAPI';
 import { Link } from 'react-router-dom';
-import { generateCompanyUrl } from '@/lib/urlUtils';
+import { generateCompanyUrl, generatePersonUrl } from '@/lib/urlUtils';
 
 interface CompanyCardProps {
   company: Company;
@@ -54,7 +54,7 @@ const CompanyCard: React.FC<CompanyCardProps> = ({ company }) => {
     
     if (!company.realCvrData?.deltagerRelation) {
       console.log('No deltagerRelation found');
-      return { name: null, role: null };
+      return { name: null, role: null, enhedsNummer: null };
     }
 
     console.log('DeltagerRelation:', company.realCvrData.deltagerRelation);
@@ -63,11 +63,13 @@ const CompanyCard: React.FC<CompanyCardProps> = ({ company }) => {
     for (const relation of company.realCvrData.deltagerRelation) {
       console.log('Processing relation for director:', relation);
       
-      // Get person name
+      // Get person name and enhedsNummer
       const currentName = relation.deltager?.navne?.find((n: any) => n.periode?.gyldigTil === null);
       const personName = currentName?.navn || relation.deltager?.navne?.[0]?.navn;
+      const enhedsNummer = relation.deltager?.enhedsNummerIdentifikator;
       
       console.log('Person name:', personName);
+      console.log('EnhedsNummer:', enhedsNummer);
       
       if (personName && relation.organisationer) {
         console.log('Organisationer:', relation.organisationer);
@@ -79,7 +81,7 @@ const CompanyCard: React.FC<CompanyCardProps> = ({ company }) => {
           // Check for director role - try multiple variations
           if (org.hovedtype === 'DIREKTION' || org.hovedtype === 'DIREKTØR') {
             console.log('Found director:', personName);
-            return { name: personName, role: 'Direktør' };
+            return { name: personName, role: 'Direktør', enhedsNummer };
           }
           
           // Also check medlemsData for more specific role information
@@ -92,7 +94,7 @@ const CompanyCard: React.FC<CompanyCardProps> = ({ company }) => {
                       console.log('Found role:', vaerdi.vaerdi);
                       if (vaerdi.vaerdi === 'DIREKTØR' || vaerdi.vaerdi.includes('DIREKTØR')) {
                         console.log('Found director via medlemsData:', personName);
-                        return { name: personName, role: 'Direktør' };
+                        return { name: personName, role: 'Direktør', enhedsNummer };
                       }
                     }
                   }
@@ -110,9 +112,10 @@ const CompanyCard: React.FC<CompanyCardProps> = ({ company }) => {
     for (const relation of company.realCvrData.deltagerRelation) {
       console.log('Processing relation for owner:', relation);
       
-      // Get person name
+      // Get person name and enhedsNummer
       const currentName = relation.deltager?.navne?.find((n: any) => n.periode?.gyldigTil === null);
       const personName = currentName?.navn || relation.deltager?.navne?.[0]?.navn;
+      const enhedsNummer = relation.deltager?.enhedsNummerIdentifikator;
       
       if (personName && relation.organisationer) {
         for (const org of relation.organisationer) {
@@ -122,14 +125,14 @@ const CompanyCard: React.FC<CompanyCardProps> = ({ company }) => {
           // Check for liable partner role
           if (org.hovedtype === 'FULDT_ANSVARLIG_DELTAGERE') {
             console.log('Found liable partner (owner):', personName);
-            return { name: personName, role: 'Ejer' };
+            return { name: personName, role: 'Ejer', enhedsNummer };
           }
         }
       }
     }
     
     console.log('No director or owner found');
-    return { name: null, role: null };
+    return { name: null, role: null, enhedsNummer: null };
   };
 
   // Extract the most recent change from CVR data
@@ -189,10 +192,11 @@ const CompanyCard: React.FC<CompanyCardProps> = ({ company }) => {
     return null;
   };
 
-  const { name: personName, role: personRole } = getDirectorOrOwner();
+  const { name: personName, role: personRole, enhedsNummer } = getDirectorOrOwner();
   const statusText = cleanStatus(company.status || 'Aktiv');
   const lastChange = getLastChange();
   const companyUrl = generateCompanyUrl(company.name, company.cvr);
+  const personUrl = personName ? generatePersonUrl(personName, enhedsNummer || undefined) : null;
 
   return (
     <Card className="h-full flex flex-col hover:shadow-md transition-shadow cursor-pointer">
@@ -235,12 +239,32 @@ const CompanyCard: React.FC<CompanyCardProps> = ({ company }) => {
           
           <div className="grid grid-cols-3 gap-1.5 sm:gap-2">
             <span className="font-medium text-muted-foreground">{personRole || 'Direktør'}</span>
-            <span className="col-span-2">{personName || 'Ikke tilgængelig'}</span>
+            <span className="col-span-2">
+              {personName && personUrl ? (
+                <Link 
+                  to={personUrl}
+                  className="hover:text-primary transition-colors underline-offset-4 hover:underline"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  {personName}
+                </Link>
+              ) : (
+                personName || 'Ikke tilgængelig'
+              )}
+            </span>
           </div>
           
           <div className="grid grid-cols-3 gap-1.5 sm:gap-2">
             <span className="font-medium text-muted-foreground">Type</span>
-            <span className="col-span-2">{cleanLegalForm(company.legalForm || 'Ikke tilgængelig')}</span>
+            <span className="col-span-2">
+              <Link 
+                to={companyUrl}
+                className="hover:text-primary transition-colors underline-offset-4 hover:underline"
+                onClick={(e) => e.stopPropagation()}
+              >
+                {cleanLegalForm(company.legalForm || 'Ikke tilgængelig')}
+              </Link>
+            </span>
           </div>
           
           <div className="grid grid-cols-3 gap-1.5 sm:gap-2">
@@ -255,8 +279,14 @@ const CompanyCard: React.FC<CompanyCardProps> = ({ company }) => {
           <div className="grid grid-cols-3 gap-1.5 sm:gap-2">
             <span className="font-medium text-muted-foreground">Adresse</span>
             <div className="col-span-2">
-              <div>{company.address}</div>
-              <div>{company.postalCode} {company.city}</div>
+              <Link 
+                to={companyUrl}
+                className="hover:text-primary transition-colors underline-offset-4 hover:underline"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div>{company.address}</div>
+                <div>{company.postalCode} {company.city}</div>
+              </Link>
             </div>
           </div>
         </div>
