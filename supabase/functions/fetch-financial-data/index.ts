@@ -154,31 +154,18 @@ serve(async (req) => {
     
     const username = Deno.env.get('DANISH_BUSINESS_API_USERNAME');
     const password = Deno.env.get('DANISH_BUSINESS_API_PASSWORD');
+    const useAuth = !!(username && password);
     
     console.log('API Credentials check:', {
+      useAuth,
+      endpoint: 'offentliggoerelser (public announcements)',
       username: username ? `${username.substring(0, 3)}***` : 'NOT SET',
-      password: password ? '***SET***' : 'NOT SET'
+      password: password ? '***SET***' : 'NOT SET',
+      note: useAuth ? 'Using credentials' : 'Attempting public access'
     });
-    
-    if (!username || !password) {
-      console.log('Danish Business API credentials not configured');
-      return new Response(
-        JSON.stringify({ 
-          financialReports: [],
-          financialData: [],
-          error: 'API credentials not configured'
-        }),
-        { 
-          headers: { 
-            ...corsHeaders, 
-            'Content-Type': 'application/json' 
-          } 
-        }
-      );
-    }
 
-    // Create basic auth header
-    const auth = btoa(`${username}:${password}`);
+    // Create basic auth header only if credentials are available
+    const auth = useAuth ? btoa(`${username}:${password}`) : null;
     
     // Step 1: Search for financial reports using POST with Elasticsearch query
     const searchUrl = 'https://distribution.virk.dk/offentliggoerelser/_search';
@@ -250,14 +237,20 @@ serve(async (req) => {
       console.log('[STEP 1.5] Sending search request to Danish Business API...');
       const startTime = Date.now();
       
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'Accept-Encoding': 'gzip, deflate'
+      };
+      
+      // Only add auth if we have credentials
+      if (auth) {
+        headers['Authorization'] = `Basic ${auth}`;
+      }
+      
       searchResponse = await fetch(searchUrl, {
         method: 'POST',
-        headers: {
-          'Authorization': `Basic ${auth}`,
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-          'Accept-Encoding': 'gzip, deflate'
-        },
+        headers,
         body: JSON.stringify(searchQuery),
         signal: searchController.signal
       });
@@ -419,12 +412,18 @@ serve(async (req) => {
           const controller = new AbortController();
           const timeoutId = setTimeout(() => controller.abort(), TIMEOUT_MS);
           
+          const downloadHeaders: Record<string, string> = {
+            'Accept': 'application/xml, text/xml, */*',
+            'Accept-Encoding': 'gzip, deflate'
+          };
+          
+          // Only add auth if we have credentials
+          if (auth) {
+            downloadHeaders['Authorization'] = `Basic ${auth}`;
+          }
+          
           const xbrlResponse = await fetch(documentUrl, {
-            headers: {
-              'Authorization': `Basic ${auth}`,
-              'Accept': 'application/xml, text/xml, */*',
-              'Accept-Encoding': 'gzip, deflate'
-            },
+            headers: downloadHeaders,
             signal: controller.signal
           });
           
