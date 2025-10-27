@@ -208,6 +208,28 @@ export const extractExtendedInfo = (cvrData: any) => {
     return null;
   };
 
+  // Extract børsnoteret status from attributter
+  const getIsListed = () => {
+    const attributter = vrvirksomhed.attributter || [];
+    const boersAttr = attributter.find((attr: any) => 
+      attr.type === 'BØRSNOTERET' || 
+      attr.type === 'BOERSNOTERET' ||
+      attr.type?.toUpperCase().includes('BØRS')
+    );
+    
+    if (boersAttr?.vaerdier) {
+      const currentValue = boersAttr.vaerdier.find((v: any) => v.periode?.gyldigTil === null);
+      const value = currentValue || boersAttr.vaerdier[boersAttr.vaerdier.length - 1];
+      console.log('Børsnoteret extraction - found attribute:', boersAttr, 'value:', value);
+      return value?.vaerdi === 'true' || value?.vaerdi === true || value?.vaerdi === 'Ja';
+    }
+    
+    // Fallback to direct field
+    const directValue = vrvirksomhed.boersnoteret;
+    console.log('Børsnoteret extraction - direct field:', directValue);
+    return directValue === true || directValue === 'true' || directValue === 'Ja';
+  };
+
   const result = {
     phone: getPhone(),
     municipality: getMunicipality(),
@@ -215,7 +237,7 @@ export const extractExtendedInfo = (cvrData: any) => {
     binavne: (vrvirksomhed.binavne || []).map((navn: any) => navn.navn).filter(Boolean),
     secondaryIndustries: getSecondaryIndustries(),
     primaryIndustry: getPrimaryIndustry(),
-    isListed: vrvirksomhed.boersnoteret || false,
+    isListed: getIsListed(),
     accountingYear: getAccountingYear(),
     firstAccountingPeriod: getFirstAccountingPeriod(),
     latestStatuteDate: (() => {
