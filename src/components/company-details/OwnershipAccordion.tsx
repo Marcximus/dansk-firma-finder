@@ -197,18 +197,25 @@ const OwnershipAccordion: React.FC<OwnershipAccordionProps> = ({
                         CVR: {subsidiary.cvr}
                       </div>
                     )}
+                    {subsidiary.relationshipType && (
+                      <div className="text-xs sm:text-sm text-muted-foreground mb-1 italic">
+                        {subsidiary.relationshipType}
+                      </div>
+                    )}
                     {subsidiary.status && (
                       <div className="text-xs sm:text-sm text-muted-foreground mb-1">
                         Status: {subsidiary.status}
                       </div>
                     )}
                     <div className="text-xs sm:text-sm space-y-0.5">
-                      {subsidiary.ownershipPercentage && (
-                        <div className="flex items-center gap-1">
-                          <Percent className="h-3 w-3 flex-shrink-0" />
-                          <span>Ejerandel: <span className="font-medium">{(subsidiary.ownershipPercentage * 100).toFixed(2)}%</span></span>
-                        </div>
-                      )}
+                      <div className="flex items-center gap-1">
+                        <Percent className="h-3 w-3 flex-shrink-0" />
+                        <span>Ejerandel: <span className="font-medium">
+                          {subsidiary.ownershipPercentage 
+                            ? `${(subsidiary.ownershipPercentage * 100).toFixed(2)}%` 
+                            : <span className="text-muted-foreground/70">Ikke oplyst</span>}
+                        </span></span>
+                      </div>
                       {subsidiary.votingRights && (
                         <div className="flex items-center gap-1">
                           <Percent className="h-3 w-3 flex-shrink-0" />

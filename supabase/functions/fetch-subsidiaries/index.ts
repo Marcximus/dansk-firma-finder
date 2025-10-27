@@ -34,6 +34,7 @@ serve(async (req) => {
     const auth = btoa(`${username}:${password}`);
     
     // Build Elasticsearch query to find companies where this CVR appears as an owner
+    // Broadened search to find all ownership relations, not just EJERREGISTER
     const query = {
       query: {
         bool: {
@@ -57,32 +58,6 @@ serve(async (req) => {
                             }
                           }
                         }
-                      },
-                      {
-                        nested: {
-                          path: "Vrvirksomhed.deltagerRelation.organisationer",
-                          query: {
-                            bool: {
-                              must: [
-                                {
-                                  term: {
-                                    "Vrvirksomhed.deltagerRelation.organisationer.hovedtype": "REGISTER"
-                                  }
-                                },
-                                {
-                                  nested: {
-                                    path: "Vrvirksomhed.deltagerRelation.organisationer.organisationsNavn",
-                                    query: {
-                                      term: {
-                                        "Vrvirksomhed.deltagerRelation.organisationer.organisationsNavn.navn": "EJERREGISTER"
-                                      }
-                                    }
-                                  }
-                                }
-                              ]
-                            }
-                          }
-                        }
                       }
                     ]
                   }
@@ -92,7 +67,7 @@ serve(async (req) => {
           ]
         }
       },
-      size: 50,
+      size: 100,
       _source: [
         "Vrvirksomhed.cvrNummer",
         "Vrvirksomhed.virksomhedMetadata.nyesteNavn",
@@ -136,26 +111,32 @@ serve(async (req) => {
 
       let ownershipPercentage = null;
       let votingRights = null;
+      let relationshipType = null;
 
       if (ownerRelation) {
-        const ejerOrg = ownerRelation.organisationer?.find((org: any) => 
-          org.hovedtype === 'REGISTER' && 
-          org.organisationsNavn?.some((n: any) => n.navn === 'EJERREGISTER')
-        );
-
-        if (ejerOrg) {
-          const medlemsData = ejerOrg.medlemsData || [];
-          medlemsData.forEach((m: any) => {
-            const attributter = m.attributter || [];
-            attributter.forEach((attr: any) => {
-              if (attr.type === 'EJERANDEL_PROCENT') {
+        // Look for ownership data in all organizations, not just EJERREGISTER
+        const allOrganizations = ownerRelation.organisationer || [];
+        
+        for (const org of allOrganizations) {
+          const medlemsData = org.medlemsData || [];
+          
+          // Extract organization type for display
+          if (org.organisationsNavn && org.organisationsNavn.length > 0) {
+            relationshipType = org.organisationsNavn[0].navn;
+          }
+          
+          // Look for ownership attributes
+          for (const medlem of medlemsData) {
+            const attributter = medlem.attributter || [];
+            for (const attr of attributter) {
+              if (attr.type === 'EJERANDEL_PROCENT' && attr.vaerdi) {
                 ownershipPercentage = attr.vaerdi;
               }
-              if (attr.type === 'EJERANDEL_STEMMERET_PROCENT') {
+              if (attr.type === 'EJERANDEL_STEMMERET_PROCENT' && attr.vaerdi) {
                 votingRights = attr.vaerdi;
               }
-            });
-          });
+            }
+          }
         }
       }
 
@@ -164,9 +145,10 @@ serve(async (req) => {
         name: vrvirksomhed?.virksomhedMetadata?.nyesteNavn?.navn || 'Ukendt',
         status: vrvirksomhed?.virksomhedMetadata?.sammensatStatus || 'NORMAL',
         ownershipPercentage,
-        votingRights
+        votingRights,
+        relationshipType
       };
-    }).filter((sub: any) => sub.ownershipPercentage !== null);
+    }).filter((sub: any) => sub.cvr); // Only filter out invalid entries, keep all with CVR
 
     console.log('Found subsidiaries:', subsidiaries.length);
 
