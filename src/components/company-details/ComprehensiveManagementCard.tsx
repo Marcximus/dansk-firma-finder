@@ -87,7 +87,7 @@ const ComprehensiveManagementCard: React.FC<ComprehensiveManagementCardProps> = 
         
         // Don't handle SUPPLEANT here - let the separate badge display it
         
-        if (specificRole !== hovedtype) {
+        if (specificRole !== hovedtype && !specificRole.includes('SUPPLEANT')) {
           return `${baseName} (${specificRole})`;
         }
       }
