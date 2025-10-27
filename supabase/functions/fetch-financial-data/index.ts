@@ -473,9 +473,9 @@ serve(async (req) => {
     const financialReports = [];
     const financialData = [];
     
-    // Process up to 15 most recent reports to ensure we get 5 years of data
+    // Process up to 5 most recent reports to avoid CPU timeouts
     const hits = searchData.hits?.hits || [];
-    const reportsToProcess = Math.min(hits.length, 15);
+    const reportsToProcess = Math.min(hits.length, 5);
     console.log(`[STEP 3] Processing ${reportsToProcess} reports out of ${hits.length} found`);
 
     for (let i = 0; i < reportsToProcess; i++) {
