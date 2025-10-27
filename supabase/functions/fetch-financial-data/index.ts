@@ -1,42 +1,58 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
-import { DOMParser } from "https://deno.land/x/deno_dom@v0.1.38/deno-dom-wasm.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
-// Helper function to parse XBRL/XML and extract financial data
+// Helper to extract the period end date from XBRL context
+const extractPeriodFromXBRL = (xmlContent: string): string => {
+  // Try to find period end date in context elements
+  const endDatePattern = /<[^:]+:endDate>(\d{4}-\d{2}-\d{2})<\/[^:]+:endDate>/i;
+  const match = xmlContent.match(endDatePattern);
+  
+  if (match && match[1]) {
+    // Format as YYYY-MM for display
+    const date = new Date(match[1]);
+    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+  }
+  
+  // Fallback: try instant date
+  const instantPattern = /<[^:]+:instant>(\d{4}-\d{2}-\d{2})<\/[^:]+:instant>/i;
+  const instantMatch = xmlContent.match(instantPattern);
+  
+  if (instantMatch && instantMatch[1]) {
+    const date = new Date(instantMatch[1]);
+    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+  }
+  
+  return 'N/A';
+};
+
+// Helper function to parse XBRL/XML and extract financial data using regex
 const parseXBRL = (xmlContent: string, period: string) => {
   try {
-    const parser = new DOMParser();
-    const doc = parser.parseFromString(xmlContent, "text/xml");
+    console.log(`[XBRL Parser] Processing ${xmlContent.length} bytes for period ${period}`);
     
-    if (!doc) {
-      console.error('Failed to parse XML document');
-      return null;
-    }
-
-    // Helper to extract numeric value from XML element - supports ÅRL and ESEF taxonomy
-    const extractValue = (selectors: string[]): number | null => {
-      for (const selector of selectors) {
-        // Try multiple methods to find elements
-        let elements = doc.querySelectorAll(selector);
+    // Helper to extract numeric value from XBRL tags
+    // Matches: <anyprefix:TagName contextRef="..." unitRef="..." decimals="...">VALUE</anyprefix:TagName>
+    const extractValue = (tagNames: string[]): number | null => {
+      for (const tagName of tagNames) {
+        // Create regex that matches any namespace prefix
+        // Pattern: <prefix:TagName ...>NUMBER</prefix:TagName>
+        const pattern = new RegExp(
+          `<[^:]+:${tagName}[^>]*>\\s*([\\d.-]+)\\s*</[^:]+:${tagName}>`,
+          'gi'
+        );
         
-        // If not found, try case-insensitive search
-        if (elements.length === 0) {
-          const lowerSelector = selector.toLowerCase();
-          elements = doc.querySelectorAll(`[name*="${lowerSelector}" i]`);
-        }
+        const matches = Array.from(xmlContent.matchAll(pattern));
         
-        for (const element of elements) {
-          const text = element.textContent?.trim();
-          if (text) {
-            // Remove any non-numeric characters except minus and decimal point
-            const numericText = text.replace(/[^\d.-]/g, '');
-            const value = parseFloat(numericText);
-            if (!isNaN(value)) {
-              console.log(`✅ Found ${selector}: ${value}`);
+        if (matches.length > 0) {
+          // Take the first valid number found
+          for (const match of matches) {
+            const value = parseFloat(match[1]);
+            if (!isNaN(value) && value !== 0) {
+              console.log(`✅ Found ${tagName}: ${value}`);
               return value;
             }
           }
@@ -45,70 +61,117 @@ const parseXBRL = (xmlContent: string, period: string) => {
       return null;
     };
 
-    // Extract financial KPIs - ÅRL taxonomy uses gsd: prefix for most fields
+    // Extract all financial metrics
     const financialData = {
       periode: period,
-      // Income Statement - try ÅRL taxonomy (gsd:) and legacy names
+      
+      // Income Statement (Resultatopgørelse)
       nettoomsaetning: extractValue([
-        'gsd\\:Revenue', 'Revenue', 'Nettoomsætning', 'NetRevenue', 'Omsætning',
-        'fsa\\:Revenue', 'fsa\\:Nettoomsætning', 'cmn\\:Revenue'
+        'Revenue', 'Nettoomsætning', 'NetRevenue', 'Omsætning',
+        'GrossProfitLoss', 'TotalRevenue'
       ]),
+      
       bruttofortjeneste: extractValue([
-        'gsd\\:GrossProfit', 'GrossProfit', 'GrossResult', 'Bruttofortjeneste', 'Bruttoavance',
-        'fsa\\:GrossProfit', 'fsa\\:Bruttofortjeneste', 'cmn\\:GrossProfit'
+        'GrossProfit', 'GrossResult', 'Bruttofortjeneste', 'Bruttoavance',
+        'GrossProfitOrLoss'
       ]),
+      
       driftsresultat: extractValue([
-        'gsd\\:ProfitLossFromOperatingActivities', 'ProfitLossFromOperatingActivities', 
-        'OperatingProfitLoss', 'Driftsresultat', 'EBIT',
-        'fsa\\:ProfitLossFromOperatingActivities', 'fsa\\:Driftsresultat', 'cmn\\:EBIT'
+        'ProfitLossFromOperatingActivities', 'OperatingProfitLoss', 
+        'Driftsresultat', 'EBIT', 'OperatingProfit'
       ]),
+      
       resultatFoerSkat: extractValue([
-        'gsd\\:ProfitLossBeforeTax', 'ProfitLossBeforeTax', 'ResultatFørSkat', 'ProfitBeforeTax',
-        'fsa\\:ProfitLossBeforeTax', 'fsa\\:ResultatFørSkat', 'cmn\\:ProfitLossBeforeTax'
+        'ProfitLossBeforeTax', 'ResultatFørSkat', 'ProfitBeforeTax',
+        'ProfitLossFromOrdinaryActivitiesBeforeTax'
       ]),
+      
       aaretsResultat: extractValue([
-        'gsd\\:ProfitLoss', 'ProfitLoss', 'NetIncome', 'ÅretsResultat', 'Resultat',
-        'fsa\\:ProfitLoss', 'fsa\\:ÅretsResultat', 'cmn\\:ProfitLoss'
+        'ProfitLoss', 'NetIncome', 'ÅretsResultat', 'Resultat',
+        'ProfitLossForYear', 'NetProfitLoss'
       ]),
-      // Balance Sheet - ÅRL taxonomy (gsd:) fields
+      
+      // Balance Sheet - Assets (Aktiver)
       anlaegsaktiverValue: extractValue([
-        'gsd\\:NoncurrentAssets', 'NoncurrentAssets', 'Anlægsaktiver', 'FixedAssets', 'LongtermAssets',
-        'fsa\\:NoncurrentAssets', 'fsa\\:Anlægsaktiver', 'cmn\\:NoncurrentAssets'
+        'NoncurrentAssets', 'Anlægsaktiver', 'FixedAssets', 
+        'LongtermAssets', 'NonCurrentAssets'
       ]),
+      
       omsaetningsaktiver: extractValue([
-        'gsd\\:CurrentAssets', 'CurrentAssets', 'Omsætningsaktiver', 'ShorttermAssets',
-        'fsa\\:CurrentAssets', 'fsa\\:Omsætningsaktiver', 'cmn\\:CurrentAssets'
+        'CurrentAssets', 'Omsætningsaktiver', 'ShorttermAssets',
+        'ShortTermAssets'
       ]),
-      egenkapital: extractValue([
-        'gsd\\:Equity', 'Equity', 'Egenkapital', 'ShareholdersEquity',
-        'fsa\\:Equity', 'fsa\\:Egenkapital', 'cmn\\:Equity'
-      ]),
-      hensatteForpligtelser: extractValue([
-        'gsd\\:Provisions', 'Provisions', 'HensatteForpligtelser', 'ProvisionsForLiabilities',
-        'fsa\\:Provisions', 'fsa\\:HensatteForpligtelser', 'cmn\\:Provisions'
-      ]),
-      gaeldsforpligtelser: extractValue([
-        'gsd\\:Liabilities', 'Liabilities', 'Gældsforpligtelser', 'ShortTermLiabilities', 'LongTermLiabilities',
-        'fsa\\:Liabilities', 'fsa\\:Gældsforpligtelser', 'cmn\\:Liabilities'
-      ]),
-      kortfristetGaeld: extractValue([
-        'gsd\\:ShorttermLiabilitiesOtherThanProvisions', 'ShorttermLiabilitiesOtherThanProvisions', 
-        'KortfristetGæld', 'CurrentLiabilities',
-        'fsa\\:ShorttermLiabilitiesOtherThanProvisions', 'fsa\\:KortfristetGæld', 
-        'cmn\\:CurrentLiabilities'
-      ]),
+      
       statusBalance: extractValue([
-        'gsd\\:Assets', 'Assets', 'TotalAssets', 'AktiverIAlt', 'Balance',
-        'fsa\\:Assets', 'fsa\\:AktiverIAlt', 'cmn\\:Assets'
+        'Assets', 'TotalAssets', 'AktiverIAlt', 'Balance',
+        'SumOfAssets'
+      ]),
+      
+      // Balance Sheet - Equity & Liabilities (Passiver)
+      egenkapital: extractValue([
+        'Equity', 'Egenkapital', 'ShareholdersEquity',
+        'TotalEquity', 'EquityAttributableToOwnersOfParent'
+      ]),
+      
+      hensatteForpligtelser: extractValue([
+        'Provisions', 'HensatteForpligtelser', 'ProvisionsForLiabilities',
+        'TotalProvisions'
+      ]),
+      
+      gaeldsforpligtelser: extractValue([
+        'Liabilities', 'Gældsforpligtelser', 'TotalLiabilities',
+        'LiabilitiesOtherThanProvisions'
+      ]),
+      
+      kortfristetGaeld: extractValue([
+        'ShorttermLiabilitiesOtherThanProvisions', 'KortfristetGæld', 
+        'CurrentLiabilities', 'ShortTermLiabilities',
+        'ShorttermDebt'
       ])
     };
 
-    // Check if we got at least some data
-    const hasData = Object.values(financialData).some(v => v !== null && v !== period);
+    // Calculate financial ratios
+    const ratios: any = {};
+    
+    // Soliditetsgrad (Equity Ratio): Egenkapital / Aktiver * 100
+    if (financialData.egenkapital && financialData.statusBalance && financialData.statusBalance !== 0) {
+      ratios.soliditetsgrad = (financialData.egenkapital / financialData.statusBalance) * 100;
+      console.log(`✅ Calculated Soliditetsgrad: ${ratios.soliditetsgrad.toFixed(1)}%`);
+    }
+    
+    // Likviditetsgrad (Liquidity Ratio): Omsætningsaktiver / Kortfristet gæld * 100
+    if (financialData.omsaetningsaktiver && financialData.kortfristetGaeld && financialData.kortfristetGaeld !== 0) {
+      ratios.likviditetsgrad = (financialData.omsaetningsaktiver / financialData.kortfristetGaeld) * 100;
+      console.log(`✅ Calculated Likviditetsgrad: ${ratios.likviditetsgrad.toFixed(1)}%`);
+    }
+    
+    // Afkastningsgrad (Return on Assets): Årets resultat / Aktiver * 100
+    if (financialData.aaretsResultat && financialData.statusBalance && financialData.statusBalance !== 0) {
+      ratios.afkastningsgrad = (financialData.aaretsResultat / financialData.statusBalance) * 100;
+      console.log(`✅ Calculated Afkastningsgrad: ${ratios.afkastningsgrad.toFixed(1)}%`);
+    }
+    
+    // Overskudsgrad (Profit Margin): Årets resultat / Omsætning * 100
+    if (financialData.aaretsResultat && financialData.nettoomsaetning && financialData.nettoomsaetning !== 0) {
+      ratios.overskudsgrad = (financialData.aaretsResultat / financialData.nettoomsaetning) * 100;
+      console.log(`✅ Calculated Overskudsgrad: ${ratios.overskudsgrad.toFixed(1)}%`);
+    }
+
+    // Merge financial data with calculated ratios
+    const result = {
+      ...financialData,
+      ...ratios
+    };
+
+    // Check if we extracted at least some financial data
+    const hasData = Object.entries(result).some(([key, value]) => 
+      key !== 'periode' && value !== null && typeof value === 'number' && !isNaN(value)
+    );
     
     if (hasData) {
-      console.log(`✅ Successfully parsed financial data for period ${period}:`, financialData);
-      return financialData;
+      console.log(`✅ Successfully parsed financial data for period ${period}`);
+      console.log(`   Extracted: ${Object.keys(result).filter(k => result[k] !== null).length} fields`);
+      return result;
     } else {
       console.log(`⚠️ No financial data found in XBRL for period ${period}`);
       return null;
@@ -369,8 +432,13 @@ serve(async (req) => {
     // Step 2: Download and parse XBRL files
     const financialReports = [];
     const financialData = [];
+    
+    // Process up to 10 most recent reports to ensure we get 5 years of data
+    const hits = searchData.hits?.hits || [];
+    const reportsToProcess = Math.min(hits.length, 10);
 
-    for (const hit of (searchData.hits?.hits || [])) {
+    for (let i = 0; i < reportsToProcess; i++) {
+      const hit = hits[i];
       const source = hit._source;
       const period = source.regnskabsperiode || source.periode || 'N/A';
       
@@ -449,12 +517,19 @@ serve(async (req) => {
             const xbrlContent = await xbrlResponse.text();
             console.log(`[STEP 2] Downloaded XBRL file (${xbrlContent.length} bytes)`);
             
-            // Parse XBRL
-            console.log(`[STEP 3] Parsing XBRL for period ${period}...`);
-            const parsedData = parseXBRL(xbrlContent, period);
+            // Extract the actual period from XBRL file
+            const actualPeriod = extractPeriodFromXBRL(xbrlContent);
+            console.log(`[STEP 3] Parsing XBRL for period ${actualPeriod}...`);
+            const parsedData = parseXBRL(xbrlContent, actualPeriod);
             
             if (parsedData) {
               financialData.push(parsedData);
+              
+              // Stop once we have 5 parsed financial datasets
+              if (financialData.length >= 5) {
+                console.log(`✅ Successfully parsed 5 periods of financial data - stopping`);
+                break;
+              }
             }
           } else {
             console.warn(`⚠️ Failed to download XBRL: ${xbrlResponse.status} - ${documentUrl}`);
