@@ -277,7 +277,7 @@ serve(async (req) => {
           "query": {
             "term": { "cvrNummer": parseInt(cvr) }
           },
-          "size": 10,
+          "size": 20,
           "sort": [{ "offentliggoerelsesTidspunkt": { "order": "desc" }}]
         }
       },
@@ -292,7 +292,7 @@ serve(async (req) => {
               ]
             }
           },
-          "size": 10,
+          "size": 20,
           "sort": [{ "offentliggoerelsesTidspunkt": { "order": "desc" }}]
         }
       },
@@ -331,13 +331,14 @@ serve(async (req) => {
               ]
             }
           },
-          "size": 10,
+          "size": 20,
           "sort": [{ "offentliggoerelsesTidspunkt": { "order": "desc" }}]
         }
       }
     ];
 
     console.log(`[STEP 1] Progressive query fallback with ${queryStrategies.length} strategies`);
+    console.log('[VERSION] v2.0 - 20 results per query, 15 reports processing');
     console.log('[STEP 1] Will try each strategy with 20s timeout until one succeeds');
 
     // Try each strategy until one works
