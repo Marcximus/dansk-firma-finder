@@ -140,6 +140,12 @@ const ManagementAccordion: React.FC<ManagementAccordionProps> = ({ cvrData }) =>
       if (funkAttribute && funkAttribute.vaerdier && funkAttribute.vaerdier.length > 0) {
         const specificRole = funkAttribute.vaerdier[0].vaerdi;
         
+        // If the role is a SUPPLEANT role, just return the base name
+        // The suppleant badge will be displayed separately
+        if (specificRole?.includes('SUPPLEANT')) {
+          return baseName;
+        }
+        
         // Check if this is an employee-elected board member
         const activeValgform = valgformAttr?.vaerdier?.find((v: any) => {
           const gyldigTil = v.periode?.gyldigTil;
@@ -152,9 +158,7 @@ const ManagementAccordion: React.FC<ManagementAccordionProps> = ({ cvrData }) =>
           return 'Medarbejdervalgt bestyrelsesmedlem';
         }
         
-        // Don't handle SUPPLEANT here - let the separate badge display it
-        
-        if (specificRole !== hovedtype && !specificRole.includes('SUPPLEANT')) {
+        if (specificRole !== hovedtype) {
           return `${baseName} - ${specificRole}`;
         }
       }
