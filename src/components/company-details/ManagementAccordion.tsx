@@ -253,9 +253,17 @@ const ManagementAccordion: React.FC<ManagementAccordionProps> = ({ cvrData }) =>
                       <div key={orgIndex} className="flex items-start gap-1.5 sm:gap-2 p-1.5 sm:p-2 bg-gray-50 rounded">
                         {getRoleIcon(org.hovedtype)}
                         <div className="flex-1">
-                          <div className="font-medium text-[10px] sm:text-xs md:text-sm">
-                            {getRoleDisplayName(org.hovedtype, org.medlemsData?.[0])}
-                          </div>
+                          {/* Only show role name if not a suppleant - suppleants are shown via badge */}
+                          {!org.medlemsData?.[0]?.attributter?.find((attr: any) => attr.type === 'FUNKTION')?.vaerdier?.some((v: any) => {
+                            const today = new Date().toISOString().split('T')[0];
+                            const gyldigTil = v.periode?.gyldigTil;
+                            const isActive = gyldigTil === null || gyldigTil === undefined || gyldigTil >= today;
+                            return isActive && v.vaerdi?.includes('SUPPLEANT');
+                          }) && (
+                            <div className="font-medium text-[10px] sm:text-xs md:text-sm">
+                              {getRoleDisplayName(org.hovedtype, org.medlemsData?.[0])}
+                            </div>
+                          )}
                           {org.medlemsData && org.medlemsData.map((medlem: any, medlemIndex: number) => {
                             const funkAttr = medlem.attributter?.find((attr: any) => attr.type === 'FUNKTION');
                             const valgformAttr = medlem.attributter?.find((attr: any) => attr.type === 'VALGFORM');
