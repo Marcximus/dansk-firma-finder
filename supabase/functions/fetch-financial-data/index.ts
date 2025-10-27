@@ -17,11 +17,18 @@ const parseXBRL = (xmlContent: string, period: string) => {
       return null;
     }
 
-    // Helper to extract numeric value from XML element - supports Danish XBRL namespaces
+    // Helper to extract numeric value from XML element - supports ÅRL and ESEF taxonomy
     const extractValue = (selectors: string[]): number | null => {
       for (const selector of selectors) {
-        // Try with and without namespace prefixes
-        const elements = doc.querySelectorAll(selector);
+        // Try multiple methods to find elements
+        let elements = doc.querySelectorAll(selector);
+        
+        // If not found, try case-insensitive search
+        if (elements.length === 0) {
+          const lowerSelector = selector.toLowerCase();
+          elements = doc.querySelectorAll(`[name*="${lowerSelector}" i]`);
+        }
+        
         for (const element of elements) {
           const text = element.textContent?.trim();
           if (text) {
@@ -38,58 +45,61 @@ const parseXBRL = (xmlContent: string, period: string) => {
       return null;
     };
 
-    // Extract financial KPIs with multiple possible tag names (Danish and English)
+    // Extract financial KPIs - ÅRL taxonomy uses gsd: prefix for most fields
     const financialData = {
       periode: period,
-      // Income Statement
+      // Income Statement - try ÅRL taxonomy (gsd:) and legacy names
       nettoomsaetning: extractValue([
-        'Revenue', 'Nettoomsætning', 'NetRevenue', 'Omsætning',
-        'fsa\\:Revenue', 'fsa\\:Nettoomsætning'
+        'gsd\\:Revenue', 'Revenue', 'Nettoomsætning', 'NetRevenue', 'Omsætning',
+        'fsa\\:Revenue', 'fsa\\:Nettoomsætning', 'cmn\\:Revenue'
       ]),
       bruttofortjeneste: extractValue([
-        'GrossProfit', 'GrossResult', 'Bruttofortjeneste', 'Bruttoavance',
-        'fsa\\:GrossProfit', 'fsa\\:Bruttofortjeneste'
+        'gsd\\:GrossProfit', 'GrossProfit', 'GrossResult', 'Bruttofortjeneste', 'Bruttoavance',
+        'fsa\\:GrossProfit', 'fsa\\:Bruttofortjeneste', 'cmn\\:GrossProfit'
       ]),
       driftsresultat: extractValue([
-        'ProfitLossFromOperatingActivities', 'OperatingProfitLoss', 'Driftsresultat', 'EBIT',
-        'fsa\\:ProfitLossFromOperatingActivities', 'fsa\\:Driftsresultat'
+        'gsd\\:ProfitLossFromOperatingActivities', 'ProfitLossFromOperatingActivities', 
+        'OperatingProfitLoss', 'Driftsresultat', 'EBIT',
+        'fsa\\:ProfitLossFromOperatingActivities', 'fsa\\:Driftsresultat', 'cmn\\:EBIT'
       ]),
       resultatFoerSkat: extractValue([
-        'ProfitLossBeforeTax', 'ResultatFørSkat', 'ProfitBeforeTax',
-        'fsa\\:ProfitLossBeforeTax', 'fsa\\:ResultatFørSkat'
+        'gsd\\:ProfitLossBeforeTax', 'ProfitLossBeforeTax', 'ResultatFørSkat', 'ProfitBeforeTax',
+        'fsa\\:ProfitLossBeforeTax', 'fsa\\:ResultatFørSkat', 'cmn\\:ProfitLossBeforeTax'
       ]),
       aaretsResultat: extractValue([
-        'ProfitLoss', 'NetIncome', 'ÅretsResultat', 'Resultat',
-        'fsa\\:ProfitLoss', 'fsa\\:ÅretsResultat'
+        'gsd\\:ProfitLoss', 'ProfitLoss', 'NetIncome', 'ÅretsResultat', 'Resultat',
+        'fsa\\:ProfitLoss', 'fsa\\:ÅretsResultat', 'cmn\\:ProfitLoss'
       ]),
-      // Balance Sheet
+      // Balance Sheet - ÅRL taxonomy (gsd:) fields
       anlaegsaktiverValue: extractValue([
-        'NoncurrentAssets', 'Anlægsaktiver', 'FixedAssets', 'LongtermAssets',
-        'fsa\\:NoncurrentAssets', 'fsa\\:Anlægsaktiver'
+        'gsd\\:NoncurrentAssets', 'NoncurrentAssets', 'Anlægsaktiver', 'FixedAssets', 'LongtermAssets',
+        'fsa\\:NoncurrentAssets', 'fsa\\:Anlægsaktiver', 'cmn\\:NoncurrentAssets'
       ]),
       omsaetningsaktiver: extractValue([
-        'CurrentAssets', 'Omsætningsaktiver', 'ShorttermAssets',
-        'fsa\\:CurrentAssets', 'fsa\\:Omsætningsaktiver'
+        'gsd\\:CurrentAssets', 'CurrentAssets', 'Omsætningsaktiver', 'ShorttermAssets',
+        'fsa\\:CurrentAssets', 'fsa\\:Omsætningsaktiver', 'cmn\\:CurrentAssets'
       ]),
       egenkapital: extractValue([
-        'Equity', 'Egenkapital', 'ShareholdersEquity',
-        'fsa\\:Equity', 'fsa\\:Egenkapital'
+        'gsd\\:Equity', 'Equity', 'Egenkapital', 'ShareholdersEquity',
+        'fsa\\:Equity', 'fsa\\:Egenkapital', 'cmn\\:Equity'
       ]),
       hensatteForpligtelser: extractValue([
-        'Provisions', 'HensatteForpligtelser', 'ProvisionsForLiabilities',
-        'fsa\\:Provisions', 'fsa\\:HensatteForpligtelser'
+        'gsd\\:Provisions', 'Provisions', 'HensatteForpligtelser', 'ProvisionsForLiabilities',
+        'fsa\\:Provisions', 'fsa\\:HensatteForpligtelser', 'cmn\\:Provisions'
       ]),
       gaeldsforpligtelser: extractValue([
-        'Liabilities', 'Gældsforpligtelser', 'ShortTermLiabilities', 'LongTermLiabilities',
-        'fsa\\:Liabilities', 'fsa\\:Gældsforpligtelser'
+        'gsd\\:Liabilities', 'Liabilities', 'Gældsforpligtelser', 'ShortTermLiabilities', 'LongTermLiabilities',
+        'fsa\\:Liabilities', 'fsa\\:Gældsforpligtelser', 'cmn\\:Liabilities'
       ]),
       kortfristetGaeld: extractValue([
-        'ShorttermLiabilitiesOtherThanProvisions', 'KortfristetGæld', 'CurrentLiabilities',
-        'fsa\\:ShorttermLiabilitiesOtherThanProvisions', 'fsa\\:KortfristetGæld'
+        'gsd\\:ShorttermLiabilitiesOtherThanProvisions', 'ShorttermLiabilitiesOtherThanProvisions', 
+        'KortfristetGæld', 'CurrentLiabilities',
+        'fsa\\:ShorttermLiabilitiesOtherThanProvisions', 'fsa\\:KortfristetGæld', 
+        'cmn\\:CurrentLiabilities'
       ]),
       statusBalance: extractValue([
-        'Assets', 'TotalAssets', 'AktiverIAlt', 'Balance',
-        'fsa\\:Assets', 'fsa\\:AktiverIAlt'
+        'gsd\\:Assets', 'Assets', 'TotalAssets', 'AktiverIAlt', 'Balance',
+        'fsa\\:Assets', 'fsa\\:AktiverIAlt', 'cmn\\:Assets'
       ])
     };
 
@@ -210,18 +220,56 @@ serve(async (req) => {
       queryType: 'match on xml MIME type'
     });
 
-    const searchResponse = await fetch(searchUrl, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Basic ${auth}`,
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-        'Accept-Encoding': 'gzip, deflate'
-      },
-      body: JSON.stringify(searchQuery)
-    });
+    // Add timeout protection for main API request (30 seconds)
+    const SEARCH_TIMEOUT_MS = 30000;
+    const searchController = new AbortController();
+    const searchTimeoutId = setTimeout(() => searchController.abort(), SEARCH_TIMEOUT_MS);
 
-    console.log(`[STEP 2] Search API response status: ${searchResponse.status}`);
+    let searchResponse;
+    try {
+      console.log('[STEP 1.5] Sending search request to Danish Business API...');
+      searchResponse = await fetch(searchUrl, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Basic ${auth}`,
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'Accept-Encoding': 'gzip, deflate'
+        },
+        body: JSON.stringify(searchQuery),
+        signal: searchController.signal
+      });
+      clearTimeout(searchTimeoutId);
+      console.log(`[STEP 2] Search API response status: ${searchResponse.status}`);
+    } catch (fetchError) {
+      clearTimeout(searchTimeoutId);
+      if (fetchError.name === 'AbortError') {
+        console.error('[ERROR] Search request timed out after 30 seconds');
+        return new Response(
+          JSON.stringify({ 
+            financialReports: [],
+            financialData: [],
+            error: 'Search request timed out'
+          }),
+          { 
+            status: 504,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          }
+        );
+      }
+      console.error('[ERROR] Search request failed:', fetchError);
+      return new Response(
+        JSON.stringify({ 
+          financialReports: [],
+          financialData: [],
+          error: `Search request failed: ${fetchError.message}`
+        }),
+        { 
+          status: 500,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        }
+      );
+    }
 
     if (!searchResponse.ok) {
       const errorText = await searchResponse.text();
