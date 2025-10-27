@@ -10,14 +10,12 @@ import { Badge } from '@/components/ui/badge';
 
 interface OwnershipAccordionProps {
   cvrData: any;
-  subsidiaries?: any[];
-  loadingSubsidiaries?: boolean;
+  subsidiaries: any[];
 }
 
 const OwnershipAccordion: React.FC<OwnershipAccordionProps> = ({ 
   cvrData, 
-  subsidiaries = [],
-  loadingSubsidiaries = false 
+  subsidiaries
 }) => {
   console.log('OwnershipAccordion - Raw CVR Data:', cvrData);
   console.log('OwnershipAccordion - Subsidiaries:', subsidiaries);
@@ -164,12 +162,7 @@ const OwnershipAccordion: React.FC<OwnershipAccordionProps> = ({
               Datterselskaber
             </h4>
             <div className="space-y-2 sm:space-y-3">
-              {loadingSubsidiaries ? (
-                <div className="text-muted-foreground text-xs sm:text-sm border-l-2 sm:border-l-4 border-gray-200 pl-3 sm:pl-4 py-2 flex items-center gap-2">
-                  <div className="h-3 w-3 animate-spin rounded-full border-2 border-primary border-t-transparent"></div>
-                  <span>Søger efter datterselskaber...</span>
-                </div>
-              ) : subsidiaries && subsidiaries.length > 0 ? (
+              {subsidiaries && subsidiaries.length > 0 ? (
                 subsidiaries.map((subsidiary: any, index: number) => (
                   <div key={index} className="border-l-2 sm:border-l-4 border-purple-200 pl-3 sm:pl-4 py-2">
                     <TooltipProvider>
@@ -177,15 +170,16 @@ const OwnershipAccordion: React.FC<OwnershipAccordionProps> = ({
                         <TooltipTrigger asChild>
                           <button
                             onClick={() => {
-                              if (subsidiary.cvr && subsidiary.name) {
-                                const url = generateCompanyUrl(subsidiary.name, subsidiary.cvr.toString());
+                              if (subsidiary.cvr && subsidiary.navn) {
+                                const url = generateCompanyUrl(subsidiary.navn, subsidiary.cvr.toString());
                                 navigate(url);
                               }
                             }}
-                            className="font-semibold text-sm sm:text-base hover:text-primary underline decoration-dotted underline-offset-2 text-left"
+                            className="font-semibold text-sm sm:text-base hover:text-primary underline decoration-dotted underline-offset-2 text-left flex items-center gap-1.5"
                             disabled={!subsidiary.cvr}
                           >
-                            {subsidiary.name}
+                            <Building2 className="h-4 w-4 text-purple-600 flex-shrink-0" />
+                            {subsidiary.navn}
                           </button>
                         </TooltipTrigger>
                         <TooltipContent>
@@ -195,12 +189,15 @@ const OwnershipAccordion: React.FC<OwnershipAccordionProps> = ({
                     </TooltipProvider>
                     {subsidiary.cvr && (
                       <div className="text-xs sm:text-sm text-muted-foreground mb-1">
-                        CVR: {subsidiary.cvr}
+                        <Badge variant="outline" className="text-xs">
+                          CVR: {subsidiary.cvr}
+                        </Badge>
                       </div>
                     )}
-                    {subsidiary.relationshipType && (
-                      <div className="text-xs sm:text-sm text-muted-foreground mb-1 italic">
-                        {subsidiary.relationshipType}
+                    {subsidiary.adresse && (
+                      <div className="text-xs sm:text-sm text-muted-foreground flex items-center gap-1 mb-1 break-words">
+                        <MapPin className="h-3 w-3 flex-shrink-0" />
+                        <span className="break-words">{subsidiary.adresse}</span>
                       </div>
                     )}
                     {subsidiary.status && (
@@ -209,29 +206,18 @@ const OwnershipAccordion: React.FC<OwnershipAccordionProps> = ({
                       </div>
                     )}
                     <div className="text-xs sm:text-sm space-y-0.5">
-                      <div className="flex items-center gap-1">
-                        <Percent className="h-3 w-3 flex-shrink-0" />
-                        <span>Ejerandel: <span className="font-medium">
-                          {subsidiary.ownershipPercentage 
-                            ? `${(subsidiary.ownershipPercentage * 100).toFixed(2)}%` 
-                            : <span className="text-muted-foreground/70">Ikke oplyst</span>}
-                        </span></span>
-                      </div>
-                      {subsidiary.votingRights && (
+                      {subsidiary.ejerandel && subsidiary.ejerandel !== 'Ikke oplyst' && (
                         <div className="flex items-center gap-1">
                           <Percent className="h-3 w-3 flex-shrink-0" />
-                          <span>Stemmerettigheder: <span className="font-medium">{(subsidiary.votingRights * 100).toFixed(2)}%</span></span>
+                          <span>Ejerandel: <span className="font-medium">{subsidiary.ejerandel}</span></span>
                         </div>
                       )}
                     </div>
                   </div>
                 ))
               ) : (
-                <div className="text-muted-foreground text-xs sm:text-sm border-l-2 sm:border-l-4 border-gray-200 pl-3 sm:pl-4 py-2 space-y-1">
-                  <p>Ingen datterselskaber fundet</p>
-                  <p className="text-xs text-muted-foreground/70">
-                    Bemærk: Søgningen kan tage lang tid for nogle virksomheder. Hvis ingen datterselskaber vises, kan det skyldes timeout eller at virksomheden ikke har registrerede datterselskaber.
-                  </p>
+                <div className="text-muted-foreground text-xs sm:text-sm border-l-2 sm:border-l-4 border-gray-200 pl-3 sm:pl-4 py-2">
+                  Ingen datterselskaber registreret
                 </div>
               )}
             </div>

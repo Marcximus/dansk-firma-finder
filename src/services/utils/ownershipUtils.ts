@@ -228,14 +228,125 @@ export const extractOwnershipData = (cvrData: any) => {
       });
   };
 
-  // Note: Subsidiaries (datterselskaber) are not reliably available in virksomhedsRelation.
-  // They need to be fetched separately using the fetch-subsidiaries edge function,
-  // which searches for companies where this CVR appears as an owner.
+  const getSubsidiariesFromRelations = () => {
+    const relations = vrvirksomhed.virksomhedsRelation || [];
+    
+    console.log('[ownershipUtils] Extracting subsidiaries from virksomhedsRelation:', {
+      hasVirksomhedsRelation: !!vrvirksomhed.virksomhedsRelation,
+      relationCount: relations.length
+    });
+    
+    return relations
+      .filter((rel: any) => {
+        const isActive = !rel.periode?.gyldigTil;
+        
+        // Check if this is a subsidiary relationship (DATTERSELSKAB, MODERSELSKAB relations)
+        const hasSubsidiaryType = rel.organisationer?.some((org: any) => 
+          org.hovedtype === 'REGISTER' && (
+            org.organisationsNavn?.some((n: any) => 
+              n.navn?.includes('DATTERSELSKAB') || 
+              n.navn?.includes('SØSTERSELSKAB') ||
+              n.navn?.includes('MODERSELSKAB')
+            ) ||
+            org.medlemsData?.some((m: any) =>
+              m.attributter?.some((attr: any) =>
+                attr.type === 'EJERANDEL_PROCENT' || 
+                attr.type === 'EJERANDEL_STEMMERET_PROCENT'
+              )
+            )
+          )
+        );
+        
+        return isActive && hasSubsidiaryType;
+      })
+      .map((rel: any) => {
+        let name = 'Ukendt';
+        let cvr = '';
+        let addressString = '';
+        let ownershipPercentage: number | undefined;
+        let status = '';
+        
+        // Extract company details from virksomhed
+        const virksomhed = rel.virksomhed;
+        if (virksomhed) {
+          // Get name
+          const navne = virksomhed.navne || [];
+          const currentName = navne.find((n: any) => !n.periode?.gyldigTil) || navne[navne.length - 1];
+          if (currentName) {
+            name = currentName.navn || 'Ukendt';
+          }
+          
+          // Get CVR
+          cvr = virksomhed.cvrNummer?.toString() || '';
+          
+          // Get address
+          const beliggenhedsadresse = virksomhed.beliggenhedsadresse || [];
+          const currentAddress = beliggenhedsadresse.find((a: any) => !a.periode?.gyldigTil) || beliggenhedsadresse[beliggenhedsadresse.length - 1];
+          
+          if (currentAddress) {
+            const parts = [];
+            if (currentAddress.vejnavn) parts.push(currentAddress.vejnavn);
+            if (currentAddress.husnummerFra) parts.push(currentAddress.husnummerFra);
+            if (currentAddress.postnummer && currentAddress.postdistrikt) {
+              parts.push(`${currentAddress.postnummer} ${currentAddress.postdistrikt}`);
+            }
+            addressString = parts.join(', ');
+          }
+          
+          // Get status
+          const statuser = virksomhed.virksomhedsstatus || [];
+          const currentStatus = statuser.find((s: any) => !s.periode?.gyldigTil) || statuser[statuser.length - 1];
+          if (currentStatus) {
+            status = currentStatus.status || '';
+          }
+        }
+        
+        // Extract ownership percentage from organisationer
+        const org = rel.organisationer?.find((o: any) => o.hovedtype === 'REGISTER');
+        if (org) {
+          const medlemsData = org.medlemsData || [];
+          const activeMember = medlemsData.find((m: any) => !m.periode?.gyldigTil) || medlemsData[0];
+          
+          if (activeMember) {
+            const attributter = activeMember.attributter || [];
+            const ejerandelAttr = attributter.find((attr: any) => attr.type === 'EJERANDEL_PROCENT');
+            if (ejerandelAttr) {
+              const vaerdier = ejerandelAttr.vaerdier || [];
+              const activeValue = vaerdier.find((v: any) => !v.periode?.gyldigTil) || vaerdier[0];
+              if (activeValue?.vaerdi) {
+                ownershipPercentage = parseFloat(activeValue.vaerdi);
+              }
+            }
+          }
+        }
+        
+        console.log('[ownershipUtils] ✓ Extracted subsidiary:', {
+          name,
+          cvr,
+          ownershipPercentage: ownershipPercentage ? `${(ownershipPercentage * 100).toFixed(2)}%` : 'N/A'
+        });
+        
+        return {
+          navn: name,
+          cvr: cvr,
+          adresse: addressString,
+          status: status,
+          ejerandel: ownershipPercentage 
+            ? `${(ownershipPercentage * 100).toFixed(2)}%` 
+            : 'Ikke oplyst',
+          periode: {
+            gyldigFra: rel.periode?.gyldigFra,
+            gyldigTil: rel.periode?.gyldigTil
+          }
+        };
+      });
+  };
 
   const ownershipFromRelations = getOwnershipFromRelations();
+  const subsidiariesFromRelations = getSubsidiariesFromRelations();
 
   return {
     currentOwners: ownershipFromRelations,
-    subsidiaries: [] // Subsidiaries must be fetched separately via API
+    subsidiaries: subsidiariesFromRelations
   };
 };

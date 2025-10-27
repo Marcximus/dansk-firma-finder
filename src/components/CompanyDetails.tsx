@@ -1,6 +1,6 @@
 
-import React, { useState, useEffect } from 'react';
-import { Company, extractCvrDetails, getSubsidiaries } from '@/services/companyAPI';
+import React from 'react';
+import { Company, extractCvrDetails } from '@/services/companyAPI';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
 import { Link } from 'react-router-dom';
@@ -22,21 +22,14 @@ interface CompanyDetailsProps {
 
 const CompanyDetails: React.FC<CompanyDetailsProps> = ({ company }) => {
   const cvrDetails = company.realCvrData ? extractCvrDetails(company.realCvrData) : null;
-  const [subsidiaries, setSubsidiaries] = useState<any[]>([]);
-  const [loadingSubsidiaries, setLoadingSubsidiaries] = useState(true);
-
-  useEffect(() => {
-    const fetchSubsidiaries = async () => {
-      if (company.cvr) {
-        setLoadingSubsidiaries(true);
-        const subs = await getSubsidiaries(company.cvr);
-        setSubsidiaries(subs);
-        setLoadingSubsidiaries(false);
-      }
-    };
-
-    fetchSubsidiaries();
-  }, [company.cvr]);
+  
+  // Extract subsidiaries directly from CVR data
+  const subsidiaries = React.useMemo(() => {
+    if (!company.realCvrData) return [];
+    const { extractOwnershipData } = require('@/services/cvrUtils');
+    const ownershipData = extractOwnershipData(company.realCvrData);
+    return ownershipData.subsidiaries || [];
+  }, [company.realCvrData]);
   
   return (
     <div className="py-2 sm:py-4 md:py-6 max-w-7xl mx-auto px-2 sm:px-3 md:px-4">
@@ -49,7 +42,6 @@ const CompanyDetails: React.FC<CompanyDetailsProps> = ({ company }) => {
         <OwnershipAccordion 
           cvrData={company.realCvrData} 
           subsidiaries={subsidiaries}
-          loadingSubsidiaries={loadingSubsidiaries}
         />
         <ProductionUnitsAccordion productionUnits={company.productionUnits || []} />
         <FinancialAccordion cvr={company.cvr} cvrData={company.realCvrData} />
