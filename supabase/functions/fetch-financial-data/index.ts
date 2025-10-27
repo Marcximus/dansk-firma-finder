@@ -152,20 +152,12 @@ serve(async (req) => {
       );
     }
     
-    const username = Deno.env.get('DANISH_BUSINESS_API_USERNAME');
-    const password = Deno.env.get('DANISH_BUSINESS_API_PASSWORD');
-    const useAuth = !!(username && password);
-    
-    console.log('API Credentials check:', {
-      useAuth,
+    // Financial reports are publicly accessible - no credentials needed
+    console.log('API Configuration:', {
       endpoint: 'offentliggoerelser (public announcements)',
-      username: username ? `${username.substring(0, 3)}***` : 'NOT SET',
-      password: password ? '***SET***' : 'NOT SET',
-      note: useAuth ? 'Using credentials' : 'Attempting public access'
+      authentication: 'NONE - Public endpoint',
+      note: 'This endpoint does not require credentials'
     });
-
-    // Create basic auth header only if credentials are available
-    const auth = useAuth ? btoa(`${username}:${password}`) : null;
     
     // Step 1: Search for financial reports using POST with Elasticsearch query
     const searchUrl = 'https://distribution.virk.dk/offentliggoerelser/_search';
@@ -266,11 +258,7 @@ serve(async (req) => {
           'Accept': 'application/json',
           'Accept-Encoding': 'gzip, deflate'
         };
-        
-        // Only add auth if we have credentials
-        if (auth) {
-          headers['Authorization'] = `Basic ${auth}`;
-        }
+        // NO Authorization header - public endpoint
         
         const response = await fetch(searchUrl, {
           method: 'POST',
@@ -448,11 +436,7 @@ serve(async (req) => {
             'Accept': 'application/xml, text/xml, */*',
             'Accept-Encoding': 'gzip, deflate'
           };
-          
-          // Only add auth if we have credentials
-          if (auth) {
-            downloadHeaders['Authorization'] = `Basic ${auth}`;
-          }
+          // NO Authorization header - public endpoint
           
           const xbrlResponse = await fetch(documentUrl, {
             headers: downloadHeaders,
