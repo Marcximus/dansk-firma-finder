@@ -91,9 +91,27 @@ const ComprehensiveManagementCard: React.FC<ComprehensiveManagementCardProps> = 
         {relations.map((relation: any, index: number) => {
           const personName = getPersonName(relation.deltager);
           const personAddress = getPersonAddress(relation.deltager);
+          
+          // Check if this person is an employee representative
+          const today = new Date().toISOString().split('T')[0];
+          const isEmployeeRep = relation.organisationer?.some((org: any) => 
+            org.medlemsData?.some((medlem: any) => {
+              const valgformAttr = medlem.attributter?.find((attr: any) => attr.type === 'VALGFORM');
+              return valgformAttr?.vaerdier?.some((v: any) => {
+                const gyldigTil = v.periode?.gyldigTil;
+                const isActive = gyldigTil === null || gyldigTil === undefined || gyldigTil >= today;
+                return isActive && (
+                  v.vaerdi?.includes('medarbejdere i selskabet') || 
+                  v.vaerdi?.includes('medarbejdere i koncernen')
+                );
+              });
+            })
+          );
+          
+          const borderColor = isEmployeeRep ? 'border-green-200' : 'border-blue-200';
 
           return (
-            <div key={index} className="border rounded p-4">
+            <div key={index} className={`border ${borderColor} rounded p-4`}>
               <div className="font-medium text-lg mb-3">{personName}</div>
               <div className="text-sm text-muted-foreground mb-3">{personAddress}</div>
               

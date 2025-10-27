@@ -285,7 +285,8 @@ export const extractSigningRulesData = (cvrData: any) => {
           return attr.vaerdier?.some((v: any) => {
             const hasRole = v.vaerdi?.includes('BESTYRELSESMEDLEM') || 
                           v.vaerdi?.includes('BESTYRELSESFORMAND') ||
-                          v.vaerdi?.includes('FORMAND');
+                          v.vaerdi?.includes('FORMAND') ||
+                          v.vaerdi === 'SUPPLEANT';
             
             if (!hasRole) return false;
             

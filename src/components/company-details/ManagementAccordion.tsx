@@ -182,15 +182,37 @@ const ManagementAccordion: React.FC<ManagementAccordionProps> = ({ cvrData }) =>
             const personName = getPersonName(relation.deltager);
             const personAddress = getPersonAddress(relation.deltager);
             const enhedsNummer = relation.deltager?.enhedsNummer;
+            
+            // Check if this person is an employee representative
+            const today = new Date().toISOString().split('T')[0];
+            const isEmployeeRep = relation.organisationer?.some((org: any) => 
+              org.medlemsData?.some((medlem: any) => {
+                const valgformAttr = medlem.attributter?.find((attr: any) => attr.type === 'VALGFORM');
+                return valgformAttr?.vaerdier?.some((v: any) => {
+                  const gyldigTil = v.periode?.gyldigTil;
+                  const isActive = gyldigTil === null || gyldigTil === undefined || gyldigTil >= today;
+                  return isActive && (
+                    v.vaerdi?.includes('medarbejdere i selskabet') || 
+                    v.vaerdi?.includes('medarbejdere i koncernen')
+                  );
+                });
+              })
+            );
+            
+            const borderColor = isEmployeeRep ? 'border-green-200' : 'border-blue-200';
 
             return (
-              <div key={index} className="border-l-2 sm:border-l-3 border-blue-200 pl-2 sm:pl-3 py-1.5 sm:py-2">
+              <div key={index} className={`border-l-2 sm:border-l-3 ${borderColor} pl-2 sm:pl-3 py-1.5 sm:py-2`}>
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <button
                         onClick={() => handleNameClick(personName, enhedsNummer)}
-                        className="font-semibold text-xs sm:text-sm md:text-base text-primary hover:text-primary/80 hover:underline transition-colors flex items-center gap-1.5 cursor-pointer mb-1"
+                        className={`font-semibold text-xs sm:text-sm md:text-base transition-colors flex items-center gap-1.5 cursor-pointer mb-1 ${
+                          isEmployeeRep 
+                            ? 'text-green-600 hover:text-green-700 hover:underline'
+                            : 'text-primary hover:text-primary/80 hover:underline'
+                        }`}
                       >
                         {personName}
                         <Search className="h-3 w-3" />

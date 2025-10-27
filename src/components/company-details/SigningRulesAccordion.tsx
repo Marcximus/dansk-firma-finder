@@ -308,7 +308,11 @@ const SigningRulesAccordion: React.FC<SigningRulesAccordionProps> = ({ cvrData }
                       <TooltipTrigger asChild>
                         <button
                           onClick={() => handleNameClick(personName, enhedsNummer)}
-                          className="font-semibold text-xs sm:text-sm md:text-base text-primary hover:text-primary/80 hover:underline transition-colors flex items-center gap-1.5 cursor-pointer mb-1"
+                          className={`font-semibold text-xs sm:text-sm md:text-base transition-colors flex items-center gap-1.5 cursor-pointer mb-1 ${
+                            isEmployeeRep 
+                              ? 'text-green-600 hover:text-green-700 hover:underline'
+                              : 'text-primary hover:text-primary/80 hover:underline'
+                          }`}
                         >
                           {personName}
                           <Search className="h-3 w-3" />
