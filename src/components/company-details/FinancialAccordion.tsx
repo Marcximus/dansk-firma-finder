@@ -31,7 +31,15 @@ const FinancialAccordion: React.FC<FinancialAccordionProps> = ({ cvr, cvrData })
         setError(null);
         const data = await getFinancialData(cvr);
         console.log('FinancialAccordion - Parsed XBRL data:', data);
-        setParsedFinancialData(data);
+        
+        // Check if we should fallback to mock data
+        if (data?.fallbackToMockData && data?.error) {
+          console.log('FinancialAccordion - Using mock data due to API timeout');
+          setError(data.error);
+          setParsedFinancialData(null); // Let extractFinancialData handle fallback
+        } else {
+          setParsedFinancialData(data);
+        }
       } catch (error) {
         console.error('Error fetching parsed financial data:', error);
         setError('Kunne ikke hente regnskabsdata fra XBRL');
@@ -66,8 +74,8 @@ const FinancialAccordion: React.FC<FinancialAccordionProps> = ({ cvr, cvrData })
           
           {/* Error state */}
           {error && !isLoading && (
-            <div className="text-sm text-amber-600 dark:text-amber-500">
-              {error} - bruger CVR-data som fallback
+            <div className="text-sm text-amber-600 dark:text-amber-500 p-3 bg-amber-50 dark:bg-amber-950/20 rounded-lg border border-amber-200 dark:border-amber-800">
+              ⚠️ {error}
             </div>
           )}
           {/* Financial Spreadsheet - Show comprehensive data if available */}

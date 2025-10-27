@@ -84,7 +84,7 @@ const FinancialKPICard: React.FC<FinancialKPICardProps> = ({ financialKPIs }) =>
         
         {!financialKPIs && (
           <div className="text-center py-8 text-muted-foreground">
-            Genererer finansielle nøgletal...
+            Ingen finansielle nøgletal tilgængelige
           </div>
         )}
       </CardContent>
