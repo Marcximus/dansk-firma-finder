@@ -136,11 +136,6 @@ const PersonDetails: React.FC<PersonDetailsProps> = ({ personData }) => {
         </div>
 
         <div className="grid grid-cols-[140px_1fr] gap-2">
-          <span className="text-muted-foreground">Virksomhedsstatus</span>
-          <span className="font-medium">{item.companyStatus || 'Ukendt'}</span>
-        </div>
-
-        <div className="grid grid-cols-[140px_1fr] gap-2">
           <span className="text-muted-foreground">Tilknyttet som</span>
           <span className="font-medium">
             {item.role.type === 'EJERREGISTER' && 'Ejer'}
