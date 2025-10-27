@@ -104,7 +104,7 @@ const PersonDetails: React.FC<PersonDetailsProps> = ({ personData }) => {
       className="border rounded-lg p-4 transition-all"
     >
       {/* Company Name */}
-      <h3 className="text-xl font-bold mb-3">
+      <h3 className="text-xl font-bold mb-4">
         <button
           onClick={() => {
             if (item.companyCvr && item.companyName) {
@@ -117,19 +117,22 @@ const PersonDetails: React.FC<PersonDetailsProps> = ({ personData }) => {
           {item.companyName}
         </button>
       </h3>
-      
-      {/* Status Indicator */}
-      <div className="flex items-center gap-2 mb-4">
-        <span 
-          className={`h-2.5 w-2.5 rounded-full ${item.isActive ? 'bg-green-500' : 'bg-red-500'}`}
-        />
-        <span className="text-sm font-medium">
-          {item.isActive ? 'Aktiv Relation' : 'Ophørt Relation'}
-        </span>
-      </div>
 
       {/* Key-Value Pairs */}
       <div className="space-y-2 text-sm">
+        {/* Status Indicator */}
+        <div className="grid grid-cols-[140px_1fr] gap-2">
+          <span className="text-muted-foreground">Status</span>
+          <div className="flex items-center gap-2">
+            <span 
+              className={`h-2.5 w-2.5 rounded-full pulse ${item.isActive ? 'bg-green-500' : 'bg-red-500'}`}
+            />
+            <span className="font-medium">
+              {item.isActive ? 'Aktiv Relation' : 'Ophørt Relation'}
+            </span>
+          </div>
+        </div>
+
         <div className="grid grid-cols-[140px_1fr] gap-2">
           <span className="text-muted-foreground">CVR-nummer</span>
           <button
