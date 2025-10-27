@@ -187,61 +187,76 @@ serve(async (req) => {
     const fiveYearsAgo = new Date();
     fiveYearsAgo.setFullYear(fiveYearsAgo.getFullYear() - 5);
     
-    // Build Elasticsearch query using official documentation pattern
-    // The dokumenter.dokumentMimeType field is tokenized, so "application/xml" becomes ["application", "xml"]
-    // This allows us to match both tokens with separate term filters
-    const searchQuery = {
-      "query": {
-        "bool": {
-          "must": [
-            {
-              "term": {
-                "cvrNummer": parseInt(cvr)
-              }
-            },
-            {
-              "term": {
-                "dokumenter.dokumentMimeType": "application"
-              }
-            },
-            {
-              "term": {
-                "dokumenter.dokumentMimeType": "xml"
-              }
-            },
-            {
-              "range": {
-                "offentliggoerelsesTidspunkt": {
-                  "gte": fiveYearsAgo.toISOString(),
-                  "lte": new Date().toISOString()
-                }
-              }
+    // Build multiple query strategies - try simplest first for better performance
+    const queryStrategies = [
+      // Strategy 1: Simplest - just CVR + date range (most likely to be indexed)
+      {
+        name: 'simple_cvr_date',
+        query: {
+          "query": {
+            "bool": {
+              "must": [
+                { "term": { "cvrNummer": parseInt(cvr) } },
+                { "range": { "offentliggoerelsesTidspunkt": { "gte": fiveYearsAgo.toISOString(), "lte": new Date().toISOString() } } }
+              ]
             }
-          ]
+          },
+          "size": 10,
+          "sort": [{ "offentliggoerelsesTidspunkt": { "order": "desc" } }]
         }
       },
-      "size": 10,
-      "sort": [
-        {
-          "offentliggoerelsesTidspunkt": {
-            "order": "desc"
-          }
+      // Strategy 2: CVR + dokumenttype (commonly indexed field)
+      {
+        name: 'cvr_dokumenttype',
+        query: {
+          "query": {
+            "bool": {
+              "must": [
+                { "term": { "cvrNummer": parseInt(cvr) } },
+                { "term": { "dokumenttype": "AARSRAPPORT" } },
+                { "range": { "offentliggoerelsesTidspunkt": { "gte": fiveYearsAgo.toISOString() } } }
+              ]
+            }
+          },
+          "size": 10,
+          "sort": [{ "offentliggoerelsesTidspunkt": { "order": "desc" } }]
         }
-      ]
-    };
+      },
+      // Strategy 3: Original tokenized query (fallback)
+      {
+        name: 'tokenized_mime',
+        query: {
+          "query": {
+            "bool": {
+              "must": [
+                { "term": { "cvrNummer": parseInt(cvr) } },
+                { "term": { "dokumenter.dokumentMimeType": "application" } },
+                { "term": { "dokumenter.dokumentMimeType": "xml" } },
+                { "range": { "offentliggoerelsesTidspunkt": { "gte": fiveYearsAgo.toISOString() } } }
+              ]
+            }
+          },
+          "size": 10,
+          "sort": [{ "offentliggoerelsesTidspunkt": { "order": "desc" } }]
+        }
+      }
+    ];
 
-    console.log(`[STEP 1] Searching for financial reports with POST: ${searchUrl}`);
+    // Try each strategy until one succeeds
+    let searchQuery = queryStrategies[0].query;
+    let strategyName = queryStrategies[0].name;
+
+    console.log(`[STEP 1] Searching for financial reports with strategy: ${strategyName}`);
     console.log('[STEP 1] Query:', JSON.stringify(searchQuery));
     console.log('[STEP 1] Request details:', {
       hasAuth: !!auth,
       cvrParsed: parseInt(cvr),
-      queryType: 'tokenized term filters + date range',
-      filters: ['application', 'xml'],
+      strategy: strategyName,
       dateRange: `${fiveYearsAgo.toISOString().split('T')[0]} to ${new Date().toISOString().split('T')[0]}`
     });
 
-    // Add timeout protection for main API request
-    const SEARCH_TIMEOUT_MS = 30000;
+    // Add timeout protection for main API request - increased to 60s
+    const SEARCH_TIMEOUT_MS = 60000;
     const searchController = new AbortController();
     const searchTimeoutId = setTimeout(() => searchController.abort(), SEARCH_TIMEOUT_MS);
 
