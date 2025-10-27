@@ -35,7 +35,7 @@ const SigningRulesAccordion: React.FC<SigningRulesAccordionProps> = ({ cvrData }
   };
 
   const getPersonAddress = (deltager: any) => {
-    if (!deltager) return 'Adresse ikke tilgængelig';
+    if (!deltager) return 'Adressebeskyttelse';
     
     const currentAddress = deltager.adresser?.find((addr: any) => addr.periode?.gyldigTil === null) ||
                           deltager.beliggenhedsadresse?.find((addr: any) => addr.periode?.gyldigTil === null);
@@ -44,7 +44,7 @@ const SigningRulesAccordion: React.FC<SigningRulesAccordionProps> = ({ cvrData }
                 deltager.adresser?.[deltager.adresser.length - 1] ||
                 deltager.beliggenhedsadresse?.[deltager.beliggenhedsadresse.length - 1];
     
-    if (!addr) return 'Adresse ikke tilgængelig';
+    if (!addr) return 'Adressebeskyttelse';
     
     const parts = [];
     if (addr.vejnavn) parts.push(addr.vejnavn);
@@ -55,7 +55,7 @@ const SigningRulesAccordion: React.FC<SigningRulesAccordionProps> = ({ cvrData }
     const streetAddress = parts.join(' ');
     const postalInfo = [addr.postnummer, addr.postdistrikt].filter(Boolean).join(' ');
     
-    return streetAddress && postalInfo ? `${streetAddress}, ${postalInfo}` : 'Adresse ikke tilgængelig';
+    return streetAddress && postalInfo ? `${streetAddress}, ${postalInfo}` : 'Adressebeskyttelse';
   };
 
   const getRoleDisplayName = (hovedtype: string, org?: any, medlem?: any) => {
@@ -133,7 +133,14 @@ const SigningRulesAccordion: React.FC<SigningRulesAccordionProps> = ({ cvrData }
               'REVISOR': 'Revisor',
             };
             
-            const mappedRole = roleMap[specificRole] || specificRole;
+            let mappedRole = roleMap[specificRole] || specificRole;
+            
+            // Add (Suppleant) suffix if applicable
+            const isSuppleant = specificRole?.includes('SUPPLEANT');
+            if (isSuppleant) {
+              mappedRole += ' (Suppleant)';
+            }
+            
             console.log('✓ Final mapped role:', mappedRole);
             return mappedRole;
           } else {
@@ -186,7 +193,14 @@ const SigningRulesAccordion: React.FC<SigningRulesAccordionProps> = ({ cvrData }
               'REVISOR': 'Revisor',
             };
             
-            const mappedRole = roleMap[specificRole] || specificRole;
+            let mappedRole = roleMap[specificRole] || specificRole;
+            
+            // Add (Suppleant) suffix if applicable
+            const isSuppleant = specificRole?.includes('SUPPLEANT');
+            if (isSuppleant) {
+              mappedRole += ' (Suppleant)';
+            }
+            
             console.log('✓ Mapped role from org.attributter:', mappedRole);
             return mappedRole;
           }
@@ -220,7 +234,72 @@ const SigningRulesAccordion: React.FC<SigningRulesAccordionProps> = ({ cvrData }
     return `${from} - ${to}`;
   };
 
+  const sortBoardMembers = (persons: any[]) => {
+    if (!persons || persons.length === 0) return persons;
+    
+    const today = new Date().toISOString().split('T')[0];
+    
+    return [...persons].sort((a, b) => {
+      // Helper function to get role and valgform for a person
+      const getPersonInfo = (relation: any) => {
+        let role = '';
+        let valgform = '';
+        
+        relation.organisationer?.forEach((org: any) => {
+          org.medlemsData?.forEach((medlem: any) => {
+            const funkAttr = medlem.attributter?.find((attr: any) => attr.type === 'FUNKTION');
+            const valgformAttr = medlem.attributter?.find((attr: any) => attr.type === 'VALGFORM');
+            
+            const activeFunk = funkAttr?.vaerdier?.find((v: any) => {
+              const gyldigTil = v.periode?.gyldigTil;
+              return gyldigTil === null || gyldigTil === undefined || gyldigTil >= today;
+            });
+            
+            const activeValgform = valgformAttr?.vaerdier?.find((v: any) => {
+              const gyldigTil = v.periode?.gyldigTil;
+              return gyldigTil === null || gyldigTil === undefined || gyldigTil >= today;
+            });
+            
+            if (activeFunk?.vaerdi) role = activeFunk.vaerdi;
+            if (activeValgform?.vaerdi) valgform = activeValgform.vaerdi.toLowerCase();
+          });
+        });
+        
+        return { role, valgform };
+      };
+      
+      const infoA = getPersonInfo(a);
+      const infoB = getPersonInfo(b);
+      
+      // Priority order: Formand > Næstformand > Generalforsamling > Medarbejdere
+      const getRolePriority = (role: string) => {
+        if (role.includes('FORMAND') && !role.includes('NÆSTFORMAND')) return 1; // Formand/Bestyrelsesformand
+        if (role.includes('NÆSTFORMAND')) return 2; // Næstformand
+        return 3; // Others
+      };
+      
+      const getValgformPriority = (valgform: string) => {
+        if (valgform.includes('generalforsamling')) return 1;
+        if (valgform.includes('medarbejder')) return 2;
+        return 3;
+      };
+      
+      const roleAPriority = getRolePriority(infoA.role);
+      const roleBPriority = getRolePriority(infoB.role);
+      
+      if (roleAPriority !== roleBPriority) {
+        return roleAPriority - roleBPriority;
+      }
+      
+      // If roles are equal, sort by valgform
+      return getValgformPriority(infoA.valgform) - getValgformPriority(infoB.valgform);
+    });
+  };
+
   const renderPersons = (persons: any[], title: string, icon: JSX.Element) => {
+    // Sort board members if this is the board section
+    const sortedPersons = title === 'Bestyrelse' ? sortBoardMembers(persons) : persons;
+    
     return (
       <div className="mb-3 sm:mb-4">
         <h4 className="font-semibold text-xs sm:text-sm md:text-base mb-1.5 sm:mb-2 flex items-center gap-1.5 sm:gap-2">
@@ -228,8 +307,8 @@ const SigningRulesAccordion: React.FC<SigningRulesAccordionProps> = ({ cvrData }
           {title}
         </h4>
         <div className="space-y-1.5 sm:space-y-2">
-          {persons && persons.length > 0 ? (
-            persons.map((relation: any, index: number) => {
+          {sortedPersons && sortedPersons.length > 0 ? (
+            sortedPersons.map((relation: any, index: number) => {
               const personName = getPersonName(relation.deltager);
               const personAddress = getPersonAddress(relation.deltager);
               const enhedsNummer = relation.deltager?.enhedsNummer;

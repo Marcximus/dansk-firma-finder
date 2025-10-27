@@ -20,7 +20,7 @@ const ComprehensiveManagementCard: React.FC<ComprehensiveManagementCardProps> = 
     const currentAddress = deltager?.adresser?.find((addr: any) => addr.periode?.gyldigTil === null);
     const addr = currentAddress || deltager?.adresser?.[deltager.adresser.length - 1];
     
-    if (!addr) return 'Adresse ikke tilgængelig';
+    if (!addr) return 'Adressebeskyttelse';
     
     const parts = [];
     if (addr.vejnavn) parts.push(addr.vejnavn);
@@ -28,7 +28,7 @@ const ComprehensiveManagementCard: React.FC<ComprehensiveManagementCardProps> = 
     const streetAddress = parts.join(' ');
     const postalInfo = [addr.postnummer, addr.postdistrikt].filter(Boolean).join(' ');
     
-    return `${streetAddress}, ${postalInfo}`;
+    return streetAddress && postalInfo ? `${streetAddress}, ${postalInfo}` : 'Adressebeskyttelse';
   };
 
   const getRoleIcon = (hovedtype: string) => {

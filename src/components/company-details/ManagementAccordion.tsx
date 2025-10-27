@@ -69,7 +69,7 @@ const ManagementAccordion: React.FC<ManagementAccordionProps> = ({ cvrData }) =>
   };
 
   const getPersonAddress = (deltager: any) => {
-    if (!deltager) return 'Adresse ikke tilgængelig';
+    if (!deltager) return 'Adressebeskyttelse';
     
     // Check for addresses in the deltager object
     const currentAddress = deltager.adresser?.find((addr: any) => addr.periode?.gyldigTil === null) ||
@@ -79,7 +79,7 @@ const ManagementAccordion: React.FC<ManagementAccordionProps> = ({ cvrData }) =>
                 deltager.adresser?.[deltager.adresser.length - 1] ||
                 deltager.beliggenhedsadresse?.[deltager.beliggenhedsadresse.length - 1];
     
-    if (!addr) return 'Adresse ikke tilgængelig';
+    if (!addr) return 'Adressebeskyttelse';
     
     const parts = [];
     if (addr.vejnavn) parts.push(addr.vejnavn);
@@ -90,7 +90,7 @@ const ManagementAccordion: React.FC<ManagementAccordionProps> = ({ cvrData }) =>
     const streetAddress = parts.join(' ');
     const postalInfo = [addr.postnummer, addr.postdistrikt].filter(Boolean).join(' ');
     
-    return streetAddress && postalInfo ? `${streetAddress}, ${postalInfo}` : 'Adresse ikke tilgængelig';
+    return streetAddress && postalInfo ? `${streetAddress}, ${postalInfo}` : 'Adressebeskyttelse';
   };
 
   const getRoleIcon = (hovedtype: string) => {
