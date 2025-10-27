@@ -165,8 +165,9 @@ const OwnershipAccordion: React.FC<OwnershipAccordionProps> = ({
             </h4>
             <div className="space-y-2 sm:space-y-3">
               {loadingSubsidiaries ? (
-                <div className="text-muted-foreground text-xs sm:text-sm border-l-2 sm:border-l-4 border-gray-200 pl-3 sm:pl-4 py-2">
-                  Søger efter datterselskaber...
+                <div className="text-muted-foreground text-xs sm:text-sm border-l-2 sm:border-l-4 border-gray-200 pl-3 sm:pl-4 py-2 flex items-center gap-2">
+                  <div className="h-3 w-3 animate-spin rounded-full border-2 border-primary border-t-transparent"></div>
+                  <span>Søger efter datterselskaber...</span>
                 </div>
               ) : subsidiaries && subsidiaries.length > 0 ? (
                 subsidiaries.map((subsidiary: any, index: number) => (
@@ -226,8 +227,11 @@ const OwnershipAccordion: React.FC<OwnershipAccordionProps> = ({
                   </div>
                 ))
               ) : (
-                <div className="text-muted-foreground text-xs sm:text-sm border-l-2 sm:border-l-4 border-gray-200 pl-3 sm:pl-4 py-2">
-                  Ingen datterselskaber fundet
+                <div className="text-muted-foreground text-xs sm:text-sm border-l-2 sm:border-l-4 border-gray-200 pl-3 sm:pl-4 py-2 space-y-1">
+                  <p>Ingen datterselskaber fundet</p>
+                  <p className="text-xs text-muted-foreground/70">
+                    Bemærk: Søgningen kan tage lang tid for nogle virksomheder. Hvis ingen datterselskaber vises, kan det skyldes timeout eller at virksomheden ikke har registrerede datterselskaber.
+                  </p>
                 </div>
               )}
             </div>

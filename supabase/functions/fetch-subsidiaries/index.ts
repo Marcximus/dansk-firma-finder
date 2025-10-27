@@ -73,12 +73,20 @@ serve(async (req) => {
         "Vrvirksomhed.virksomhedMetadata.nyesteNavn",
         "Vrvirksomhed.virksomhedMetadata.sammensatStatus",
         "Vrvirksomhed.deltagerRelation"
-      ]
+      ],
+      size: 30  // Reduced from 100 for better performance
     };
 
     console.log('Searching for subsidiaries of CVR:', cvr);
+    const startTime = Date.now();
 
-    const response = await fetch(
+    // Create a timeout promise
+    const timeoutPromise = new Promise((_, reject) => 
+      setTimeout(() => reject(new Error('Request timeout after 30 seconds')), 30000)
+    );
+
+    // Create the fetch promise
+    const fetchPromise = fetch(
       'https://distribution.virk.dk/cvr-permanent/virksomhed/_search',
       {
         method: 'POST',
@@ -90,10 +98,19 @@ serve(async (req) => {
       }
     );
 
+    // Race between timeout and fetch
+    const response = await Promise.race([fetchPromise, timeoutPromise]) as Response;
+    const elapsed = Date.now() - startTime;
+    console.log(`API request completed in ${elapsed}ms`);
+
     if (!response.ok) {
       console.error('API request failed:', response.status, response.statusText);
       return new Response(
-        JSON.stringify({ error: 'Failed to fetch subsidiaries', subsidiaries: [] }),
+        JSON.stringify({ 
+          error: 'Failed to fetch subsidiaries', 
+          subsidiaries: [],
+          timeout: false
+        }),
         { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -159,8 +176,13 @@ serve(async (req) => {
 
   } catch (error) {
     console.error('Error in fetch-subsidiaries function:', error);
+    const isTimeout = error.message?.includes('timeout');
     return new Response(
-      JSON.stringify({ error: error.message, subsidiaries: [] }),
+      JSON.stringify({ 
+        error: error.message, 
+        subsidiaries: [],
+        timeout: isTimeout
+      }),
       { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }
