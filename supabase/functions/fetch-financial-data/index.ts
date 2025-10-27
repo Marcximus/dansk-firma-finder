@@ -183,42 +183,48 @@ serve(async (req) => {
     // Step 1: Search for financial reports using POST with Elasticsearch query
     const searchUrl = 'https://distribution.virk.dk/offentliggoerelser/_search';
     
-    // Build Elasticsearch query - try multiple strategies
-    // Strategy 1: Use wildcard to match application/*xml* patterns
-  const searchQuery = {
-    "query": {
-      "bool": {
-        "must": [
-          {
-            "term": {
-              "cvrNummer": parseInt(cvr)
+    // Build Elasticsearch query using official documentation pattern
+    // The dokumenter.dokumentMimeType field is tokenized, so "application/xml" becomes ["application", "xml"]
+    // This allows us to match both tokens with separate term filters
+    const searchQuery = {
+      "query": {
+        "bool": {
+          "must": [
+            {
+              "term": {
+                "cvrNummer": parseInt(cvr)
+              }
+            },
+            {
+              "term": {
+                "dokumenter.dokumentMimeType": "application"
+              }
+            },
+            {
+              "term": {
+                "dokumenter.dokumentMimeType": "xml"
+              }
             }
-          },
-          {
-            "wildcard": {
-              "dokumenter.dokumentMimeType": "*xml*"
-            }
-          }
-        ]
-      }
-    },
-    "size": 10,
-    "sort": [
-      {
-        "offentliggoerelsesTidspunkt": {
-          "order": "desc"
+          ]
         }
-      }
-    ]
-  };
+      },
+      "size": 10,
+      "sort": [
+        {
+          "offentliggoerelsesTidspunkt": {
+            "order": "desc"
+          }
+        }
+      ]
+    };
 
     console.log(`[STEP 1] Searching for financial reports with POST: ${searchUrl}`);
     console.log('[STEP 1] Query:', JSON.stringify(searchQuery));
     console.log('[STEP 1] Request details:', {
       hasAuth: !!auth,
       cvrParsed: parseInt(cvr),
-      queryType: 'wildcard match',
-      pattern: '*xml*'
+      queryType: 'tokenized term filters (official pattern)',
+      filters: ['application', 'xml']
     });
 
     // Add timeout protection for main API request
