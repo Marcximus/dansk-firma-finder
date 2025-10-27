@@ -183,8 +183,8 @@ serve(async (req) => {
     // Step 1: Search for financial reports using POST with Elasticsearch query
     const searchUrl = 'https://distribution.virk.dk/offentliggoerelser/_search';
     
-    // Build Elasticsearch query according to Danish Business Authority documentation
-    // Using exact structure: two separate term filters for MIME type
+    // Build Elasticsearch query with correct MIME type format
+    // MIME type for XBRL is "application/xml" as a single value
   const searchQuery = {
     "query": {
       "bool": {
@@ -196,12 +196,7 @@ serve(async (req) => {
           },
           {
             "term": {
-              "dokumenter.dokumentMimeType": "application"
-            }
-          },
-          {
-            "term": {
-              "dokumenter.dokumentMimeType": "xml"
+              "dokumenter.dokumentMimeType": "application/xml"
             }
           }
         ]
@@ -222,11 +217,12 @@ serve(async (req) => {
     console.log('[STEP 1] Request details:', {
       hasAuth: !!auth,
       cvrParsed: parseInt(cvr),
-      queryType: 'two term filters: application AND xml'
+      queryType: 'single term filter',
+      mimeType: 'application/xml'
     });
 
-    // Add timeout protection for main API request (15 seconds for faster failure)
-    const SEARCH_TIMEOUT_MS = 15000;
+    // Add timeout protection for main API request
+    const SEARCH_TIMEOUT_MS = 30000;
     const searchController = new AbortController();
     const searchTimeoutId = setTimeout(() => searchController.abort(), SEARCH_TIMEOUT_MS);
 
