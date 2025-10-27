@@ -147,19 +147,21 @@ const PersonDetails: React.FC<PersonDetailsProps> = ({ personData }) => {
         {/* Status Indicator */}
         <div className="grid grid-cols-[140px_1fr] gap-2">
           <span className="text-muted-foreground">Status</span>
-          <div className={`
-            inline-flex items-center gap-2 px-2.5 py-0.5 rounded-full font-medium text-xs
-            bg-white dark:bg-gray-900
-            ${item.isActive 
-              ? 'text-green-600 dark:text-green-400 border border-green-500/40' 
-              : 'text-red-600 dark:text-red-400 border border-red-500/40'
-            }
-          `}>
-            <span className={`
-              h-1.5 w-1.5 rounded-full animate-pulse
-              ${item.isActive ? 'bg-green-500 shadow-md shadow-green-500/50' : 'bg-red-500 shadow-md shadow-red-500/50'}
-            `} />
-            <span>{item.isActive ? 'Aktiv Relation' : 'Ophørt Relation'}</span>
+          <div className="w-fit">
+            <div className={`
+              inline-flex items-center gap-2 px-2.5 py-0.5 rounded-full font-medium text-xs
+              bg-white dark:bg-gray-900
+              ${item.isActive 
+                ? 'text-green-600 dark:text-green-400 border border-green-500/40' 
+                : 'text-red-600 dark:text-red-400 border border-red-500/40'
+              }
+            `}>
+              <span className={`
+                h-1.5 w-1.5 rounded-full animate-pulse
+                ${item.isActive ? 'bg-green-500 shadow-md shadow-green-500/50' : 'bg-red-500 shadow-md shadow-red-500/50'}
+              `} />
+              <span>{item.isActive ? 'Aktiv Relation' : 'Ophørt Relation'}</span>
+            </div>
           </div>
         </div>
 
