@@ -58,102 +58,72 @@ const SigningRulesAccordion: React.FC<SigningRulesAccordionProps> = ({ cvrData }
     return streetAddress && postalInfo ? `${streetAddress}, ${postalInfo}` : 'Adressebeskyttelse';
   };
 
-  const getRoleDisplayName = (hovedtype: string, org?: any, medlem?: any) => {
-    console.log('=== getRoleDisplayName DEBUG ===');
-    console.log('hovedtype:', hovedtype);
-    
-    // CRITICAL: Check if medlem.attributter exists and log its full structure
-    if (medlem?.attributter) {
-      console.log('✓ medlem.attributter EXISTS');
-      console.log('Number of attributes:', medlem.attributter.length);
-      console.log('All medlem.attributter:', JSON.stringify(medlem.attributter, null, 2));
-      
-      // List all attribute types
-      const attributeTypes = medlem.attributter.map((attr: any) => attr.type);
-      console.log('Available attribute types:', attributeTypes);
-    } else {
-      console.log('✗ medlem.attributter is MISSING or NULL');
-      console.log('Full medlem object:', JSON.stringify(medlem, null, 2));
-    }
+  const getRoleDisplayName = (hovedtype: string, org?: any, medlem?: any, relation?: any) => {
+    const today = new Date().toISOString().split('T')[0];
     
     // Try to get FUNKTION from medlem.attributter first
     let funkAttribute = medlem?.attributter?.find((attr: any) => attr.type === 'FUNKTION');
     
-    if (funkAttribute) {
-      console.log('✓ Found FUNKTION attribute in medlem.attributter');
-      console.log('FUNKTION attribute structure:', JSON.stringify(funkAttribute, null, 2));
+    if (funkAttribute?.vaerdier && Array.isArray(funkAttribute.vaerdier)) {
+      // Find the ACTIVE role (where gyldigTil === null OR future date)
+      let activeRole = funkAttribute.vaerdier.find((v: any) => {
+        const gyldigTil = v.periode?.gyldigTil;
+        return gyldigTil === null || gyldigTil === undefined || gyldigTil >= today;
+      });
       
-      if (funkAttribute.vaerdier && Array.isArray(funkAttribute.vaerdier)) {
-        console.log(`✓ Found ${funkAttribute.vaerdier.length} vaerdier in FUNKTION`);
-        
-        // Log ALL vaerdier to see the complete picture
-        funkAttribute.vaerdier.forEach((v: any, idx: number) => {
-          console.log(`Vaerdi [${idx}]:`, {
-            vaerdi: v.vaerdi,
-            gyldigFra: v.periode?.gyldigFra,
-            gyldigTil: v.periode?.gyldigTil,
-            isActive: v.periode?.gyldigTil === null || v.periode?.gyldigTil === undefined
-          });
-        });
-        
-        // Find the ACTIVE role (where gyldigTil === null OR future date)
-        const today = new Date().toISOString().split('T')[0];
-        let activeRole = funkAttribute.vaerdier.find((v: any) => {
-          const gyldigTil = v.periode?.gyldigTil;
-          return gyldigTil === null || gyldigTil === undefined || gyldigTil >= today;
-        });
-        
-        // If no active role found and this is a board member, use the most recent role
-        const orgName = org?.organisationsNavn?.[0]?.navn;
-        if (!activeRole && orgName === 'Bestyrelse' && funkAttribute.vaerdier.length > 0) {
-          console.log('No active role found for board member, using most recent FUNKTION');
-          // Find the role with the latest gyldigFra date
-          activeRole = funkAttribute.vaerdier.reduce((latest: any, current: any) => {
-            if (!latest) return current;
-            const latestDate = latest.periode?.gyldigFra || '';
-            const currentDate = current.periode?.gyldigFra || '';
-            return currentDate > latestDate ? current : latest;
-          }, null);
-        }
-        
-        if (activeRole) {
-          console.log('✓ Found ACTIVE role:', JSON.stringify(activeRole, null, 2));
-          
-          if (activeRole.vaerdi) {
-            const specificRole = activeRole.vaerdi;
-            console.log('✓ Extracted specificRole (vaerdi):', specificRole);
-            
-            // Format specific roles for better display
-            const roleMap: Record<string, string> = {
-              'BESTYRELSESFORMAND': 'Bestyrelsesformand',
-              'FORMAND': 'Formand',
-              'BESTYRELSESMEDLEM': 'Bestyrelsesmedlem',
-              'BESTYRELSESMEDLEM.NÆSTFORMAND': 'Næstformand',
-              'DIREKTØR': 'Direktør',
-              'REVISOR': 'Revisor',
-            };
-            
-            let mappedRole = roleMap[specificRole] || specificRole;
-            
-            // Add (Suppleant) suffix if applicable
-            const isSuppleant = specificRole?.includes('SUPPLEANT');
-            if (isSuppleant) {
-              mappedRole += ' (Suppleant)';
-            }
-            
-            console.log('✓ Final mapped role:', mappedRole);
-            return mappedRole;
-          } else {
-            console.log('✗ Active role found but vaerdi is missing');
-          }
-        } else {
-          console.log('✗ No active role found (all roles have gyldigTil set)');
-        }
-      } else {
-        console.log('✗ FUNKTION attribute has no vaerdier array');
+      // If no active role found and this is a board member, use the most recent role
+      const orgName = org?.organisationsNavn?.[0]?.navn;
+      if (!activeRole && orgName === 'Bestyrelse' && funkAttribute.vaerdier.length > 0) {
+        activeRole = funkAttribute.vaerdier.reduce((latest: any, current: any) => {
+          if (!latest) return current;
+          const latestDate = latest.periode?.gyldigFra || '';
+          const currentDate = current.periode?.gyldigFra || '';
+          return currentDate > latestDate ? current : latest;
+        }, null);
       }
-    } else {
-      console.log('✗ No FUNKTION attribute found in medlem.attributter');
+      
+      if (activeRole?.vaerdi) {
+        const specificRole = activeRole.vaerdi;
+        
+        // Format specific roles for better display
+        const roleMap: Record<string, string> = {
+          'BESTYRELSESFORMAND': 'Bestyrelsesformand',
+          'FORMAND': 'Formand',
+          'BESTYRELSESMEDLEM': 'Bestyrelsesmedlem',
+          'NÆSTFORMAND': 'Næstformand',
+          'BESTYRELSESMEDLEM.NÆSTFORMAND': 'Næstformand',
+          'DIREKTØR': 'Direktør',
+          'REVISOR': 'Revisor',
+          'SUPPLEANT': 'Suppleant',
+        };
+        
+        let mappedRole = roleMap[specificRole] || specificRole;
+        
+        // Check for Suppleant status
+        let isSuppleant = specificRole === 'SUPPLEANT';
+        
+        // Also check in relation._medlemsData (enriched from backend)
+        if (!isSuppleant && relation?._medlemsData?.attributter) {
+          const medlemsDataFunktion = relation._medlemsData.attributter.find(
+            (attr: any) => attr.type === 'FUNKTION'
+          );
+          
+          if (medlemsDataFunktion?.vaerdier) {
+            isSuppleant = medlemsDataFunktion.vaerdier.some((v: any) => {
+              const gyldigTil = v.periode?.gyldigTil;
+              const isActive = gyldigTil === null || gyldigTil === undefined || gyldigTil >= today;
+              return isActive && v.vaerdi === 'SUPPLEANT';
+            });
+          }
+        }
+        
+        // Add (Suppleant) suffix if this is a board member who is a Suppleant
+        if (isSuppleant && mappedRole !== 'Suppleant') {
+          mappedRole += ' (Suppleant)';
+        }
+        
+        return mappedRole;
+      }
     }
     
     // If not found in medlem, try org.attributter
@@ -337,20 +307,11 @@ const SigningRulesAccordion: React.FC<SigningRulesAccordionProps> = ({ cvrData }
                     // Only show active memberships (already filtered by signingRulesUtils)
                     const activeMemberships = org.medlemsData || [];
                     
-                    console.log(`=== ${title} - Organization ${orgIndex} ===`);
-                    console.log('org.hovedtype:', org.hovedtype);
-                    console.log('org.attributter:', org.attributter);
-                    console.log('Number of active memberships:', activeMemberships.length);
-                    
                     return activeMemberships.map((medlem: any, medlemIndex: number) => {
-                      console.log(`--- Medlem ${medlemIndex} ---`);
-                      console.log('COMPLETE medlem object:', JSON.stringify(medlem, null, 2));
-                      console.log('medlem.attributter:', medlem.attributter);
-                      
                       return (
                         <div key={`${orgIndex}-${medlemIndex}`} className="text-[10px] sm:text-xs md:text-sm">
                           <div className="font-medium">
-                            {getRoleDisplayName(org.hovedtype, org, medlem)}
+                            {getRoleDisplayName(org.hovedtype, org, medlem, relation)}
                           </div>
                           <div className="text-[9px] sm:text-[10px] md:text-xs text-muted-foreground mt-0.5 sm:mt-1">
                             {(() => {
@@ -368,12 +329,29 @@ const SigningRulesAccordion: React.FC<SigningRulesAccordionProps> = ({ cvrData }
                                 return gyldigTil === null || gyldigTil === undefined || gyldigTil >= today;
                               });
                               
-                              // Check if person is a Suppleant
-                              const isSuppleant = funkAttr?.vaerdier?.some((v: any) => {
-                                const gyldigTil = v.periode?.gyldigTil;
-                                const isActive = gyldigTil === null || gyldigTil === undefined || gyldigTil >= today;
-                                return isActive && v.vaerdi?.includes('SUPPLEANT');
-                              });
+                              // Check if person is a Suppleant - check relation._medlemsData first (enriched backend data)
+                              let isSuppleant = false;
+                              if (relation._medlemsData?.attributter) {
+                                const medlemsDataFunktion = relation._medlemsData.attributter.find(
+                                  (attr: any) => attr.type === 'FUNKTION'
+                                );
+                                if (medlemsDataFunktion?.vaerdier) {
+                                  isSuppleant = medlemsDataFunktion.vaerdier.some((v: any) => {
+                                    const gyldigTil = v.periode?.gyldigTil;
+                                    const isActive = gyldigTil === null || gyldigTil === undefined || gyldigTil >= today;
+                                    return isActive && v.vaerdi === 'SUPPLEANT';
+                                  });
+                                }
+                              }
+                              
+                              // Fallback: check medlem.attributter for direct SUPPLEANT role
+                              if (!isSuppleant) {
+                                isSuppleant = funkAttr?.vaerdier?.some((v: any) => {
+                                  const gyldigTil = v.periode?.gyldigTil;
+                                  const isActive = gyldigTil === null || gyldigTil === undefined || gyldigTil >= today;
+                                  return isActive && v.vaerdi === 'SUPPLEANT';
+                                });
+                              }
                               
                               return (
                                 <>

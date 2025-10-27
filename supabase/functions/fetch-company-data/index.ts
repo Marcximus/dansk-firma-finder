@@ -10,7 +10,7 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
-// Fetch detailed participant data from deltager endpoint
+// Fetch detailed participant data from deltager endpoint and enrich with medlemsData
 async function enrichWithParticipantData(companyData: any, auth: string) {
   if (!companyData.hits?.hits?.[0]?._source?.Vrvirksomhed?.deltagerRelation) {
     console.log('[INFO] No deltagerRelation found, skipping participant enrichment');
@@ -18,7 +18,9 @@ async function enrichWithParticipantData(companyData: any, auth: string) {
   }
 
   const deltagerRelation = companyData.hits.hits[0]._source.Vrvirksomhed.deltagerRelation;
-  console.log(`[INFO] Enriching ${deltagerRelation.length} participants with detailed data IN PARALLEL`);
+  const companyData_cvrNummer = companyData.hits.hits[0]._source.Vrvirksomhed?.cvrNummer;
+  
+  console.log(`[INFO] Enriching ${deltagerRelation.length} participants with detailed data and medlemsData IN PARALLEL`);
 
   // Enrich all participants in parallel using Promise.all
   const enrichmentPromises = deltagerRelation.map(async (relation) => {
@@ -59,11 +61,38 @@ async function enrichWithParticipantData(companyData: any, auth: string) {
 
       if (deltagerResponse.ok) {
         const deltagerData = await deltagerResponse.json();
-        if (deltagerData.hits?.hits?.[0]?._source?.Vrdeltagerperson) {
+        const vrdeltagerperson = deltagerData.hits?.hits?.[0]?._source?.Vrdeltagerperson;
+        
+        if (vrdeltagerperson) {
           console.log(`[SUCCESS] Enriched participant ${enhedsNummer}`);
+          
+          // Extract medlemsData for this specific company from virksomhedSummariskRelation
+          let medlemsDataForCompany = null;
+          
+          if (vrdeltagerperson.virksomhedSummariskRelation && companyData_cvrNummer) {
+            const companyRelation = vrdeltagerperson.virksomhedSummariskRelation.find(
+              (rel: any) => rel.virksomhed?.cvrNummer === companyData_cvrNummer
+            );
+            
+            if (companyRelation?.organisationer) {
+              // Find the organization that matches the relation's hovedtype
+              const matchingOrg = companyRelation.organisationer.find((org: any) => {
+                return relation.organisationer?.some((relOrg: any) => 
+                  relOrg.hovedtype === org.hovedtype
+                );
+              });
+              
+              if (matchingOrg?.medlemsData) {
+                medlemsDataForCompany = matchingOrg.medlemsData[0]; // Take first medlemsData
+                console.log(`[INFO] Found medlemsData for participant ${enhedsNummer} in company ${companyData_cvrNummer}`);
+              }
+            }
+          }
+          
           return {
             ...relation,
-            _enrichedDeltagerData: deltagerData.hits.hits[0]._source.Vrdeltagerperson
+            _enrichedDeltagerData: vrdeltagerperson,
+            _medlemsData: medlemsDataForCompany // Add medlemsData to relation
           };
         } else {
           return relation;
@@ -89,7 +118,8 @@ async function enrichWithParticipantData(companyData: any, auth: string) {
     sample: enrichedParticipants[0] ? {
       hasEnhedsNummer: !!enrichedParticipants[0].deltager?.enhedsNummer,
       enhedstype: enrichedParticipants[0].deltager?.enhedstype,
-      hasEnrichedData: !!enrichedParticipants[0]._enrichedDeltagerData
+      hasEnrichedData: !!enrichedParticipants[0]._enrichedDeltagerData,
+      hasMlemsData: !!enrichedParticipants[0]._medlemsData
     } : null
   });
   
