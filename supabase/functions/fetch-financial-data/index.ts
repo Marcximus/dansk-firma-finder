@@ -183,8 +183,8 @@ serve(async (req) => {
     // Step 1: Search for financial reports using POST with Elasticsearch query
     const searchUrl = 'https://distribution.virk.dk/offentliggoerelser/_search';
     
-    // Build Elasticsearch query with correct MIME type format
-    // MIME type for XBRL is "application/xml" as a single value
+    // Build Elasticsearch query - try multiple strategies
+    // Strategy 1: Use wildcard to match application/*xml* patterns
   const searchQuery = {
     "query": {
       "bool": {
@@ -195,8 +195,8 @@ serve(async (req) => {
             }
           },
           {
-            "term": {
-              "dokumenter.dokumentMimeType": "application/xml"
+            "wildcard": {
+              "dokumenter.dokumentMimeType": "*xml*"
             }
           }
         ]
@@ -217,8 +217,8 @@ serve(async (req) => {
     console.log('[STEP 1] Request details:', {
       hasAuth: !!auth,
       cvrParsed: parseInt(cvr),
-      queryType: 'single term filter',
-      mimeType: 'application/xml'
+      queryType: 'wildcard match',
+      pattern: '*xml*'
     });
 
     // Add timeout protection for main API request
