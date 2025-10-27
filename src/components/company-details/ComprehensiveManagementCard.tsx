@@ -184,7 +184,7 @@ const ComprehensiveManagementCard: React.FC<ComprehensiveManagementCardProps> = 
                               )}
                               {medlem.attributter && medlem.attributter.map((attr: any, attrIndex: number) => (
                                 <div key={attrIndex} className="mt-1">
-                                  {attr.type !== 'FUNKTION' && attr.type !== 'VALGFORM' && attr.vaerdier && (
+                                  {attr.type !== 'FUNKTION' && attr.type !== 'VALGFORM' && attr.vaerdier && !attr.vaerdier.some((v: any) => v.vaerdi?.includes('SUPPLEANT')) && (
                                     <div>
                                       <strong>{attr.type}:</strong> {attr.vaerdier.map((v: any) => v.vaerdi).join(', ')}
                                     </div>
