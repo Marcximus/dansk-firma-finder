@@ -344,6 +344,7 @@ const SigningRulesAccordion: React.FC<SigningRulesAccordionProps> = ({ cvrData }
                     
                     return activeMemberships.map((medlem: any, medlemIndex: number) => {
                       console.log(`--- Medlem ${medlemIndex} ---`);
+                      console.log('COMPLETE medlem object:', JSON.stringify(medlem, null, 2));
                       console.log('medlem.attributter:', medlem.attributter);
                       
                       return (
