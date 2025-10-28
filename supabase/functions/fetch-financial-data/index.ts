@@ -124,123 +124,107 @@ const parseXBRL = (xmlContent: string, period: string) => {
   try {
     console.log(`[XBRL Parser] Processing ${xmlContent.length} bytes for period ${period}`);
     
-      // Helper to extract numeric value from XBRL tags
-      // Matches: <anyprefix:TagName contextRef="..." unitRef="..." decimals="...">VALUE</anyprefix:TagName>
+      /**
+       * Parse a string value to number, handling spaces, commas, and negatives
+       */
+      const parseNumericValue = (valueStr: string): number | null => {
+        if (!valueStr) return null;
+        
+        // Remove all whitespace and commas
+        const cleaned = valueStr.trim().replace(/[\s,]/g, '');
+        
+        // Parse to number
+        const num = parseFloat(cleaned);
+        
+        if (isNaN(num)) {
+          console.log(`⚠️ [PARSE] Failed to parse: "${valueStr}" -> "${cleaned}"`);
+          return null;
+        }
+        
+        return num;
+      };
+
+      /**
+       * Extract a numeric value from XBRL content by trying multiple tag patterns
+       * Improved version that handles 2023/2024 IFRS-FULL format
+       */
       const extractValue = (tagNames: string[]): number | null => {
         for (const tagName of tagNames) {
-          // Pattern 1: Custom NOV: namespace (Novo Holdings 2023/2024)
+          // Pattern 1: NOV: custom namespace (Novo Holdings 2023/2024)
           const novPattern = new RegExp(
-            `<NOV:${tagName}[^>]*>\\s*([\\d.,-]+)\\s*</NOV:${tagName}>`,
+            `<NOV:${tagName}(?:\\s+[^>]*)?\\s*>\\s*([-\\d.,\\s]+?)\\s*</NOV:${tagName}>`,
             'gi'
           );
-          
-          // Pattern 2: iXBRL inline format with name attribute (ESEF 2023/2024)
-          // <ix:nonFraction name="ifrs-full:Revenue" contextRef="..." unitRef="..." decimals="..." format="ixt:numdotdecimal">1.500.000</ix:nonFraction>
-          const ixbrlInlinePattern = new RegExp(
-            `<ix:nonFraction[^>]+name="[^"]*:${tagName}"[^>]*>([\\d.,-\\s]+)</ix:nonFraction>`,
-            'gi'
-          );
-          
-          // Pattern 3: iXBRL nested format
-          const ixbrlNestedPattern = new RegExp(
-            `name="[^"]*:${tagName}"[^>]*>[\\s\\S]*?>([\\d.,-\\s]+)</ix:nonFraction>`,
-            'gi'
-          );
-          
-          // Pattern 4: ESEF format with ifrs-full namespace
-          const esefPattern = new RegExp(
-            `<ifrs-full:${tagName}[^>]*>\\s*([\\d.,-]+)\\s*</ifrs-full:${tagName}>`,
-            'gi'
-          );
-          
-          // Pattern 5: Standard XBRL format: <fsa:Revenue>1500000000</fsa:Revenue>
-          const standardPattern = new RegExp(
-            `<[^:]+:${tagName}[^>]*>\\s*([\\d.-]+)\\s*</[^:]+:${tagName}>`,
-            'gi'
-          );
-          
-          // Pattern 6: No namespace
-          const noNamespacePattern = new RegExp(
-            `<${tagName}[^>]*>\\s*([\\d.,-]+)\\s*</${tagName}>`,
-            'gi'
-          );
-          
-          // Try all patterns (NOV first for Novo Holdings, then iXBRL as it's most common in 2023/2024)
-          for (const pattern of [novPattern, ixbrlInlinePattern, ixbrlNestedPattern, esefPattern, standardPattern, noNamespacePattern]) {
-          const matches = Array.from(xmlContent.matchAll(pattern));
-          
+          let matches = Array.from(xmlContent.matchAll(novPattern));
           if (matches.length > 0) {
-            for (const match of matches) {
-              let rawValue = match[1].trim();
-              
-              // Check for transformation format attribute
-              const formatMatch = xmlContent.match(new RegExp(
-                `name="[^"]*:${tagName}"[^>]+format="([^"]+)"`,
-                'i'
-              ));
-              
-              let cleanValue = rawValue;
-              
-              if (formatMatch && formatMatch[1]) {
-                const format = formatMatch[1];
-                
-                if (format.includes('numdotdecimal')) {
-                  // European: 1.500.000,00 → remove dots, replace comma with dot
-                  cleanValue = rawValue.replace(/\./g, '').replace(',', '.');
-                } else if (format.includes('numcommadecimal')) {
-                  // US: 1,500,000.00 → remove commas
-                  cleanValue = rawValue.replace(/,/g, '');
-                } else if (format.includes('zerodash') && rawValue === '-') {
-                  cleanValue = '0';
-                }
-              } else {
-                // Auto-detect format based on content
-                if (rawValue.includes('.') && rawValue.includes(',')) {
-                  const lastDot = rawValue.lastIndexOf('.');
-                  const lastComma = rawValue.lastIndexOf(',');
-                  if (lastComma > lastDot) {
-                    // Format: 1.500.000,00
-                    cleanValue = rawValue.replace(/\./g, '').replace(',', '.');
-                  } else {
-                    // Format: 1,500,000.00
-                    cleanValue = rawValue.replace(/,/g, '');
-                  }
-                } else if (rawValue.includes('.')) {
-                  // Assume European thousand separator unless it's clearly decimal
-                  const parts = rawValue.split('.');
-                  if (parts[parts.length - 1].length === 2 && parts.length === 2) {
-                    // Likely decimal: 1500.00
-                    cleanValue = rawValue;
-                  } else {
-                    // Thousand separator: 1.500.000
-                    cleanValue = rawValue.replace(/\./g, '');
-                  }
-                } else if (rawValue.includes(',')) {
-                  const parts = rawValue.split(',');
-                  if (parts[parts.length - 1].length === 2) {
-                    // Decimal: 1500,00
-                    cleanValue = rawValue.replace(',', '.');
-                  } else {
-                    // Thousand separator: 1,500,000
-                    cleanValue = rawValue.replace(/,/g, '');
-                  }
-                }
-              }
-              
-              // Remove any remaining spaces
-              cleanValue = cleanValue.replace(/\s/g, '');
-              
-              const value = parseFloat(cleanValue);
-              if (!isNaN(value) && value !== 0) {
-                console.log(`✅ Found ${tagName}: ${value} (raw: "${rawValue}")`);
-                return value;
-              }
-            }
+            console.log(`✅ [MATCH] Found ${tagName} using NOV: namespace`);
+            const value = parseNumericValue(matches[0][1]);
+            if (value !== null) return value;
+          }
+
+          // Pattern 2: IFRS-FULL namespace (CRITICAL for 2023/2024)
+          const ifrsPattern = new RegExp(
+            `<ifrs-full:${tagName}(?:\\s+[^>]*)?\\s*>\\s*([-\\d.,\\s]+?)\\s*</ifrs-full:${tagName}>`,
+            'gi'
+          );
+          matches = Array.from(xmlContent.matchAll(ifrsPattern));
+          if (matches.length > 0) {
+            console.log(`✅ [MATCH] Found ${tagName} using ifrs-full: namespace`);
+            const value = parseNumericValue(matches[0][1]);
+            if (value !== null) return value;
+          }
+
+          // Pattern 3: iXBRL inline format
+          const ixbrlPattern = new RegExp(
+            `<ix:nonFraction[^>]+name="[^"]*:${tagName}"[^>]*>\\s*([-\\d.,\\s]+?)\\s*</ix:nonFraction>`,
+            'gi'
+          );
+          matches = Array.from(xmlContent.matchAll(ixbrlPattern));
+          if (matches.length > 0) {
+            console.log(`✅ [MATCH] Found ${tagName} using iXBRL inline`);
+            const value = parseNumericValue(matches[0][1]);
+            if (value !== null) return value;
+          }
+
+          // Pattern 4: FSA namespace (2018-2022 reports)
+          const fsaPattern = new RegExp(
+            `<fsa:${tagName}(?:\\s+[^>]*)?\\s*>\\s*([-\\d.,\\s]+?)\\s*</fsa:${tagName}>`,
+            'gi'
+          );
+          matches = Array.from(xmlContent.matchAll(fsaPattern));
+          if (matches.length > 0) {
+            console.log(`✅ [MATCH] Found ${tagName} using fsa: namespace`);
+            const value = parseNumericValue(matches[0][1]);
+            if (value !== null) return value;
+          }
+
+          // Pattern 5: Any namespace (wildcard fallback)
+          const anyNsPattern = new RegExp(
+            `<[^:]+:${tagName}(?:\\s+[^>]*)?\\s*>\\s*([-\\d.,\\s]+?)\\s*</[^:]+:${tagName}>`,
+            'gi'
+          );
+          matches = Array.from(xmlContent.matchAll(anyNsPattern));
+          if (matches.length > 0) {
+            console.log(`✅ [MATCH] Found ${tagName} using wildcard namespace`);
+            const value = parseNumericValue(matches[0][1]);
+            if (value !== null) return value;
+          }
+
+          // Pattern 6: No namespace
+          const noNsPattern = new RegExp(
+            `<${tagName}(?:\\s+[^>]*)?\\s*>\\s*([-\\d.,\\s]+?)\\s*</${tagName}>`,
+            'gi'
+          );
+          matches = Array.from(xmlContent.matchAll(noNsPattern));
+          if (matches.length > 0) {
+            console.log(`✅ [MATCH] Found ${tagName} without namespace`);
+            const value = parseNumericValue(matches[0][1]);
+            if (value !== null) return value;
           }
         }
-      }
-      return null;
-    };
+
+        return null;
+      };
 
     // Extract all financial metrics
     const financialData = {
