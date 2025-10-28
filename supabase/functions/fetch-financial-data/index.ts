@@ -183,18 +183,18 @@ const parseXBRL = (xmlContent: string, period: string) => {
           );
           let matches = Array.from(xmlContent.matchAll(novPattern));
           
-          // Filter by context if preferred contexts are provided
-          if (preferredContexts && preferredContexts.length > 0) {
-            matches = matches.filter(match => {
-              const fullTag = match[0];
-              const contextMatch = fullTag.match(/contextRef="([^"]+)"/);
-              if (contextMatch) {
-                const contextId = contextMatch[1];
-                return preferredContexts.includes(contextId);
-              }
-              return false; // Exclude matches without contextRef
-            });
-          }
+        // Filter by context if preferred contexts are provided
+        if (preferredContexts && preferredContexts.length > 0) {
+          matches = matches.filter(match => {
+            const fullTag = match[0];
+            const contextMatch = fullTag.match(/contextRef="([^"]+)"/);
+            if (contextMatch) {
+              const contextId = contextMatch[1];
+              return preferredContexts.includes(contextId);
+            }
+            return true; // Include matches without contextRef (old FSA format)
+          });
+        }
           
           if (matches.length > 0) {
             const contextInfo = matches[0][0].match(/contextRef="([^"]+)"/)?.[1] || 'unknown';
@@ -210,25 +210,25 @@ const parseXBRL = (xmlContent: string, period: string) => {
           );
           matches = Array.from(xmlContent.matchAll(ifrsPattern));
           
-          // Filter by context if preferred contexts are provided
-          if (preferredContexts && preferredContexts.length > 0) {
-            matches = matches.filter(match => {
-              const fullTag = match[0];
-              const contextMatch = fullTag.match(/contextRef="([^"]+)"/);
-              if (contextMatch) {
-                const contextId = contextMatch[1];
-                return preferredContexts.includes(contextId);
-              }
-              return false; // Exclude matches without contextRef
-            });
-          }
-          
-          if (matches.length > 0) {
-            const contextInfo = matches[0][0].match(/contextRef="([^"]+)"/)?.[1] || 'unknown';
-            console.log(`✅ [MATCH] Found ${tagName} using ifrs-full: namespace (context: ${contextInfo})`);
-            const value = parseNumericValue(matches[0][1]);
-            if (value !== null) return value;
-          }
+        // Filter by context if preferred contexts are provided
+        if (preferredContexts && preferredContexts.length > 0) {
+          matches = matches.filter(match => {
+            const fullTag = match[0];
+            const contextMatch = fullTag.match(/contextRef="([^"]+)"/);
+            if (contextMatch) {
+              const contextId = contextMatch[1];
+              return preferredContexts.includes(contextId);
+            }
+            return true; // Include matches without contextRef (old FSA format)
+          });
+        }
+
+        if (matches.length > 0) {
+          const contextInfo = matches[0][0].match(/contextRef="([^"]+)"/)?.[1] || 'unknown';
+          console.log(`✅ [MATCH] Found ${tagName} using ifrs-full: namespace (context: ${contextInfo})`);
+          const value = parseNumericValue(matches[0][1]);
+          if (value !== null) return value;
+        }
 
           // Pattern 3: iXBRL inline format
           const ixbrlPattern = new RegExp(
@@ -246,7 +246,7 @@ const parseXBRL = (xmlContent: string, period: string) => {
                 const contextId = contextMatch[1];
                 return preferredContexts.includes(contextId);
               }
-              return false; // Exclude matches without contextRef
+              return true; // Include matches without contextRef (old FSA format)
             });
           }
           
@@ -273,7 +273,7 @@ const parseXBRL = (xmlContent: string, period: string) => {
                 const contextId = contextMatch[1];
                 return preferredContexts.includes(contextId);
               }
-              return false; // Exclude matches without contextRef
+              return true; // Include matches without contextRef (old FSA format)
             });
           }
           
@@ -300,7 +300,7 @@ const parseXBRL = (xmlContent: string, period: string) => {
                 const contextId = contextMatch[1];
                 return preferredContexts.includes(contextId);
               }
-              return false; // Exclude matches without contextRef
+              return true; // Include matches without contextRef (old FSA format)
             });
           }
           
@@ -327,7 +327,7 @@ const parseXBRL = (xmlContent: string, period: string) => {
                 const contextId = contextMatch[1];
                 return preferredContexts.includes(contextId);
               }
-              return false; // Exclude matches without contextRef
+              return true; // Include matches without contextRef (old FSA format)
             });
           }
           
