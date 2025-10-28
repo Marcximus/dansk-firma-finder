@@ -521,9 +521,26 @@ serve(async (req) => {
     
     console.log(`[STEP 3] Sorted reports by date. Most recent: ${allHits[0]?._source.offentliggoerelsesTidspunkt}`);
     
+    // Initialize year tracking
+    const yearsSeen = new Set<number>();
+    const yearsProcessed = new Set<number>();
+    
+    console.log('\n[YEAR DISCOVERY] Analyzing all fetched reports:');
+    allHits.forEach((hit: any, idx: number) => {
+      const source = hit._source;
+      const pubDate = source.offentliggoerelsesTidspunkt || source.indlaesningsTidspunkt;
+      const year = pubDate ? new Date(pubDate).getFullYear() : null;
+      if (year) yearsSeen.add(year);
+      
+      if (idx < 10) { // Log first 10 for brevity
+        console.log(`  [${idx}] Published: ${pubDate?.slice(0,10) || 'N/A'} (Year: ${year || 'Unknown'})`);
+      }
+    });
+    console.log(`[YEAR DISCOVERY] Years found in API response: ${Array.from(yearsSeen).sort().reverse().join(', ')}`);
+    
     // Process up to 15 reports to ensure we get 5 yearly ones (accounting for quarterly/half-year reports)
     const reportsToProcess = Math.min(allHits.length, 30);
-    console.log(`[STEP 3] Processing up to ${reportsToProcess} reports to find 5 yearly reports`);
+    console.log(`[YEAR DISCOVERY] Will process ${reportsToProcess} reports to find 5 yearly reports\n`);
 
     let processedCount = 0; // Track reports we've examined
     let yearlyReportsFound = 0; // Track actual yearly reports found
@@ -551,9 +568,15 @@ serve(async (req) => {
       let documentUrl = null;
       
       // Log all available documents for debugging
-      console.log(`[DOC SEARCH] Found ${source.dokumenter?.length || 0} documents for period ${period}`);
-      source.dokumenter?.forEach((doc: any) => {
-        console.log(`  - Type: ${doc.dokumentType}, MIME: ${doc.dokumentMimeType}`);
+      console.log(`\n[REPORT ${processedCount}/${reportsToProcess}] Period: ${period}`);
+      console.log(`[DOCUMENTS] Available documents (${source.dokumenter?.length || 0} total):`);
+      source.dokumenter?.forEach((doc: any, idx: number) => {
+        const docType = doc.dokumentType || 'Unknown';
+        const mimeType = doc.dokumentMimeType || 'Unknown';
+        const url = doc.dokumentUrl || doc.dokumentGuid || 'No URL';
+        console.log(`  [${idx}] ${docType}`);
+        console.log(`      MIME: ${mimeType}`);
+        console.log(`      URL: ${url.toString().slice(0, 100)}${url.toString().length > 100 ? '...' : ''}`);
       });
       
       // Look for yearly report XML documents - accept ANY XML that's not explicitly quarterly/half-yearly
@@ -602,6 +625,10 @@ serve(async (req) => {
       })[0];
       
       if (xbrlDoc) {
+        console.log(`[DOCUMENT SELECTION] ✅ Selected document:`);
+        console.log(`  Type: ${xbrlDoc.dokumentType}`);
+        console.log(`  MIME: ${xbrlDoc.dokumentMimeType}`);
+        console.log(`  Reason: ${xbrlDoc.dokumentMimeType === 'application/xml' ? 'Pure XBRL' : 'iXBRL format'}`);
         console.log(`[DOC FOUND] ✅ Found Årsrapport XBRL: ${xbrlDoc.dokumentType}`);
         if (xbrlDoc.dokumentUrl) {
           documentUrl = xbrlDoc.dokumentUrl;
@@ -613,6 +640,9 @@ serve(async (req) => {
           reportMetadata.documentUrl = documentUrl;
         }
       } else {
+        console.log(`[DOCUMENT SELECTION] ❌ No suitable document found`);
+        console.log(`  Total documents: ${source.dokumenter?.length || 0}`);
+        console.log(`  After filtering: ${xbrlDocs.length}`);
         console.log(`[DOC FOUND] ❌ No Årsrapport XBRL found - skipping this report`);
         continue; // Skip to next report if we don't have the right document type
       }
@@ -662,6 +692,13 @@ serve(async (req) => {
             const actualPeriod = extractPeriodFromXBRL(xbrlContent, period);
             console.log(`[DEBUG] Report ${processedCount}/${reportsToProcess}: Metadata period = ${period}, Extracted XBRL period = ${actualPeriod}`);
             
+            // Track which year we're looking at
+            const yearMatch = actualPeriod.match(/(\d{4})/);
+            const reportYear = yearMatch ? parseInt(yearMatch[1]) : null;
+            if (reportYear) {
+              console.log(`[YEAR TRACKING] Found report for year ${reportYear}`);
+            }
+            
             // VALIDATION: Check if this is actually a full year report
             if (!isFullYearPeriod(actualPeriod)) {
               console.log(`[SKIP] Skipping non-yearly report for period ${actualPeriod}`);
@@ -672,9 +709,19 @@ serve(async (req) => {
             const parsedData = parseXBRL(xbrlContent, actualPeriod);
             
             if (parsedData) {
+              const yearMatch = actualPeriod.match(/(\d{4})/);
+              const reportYear = yearMatch ? parseInt(yearMatch[1]) : null;
+              
               console.log(`[DEBUG] ✅ Successfully parsed data with ${Object.keys(parsedData).filter(k => parsedData[k] !== null).length} fields`);
               financialData.push(parsedData);
               yearlyReportsFound++;
+              
+              if (reportYear) {
+                yearsProcessed.add(reportYear);
+                console.log(`[YEAR TRACKING] ✅ Successfully processed year ${reportYear}`);
+                console.log(`[YEAR TRACKING] Years processed so far: ${Array.from(yearsProcessed).sort().reverse().join(', ')}`);
+              }
+              
               console.log(`✅ Found yearly report ${yearlyReportsFound}/5`);
               
               // Stop once we have 5 yearly reports
@@ -700,7 +747,13 @@ serve(async (req) => {
       }
     }
 
-    console.log(`[SUMMARY] Processed ${processedCount} reports, found ${yearlyReportsFound} yearly reports`);
+    console.log(`\n[FINAL SUMMARY]`);
+    console.log(`  Years seen in API: ${Array.from(yearsSeen).sort().reverse().join(', ')}`);
+    console.log(`  Years processed: ${Array.from(yearsProcessed).sort().reverse().join(', ')}`);
+    const missingYears = Array.from(yearsSeen).filter(y => !yearsProcessed.has(y)).sort().reverse();
+    console.log(`  Years missing: ${missingYears.length > 0 ? missingYears.join(', ') : 'None'}`);
+    console.log(`  Total reports examined: ${processedCount}`);
+    console.log(`  Yearly reports found: ${yearlyReportsFound}`);
     console.log(`[RESULT] Returning ${financialReports.length} report metadata and ${financialData.length} parsed financial datasets`);
 
     return new Response(
