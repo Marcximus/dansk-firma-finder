@@ -100,6 +100,25 @@ const isFullYearPeriod = (periodString: string): boolean => {
   return true;
 };
 
+// Score parsed financial data based on number of non-null key fields
+const scoreFinancialData = (data: any): number => {
+  if (!data) return 0;
+  
+  const keyFields = [
+    'nettoomsaetning', 'aaretsResultat', 'statusBalance', 'egenkapital',
+    'driftsresultat', 'resultatFoerSkat', 'anlaegsaktiverValue', 'omsaetningsaktiver'
+  ];
+  
+  let score = 0;
+  for (const field of keyFields) {
+    if (data[field] && data[field] !== 0) {
+      score++;
+    }
+  }
+  
+  return score;
+};
+
 // Helper function to parse XBRL/XML and extract financial data using regex
 const parseXBRL = (xmlContent: string, period: string) => {
   try {
@@ -703,307 +722,138 @@ serve(async (req) => {
       source.dokumenter?.forEach((doc: any, idx: number) => {
         const docType = (doc.dokumentType || '').toUpperCase();
         const mimeType = (doc.dokumentMimeType || '').toLowerCase();
-        const hasFinansiel = docType.includes('FINANSIEL');
-        console.log(`  [${idx}] ${doc.dokumentType}`);
-        console.log(`      MIME: ${mimeType}`);
-        console.log(`      Has FINANSIEL: ${hasFinansiel ? '✅ YES' : '❌ NO'}`);
+        console.log(`  [${idx}] ${doc.dokumentType} - ${mimeType}`);
       });
       
-      // PRIORITY 1: Look for any document with "FINANSIEL" in dokumentType
-      const finansielXBRL = source.dokumenter?.find((doc: any) => {
+      // Collect ALL AARSRAPPORT XML documents as candidates
+      const aarsrapportXMLs = source.dokumenter?.filter((doc: any) => {
         const docType = (doc.dokumentType || '').toUpperCase();
         const mimeType = (doc.dokumentMimeType || '').toLowerCase();
-        
-        return docType.includes('FINANSIEL') && mimeType === 'application/xml';
-      });
-
-      if (finansielXBRL) {
-        console.log(`[DOC SELECT] ✅ Found FINANSIEL document type: ${finansielXBRL.dokumentType}`);
-      }
-      
-      // PRIORITY 2: If multiple AARSRAPPORT XML docs exist, try the second one (often the financial one)
-      let secondAarsrapport = null;
-      if (!finansielXBRL) {
-        const aarsrapportXMLs = source.dokumenter?.filter((doc: any) => {
-          const docType = (doc.dokumentType || '').toUpperCase();
-          const mimeType = (doc.dokumentMimeType || '').toLowerCase();
-          return docType === 'AARSRAPPORT' && mimeType === 'application/xml';
-        }) || [];
-        
-        if (aarsrapportXMLs.length >= 2) {
-          console.log(`[DOC SELECT] Found ${aarsrapportXMLs.length} AARSRAPPORT XML docs, selecting second one`);
-          secondAarsrapport = aarsrapportXMLs[1];
-        }
-      }
-
-      if (finansielXBRL) {
-        console.log(`[DOC SELECT] ✅ Found FINANSIEL XBRL (contains actual financial data)`);
-      }
-      
-      // FALLBACK: Look for any yearly report XML documents
-      const xbrlDocs = source.dokumenter?.filter((doc: any) => {
-        const docType = doc.dokumentType?.toUpperCase() || '';
-        const mimeType = doc.dokumentMimeType?.toLowerCase() || '';
-        
-        // Reject quarterly and half-year reports explicitly
-        const isNonYearly = docType.includes('KVARTAL') || docType.includes('HALV');
-        
-        // Reject koncernregnskab (consolidated accounts) - prefer standalone
-        const isKoncern = docType.includes('KONCERNREGNSKAB');
-        
-        // Must be XML format
-        const isXMLFormat = mimeType.includes('xml') && mimeType.includes('application');
-        
-        return isXMLFormat && !isNonYearly && !isKoncern;
+        return docType === 'AARSRAPPORT' && mimeType === 'application/xml';
       }) || [];
-
-      // Select document: prioritize finansiel, then second AARSRAPPORT, then fallback to sorted list
-      const xbrlDoc = finansielXBRL || secondAarsrapport || xbrlDocs.sort((a, b) => {
-        const aType = a.dokumentType?.toUpperCase() || '';
-        const bType = b.dokumentType?.toUpperCase() || '';
-        const aMime = a.dokumentMimeType?.toLowerCase() || '';
-        const bMime = b.dokumentMimeType?.toLowerCase() || '';
-        const aUrl = (a.dokumentUrl || a.dokumentGuid || '').toString().toLowerCase();
-        const bUrl = (b.dokumentUrl || b.dokumentGuid || '').toString().toLowerCase();
-        
-        // FINANSIEL in URL beats non-finansiel
-        if (aUrl.includes('finansiel') && !bUrl.includes('finansiel')) return -1;
-        if (bUrl.includes('finansiel') && !aUrl.includes('finansiel')) return 1;
-        
-        // Pure XBRL beats iXBRL
-        if (aMime === 'application/xml' && bMime !== 'application/xml') return -1;
-        if (bMime === 'application/xml' && aMime !== 'application/xml') return 1;
-        
-        // AARSRAPPORT (not IXBRL) beats others
-        if (aType === 'AARSRAPPORT' && bType !== 'AARSRAPPORT') return -1;
-        if (bType === 'AARSRAPPORT' && aType !== 'AARSRAPPORT') return 1;
-        
-        // FINANSIEL in type beats non-finansiel
-        if (aType.includes('FINANSIEL') && !bType.includes('FINANSIEL')) return -1;
-        if (bType.includes('FINANSIEL') && !aType.includes('FINANSIEL')) return 1;
-        
-        return 0;
-      })[0];
       
-      if (xbrlDoc) {
-        console.log(`[DOCUMENT SELECTION] ✅ Selected document:`);
-        console.log(`  Type: ${xbrlDoc.dokumentType}`);
-        console.log(`  MIME: ${xbrlDoc.dokumentMimeType}`);
-        console.log(`  Reason: ${xbrlDoc.dokumentMimeType === 'application/xml' ? 'Pure XBRL' : 'iXBRL format'}`);
-        console.log(`[DOC FOUND] ✅ Found Årsrapport XBRL: ${xbrlDoc.dokumentType}`);
-        if (xbrlDoc.dokumentUrl) {
-          documentUrl = xbrlDoc.dokumentUrl;
-          reportMetadata.documentUrl = documentUrl;
-        } else if (xbrlDoc.dokumentGuid || xbrlDoc.guid) {
-          const guid = xbrlDoc.dokumentGuid || xbrlDoc.guid;
-          documentUrl = `http://distribution.virk.dk/dokumenter/${guid}/download`;
-          reportMetadata.documentGuid = guid;
-          reportMetadata.documentUrl = documentUrl;
+      console.log(`[DOC SELECT] Found ${aarsrapportXMLs.length} AARSRAPPORT XML documents - will test all to find financial data`);
+      
+      if (aarsrapportXMLs.length === 0) {
+        console.log(`[DOC SELECT] ❌ No AARSRAPPORT XML documents found - skipping this report`);
+        continue;
+      }
+      
+      // Step 3: Test all AARSRAPPORT XML documents and pick the one with most financial data
+      console.log(`[STEP 2] Testing ${aarsrapportXMLs.length} AARSRAPPORT XML documents to find financial data...`);
+      
+      let bestParsedData = null;
+      let bestScore = 0;
+      let bestDocumentUrl = '';
+      let bestPeriod = period;
+      
+      for (let docIdx = 0; docIdx < aarsrapportXMLs.length; docIdx++) {
+        const candidateDoc = aarsrapportXMLs[docIdx];
+        
+        let candidateUrl = '';
+        if (candidateDoc.dokumentUrl) {
+          candidateUrl = candidateDoc.dokumentUrl;
+        } else if (candidateDoc.dokumentGuid || candidateDoc.guid) {
+          const guid = candidateDoc.dokumentGuid || candidateDoc.guid;
+          candidateUrl = `http://distribution.virk.dk/dokumenter/${guid}/download`;
         }
-      } else {
-        console.log(`[DOCUMENT SELECTION] ❌ No suitable document found`);
-        console.log(`  Total documents: ${source.dokumenter?.length || 0}`);
-        console.log(`  After filtering: ${xbrlDocs.length}`);
-        console.log(`[DOC FOUND] ❌ No Årsrapport XBRL found - skipping this report`);
-        continue; // Skip to next report if we don't have the right document type
-      }
-      
-      // Fallback: check for dokumentUrl directly in source (only reached if xbrlDoc exists)
-      if (!documentUrl && source.dokumentUrl) {
-        documentUrl = source.dokumentUrl;
-        reportMetadata.documentUrl = documentUrl;
-      }
-      // Fallback: use _id from the hit itself
-      else if (!documentUrl && hit._id) {
-        documentUrl = `http://distribution.virk.dk/dokumenter/${hit._id}/download`;
-        reportMetadata.documentGuid = hit._id;
-        reportMetadata.documentUrl = documentUrl;
-      }
-
-      financialReports.push(reportMetadata);
-
-      // Step 3: Download and parse XBRL file if we have a URL
-      if (documentUrl) {
-        console.log(`[STEP 2] Downloading XBRL file for period ${period}: ${documentUrl}`);
+        
+        if (!candidateUrl) {
+          console.log(`[TESTING ${docIdx + 1}/${aarsrapportXMLs.length}] ❌ No URL for document`);
+          continue;
+        }
+        
+        console.log(`[TESTING ${docIdx + 1}/${aarsrapportXMLs.length}] Trying: ${candidateUrl.slice(0, 80)}...`);
         
         try {
-          // Add timeout protection (8 seconds per document)
           const TIMEOUT_MS = 8000;
           const controller = new AbortController();
           const timeoutId = setTimeout(() => controller.abort(), TIMEOUT_MS);
           
-          const downloadHeaders: Record<string, string> = {
-            'Accept': 'application/xml, text/xml, */*',
-            'Accept-Encoding': 'gzip, deflate'
-          };
-          // NO Authorization header - public endpoint
-          
-          const xbrlResponse = await fetch(documentUrl, {
-            headers: downloadHeaders,
+          const xbrlResponse = await fetch(candidateUrl, {
+            headers: {
+              'Accept': 'application/xml, text/xml, */*',
+              'Accept-Encoding': 'gzip, deflate'
+            },
             signal: controller.signal
           });
           
           clearTimeout(timeoutId);
-
-          if (xbrlResponse.ok) {
-            const xbrlContent = await xbrlResponse.text();
-            console.log(`[STEP 2] Downloaded XBRL file (${xbrlContent.length} bytes)`);
-            
-            // Log XML structure for debugging
-            const xmlSample = xbrlContent.substring(0, 500);
-            console.log(`XML sample (first 500 chars): ${xmlSample}`);
-            
-            // Detect namespaces
-            const hasNOV = xbrlContent.includes('xmlns:NOV=') || xbrlContent.includes('<NOV:');
-            const hasIFRS = xbrlContent.includes('xmlns:ifrs-full=') || xbrlContent.includes('<ifrs-full:');
-            const hasFSA = xbrlContent.includes('xmlns:fsa=') || xbrlContent.includes('<fsa:');
-            console.log(`Namespaces detected: NOV=${hasNOV}, IFRS=${hasIFRS}, FSA=${hasFSA}`);
-            
-            // Extract the actual period from XBRL file with metadata fallback
-            const actualPeriod = extractPeriodFromXBRL(xbrlContent, period);
-            console.log(`[DEBUG] Report ${processedCount}/${reportsToProcess}: Metadata period = ${period}, Extracted XBRL period = ${actualPeriod}`);
-            
-            // Track which year we're looking at
-            const yearMatch = actualPeriod.match(/(\d{4})/);
-            const reportYear = yearMatch ? parseInt(yearMatch[1]) : null;
-            if (reportYear) {
-              console.log(`[YEAR TRACKING] Found report for year ${reportYear}`);
-            }
-            
-            // VALIDATION: Check if this is actually a full year report
-            if (!isFullYearPeriod(actualPeriod)) {
-              console.log(`[SKIP] Skipping non-yearly report for period ${actualPeriod}`);
-              continue; // Skip to next report without counting this one
-            }
-            
-            console.log(`[STEP 3] Parsing XBRL for period ${actualPeriod}...`);
-            const parsedData = parseXBRL(xbrlContent, actualPeriod);
-            
-            if (parsedData) {
-              const yearMatch = actualPeriod.match(/(\d{4})/);
-              const reportYear = yearMatch ? parseInt(yearMatch[1]) : null;
-              
-              console.log(`[DEBUG] ✅ Successfully parsed data with ${Object.keys(parsedData).filter(k => parsedData[k] !== null).length} fields`);
-              
-              // Check if we got real financial data
-              const hasRevenue = parsedData.nettoomsaetning !== null;
-              const hasProfit = parsedData.aaretsResultat !== null;
-              const hasAssets = parsedData.statusBalance !== null;
-              console.log(`Keywords: Revenue=${hasRevenue}, Profit=${hasProfit}, Assets=${hasAssets}`);
-              
-              financialData.push(parsedData);
-              yearlyReportsFound++;
-              
-              if (reportYear) {
-                yearsProcessed.add(reportYear);
-                console.log(`[YEAR TRACKING] ✅ Successfully processed year ${reportYear}`);
-                console.log(`[YEAR TRACKING] Years processed so far: ${Array.from(yearsProcessed).sort().reverse().join(', ')}`);
-              }
-              
-              console.log(`✅ Found yearly report ${yearlyReportsFound}/5`);
-              
-              // Stop once we have 5 yearly reports
-              if (yearlyReportsFound >= 5) {
-                console.log(`✅ Successfully found 5 yearly reports - stopping`);
-                break;
-              }
-            } else {
-              console.log(`[DEBUG] ⚠️ No data extracted from XBRL for period ${actualPeriod}`);
-              
-              // Try fallback: ESEF XHTML first (iXBRL inline), then FINANSIEL XML
-              console.log(`[FALLBACK] Trying alternate documents...`);
-              
-              // Priority 1: ESEF XHTML (iXBRL inline format - most common in 2023/2024)
-              const esefDoc = source.dokumenter?.find((doc: any) => {
-                const docType = (doc.dokumentType || '').toUpperCase();
-                const mimeType = (doc.dokumentMimeType || '').toLowerCase();
-                return docType.includes('ESEF') && mimeType === 'application/xhtml+xml';
-              });
-              
-              let fallbackDoc = esefDoc;
-              let fallbackFormat = 'ESEF XHTML (iXBRL)';
-              let fallbackExtension = '.xhtml';
-              
-              // Priority 2: FINANSIEL XML if no ESEF XHTML
-              if (!fallbackDoc) {
-                const finansielDoc = source.dokumenter?.find((doc: any) => {
-                  const docType = (doc.dokumentType || '').toUpperCase();
-                  const mimeType = (doc.dokumentMimeType || '').toLowerCase();
-                  return docType.includes('FINANSIEL') && mimeType === 'application/xml';
-                });
-                
-                if (finansielDoc) {
-                  fallbackDoc = finansielDoc;
-                  fallbackFormat = 'FINANSIEL XML';
-                  fallbackExtension = '.xml';
-                }
-              }
-              
-              if (fallbackDoc) {
-                console.log(`[FALLBACK] Found ${fallbackFormat}, downloading...`);
-                const REGNSKABER_BASE_URL = 'http://regnskaber.virk.dk/';
-                const fallbackUrl = fallbackDoc.dokumentUrl || `${REGNSKABER_BASE_URL}${cvr}/${fallbackDoc.dokumentGuid}${fallbackExtension}`;
-                
-                try {
-                  const fallbackController = new AbortController();
-                  const fallbackTimeoutId = setTimeout(() => fallbackController.abort(), 8000);
-                  
-                  const fallbackResponse = await fetch(fallbackUrl, {
-                    headers: downloadHeaders,
-                    signal: fallbackController.signal
-                  });
-                  
-                  clearTimeout(fallbackTimeoutId);
-                  
-                  if (fallbackResponse.ok) {
-                    const fallbackXbrlText = await fallbackResponse.text();
-                    console.log(`[FALLBACK] Downloaded FINANSIEL document (${fallbackXbrlText.length} bytes)`);
-                    
-                    const fallbackParsedData = parseXBRL(fallbackXbrlText, actualPeriod);
-                    
-                    if (fallbackParsedData) {
-                      const yearMatch = actualPeriod.match(/(\d{4})/);
-                      const reportYear = yearMatch ? parseInt(yearMatch[1]) : null;
-                      
-                      console.log(`[FALLBACK] ✅ Successfully parsed FINANSIEL document`);
-                      financialData.push(fallbackParsedData);
-                      yearlyReportsFound++;
-                      
-                      if (reportYear) {
-                        yearsProcessed.add(reportYear);
-                        console.log(`[YEAR TRACKING] ✅ Successfully processed year ${reportYear} (fallback)`);
-                        console.log(`[YEAR TRACKING] Years processed so far: ${Array.from(yearsProcessed).sort().reverse().join(', ')}`);
-                      }
-                      
-                      console.log(`✅ Found yearly report ${yearlyReportsFound}/5 (fallback)`);
-                      
-                      if (yearlyReportsFound >= 5) {
-                        console.log(`✅ Successfully found 5 yearly reports - stopping`);
-                        break;
-                      }
-                    }
-                  }
-                } catch (fallbackError) {
-                  console.log(`[FALLBACK] Failed to fetch or parse FINANSIEL document:`, fallbackError.message);
-                }
-              } else {
-                console.log(`[FALLBACK] No FINANSIEL document available`);
-              }
-            }
-          } else {
-            console.warn(`⚠️ Failed to download XBRL: ${xbrlResponse.status} - ${documentUrl}`);
+          
+          if (!xbrlResponse.ok) {
+            console.log(`[TESTING ${docIdx + 1}/${aarsrapportXMLs.length}] ❌ HTTP ${xbrlResponse.status}`);
+            continue;
           }
-        } catch (error) {
-          if (error.name === 'AbortError') {
-            console.warn(`⏱️ Timeout downloading XBRL for ${period}`);
-          } else {
-            console.error(`❌ Error downloading/parsing XBRL for ${period}:`, error);
+          
+          const xbrlContent = await xbrlResponse.text();
+          console.log(`[TESTING ${docIdx + 1}/${aarsrapportXMLs.length}] Downloaded ${xbrlContent.length} bytes`);
+          
+          // Extract period from this specific document
+          const actualPeriod = extractPeriodFromXBRL(xbrlContent, period);
+          
+          // Validate it's a full year
+          if (!isFullYearPeriod(actualPeriod)) {
+            console.log(`[TESTING ${docIdx + 1}/${aarsrapportXMLs.length}] ❌ Not a full year: ${actualPeriod}`);
+            continue;
           }
+          
+          // Parse the XBRL
+          const parsedData = parseXBRL(xbrlContent, actualPeriod);
+          const score = scoreFinancialData(parsedData);
+          
+          console.log(`[TESTING ${docIdx + 1}/${aarsrapportXMLs.length}] Score: ${score}/8 fields with data`);
+          
+          if (score > bestScore) {
+            bestScore = score;
+            bestParsedData = parsedData;
+            bestDocumentUrl = candidateUrl;
+            bestPeriod = actualPeriod;
+            console.log(`[TESTING ${docIdx + 1}/${aarsrapportXMLs.length}] ✅ New best document! (score: ${score})`);
+          }
+          
+        } catch (err) {
+          console.log(`[TESTING ${docIdx + 1}/${aarsrapportXMLs.length}] ❌ Error: ${err.message}`);
         }
-      } else {
-        console.warn(`⚠️ No XBRL document URL found for period ${period}`);
       }
-    }
+      
+      // Use the best document we found
+      if (bestParsedData && bestScore >= 3) {
+        console.log(`[SUCCESS] Using document with score ${bestScore}/8: ${bestDocumentUrl.slice(0, 80)}...`);
+        
+        reportMetadata.documentUrl = bestDocumentUrl;
+        financialReports.push(reportMetadata);
+        
+        const yearMatch = bestPeriod.match(/(\d{4})/);
+        const reportYear = yearMatch ? parseInt(yearMatch[1]) : null;
+        
+        console.log(`[DEBUG] ✅ Successfully parsed data with ${bestScore} key fields`);
+        
+        const hasRevenue = bestParsedData.nettoomsaetning !== null;
+        const hasProfit = bestParsedData.aaretsResultat !== null;
+        const hasAssets = bestParsedData.statusBalance !== null;
+        console.log(`   Fields: Revenue=${hasRevenue}, Profit=${hasProfit}, Assets=${hasAssets}`);
+        
+        financialData.push(bestParsedData);
+        yearlyReportsFound++;
+        
+        if (reportYear) {
+          yearsProcessed.add(reportYear);
+          console.log(`[YEAR TRACKING] ✅ Successfully processed year ${reportYear}`);
+          console.log(`[YEAR TRACKING] Years processed so far: ${Array.from(yearsProcessed).sort().reverse().join(', ')}`);
+        }
+        
+        console.log(`✅ Found yearly report ${yearlyReportsFound}/5`);
+        
+        if (yearlyReportsFound >= 5) {
+          console.log(`✅ Successfully found 5 yearly reports - stopping`);
+          break;
+        }
+        
+      } else {
+        console.log(`[FAIL] No suitable document found for this report (best score: ${bestScore}/8)`);
+      }
+      
+    } // End of for loop processing reports
 
     console.log(`\n[FINAL SUMMARY]`);
     console.log(`  Years seen in API: ${Array.from(yearsSeen).sort().reverse().join(', ')}`);
