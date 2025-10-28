@@ -109,48 +109,105 @@ const parseXBRL = (xmlContent: string, period: string) => {
     // Matches: <anyprefix:TagName contextRef="..." unitRef="..." decimals="...">VALUE</anyprefix:TagName>
     const extractValue = (tagNames: string[]): number | null => {
       for (const tagName of tagNames) {
-        // Pattern 1: Standard XBRL format: <fsa:Revenue>1500000000</fsa:Revenue>
+        // Pattern 1: iXBRL inline format with name attribute (ESEF 2023/2024)
+        // <ix:nonFraction name="ifrs-full:Revenue" contextRef="..." unitRef="..." decimals="..." format="ixt:numdotdecimal">1.500.000</ix:nonFraction>
+        const ixbrlInlinePattern = new RegExp(
+          `<ix:nonFraction[^>]+name="[^"]*:${tagName}"[^>]*>([\\d.,-\\s]+)</ix:nonFraction>`,
+          'gi'
+        );
+        
+        // Pattern 2: iXBRL nested format
+        const ixbrlNestedPattern = new RegExp(
+          `name="[^"]*:${tagName}"[^>]*>[\\s\\S]*?>([\\d.,-\\s]+)</ix:nonFraction>`,
+          'gi'
+        );
+        
+        // Pattern 3: Standard XBRL format: <fsa:Revenue>1500000000</fsa:Revenue>
         const standardPattern = new RegExp(
           `<[^:]+:${tagName}[^>]*>\\s*([\\d.-]+)\\s*</[^:]+:${tagName}>`,
           'gi'
         );
         
-        // Pattern 2: ESEF format with ifrs-full namespace
+        // Pattern 4: ESEF format with ifrs-full namespace
         const esefPattern = new RegExp(
           `<ifrs-full:${tagName}[^>]*>\\s*([\\d.,-]+)\\s*</ifrs-full:${tagName}>`,
           'gi'
         );
         
-        // Pattern 3: iXBRL inline format
-        const ixbrlPattern = new RegExp(
-          `<ix:[^>]+name="[^"]*:${tagName}"[^>]*>([\\d.,-]+)</ix:[^>]+>`,
-          'gi'
-        );
-        
-        // Pattern 4: No namespace
+        // Pattern 5: No namespace
         const noNamespacePattern = new RegExp(
           `<${tagName}[^>]*>\\s*([\\d.,-]+)\\s*</${tagName}>`,
           'gi'
         );
         
-        // Try all patterns
-        for (const pattern of [standardPattern, esefPattern, ixbrlPattern, noNamespacePattern]) {
+        // Try all patterns (iXBRL first as it's most common in 2023/2024)
+        for (const pattern of [ixbrlInlinePattern, ixbrlNestedPattern, standardPattern, esefPattern, noNamespacePattern]) {
           const matches = Array.from(xmlContent.matchAll(pattern));
           
           if (matches.length > 0) {
             for (const match of matches) {
-              // Remove thousand separators and parse
-              const cleanValue = match[1].replace(/[.,]/g, (m, offset, str) => {
-                const lastDot = str.lastIndexOf('.');
-                const lastComma = str.lastIndexOf(',');
-                const decimalPos = Math.max(lastDot, lastComma);
-                // Keep last separator as decimal, remove others
-                return offset === decimalPos && offset > str.length - 4 ? '.' : '';
-              });
+              let rawValue = match[1].trim();
+              
+              // Check for transformation format attribute
+              const formatMatch = xmlContent.match(new RegExp(
+                `name="[^"]*:${tagName}"[^>]+format="([^"]+)"`,
+                'i'
+              ));
+              
+              let cleanValue = rawValue;
+              
+              if (formatMatch && formatMatch[1]) {
+                const format = formatMatch[1];
+                
+                if (format.includes('numdotdecimal')) {
+                  // European: 1.500.000,00 → remove dots, replace comma with dot
+                  cleanValue = rawValue.replace(/\./g, '').replace(',', '.');
+                } else if (format.includes('numcommadecimal')) {
+                  // US: 1,500,000.00 → remove commas
+                  cleanValue = rawValue.replace(/,/g, '');
+                } else if (format.includes('zerodash') && rawValue === '-') {
+                  cleanValue = '0';
+                }
+              } else {
+                // Auto-detect format based on content
+                if (rawValue.includes('.') && rawValue.includes(',')) {
+                  const lastDot = rawValue.lastIndexOf('.');
+                  const lastComma = rawValue.lastIndexOf(',');
+                  if (lastComma > lastDot) {
+                    // Format: 1.500.000,00
+                    cleanValue = rawValue.replace(/\./g, '').replace(',', '.');
+                  } else {
+                    // Format: 1,500,000.00
+                    cleanValue = rawValue.replace(/,/g, '');
+                  }
+                } else if (rawValue.includes('.')) {
+                  // Assume European thousand separator unless it's clearly decimal
+                  const parts = rawValue.split('.');
+                  if (parts[parts.length - 1].length === 2 && parts.length === 2) {
+                    // Likely decimal: 1500.00
+                    cleanValue = rawValue;
+                  } else {
+                    // Thousand separator: 1.500.000
+                    cleanValue = rawValue.replace(/\./g, '');
+                  }
+                } else if (rawValue.includes(',')) {
+                  const parts = rawValue.split(',');
+                  if (parts[parts.length - 1].length === 2) {
+                    // Decimal: 1500,00
+                    cleanValue = rawValue.replace(',', '.');
+                  } else {
+                    // Thousand separator: 1,500,000
+                    cleanValue = rawValue.replace(/,/g, '');
+                  }
+                }
+              }
+              
+              // Remove any remaining spaces
+              cleanValue = cleanValue.replace(/\s/g, '');
               
               const value = parseFloat(cleanValue);
               if (!isNaN(value) && value !== 0) {
-                console.log(`✅ Found ${tagName}: ${value}`);
+                console.log(`✅ Found ${tagName}: ${value} (raw: "${rawValue}")`);
                 return value;
               }
             }
@@ -279,7 +336,26 @@ const parseXBRL = (xmlContent: string, period: string) => {
     } else {
       console.log(`⚠️ No financial data found in XBRL for period ${period}`);
       console.log(`   XML sample (first 500 chars): ${xmlContent.slice(0, 500)}`);
-      console.log(`   XML contains: ${xmlContent.includes('ifrs-full') ? 'ESEF/IFRS' : xmlContent.includes('fsa:') ? 'FSA' : 'Unknown'} format`);
+      
+      // Detect format details
+      const hasIxbrl = xmlContent.includes('ix:nonFraction') || xmlContent.includes('ix:nonNumeric');
+      const hasIfrs = xmlContent.includes('ifrs-full');
+      const hasFsa = xmlContent.includes('fsa:');
+      
+      console.log(`   Format: ${hasIxbrl ? 'iXBRL inline' : ''} ${hasIfrs ? 'ESEF/IFRS' : ''} ${hasFsa ? 'FSA' : ''}`);
+      
+      // Check if financial terms exist
+      const revenuePos = xmlContent.search(/revenue|omsætning|omsaetning/i);
+      const profitPos = xmlContent.search(/profit|resultat/i);
+      const assetsPos = xmlContent.search(/assets|aktiver/i);
+      
+      console.log(`   Keywords: Revenue=${revenuePos > 0}, Profit=${profitPos > 0}, Assets=${assetsPos > 0}`);
+      
+      if (revenuePos > 0) {
+        const sample = xmlContent.slice(Math.max(0, revenuePos - 150), revenuePos + 400);
+        console.log(`   Sample near 'revenue':\n${sample}`);
+      }
+      
       return null;
     }
     
@@ -765,18 +841,39 @@ serve(async (req) => {
             } else {
               console.log(`[DEBUG] ⚠️ No data extracted from XBRL for period ${actualPeriod}`);
               
-              // Try fallback: look for "FINANSIEL" variant document
-              console.log(`[FALLBACK] Trying alternate XBRL document...`);
-              const finansielDoc = source.dokumenter?.find((doc: any) => {
+              // Try fallback: ESEF XHTML first (iXBRL inline), then FINANSIEL XML
+              console.log(`[FALLBACK] Trying alternate documents...`);
+              
+              // Priority 1: ESEF XHTML (iXBRL inline format - most common in 2023/2024)
+              const esefDoc = source.dokumenter?.find((doc: any) => {
                 const docType = (doc.dokumentType || '').toUpperCase();
                 const mimeType = (doc.dokumentMimeType || '').toLowerCase();
-                return docType.includes('FINANSIEL') && mimeType === 'application/xml';
+                return docType.includes('ESEF') && mimeType === 'application/xhtml+xml';
               });
               
-              if (finansielDoc) {
-                console.log(`[FALLBACK] Found FINANSIEL document, downloading...`);
+              let fallbackDoc = esefDoc;
+              let fallbackFormat = 'ESEF XHTML (iXBRL)';
+              let fallbackExtension = '.xhtml';
+              
+              // Priority 2: FINANSIEL XML if no ESEF XHTML
+              if (!fallbackDoc) {
+                const finansielDoc = source.dokumenter?.find((doc: any) => {
+                  const docType = (doc.dokumentType || '').toUpperCase();
+                  const mimeType = (doc.dokumentMimeType || '').toLowerCase();
+                  return docType.includes('FINANSIEL') && mimeType === 'application/xml';
+                });
+                
+                if (finansielDoc) {
+                  fallbackDoc = finansielDoc;
+                  fallbackFormat = 'FINANSIEL XML';
+                  fallbackExtension = '.xml';
+                }
+              }
+              
+              if (fallbackDoc) {
+                console.log(`[FALLBACK] Found ${fallbackFormat}, downloading...`);
                 const REGNSKABER_BASE_URL = 'http://regnskaber.virk.dk/';
-                const fallbackUrl = finansielDoc.dokumentUrl || `${REGNSKABER_BASE_URL}${cvr}/${finansielDoc.dokumentGuid}.xml`;
+                const fallbackUrl = fallbackDoc.dokumentUrl || `${REGNSKABER_BASE_URL}${cvr}/${fallbackDoc.dokumentGuid}${fallbackExtension}`;
                 
                 try {
                   const fallbackController = new AbortController();
