@@ -374,11 +374,6 @@ const SigningRulesAccordion: React.FC<SigningRulesAccordionProps> = ({ cvrData }
                               
                               return (
                                 <>
-                                  {isSuppleant && (
-                                    <div className={`text-[10px] sm:text-xs font-medium mb-1 ${isEmployeeElectedSuppleant ? 'text-orange-600 dark:text-orange-500' : 'text-amber-600 dark:text-amber-500'}`}>
-                                      {isEmployeeElectedSuppleant ? 'Medarbejdervalgt suppleant' : 'Suppleant'}
-                                    </div>
-                                  )}
                                   {activeFunk?.periode?.gyldigFra && (
                                     <div>Siden: {activeFunk.periode.gyldigFra}</div>
                                   )}
