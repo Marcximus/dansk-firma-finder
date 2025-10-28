@@ -59,6 +59,31 @@ const FinancialSpreadsheet: React.FC<FinancialSpreadsheetProps> = ({ historicalD
     return periode;
   };
 
+  // Define financial metrics as columns
+  const incomeMetrics = [
+    { key: 'nettoomsaetning', label: 'Nettoomsætning' },
+    { key: 'bruttofortjeneste', label: 'Bruttofortjeneste' },
+    { key: 'driftsresultat', label: 'Driftsresultat (EBIT)' },
+    { key: 'resultatFoerSkat', label: 'Resultat før skat' },
+    { key: 'aaretsResultat', label: 'Årets Resultat' },
+  ];
+
+  const balanceMetrics = [
+    { key: 'anlaegsaktiverValue', label: 'Anlægsaktiver' },
+    { key: 'omsaetningsaktiver', label: 'Omsætningsaktiver' },
+    { key: 'egenkapital', label: 'Egenkapital' },
+    { key: 'hensatteForpligtelser', label: 'Hensatte forpligtelser' },
+    { key: 'gaeldsforpligtelser', label: 'Gældsforpligtelser' },
+    { key: 'statusBalance', label: 'Årets balance' },
+  ];
+
+  const ratioMetrics = [
+    { key: 'soliditetsgrad', label: 'Soliditetsgrad', isPercent: true },
+    { key: 'likviditetsgrad', label: 'Likviditetsgrad', isPercent: true },
+    { key: 'afkastningsgrad', label: 'Afkastningsgrad', isPercent: true },
+    { key: 'overskudsgrad', label: 'Overskudsgrad', isPercent: true },
+  ];
+
   return (
     <Card>
       <CardHeader className="pb-3">
@@ -80,45 +105,27 @@ const FinancialSpreadsheet: React.FC<FinancialSpreadsheetProps> = ({ historicalD
             <Table>
               <TableHeader>
                 <TableRow className="border-b">
-                  <TableHead className="sticky left-0 bg-background min-w-[160px] h-8 text-xs font-medium">Post</TableHead>
-                  {periods.map((period, idx) => (
-                    <TableHead key={idx} className="text-right h-8 text-xs font-medium px-3">
-                      {getYearLabel(period.periode)}
+                  <TableHead className="sticky left-0 bg-background min-w-[100px] h-8 text-xs font-medium">År</TableHead>
+                  {incomeMetrics.map((metric) => (
+                    <TableHead key={metric.key} className="text-right h-8 text-xs font-medium px-3 min-w-[120px]">
+                      {metric.label}
                     </TableHead>
                   ))}
                 </TableRow>
               </TableHeader>
               <TableBody>
-                <TableRow className="hover:bg-muted/30">
-                  <TableCell className="sticky left-0 bg-background font-medium text-xs py-1.5">Nettoomsætning</TableCell>
-                  {periods.map((period, idx) => (
-                    <TableCell key={idx} className="text-right text-xs py-1.5 px-3">{formatThousands(period.nettoomsaetning)}</TableCell>
-                  ))}
-                </TableRow>
-                <TableRow className="hover:bg-muted/30">
-                  <TableCell className="sticky left-0 bg-background font-medium text-xs py-1.5">Bruttofortjeneste</TableCell>
-                  {periods.map((period, idx) => (
-                    <TableCell key={idx} className="text-right text-xs py-1.5 px-3">{formatThousands(period.bruttofortjeneste)}</TableCell>
-                  ))}
-                </TableRow>
-                <TableRow className="hover:bg-muted/30">
-                  <TableCell className="sticky left-0 bg-background font-medium text-xs py-1.5">Driftsresultat (EBIT)</TableCell>
-                  {periods.map((period, idx) => (
-                    <TableCell key={idx} className="text-right text-xs py-1.5 px-3">{formatThousands(period.driftsresultat)}</TableCell>
-                  ))}
-                </TableRow>
-                <TableRow className="hover:bg-muted/30">
-                  <TableCell className="sticky left-0 bg-background font-medium text-xs py-1.5">Resultat før skat</TableCell>
-                  {periods.map((period, idx) => (
-                    <TableCell key={idx} className="text-right text-xs py-1.5 px-3">{formatThousands(period.resultatFoerSkat)}</TableCell>
-                  ))}
-                </TableRow>
-                <TableRow className="hover:bg-muted/30">
-                  <TableCell className="sticky left-0 bg-background font-medium text-xs py-1.5">Årets Resultat</TableCell>
-                  {periods.map((period, idx) => (
-                    <TableCell key={idx} className="text-right text-xs py-1.5 px-3">{formatThousands(period.aaretsResultat)}</TableCell>
-                  ))}
-                </TableRow>
+                {periods.map((period, idx) => (
+                  <TableRow key={idx} className="hover:bg-muted/30">
+                    <TableCell className="sticky left-0 bg-background font-medium text-xs py-1.5">
+                      {getYearLabel(period.periode)}
+                    </TableCell>
+                    {incomeMetrics.map((metric) => (
+                      <TableCell key={metric.key} className="text-right text-xs py-1.5 px-3">
+                        {formatThousands(period[metric.key])}
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                ))}
               </TableBody>
             </Table>
           </div>
@@ -131,51 +138,27 @@ const FinancialSpreadsheet: React.FC<FinancialSpreadsheetProps> = ({ historicalD
             <Table>
               <TableHeader>
                 <TableRow className="border-b">
-                  <TableHead className="sticky left-0 bg-background min-w-[160px] h-8 text-xs font-medium">Post</TableHead>
-                  {periods.map((period, idx) => (
-                    <TableHead key={idx} className="text-right h-8 text-xs font-medium px-3">
-                      {getYearLabel(period.periode)}
+                  <TableHead className="sticky left-0 bg-background min-w-[100px] h-8 text-xs font-medium">År</TableHead>
+                  {balanceMetrics.map((metric) => (
+                    <TableHead key={metric.key} className="text-right h-8 text-xs font-medium px-3 min-w-[120px]">
+                      {metric.label}
                     </TableHead>
                   ))}
                 </TableRow>
               </TableHeader>
               <TableBody>
-                <TableRow className="hover:bg-muted/30">
-                  <TableCell className="sticky left-0 bg-background font-medium text-xs py-1.5">Anlægsaktiver</TableCell>
-                  {periods.map((period, idx) => (
-                    <TableCell key={idx} className="text-right text-xs py-1.5 px-3">{formatThousands(period.anlaegsaktiverValue)}</TableCell>
-                  ))}
-                </TableRow>
-                <TableRow className="hover:bg-muted/30">
-                  <TableCell className="sticky left-0 bg-background font-medium text-xs py-1.5">Omsætningsaktiver</TableCell>
-                  {periods.map((period, idx) => (
-                    <TableCell key={idx} className="text-right text-xs py-1.5 px-3">{formatThousands(period.omsaetningsaktiver)}</TableCell>
-                  ))}
-                </TableRow>
-                <TableRow className="hover:bg-muted/30">
-                  <TableCell className="sticky left-0 bg-background font-medium text-xs py-1.5">Egenkapital</TableCell>
-                  {periods.map((period, idx) => (
-                    <TableCell key={idx} className="text-right text-xs py-1.5 px-3">{formatThousands(period.egenkapital)}</TableCell>
-                  ))}
-                </TableRow>
-                <TableRow className="hover:bg-muted/30">
-                  <TableCell className="sticky left-0 bg-background font-medium text-xs py-1.5">Hensatte forpligtelser</TableCell>
-                  {periods.map((period, idx) => (
-                    <TableCell key={idx} className="text-right text-xs py-1.5 px-3">{formatThousands(period.hensatteForpligtelser)}</TableCell>
-                  ))}
-                </TableRow>
-                <TableRow className="hover:bg-muted/30">
-                  <TableCell className="sticky left-0 bg-background font-medium text-xs py-1.5">Gældsforpligtelser</TableCell>
-                  {periods.map((period, idx) => (
-                    <TableCell key={idx} className="text-right text-xs py-1.5 px-3">{formatThousands(period.gaeldsforpligtelser)}</TableCell>
-                  ))}
-                </TableRow>
-                <TableRow className="hover:bg-muted/30">
-                  <TableCell className="sticky left-0 bg-background font-medium text-xs py-1.5">Årets balance</TableCell>
-                  {periods.map((period, idx) => (
-                    <TableCell key={idx} className="text-right text-xs py-1.5 px-3">{formatThousands(period.statusBalance)}</TableCell>
-                  ))}
-                </TableRow>
+                {periods.map((period, idx) => (
+                  <TableRow key={idx} className="hover:bg-muted/30">
+                    <TableCell className="sticky left-0 bg-background font-medium text-xs py-1.5">
+                      {getYearLabel(period.periode)}
+                    </TableCell>
+                    {balanceMetrics.map((metric) => (
+                      <TableCell key={metric.key} className="text-right text-xs py-1.5 px-3">
+                        {formatThousands(period[metric.key])}
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                ))}
               </TableBody>
             </Table>
           </div>
@@ -188,39 +171,27 @@ const FinancialSpreadsheet: React.FC<FinancialSpreadsheetProps> = ({ historicalD
             <Table>
               <TableHeader>
                 <TableRow className="border-b">
-                  <TableHead className="sticky left-0 bg-background min-w-[160px] h-8 text-xs font-medium">Nøgletal</TableHead>
-                  {periods.map((period, idx) => (
-                    <TableHead key={idx} className="text-right h-8 text-xs font-medium px-3">
-                      {getYearLabel(period.periode)}
+                  <TableHead className="sticky left-0 bg-background min-w-[100px] h-8 text-xs font-medium">År</TableHead>
+                  {ratioMetrics.map((metric) => (
+                    <TableHead key={metric.key} className="text-right h-8 text-xs font-medium px-3 min-w-[120px]">
+                      {metric.label}
                     </TableHead>
                   ))}
                 </TableRow>
               </TableHeader>
               <TableBody>
-                <TableRow className="hover:bg-muted/30">
-                  <TableCell className="sticky left-0 bg-background font-medium text-xs py-1.5">Soliditetsgrad</TableCell>
-                  {periods.map((period, idx) => (
-                    <TableCell key={idx} className="text-right text-xs py-1.5 px-3">{formatPercent(period.soliditetsgrad)}</TableCell>
-                  ))}
-                </TableRow>
-                <TableRow className="hover:bg-muted/30">
-                  <TableCell className="sticky left-0 bg-background font-medium text-xs py-1.5">Likviditetsgrad</TableCell>
-                  {periods.map((period, idx) => (
-                    <TableCell key={idx} className="text-right text-xs py-1.5 px-3">{formatPercent(period.likviditetsgrad)}</TableCell>
-                  ))}
-                </TableRow>
-                <TableRow className="hover:bg-muted/30">
-                  <TableCell className="sticky left-0 bg-background font-medium text-xs py-1.5">Afkastningsgrad</TableCell>
-                  {periods.map((period, idx) => (
-                    <TableCell key={idx} className="text-right text-xs py-1.5 px-3">{formatPercent(period.afkastningsgrad)}</TableCell>
-                  ))}
-                </TableRow>
-                <TableRow className="hover:bg-muted/30">
-                  <TableCell className="sticky left-0 bg-background font-medium text-xs py-1.5">Overskudsgrad</TableCell>
-                  {periods.map((period, idx) => (
-                    <TableCell key={idx} className="text-right text-xs py-1.5 px-3">{formatPercent(period.overskudsgrad)}</TableCell>
-                  ))}
-                </TableRow>
+                {periods.map((period, idx) => (
+                  <TableRow key={idx} className="hover:bg-muted/30">
+                    <TableCell className="sticky left-0 bg-background font-medium text-xs py-1.5">
+                      {getYearLabel(period.periode)}
+                    </TableCell>
+                    {ratioMetrics.map((metric) => (
+                      <TableCell key={metric.key} className="text-right text-xs py-1.5 px-3">
+                        {formatPercent(period[metric.key])}
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                ))}
               </TableBody>
             </Table>
           </div>
