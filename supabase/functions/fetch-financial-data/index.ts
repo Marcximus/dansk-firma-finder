@@ -557,20 +557,49 @@ serve(async (req) => {
       });
       
       // Look for yearly report XML documents - accept ANY XML that's not explicitly quarterly/half-yearly
-      const xbrlDoc = source.dokumenter?.find((doc: any) => {
+      // Look for yearly report XML documents
+      // PRIORITY 1: Pure XBRL (application/xml) - easier to parse
+      // PRIORITY 2: iXBRL (application/xhtml+xml) - requires different parsing
+      const xbrlDocs = source.dokumenter?.filter((doc: any) => {
         const docType = doc.dokumentType?.toUpperCase() || '';
         const mimeType = doc.dokumentMimeType?.toLowerCase() || '';
         
         // Reject quarterly and half-year reports explicitly
         const isNonYearly = docType.includes('KVARTAL') || docType.includes('HALV');
         
-        // Must be XML format (application/xml or application/xhtml+xml)
+        // Reject koncernregnskab (consolidated accounts) - prefer standalone
+        const isKoncern = docType.includes('KONCERNREGNSKAB');
+        
+        // Must be XML format
         const isXMLFormat = mimeType.includes('xml') && mimeType.includes('application');
         
-        // Accept any XML that's not explicitly non-yearly
-        // This will include AARSRAPPORT, AARSRAPPORT_ESEF, AARSRAPPORT_IXBRL, etc.
-        return isXMLFormat && !isNonYearly;
-      });
+        return isXMLFormat && !isNonYearly && !isKoncern;
+      }) || [];
+
+      // Sort documents by priority:
+      // 1. Pure XBRL (application/xml) first
+      // 2. Documents with AARSRAPPORT type
+      // 3. Documents with FINANSIEL in type
+      const xbrlDoc = xbrlDocs.sort((a, b) => {
+        const aType = a.dokumentType?.toUpperCase() || '';
+        const bType = b.dokumentType?.toUpperCase() || '';
+        const aMime = a.dokumentMimeType?.toLowerCase() || '';
+        const bMime = b.dokumentMimeType?.toLowerCase() || '';
+        
+        // Pure XBRL beats iXBRL
+        if (aMime === 'application/xml' && bMime !== 'application/xml') return -1;
+        if (bMime === 'application/xml' && aMime !== 'application/xml') return 1;
+        
+        // AARSRAPPORT (not IXBRL) beats others
+        if (aType === 'AARSRAPPORT' && bType !== 'AARSRAPPORT') return -1;
+        if (bType === 'AARSRAPPORT' && aType !== 'AARSRAPPORT') return 1;
+        
+        // FINANSIEL beats non-finansiel
+        if (aType.includes('FINANSIEL') && !bType.includes('FINANSIEL')) return -1;
+        if (bType.includes('FINANSIEL') && !aType.includes('FINANSIEL')) return 1;
+        
+        return 0;
+      })[0];
       
       if (xbrlDoc) {
         console.log(`[DOC FOUND] ✅ Found Årsrapport XBRL: ${xbrlDoc.dokumentType}`);
