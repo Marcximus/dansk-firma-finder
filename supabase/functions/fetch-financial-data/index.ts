@@ -127,10 +127,11 @@ const parseXBRL = (xmlContent: string, period: string) => {
     // Extract the year from period string (e.g., "2024-01-01 - 2024-12-31" -> "2024")
     const year = period.split(' - ')[0].substring(0, 4);
 
-    // Find context IDs for period ranges (handles non-calendar fiscal years)
+    // Find context IDs for period ranges (allows cross-year periods)
+    // Match periods that END in the target year - fiscal years can start in previous year
     // Used for income statement items
     const periodContextPattern = new RegExp(
-      `<xbrli:context id="([^"]+)">.*?<xbrli:startDate>${year}-\\d{2}-\\d{2}</xbrli:startDate>.*?<xbrli:endDate>${year}-\\d{2}-\\d{2}</xbrli:endDate>.*?</xbrli:context>`,
+      `<xbrli:context id="([^"]+)">.*?<xbrli:startDate>\\d{4}-\\d{2}-\\d{2}</xbrli:startDate>.*?<xbrli:endDate>${year}-\\d{2}-\\d{2}</xbrli:endDate>.*?</xbrli:context>`,
       'gis'
     );
 
