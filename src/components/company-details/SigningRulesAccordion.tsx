@@ -341,7 +341,7 @@ const SigningRulesAccordion: React.FC<SigningRulesAccordionProps> = ({ cvrData }
                     return activeMemberships.map((medlem: any, medlemIndex: number) => {
                       return (
                         <div key={`${orgIndex}-${medlemIndex}`} className="text-[10px] sm:text-xs md:text-sm">
-                          <div className="font-medium text-orange-600 dark:text-orange-500">
+                          <div className="font-medium">
                             {getRoleDisplayName(org.hovedtype, org, medlem, relation)}
                           </div>
                           <div className="text-[9px] sm:text-[10px] md:text-xs text-muted-foreground mt-0.5 sm:mt-1">
