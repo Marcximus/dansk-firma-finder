@@ -384,11 +384,19 @@ const parseXBRL = (xmlContent: string, period: string) => {
       
       // Income Statement (Resultatopgørelse) - use period contexts
       nettoomsaetning: extractValue([
-        'RevenueAndOperatingIncome', // IFRS "finansiel" format - 2023/2024 ✅
-        'Revenue', 'Nettoomsætning', 'NetRevenue', 'Omsætning',
-        'RevenueFromContractsWithCustomers', 'Revenues', // ESEF variants
-        'GrossProfitLoss', 'TotalRevenue', 'Omsaetning',
-        'NetTurnover', 'Turnover', 'Sales'
+        'Revenue', // Most specific - pure operating revenue
+        'Nettoomsætning', // Danish standard tag
+        'Omsætning', // Danish variant
+        'NetRevenue', // English variant
+        'NetTurnover', // English variant
+        'Turnover', // UK variant
+        'Sales', // US variant
+        'RevenueFromContractsWithCustomers', // IFRS 15
+        'Revenues', // Plural variant
+        'TotalRevenue', // Broader than Revenue
+        'Omsaetning', // Danish variant (no umlaut)
+        'GrossProfitLoss', // Sometimes misused for revenue
+        'RevenueAndOperatingIncome' // Last resort - includes investment income
       ], usePeriodContexts),
       
       bruttofortjeneste: extractValue([
