@@ -74,6 +74,32 @@ const extractPeriodFromXBRL = (xmlContent: string, fallbackPeriod?: string): str
   return 'N/A';
 };
 
+// Helper function to validate if a period represents a full year (~12 months)
+const isFullYearPeriod = (periodString: string): boolean => {
+  // Check if period is a full date range with ~12 months
+  const rangeMatch = periodString.match(/(\d{4})-(\d{2})-(\d{2})\s*-\s*(\d{4})-(\d{2})-(\d{2})/);
+  
+  if (rangeMatch) {
+    const startDate = new Date(`${rangeMatch[1]}-${rangeMatch[2]}-${rangeMatch[3]}`);
+    const endDate = new Date(`${rangeMatch[4]}-${rangeMatch[5]}-${rangeMatch[6]}`);
+    const monthsDiff = (endDate.getFullYear() - startDate.getFullYear()) * 12 + 
+                       (endDate.getMonth() - startDate.getMonth());
+    
+    // Accept 11-13 months as yearly
+    if (monthsDiff >= 11 && monthsDiff <= 13) {
+      console.log(`[VALIDATION] ✅ Period validated as full year (${monthsDiff} months): ${periodString}`);
+      return true;
+    } else {
+      console.log(`[VALIDATION] ❌ Period rejected as non-yearly (${monthsDiff} months): ${periodString}`);
+      return false;
+    }
+  }
+  
+  // If we can't parse the period, accept it (don't over-filter)
+  console.log(`[VALIDATION] ⚠️ Could not validate period format, accepting: ${periodString}`);
+  return true;
+};
+
 // Helper function to parse XBRL/XML and extract financial data using regex
 const parseXBRL = (xmlContent: string, period: string) => {
   try {
@@ -536,14 +562,18 @@ serve(async (req) => {
     
     console.log(`[STEP 3] Sorted yearly reports by date. Most recent: ${yearlyHits[0]?._source.offentliggoerelsesTidspunkt}`);
     
-    // Process up to 5 most recent yearly reports to avoid CPU timeouts
-    const reportsToProcess = Math.min(yearlyHits.length, 5);
-    console.log(`[STEP 3] Processing ${reportsToProcess} yearly reports`);
+    // Process up to 15 reports to ensure we get 5 yearly ones (accounting for quarterly/half-year reports)
+    const reportsToProcess = Math.min(yearlyHits.length, 15);
+    console.log(`[STEP 3] Processing up to ${reportsToProcess} reports to find 5 yearly reports`);
 
-    for (let i = 0; i < reportsToProcess; i++) {
+    let processedCount = 0; // Track reports we've examined
+    let yearlyReportsFound = 0; // Track actual yearly reports found
+
+    for (let i = 0; i < reportsToProcess && yearlyReportsFound < 5; i++) {
       const hit = yearlyHits[i];
       const source = hit._source;
       const period = source.regnskabsperiode || source.periode || 'N/A';
+      processedCount++;
       
       // Build report metadata
       const reportMetadata = {
@@ -622,17 +652,26 @@ serve(async (req) => {
             
             // Extract the actual period from XBRL file with metadata fallback
             const actualPeriod = extractPeriodFromXBRL(xbrlContent, period);
-            console.log(`[DEBUG] Report ${i+1}/${reportsToProcess}: Metadata period = ${period}, Extracted XBRL period = ${actualPeriod}`);
+            console.log(`[DEBUG] Report ${processedCount}/${reportsToProcess}: Metadata period = ${period}, Extracted XBRL period = ${actualPeriod}`);
+            
+            // VALIDATION: Check if this is actually a full year report
+            if (!isFullYearPeriod(actualPeriod)) {
+              console.log(`[SKIP] Skipping non-yearly report for period ${actualPeriod}`);
+              continue; // Skip to next report without counting this one
+            }
+            
             console.log(`[STEP 3] Parsing XBRL for period ${actualPeriod}...`);
             const parsedData = parseXBRL(xbrlContent, actualPeriod);
             
             if (parsedData) {
               console.log(`[DEBUG] ✅ Successfully parsed data with ${Object.keys(parsedData).filter(k => parsedData[k] !== null).length} fields`);
               financialData.push(parsedData);
+              yearlyReportsFound++;
+              console.log(`✅ Found yearly report ${yearlyReportsFound}/5`);
               
-              // Stop once we have 5 parsed financial datasets
-              if (financialData.length >= 5) {
-                console.log(`✅ Successfully parsed 5 periods of financial data - stopping`);
+              // Stop once we have 5 yearly reports
+              if (yearlyReportsFound >= 5) {
+                console.log(`✅ Successfully found 5 yearly reports - stopping`);
                 break;
               }
             } else {
@@ -653,6 +692,7 @@ serve(async (req) => {
       }
     }
 
+    console.log(`[SUMMARY] Processed ${processedCount} reports, found ${yearlyReportsFound} yearly reports`);
     console.log(`[RESULT] Returning ${financialReports.length} report metadata and ${financialData.length} parsed financial datasets`);
 
     return new Response(
