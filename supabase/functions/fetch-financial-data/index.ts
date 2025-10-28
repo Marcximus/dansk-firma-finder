@@ -124,28 +124,6 @@ const parseXBRL = (xmlContent: string, period: string) => {
   try {
     console.log(`[XBRL Parser] Processing ${xmlContent.length} bytes for period ${period}`);
     
-    // Extract the year from the period for context filtering
-    const year = period.split(' - ')[0].substring(0, 4); // Extract year like "2024"
-    
-    // Find the context IDs for this specific period
-    const periodContextPattern = new RegExp(
-      `<xbrli:context id="([^"]+)">.*?<xbrli:startDate>${year}-01-01</xbrli:startDate>.*?<xbrli:endDate>${year}-12-31</xbrli:endDate>.*?</xbrli:context>`,
-      'gis'
-    );
-    const instantContextPattern = new RegExp(
-      `<xbrli:context id="([^"]+)">.*?<xbrli:instant>${year}-12-31</xbrli:instant>.*?</xbrli:context>`,
-      'gis'
-    );
-    
-    const periodMatches = Array.from(xmlContent.matchAll(periodContextPattern));
-    const instantMatches = Array.from(xmlContent.matchAll(instantContextPattern));
-    
-    const periodContextIds = periodMatches.map(m => m[1]); // e.g., ["ctx-5"]
-    const instantContextIds = instantMatches.map(m => m[1]); // e.g., ["ctx-7"]
-    
-    console.log(`[CONTEXT] Period contexts for ${year}: ${periodContextIds.join(', ') || 'none'}`);
-    console.log(`[CONTEXT] Instant contexts for ${year}: ${instantContextIds.join(', ') || 'none'}`);
-    
       /**
        * Parse a string value to number, handling spaces, commas, and negatives
        */
@@ -168,9 +146,9 @@ const parseXBRL = (xmlContent: string, period: string) => {
 
       /**
        * Extract a numeric value from XBRL content by trying multiple tag patterns
-       * Now supports context filtering to extract the correct year's data
+       * Improved version that handles 2023/2024 IFRS-FULL format
        */
-      const extractValue = (tagNames: string[], preferredContexts?: string[]): number | null => {
+      const extractValue = (tagNames: string[]): number | null => {
         for (const tagName of tagNames) {
           // Pattern 1: NOV: custom namespace (Novo Holdings 2023/2024)
           const novPattern = new RegExp(
@@ -178,22 +156,8 @@ const parseXBRL = (xmlContent: string, period: string) => {
             'gi'
           );
           let matches = Array.from(xmlContent.matchAll(novPattern));
-          
-          // Filter by context if provided
-          if (preferredContexts && preferredContexts.length > 0) {
-            matches = matches.filter(match => {
-              const fullTag = match[0];
-              const contextMatch = fullTag.match(/contextRef="([^"]+)"/);
-              if (contextMatch) {
-                return preferredContexts.includes(contextMatch[1]);
-              }
-              return false;
-            });
-          }
-          
           if (matches.length > 0) {
-            const contextId = matches[0][0].match(/contextRef="([^"]+)"/)?.[1] || 'no-context';
-            console.log(`✅ [MATCH] Found ${tagName} using NOV: namespace (context: ${contextId})`);
+            console.log(`✅ [MATCH] Found ${tagName} using NOV: namespace`);
             const value = parseNumericValue(matches[0][1]);
             if (value !== null) return value;
           }
@@ -204,22 +168,8 @@ const parseXBRL = (xmlContent: string, period: string) => {
             'gi'
           );
           matches = Array.from(xmlContent.matchAll(ifrsPattern));
-          
-          // Filter by context if provided
-          if (preferredContexts && preferredContexts.length > 0) {
-            matches = matches.filter(match => {
-              const fullTag = match[0];
-              const contextMatch = fullTag.match(/contextRef="([^"]+)"/);
-              if (contextMatch) {
-                return preferredContexts.includes(contextMatch[1]);
-              }
-              return false;
-            });
-          }
-          
           if (matches.length > 0) {
-            const contextId = matches[0][0].match(/contextRef="([^"]+)"/)?.[1] || 'no-context';
-            console.log(`✅ [MATCH] Found ${tagName} using ifrs-full: namespace (context: ${contextId})`);
+            console.log(`✅ [MATCH] Found ${tagName} using ifrs-full: namespace`);
             const value = parseNumericValue(matches[0][1]);
             if (value !== null) return value;
           }
@@ -230,21 +180,8 @@ const parseXBRL = (xmlContent: string, period: string) => {
             'gi'
           );
           matches = Array.from(xmlContent.matchAll(ixbrlPattern));
-          
-          if (preferredContexts && preferredContexts.length > 0) {
-            matches = matches.filter(match => {
-              const fullTag = match[0];
-              const contextMatch = fullTag.match(/contextRef="([^"]+)"/);
-              if (contextMatch) {
-                return preferredContexts.includes(contextMatch[1]);
-              }
-              return false;
-            });
-          }
-          
           if (matches.length > 0) {
-            const contextId = matches[0][0].match(/contextRef="([^"]+)"/)?.[1] || 'no-context';
-            console.log(`✅ [MATCH] Found ${tagName} using iXBRL inline (context: ${contextId})`);
+            console.log(`✅ [MATCH] Found ${tagName} using iXBRL inline`);
             const value = parseNumericValue(matches[0][1]);
             if (value !== null) return value;
           }
@@ -255,21 +192,8 @@ const parseXBRL = (xmlContent: string, period: string) => {
             'gi'
           );
           matches = Array.from(xmlContent.matchAll(fsaPattern));
-          
-          if (preferredContexts && preferredContexts.length > 0) {
-            matches = matches.filter(match => {
-              const fullTag = match[0];
-              const contextMatch = fullTag.match(/contextRef="([^"]+)"/);
-              if (contextMatch) {
-                return preferredContexts.includes(contextMatch[1]);
-              }
-              return false;
-            });
-          }
-          
           if (matches.length > 0) {
-            const contextId = matches[0][0].match(/contextRef="([^"]+)"/)?.[1] || 'no-context';
-            console.log(`✅ [MATCH] Found ${tagName} using fsa: namespace (context: ${contextId})`);
+            console.log(`✅ [MATCH] Found ${tagName} using fsa: namespace`);
             const value = parseNumericValue(matches[0][1]);
             if (value !== null) return value;
           }
@@ -280,21 +204,8 @@ const parseXBRL = (xmlContent: string, period: string) => {
             'gi'
           );
           matches = Array.from(xmlContent.matchAll(anyNsPattern));
-          
-          if (preferredContexts && preferredContexts.length > 0) {
-            matches = matches.filter(match => {
-              const fullTag = match[0];
-              const contextMatch = fullTag.match(/contextRef="([^"]+)"/);
-              if (contextMatch) {
-                return preferredContexts.includes(contextMatch[1]);
-              }
-              return false;
-            });
-          }
-          
           if (matches.length > 0) {
-            const contextId = matches[0][0].match(/contextRef="([^"]+)"/)?.[1] || 'no-context';
-            console.log(`✅ [MATCH] Found ${tagName} using wildcard namespace (context: ${contextId})`);
+            console.log(`✅ [MATCH] Found ${tagName} using wildcard namespace`);
             const value = parseNumericValue(matches[0][1]);
             if (value !== null) return value;
           }
@@ -305,21 +216,8 @@ const parseXBRL = (xmlContent: string, period: string) => {
             'gi'
           );
           matches = Array.from(xmlContent.matchAll(noNsPattern));
-          
-          if (preferredContexts && preferredContexts.length > 0) {
-            matches = matches.filter(match => {
-              const fullTag = match[0];
-              const contextMatch = fullTag.match(/contextRef="([^"]+)"/);
-              if (contextMatch) {
-                return preferredContexts.includes(contextMatch[1]);
-              }
-              return false;
-            });
-          }
-          
           if (matches.length > 0) {
-            const contextId = matches[0][0].match(/contextRef="([^"]+)"/)?.[1] || 'no-context';
-            console.log(`✅ [MATCH] Found ${tagName} without namespace (context: ${contextId})`);
+            console.log(`✅ [MATCH] Found ${tagName} without namespace`);
             const value = parseNumericValue(matches[0][1]);
             if (value !== null) return value;
           }
@@ -332,78 +230,78 @@ const parseXBRL = (xmlContent: string, period: string) => {
     const financialData = {
       periode: period,
       
-      // Income Statement (Resultatopgørelse) - use period contexts
+      // Income Statement (Resultatopgørelse)
       nettoomsaetning: extractValue([
         'RevenueAndOperatingIncome', // IFRS "finansiel" format - 2023/2024 ✅
         'Revenue', 'Nettoomsætning', 'NetRevenue', 'Omsætning',
         'RevenueFromContractsWithCustomers', 'Revenues', // ESEF variants
         'GrossProfitLoss', 'TotalRevenue', 'Omsaetning',
         'NetTurnover', 'Turnover', 'Sales'
-      ], periodContextIds),
+      ]),
       
       bruttofortjeneste: extractValue([
         'GrossProfit', 'GrossResult', 'Bruttofortjeneste', 'Bruttoavance',
         'GrossProfitOrLoss', 'GrossProfitLoss', 'Bruttoavanse' // ESEF variant
-      ], periodContextIds),
+      ]),
       
       driftsresultat: extractValue([
         'ProfitLossFromOperatingActivities', // IFRS "finansiel" format ✅
         'OperatingProfitLoss', 
         'Driftsresultat', 'EBIT', 'OperatingProfit'
-      ], periodContextIds),
+      ]),
       
       resultatFoerSkat: extractValue([
         'ProfitLossBeforeTax', 'ResultatFørSkat', 'ProfitBeforeTax',
         'ProfitLossFromOrdinaryActivitiesBeforeTax'
-      ], periodContextIds),
+      ]),
       
       aaretsResultat: extractValue([
         'ProfitLoss', 'NetIncome', 'ÅretsResultat', 'Resultat',
         'ProfitOrLoss', 'ProfitLossAttributableToOwnersOfParent', // ESEF variants
         'ProfitLossForYear', 'NetProfitLoss'
-      ], periodContextIds),
+      ]),
       
-      // Balance Sheet - Assets (Aktiver) - use instant contexts
+      // Balance Sheet - Assets (Aktiver)
       anlaegsaktiverValue: extractValue([
         'NoncurrentAssets', 'Anlægsaktiver', 'FixedAssets', 
         'LongtermAssets', 'NonCurrentAssets'
-      ], instantContextIds),
+      ]),
       
       omsaetningsaktiver: extractValue([
         'CurrentAssets', 'Omsætningsaktiver', 'ShorttermAssets',
         'ShortTermAssets'
-      ], instantContextIds),
+      ]),
       
       statusBalance: extractValue([
         'Assets', // IFRS "finansiel" format ✅
         'TotalAssets', 'AktiverIAlt', 'Balance',
         'SumOfAssets', 'TotalAssetsAndEquityAndLiabilities' // ESEF variant (balance sheet total)
-      ], instantContextIds),
+      ]),
       
-      // Balance Sheet - Equity & Liabilities (Passiver) - use instant contexts
+      // Balance Sheet - Equity & Liabilities (Passiver)
       egenkapital: extractValue([
         'Equity', // IFRS "finansiel" format ✅
         'Egenkapital', 'ShareholdersEquity',
         'TotalEquity', 'EquityAttributableToOwnersOfParent',
         'EquityAttributableToEquityHoldersOfParent', 'TotalShareholdersEquity' // ESEF variant
-      ], instantContextIds),
+      ]),
       
       hensatteForpligtelser: extractValue([
         'Provisions', 'HensatteForpligtelser', 'ProvisionsForLiabilities',
         'TotalProvisions'
-      ], instantContextIds),
+      ]),
       
       gaeldsforpligtelser: extractValue([
         'Liabilities', 'Gældsforpligtelser', 'TotalLiabilities',
         'LiabilitiesOtherThanProvisions',
         'TotalLiabilitiesAndEquity', 'LiabilitiesAndEquity' // ESEF variants
-      ], instantContextIds),
+      ]),
       
       kortfristetGaeld: extractValue([
         'ShorttermLiabilitiesOtherThanProvisions', 'KortfristetGæld', 
         'CurrentLiabilities', 'ShortTermLiabilities',
         'ShorttermDebt'
-      ], instantContextIds)
+      ])
     };
 
     // Calculate financial ratios
