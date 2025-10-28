@@ -591,14 +591,30 @@ serve(async (req) => {
       // Try to find XBRL document URL/GUID
       let documentUrl = null;
       
-      // Look for XBRL document specifically (application/xml)
-      const xbrlDoc = source.dokumenter?.find((doc: any) => 
-        (doc.dokumentMimeType?.toLowerCase().includes('xml') || 
-         doc.dokumentType?.toLowerCase().includes('xbrl')) &&
-        doc.dokumentMimeType?.toLowerCase().includes('application')
-      );
+      // Log all available documents for debugging
+      console.log(`[DOC SEARCH] Found ${source.dokumenter?.length || 0} documents for period ${period}`);
+      source.dokumenter?.forEach((doc: any) => {
+        console.log(`  - Type: ${doc.dokumentType}, MIME: ${doc.dokumentMimeType}`);
+      });
+      
+      // Look for "Årsrapport XBRL" documents specifically - ignore iXBRL and other formats
+      const xbrlDoc = source.dokumenter?.find((doc: any) => {
+        const docType = doc.dokumentType?.toLowerCase() || '';
+        const mimeType = doc.dokumentMimeType?.toLowerCase() || '';
+        
+        // We ONLY want "Årsrapport XBRL" - explicit yearly reports in pure XBRL format
+        // This excludes:
+        // - iXBRL (inline XBRL used for quarterly/half-year reports)
+        // - Halvårsrapport iXBRL
+        // - Kvartalsrapport iXBRL
+        const isYearlyXBRL = docType.includes('årsrapport') && docType.includes('xbrl') && !docType.includes('ixbrl');
+        const isXMLFormat = mimeType.includes('xml') && mimeType.includes('application');
+        
+        return isYearlyXBRL && isXMLFormat;
+      });
       
       if (xbrlDoc) {
+        console.log(`[DOC FOUND] ✅ Found Årsrapport XBRL: ${xbrlDoc.dokumentType}`);
         if (xbrlDoc.dokumentUrl) {
           documentUrl = xbrlDoc.dokumentUrl;
           reportMetadata.documentUrl = documentUrl;
@@ -608,14 +624,18 @@ serve(async (req) => {
           reportMetadata.documentGuid = guid;
           reportMetadata.documentUrl = documentUrl;
         }
+      } else {
+        console.log(`[DOC FOUND] ❌ No Årsrapport XBRL found - skipping this report`);
+        continue; // Skip to next report if we don't have the right document type
       }
-      // Fallback: check for dokumentUrl directly in source
-      else if (source.dokumentUrl) {
+      
+      // Fallback: check for dokumentUrl directly in source (only reached if xbrlDoc exists)
+      if (!documentUrl && source.dokumentUrl) {
         documentUrl = source.dokumentUrl;
         reportMetadata.documentUrl = documentUrl;
       }
       // Fallback: use _id from the hit itself
-      else if (hit._id) {
+      else if (!documentUrl && hit._id) {
         documentUrl = `http://distribution.virk.dk/dokumenter/${hit._id}/download`;
         reportMetadata.documentGuid = hit._id;
         reportMetadata.documentUrl = documentUrl;
