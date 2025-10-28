@@ -109,22 +109,50 @@ const parseXBRL = (xmlContent: string, period: string) => {
     // Matches: <anyprefix:TagName contextRef="..." unitRef="..." decimals="...">VALUE</anyprefix:TagName>
     const extractValue = (tagNames: string[]): number | null => {
       for (const tagName of tagNames) {
-        // Create regex that matches any namespace prefix
-        // Pattern: <prefix:TagName ...>NUMBER</prefix:TagName>
-        const pattern = new RegExp(
+        // Pattern 1: Standard XBRL format: <fsa:Revenue>1500000000</fsa:Revenue>
+        const standardPattern = new RegExp(
           `<[^:]+:${tagName}[^>]*>\\s*([\\d.-]+)\\s*</[^:]+:${tagName}>`,
           'gi'
         );
         
-        const matches = Array.from(xmlContent.matchAll(pattern));
+        // Pattern 2: ESEF format with ifrs-full namespace
+        const esefPattern = new RegExp(
+          `<ifrs-full:${tagName}[^>]*>\\s*([\\d.,-]+)\\s*</ifrs-full:${tagName}>`,
+          'gi'
+        );
         
-        if (matches.length > 0) {
-          // Take the first valid number found
-          for (const match of matches) {
-            const value = parseFloat(match[1]);
-            if (!isNaN(value) && value !== 0) {
-              console.log(`✅ Found ${tagName}: ${value}`);
-              return value;
+        // Pattern 3: iXBRL inline format
+        const ixbrlPattern = new RegExp(
+          `<ix:[^>]+name="[^"]*:${tagName}"[^>]*>([\\d.,-]+)</ix:[^>]+>`,
+          'gi'
+        );
+        
+        // Pattern 4: No namespace
+        const noNamespacePattern = new RegExp(
+          `<${tagName}[^>]*>\\s*([\\d.,-]+)\\s*</${tagName}>`,
+          'gi'
+        );
+        
+        // Try all patterns
+        for (const pattern of [standardPattern, esefPattern, ixbrlPattern, noNamespacePattern]) {
+          const matches = Array.from(xmlContent.matchAll(pattern));
+          
+          if (matches.length > 0) {
+            for (const match of matches) {
+              // Remove thousand separators and parse
+              const cleanValue = match[1].replace(/[.,]/g, (m, offset, str) => {
+                const lastDot = str.lastIndexOf('.');
+                const lastComma = str.lastIndexOf(',');
+                const decimalPos = Math.max(lastDot, lastComma);
+                // Keep last separator as decimal, remove others
+                return offset === decimalPos && offset > str.length - 4 ? '.' : '';
+              });
+              
+              const value = parseFloat(cleanValue);
+              if (!isNaN(value) && value !== 0) {
+                console.log(`✅ Found ${tagName}: ${value}`);
+                return value;
+              }
             }
           }
         }
@@ -139,13 +167,14 @@ const parseXBRL = (xmlContent: string, period: string) => {
       // Income Statement (Resultatopgørelse)
       nettoomsaetning: extractValue([
         'Revenue', 'Nettoomsætning', 'NetRevenue', 'Omsætning',
+        'RevenueFromContractsWithCustomers', 'Revenues', // ESEF variants
         'GrossProfitLoss', 'TotalRevenue', 'Omsaetning',
         'NetTurnover', 'Turnover', 'Sales'
       ]),
       
       bruttofortjeneste: extractValue([
         'GrossProfit', 'GrossResult', 'Bruttofortjeneste', 'Bruttoavance',
-        'GrossProfitOrLoss', 'GrossProfitLoss', 'Bruttoavanse'
+        'GrossProfitOrLoss', 'GrossProfitLoss', 'Bruttoavanse' // ESEF variant
       ]),
       
       driftsresultat: extractValue([
@@ -160,6 +189,7 @@ const parseXBRL = (xmlContent: string, period: string) => {
       
       aaretsResultat: extractValue([
         'ProfitLoss', 'NetIncome', 'ÅretsResultat', 'Resultat',
+        'ProfitOrLoss', 'ProfitLossAttributableToOwnersOfParent', // ESEF variants
         'ProfitLossForYear', 'NetProfitLoss'
       ]),
       
@@ -176,14 +206,14 @@ const parseXBRL = (xmlContent: string, period: string) => {
       
       statusBalance: extractValue([
         'Assets', 'TotalAssets', 'AktiverIAlt', 'Balance',
-        'SumOfAssets'
+        'SumOfAssets', 'TotalAssetsAndEquityAndLiabilities' // ESEF variant (balance sheet total)
       ]),
       
       // Balance Sheet - Equity & Liabilities (Passiver)
       egenkapital: extractValue([
         'Equity', 'Egenkapital', 'ShareholdersEquity',
         'TotalEquity', 'EquityAttributableToOwnersOfParent',
-        'EquityAttributableToEquityHoldersOfParent', 'TotalShareholdersEquity'
+        'EquityAttributableToEquityHoldersOfParent', 'TotalShareholdersEquity' // ESEF variant
       ]),
       
       hensatteForpligtelser: extractValue([
@@ -193,7 +223,8 @@ const parseXBRL = (xmlContent: string, period: string) => {
       
       gaeldsforpligtelser: extractValue([
         'Liabilities', 'Gældsforpligtelser', 'TotalLiabilities',
-        'LiabilitiesOtherThanProvisions'
+        'LiabilitiesOtherThanProvisions',
+        'TotalLiabilitiesAndEquity', 'LiabilitiesAndEquity' // ESEF variants
       ]),
       
       kortfristetGaeld: extractValue([
@@ -247,6 +278,8 @@ const parseXBRL = (xmlContent: string, period: string) => {
       return result;
     } else {
       console.log(`⚠️ No financial data found in XBRL for period ${period}`);
+      console.log(`   XML sample (first 500 chars): ${xmlContent.slice(0, 500)}`);
+      console.log(`   XML contains: ${xmlContent.includes('ifrs-full') ? 'ESEF/IFRS' : xmlContent.includes('fsa:') ? 'FSA' : 'Unknown'} format`);
       return null;
     }
     
@@ -731,6 +764,65 @@ serve(async (req) => {
               }
             } else {
               console.log(`[DEBUG] ⚠️ No data extracted from XBRL for period ${actualPeriod}`);
+              
+              // Try fallback: look for "FINANSIEL" variant document
+              console.log(`[FALLBACK] Trying alternate XBRL document...`);
+              const finansielDoc = source.dokumenter?.find((doc: any) => {
+                const docType = (doc.dokumentType || '').toUpperCase();
+                const mimeType = (doc.dokumentMimeType || '').toLowerCase();
+                return docType.includes('FINANSIEL') && mimeType === 'application/xml';
+              });
+              
+              if (finansielDoc) {
+                console.log(`[FALLBACK] Found FINANSIEL document, downloading...`);
+                const REGNSKABER_BASE_URL = 'http://regnskaber.virk.dk/';
+                const fallbackUrl = finansielDoc.dokumentUrl || `${REGNSKABER_BASE_URL}${cvr}/${finansielDoc.dokumentGuid}.xml`;
+                
+                try {
+                  const fallbackController = new AbortController();
+                  const fallbackTimeoutId = setTimeout(() => fallbackController.abort(), 8000);
+                  
+                  const fallbackResponse = await fetch(fallbackUrl, {
+                    headers: downloadHeaders,
+                    signal: fallbackController.signal
+                  });
+                  
+                  clearTimeout(fallbackTimeoutId);
+                  
+                  if (fallbackResponse.ok) {
+                    const fallbackXbrlText = await fallbackResponse.text();
+                    console.log(`[FALLBACK] Downloaded FINANSIEL document (${fallbackXbrlText.length} bytes)`);
+                    
+                    const fallbackParsedData = parseXBRL(fallbackXbrlText, actualPeriod);
+                    
+                    if (fallbackParsedData) {
+                      const yearMatch = actualPeriod.match(/(\d{4})/);
+                      const reportYear = yearMatch ? parseInt(yearMatch[1]) : null;
+                      
+                      console.log(`[FALLBACK] ✅ Successfully parsed FINANSIEL document`);
+                      financialData.push(fallbackParsedData);
+                      yearlyReportsFound++;
+                      
+                      if (reportYear) {
+                        yearsProcessed.add(reportYear);
+                        console.log(`[YEAR TRACKING] ✅ Successfully processed year ${reportYear} (fallback)`);
+                        console.log(`[YEAR TRACKING] Years processed so far: ${Array.from(yearsProcessed).sort().reverse().join(', ')}`);
+                      }
+                      
+                      console.log(`✅ Found yearly report ${yearlyReportsFound}/5 (fallback)`);
+                      
+                      if (yearlyReportsFound >= 5) {
+                        console.log(`✅ Successfully found 5 yearly reports - stopping`);
+                        break;
+                      }
+                    }
+                  }
+                } catch (fallbackError) {
+                  console.log(`[FALLBACK] Failed to fetch or parse FINANSIEL document:`, fallbackError.message);
+                }
+              } else {
+                console.log(`[FALLBACK] No FINANSIEL document available`);
+              }
             }
           } else {
             console.warn(`⚠️ Failed to download XBRL: ${xbrlResponse.status} - ${documentUrl}`);
