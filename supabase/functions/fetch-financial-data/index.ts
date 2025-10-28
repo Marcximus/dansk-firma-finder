@@ -127,17 +127,17 @@ const parseXBRL = (xmlContent: string, period: string) => {
     // Extract the year from period string (e.g., "2024-01-01 - 2024-12-31" -> "2024")
     const year = period.split(' - ')[0].substring(0, 4);
 
-    // Find context IDs for period ranges (e.g., 2024-01-01 to 2024-12-31)
+    // Find context IDs for period ranges (handles non-calendar fiscal years)
     // Used for income statement items
     const periodContextPattern = new RegExp(
-      `<xbrli:context id="([^"]+)">.*?<xbrli:startDate>${year}-01-01</xbrli:startDate>.*?<xbrli:endDate>${year}-12-31</xbrli:endDate>.*?</xbrli:context>`,
+      `<xbrli:context id="([^"]+)">.*?<xbrli:startDate>${year}-\\d{2}-\\d{2}</xbrli:startDate>.*?<xbrli:endDate>${year}-\\d{2}-\\d{2}</xbrli:endDate>.*?</xbrli:context>`,
       'gis'
     );
 
-    // Find context IDs for instant points (e.g., 2024-12-31)
+    // Find context IDs for instant points (handles any date within the year)
     // Used for balance sheet items
     const instantContextPattern = new RegExp(
-      `<xbrli:context id="([^"]+)">.*?<xbrli:instant>${year}-12-31</xbrli:instant>.*?</xbrli:context>`,
+      `<xbrli:context id="([^"]+)">.*?<xbrli:instant>${year}-\\d{2}-\\d{2}</xbrli:instant>.*?</xbrli:context>`,
       'gis'
     );
 
@@ -149,6 +149,18 @@ const parseXBRL = (xmlContent: string, period: string) => {
 
     console.log(`[CONTEXT] Period contexts for ${year}: ${periodContextIds.join(', ')}`);
     console.log(`[CONTEXT] Instant contexts for ${year}: ${instantContextIds.join(', ')}`);
+
+    // Fallback: If no contexts found, it's likely an old FSA report without context tags
+    // In this case, we'll pass undefined to extractValue to skip context filtering entirely
+    const usePeriodContexts = periodContextIds.length > 0 ? periodContextIds : undefined;
+    const useInstantContexts = instantContextIds.length > 0 ? instantContextIds : undefined;
+
+    if (!usePeriodContexts) {
+      console.log(`[CONTEXT] No period contexts found - using fallback mode (no context filtering)`);
+    }
+    if (!useInstantContexts) {
+      console.log(`[CONTEXT] No instant contexts found - using fallback mode (no context filtering)`);
+    }
     
       /**
        * Parse a string value to number, handling spaces, commas, and negatives
@@ -184,7 +196,7 @@ const parseXBRL = (xmlContent: string, period: string) => {
           let matches = Array.from(xmlContent.matchAll(novPattern));
           
         // Filter by context if preferred contexts are provided
-        if (preferredContexts && preferredContexts.length > 0) {
+        if (preferredContexts !== undefined && preferredContexts.length > 0) {
           matches = matches.filter(match => {
             const fullTag = match[0];
             const contextMatch = fullTag.match(/contextRef="([^"]+)"/);
@@ -211,7 +223,7 @@ const parseXBRL = (xmlContent: string, period: string) => {
           matches = Array.from(xmlContent.matchAll(ifrsPattern));
           
         // Filter by context if preferred contexts are provided
-        if (preferredContexts && preferredContexts.length > 0) {
+        if (preferredContexts !== undefined && preferredContexts.length > 0) {
           matches = matches.filter(match => {
             const fullTag = match[0];
             const contextMatch = fullTag.match(/contextRef="([^"]+)"/);
@@ -238,7 +250,7 @@ const parseXBRL = (xmlContent: string, period: string) => {
           matches = Array.from(xmlContent.matchAll(ixbrlPattern));
           
           // Filter by context if preferred contexts are provided
-          if (preferredContexts && preferredContexts.length > 0) {
+          if (preferredContexts !== undefined && preferredContexts.length > 0) {
             matches = matches.filter(match => {
               const fullTag = match[0];
               const contextMatch = fullTag.match(/contextRef="([^"]+)"/);
@@ -265,7 +277,7 @@ const parseXBRL = (xmlContent: string, period: string) => {
           matches = Array.from(xmlContent.matchAll(fsaPattern));
           
           // Filter by context if preferred contexts are provided
-          if (preferredContexts && preferredContexts.length > 0) {
+          if (preferredContexts !== undefined && preferredContexts.length > 0) {
             matches = matches.filter(match => {
               const fullTag = match[0];
               const contextMatch = fullTag.match(/contextRef="([^"]+)"/);
@@ -292,7 +304,7 @@ const parseXBRL = (xmlContent: string, period: string) => {
           matches = Array.from(xmlContent.matchAll(anyNsPattern));
           
           // Filter by context if preferred contexts are provided
-          if (preferredContexts && preferredContexts.length > 0) {
+          if (preferredContexts !== undefined && preferredContexts.length > 0) {
             matches = matches.filter(match => {
               const fullTag = match[0];
               const contextMatch = fullTag.match(/contextRef="([^"]+)"/);
@@ -319,7 +331,7 @@ const parseXBRL = (xmlContent: string, period: string) => {
           matches = Array.from(xmlContent.matchAll(noNsPattern));
           
           // Filter by context if preferred contexts are provided
-          if (preferredContexts && preferredContexts.length > 0) {
+          if (preferredContexts !== undefined && preferredContexts.length > 0) {
             matches = matches.filter(match => {
               const fullTag = match[0];
               const contextMatch = fullTag.match(/contextRef="([^"]+)"/);
@@ -353,71 +365,76 @@ const parseXBRL = (xmlContent: string, period: string) => {
         'RevenueFromContractsWithCustomers', 'Revenues', // ESEF variants
         'GrossProfitLoss', 'TotalRevenue', 'Omsaetning',
         'NetTurnover', 'Turnover', 'Sales'
-      ], periodContextIds),
+      ], usePeriodContexts),
       
       bruttofortjeneste: extractValue([
         'GrossProfit', 'GrossResult', 'Bruttofortjeneste', 'Bruttoavance',
         'GrossProfitOrLoss', 'GrossProfitLoss', 'Bruttoavanse' // ESEF variant
-      ], periodContextIds),
+      ], usePeriodContexts),
       
       driftsresultat: extractValue([
         'ProfitLossFromOperatingActivities', // IFRS "finansiel" format ✅
         'OperatingProfitLoss', 
         'Driftsresultat', 'EBIT', 'OperatingProfit'
-      ], periodContextIds),
+      ], usePeriodContexts),
       
       resultatFoerSkat: extractValue([
         'ProfitLossBeforeTax', 'ResultatFørSkat', 'ProfitBeforeTax',
         'ProfitLossFromOrdinaryActivitiesBeforeTax'
-      ], periodContextIds),
+      ], usePeriodContexts),
       
       aaretsResultat: extractValue([
         'ProfitLoss', 'NetIncome', 'ÅretsResultat', 'Resultat',
         'ProfitOrLoss', 'ProfitLossAttributableToOwnersOfParent', // ESEF variants
         'ProfitLossForYear', 'NetProfitLoss'
-      ], periodContextIds),
+      ], usePeriodContexts),
       
       // Balance Sheet - Assets (Aktiver) - use instant contexts
       anlaegsaktiverValue: extractValue([
+        'Anlaeggsaktiver', 'AnlaegsAktiver', 'Anlaegsaktiver', // FSA Danish variants FIRST
         'NoncurrentAssets', 'Anlægsaktiver', 'FixedAssets', 
         'LongtermAssets', 'NonCurrentAssets'
-      ], instantContextIds),
+      ], useInstantContexts),
       
       omsaetningsaktiver: extractValue([
+        'OmsaetningsAktiver', 'Omsaetningsaktiver', // FSA Danish variants FIRST
         'CurrentAssets', 'Omsætningsaktiver', 'ShorttermAssets',
         'ShortTermAssets'
-      ], instantContextIds),
+      ], useInstantContexts),
       
       statusBalance: extractValue([
+        'AktiverIAlt', 'Aktiver', 'SumAktiver', // FSA Danish variants FIRST
         'Assets', // IFRS "finansiel" format ✅
-        'TotalAssets', 'AktiverIAlt', 'Balance',
+        'TotalAssets', 'Balance',
         'SumOfAssets', 'TotalAssetsAndEquityAndLiabilities' // ESEF variant (balance sheet total)
-      ], instantContextIds),
+      ], useInstantContexts),
       
       // Balance Sheet - Equity & Liabilities (Passiver) - use instant contexts
       egenkapital: extractValue([
+        'EgenkapitalIAlt', 'Egenkapital', 'SumEgenkapital', // FSA Danish variants FIRST
         'Equity', // IFRS "finansiel" format ✅
-        'Egenkapital', 'ShareholdersEquity',
+        'ShareholdersEquity',
         'TotalEquity', 'EquityAttributableToOwnersOfParent',
         'EquityAttributableToEquityHoldersOfParent', 'TotalShareholdersEquity' // ESEF variant
-      ], instantContextIds),
+      ], useInstantContexts),
       
       hensatteForpligtelser: extractValue([
         'Provisions', 'HensatteForpligtelser', 'ProvisionsForLiabilities',
         'TotalProvisions'
-      ], instantContextIds),
+      ], useInstantContexts),
       
       gaeldsforpligtelser: extractValue([
+        'GaeldsforpligtelserIAlt', 'Gaeldsforpligtelser', 'SumGaeld', // FSA Danish variants FIRST
         'Liabilities', 'Gældsforpligtelser', 'TotalLiabilities',
         'LiabilitiesOtherThanProvisions',
         'TotalLiabilitiesAndEquity', 'LiabilitiesAndEquity' // ESEF variants
-      ], instantContextIds),
+      ], useInstantContexts),
       
       kortfristetGaeld: extractValue([
         'ShorttermLiabilitiesOtherThanProvisions', 'KortfristetGæld', 
         'CurrentLiabilities', 'ShortTermLiabilities',
         'ShorttermDebt'
-      ], instantContextIds)
+      ], useInstantContexts)
     };
 
     // Calculate financial ratios
