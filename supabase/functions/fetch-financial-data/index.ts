@@ -383,21 +383,47 @@ const parseXBRL = (xmlContent: string, period: string) => {
       periode: period,
       
       // Income Statement (Resultatopgørelse) - use period contexts
-      nettoomsaetning: extractValue([
-        'Revenue', // Most specific - pure operating revenue
-        'Nettoomsætning', // Danish standard tag
-        'Omsætning', // Danish variant
-        'NetRevenue', // English variant
-        'NetTurnover', // English variant
-        'Turnover', // UK variant
-        'Sales', // US variant
-        'RevenueFromContractsWithCustomers', // IFRS 15
-        'Revenues', // Plural variant
-        'TotalRevenue', // Broader than Revenue
-        'Omsaetning', // Danish variant (no umlaut)
-        'GrossProfitLoss', // Sometimes misused for revenue
-        'RevenueAndOperatingIncome' // Last resort - includes investment income
-      ], usePeriodContexts),
+      // Special handling for investment companies vs operating companies
+      nettoomsaetning: (() => {
+        // Try to find pure operating revenue first
+        const revenueValue = extractValue([
+          'Revenue', // Most specific - pure operating revenue
+          'Nettoomsætning', // Danish standard tag
+          'Omsætning', // Danish variant
+          'NetRevenue', // English variant
+          'NetTurnover', // English variant
+          'Turnover', // UK variant
+          'Sales', // US variant
+          'RevenueFromContractsWithCustomers', // IFRS 15
+          'Revenues', // Plural variant
+          'TotalRevenue', // Broader than Revenue
+          'Omsaetning' // Danish variant (no umlaut)
+        ], usePeriodContexts);
+        
+        // If we found Revenue, use it
+        if (revenueValue !== null) {
+          return revenueValue;
+        }
+        
+        // Try to get RevenueAndOperatingIncome separately
+        const revenueAndOperatingIncome = extractValue(['RevenueAndOperatingIncome'], usePeriodContexts);
+        
+        // Check if this is an operating company (has GrossProfit) or investment company
+        const hasOperatingRevenue = extractValue([
+          'GrossProfit', 'GrossResult', 'Bruttofortjeneste', 'Bruttoavance',
+          'GrossProfitOrLoss', 'GrossProfitLoss'
+        ], usePeriodContexts) !== null;
+        
+        // If we have RevenueAndOperatingIncome but NO operating indicators, set to 0 (investment company)
+        if (revenueAndOperatingIncome !== null && !hasOperatingRevenue) {
+          console.log(`ℹ️ [INVESTMENT CO] No Revenue tag found, RevenueAndOperatingIncome=${revenueAndOperatingIncome}`);
+          console.log(`   Has GrossProfit: ${hasOperatingRevenue} → Setting Nettoomsætning to 0`);
+          return 0;
+        }
+        
+        // Otherwise use RevenueAndOperatingIncome if available (operating company)
+        return revenueAndOperatingIncome;
+      })(),
       
       bruttofortjeneste: extractValue([
         'GrossProfit', 'GrossResult', 'Bruttofortjeneste', 'Bruttoavance',
@@ -466,6 +492,70 @@ const parseXBRL = (xmlContent: string, period: string) => {
         'ShorttermLiabilitiesOtherThanProvisions', 'KortfristetGæld', 
         'CurrentLiabilities', 'ShortTermLiabilities',
         'ShorttermDebt'
+      ], useInstantContexts),
+      
+      // Additional Income Statement items
+      driftsomkostninger: extractValue([
+        'OperatingExpense', 'OperatingExpenses', 'Driftsomkostninger',
+        'DistributionCosts', 'AdministrativeExpenses', 'CostOfSales'
+      ], usePeriodContexts),
+      
+      finansielleIndtaegter: extractValue([
+        'FinanceIncome', 'FinancialIncome', 'FinancialRevenue',
+        'InterestIncome', 'DividendIncome', 'InvestmentIncome'
+      ], usePeriodContexts),
+      
+      finansielleOmkostninger: extractValue([
+        'FinanceCosts', 'FinanceExpense', 'FinancialExpenses',
+        'InterestExpense', 'InterestExpenses'
+      ], usePeriodContexts),
+      
+      skatAfAaretsResultat: extractValue([
+        'IncomeTaxExpenseContinuingOperations', 'TaxExpense',
+        'IncomeTaxExpense', 'CurrentTax', 'TaxOnProfitOrLoss'
+      ], usePeriodContexts),
+      
+      afskrivninger: extractValue([
+        'DepreciationAndAmortisationExpense', 'Depreciation',
+        'DepreciationAmortisationAndImpairmentLoss',
+        'DepreciationAndAmortisation'
+      ], usePeriodContexts),
+      
+      // Additional Balance Sheet - Assets breakdown
+      immaterielleAnlaeggsaktiver: extractValue([
+        'IntangibleAssetsOtherThanGoodwill', 'IntangibleAssets',
+        'Goodwill', 'IntangibleAssets'
+      ], useInstantContexts),
+      
+      materielleAnlaeggsaktiver: extractValue([
+        'PropertyPlantAndEquipment', 'TangibleAssets',
+        'Property', 'LandAndBuildings'
+      ], useInstantContexts),
+      
+      finansielleAnlaeggsaktiver: extractValue([
+        'NoncurrentFinancialAssets', 'LongtermInvestments',
+        'InvestmentProperty', 'FinancialAssets'
+      ], useInstantContexts),
+      
+      varebeholdninger: extractValue([
+        'Inventories', 'Inventory', 'Stocks',
+        'RawMaterialsAndConsumables'
+      ], useInstantContexts),
+      
+      tilgodehavender: extractValue([
+        'TradeAndOtherCurrentReceivables', 'CurrentReceivables',
+        'TradeReceivables', 'Receivables', 'AccountsReceivable'
+      ], useInstantContexts),
+      
+      likviderMidler: extractValue([
+        'CashAndCashEquivalents', 'Cash',
+        'BankDeposits', 'CashAtBankAndInHand'
+      ], useInstantContexts),
+      
+      // Additional Balance Sheet - Liabilities breakdown
+      langfristetGaeld: extractValue([
+        'NoncurrentLiabilities', 'LongtermLiabilities',
+        'LongtermDebt', 'NoncurrentFinancialLiabilities'
       ], useInstantContexts)
     };
 
