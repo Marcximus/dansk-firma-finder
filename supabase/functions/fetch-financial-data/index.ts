@@ -469,17 +469,62 @@ serve(async (req) => {
       );
     }
 
+    // Helper function to determine if a report is yearly (not quarterly)
+    const isYearlyReport = (source: any): boolean => {
+      const dokumenttype = source.dokumenttype?.toUpperCase() || '';
+      const period = source.regnskabsperiode || source.periode || '';
+      
+      // Check if document type indicates a quarterly or half-year report
+      const isQuarterly = dokumenttype.includes('KVARTAL') || 
+                         dokumenttype.includes('QUARTER') ||
+                         dokumenttype.includes('HALVAAR') ||
+                         dokumenttype.includes('HALF');
+      
+      if (isQuarterly) {
+        console.log(`[FILTER] Skipping quarterly/half-year report: ${dokumenttype}`);
+        return false;
+      }
+      
+      // If period contains month range, check if it's approximately 12 months
+      if (period && typeof period === 'string') {
+        // Try to extract date range like "2023-01-01 - 2023-12-31" or "01-01-2023 til 31-12-2023"
+        const dateRangeMatch = period.match(/(\d{4})-(\d{2})-(\d{2})\s*-\s*(\d{4})-(\d{2})-(\d{2})/);
+        if (dateRangeMatch) {
+          const startDate = new Date(`${dateRangeMatch[1]}-${dateRangeMatch[2]}-${dateRangeMatch[3]}`);
+          const endDate = new Date(`${dateRangeMatch[4]}-${dateRangeMatch[5]}-${dateRangeMatch[6]}`);
+          const monthsDiff = (endDate.getFullYear() - startDate.getFullYear()) * 12 + 
+                           (endDate.getMonth() - startDate.getMonth());
+          
+          // Accept 11-13 months (to allow for some variation in fiscal year ends)
+          if (monthsDiff >= 11 && monthsDiff <= 13) {
+            return true;
+          } else if (monthsDiff < 11) {
+            console.log(`[FILTER] Skipping report with ${monthsDiff} months period (likely quarterly)`);
+            return false;
+          }
+        }
+      }
+      
+      // Default: accept as yearly if no clear quarterly indicators
+      return true;
+    };
+
     // Step 2: Download and parse XBRL files
     const financialReports = [];
     const financialData = [];
     
-    // Process up to 5 most recent reports to avoid CPU timeouts
-    const hits = searchData.hits?.hits || [];
-    const reportsToProcess = Math.min(hits.length, 5);
-    console.log(`[STEP 3] Processing ${reportsToProcess} reports out of ${hits.length} found`);
+    // Filter for yearly reports only
+    const allHits = searchData.hits?.hits || [];
+    const yearlyHits = allHits.filter((hit: any) => isYearlyReport(hit._source));
+    
+    console.log(`[STEP 3] Found ${allHits.length} reports total, ${yearlyHits.length} yearly reports after filtering`);
+    
+    // Process up to 5 most recent yearly reports to avoid CPU timeouts
+    const reportsToProcess = Math.min(yearlyHits.length, 5);
+    console.log(`[STEP 3] Processing ${reportsToProcess} yearly reports`);
 
     for (let i = 0; i < reportsToProcess; i++) {
-      const hit = hits[i];
+      const hit = yearlyHits[i];
       const source = hit._source;
       const period = source.regnskabsperiode || source.periode || 'N/A';
       
