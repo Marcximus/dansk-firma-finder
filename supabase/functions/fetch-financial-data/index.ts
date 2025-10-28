@@ -597,20 +597,23 @@ serve(async (req) => {
         console.log(`  - Type: ${doc.dokumentType}, MIME: ${doc.dokumentMimeType}`);
       });
       
-      // Look for "Årsrapport XBRL" documents specifically - ignore iXBRL and other formats
+      // Look for yearly report documents - accept both standard XBRL and ESEF formats
       const xbrlDoc = source.dokumenter?.find((doc: any) => {
-        const docType = doc.dokumentType?.toLowerCase() || '';
+        const docType = doc.dokumentType?.toUpperCase() || '';
         const mimeType = doc.dokumentMimeType?.toLowerCase() || '';
         
-        // We ONLY want "Årsrapport XBRL" - explicit yearly reports in pure XBRL format
-        // This excludes:
-        // - iXBRL (inline XBRL used for quarterly/half-year reports)
-        // - Halvårsrapport iXBRL
-        // - Kvartalsrapport iXBRL
-        const isYearlyXBRL = docType.includes('årsrapport') && docType.includes('xbrl') && !docType.includes('ixbrl');
+        // Accept these yearly report types:
+        // - AARSRAPPORT (standard yearly XBRL)
+        // - AARSRAPPORT_ESEF (European Single Electronic Format yearly reports)
+        const isYearlyReport = docType === 'AARSRAPPORT' || docType === 'AARSRAPPORT_ESEF';
+        
+        // Reject half-year and quarterly reports explicitly
+        const isNonYearly = docType.includes('HALV') || docType.includes('KVARTAL');
+        
+        // Must be XML format (application/xml or application/xhtml+xml)
         const isXMLFormat = mimeType.includes('xml') && mimeType.includes('application');
         
-        return isYearlyXBRL && isXMLFormat;
+        return isYearlyReport && !isNonYearly && isXMLFormat;
       });
       
       if (xbrlDoc) {
