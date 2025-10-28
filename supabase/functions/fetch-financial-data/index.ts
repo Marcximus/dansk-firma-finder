@@ -223,6 +223,7 @@ const parseXBRL = (xmlContent: string, period: string) => {
       
       // Income Statement (Resultatopgørelse)
       nettoomsaetning: extractValue([
+        'RevenueAndOperatingIncome', // IFRS "finansiel" format - 2023/2024 ✅
         'Revenue', 'Nettoomsætning', 'NetRevenue', 'Omsætning',
         'RevenueFromContractsWithCustomers', 'Revenues', // ESEF variants
         'GrossProfitLoss', 'TotalRevenue', 'Omsaetning',
@@ -235,7 +236,8 @@ const parseXBRL = (xmlContent: string, period: string) => {
       ]),
       
       driftsresultat: extractValue([
-        'ProfitLossFromOperatingActivities', 'OperatingProfitLoss', 
+        'ProfitLossFromOperatingActivities', // IFRS "finansiel" format ✅
+        'OperatingProfitLoss', 
         'Driftsresultat', 'EBIT', 'OperatingProfit'
       ]),
       
@@ -262,13 +264,15 @@ const parseXBRL = (xmlContent: string, period: string) => {
       ]),
       
       statusBalance: extractValue([
-        'Assets', 'TotalAssets', 'AktiverIAlt', 'Balance',
+        'Assets', // IFRS "finansiel" format ✅
+        'TotalAssets', 'AktiverIAlt', 'Balance',
         'SumOfAssets', 'TotalAssetsAndEquityAndLiabilities' // ESEF variant (balance sheet total)
       ]),
       
       // Balance Sheet - Equity & Liabilities (Passiver)
       egenkapital: extractValue([
-        'Equity', 'Egenkapital', 'ShareholdersEquity',
+        'Equity', // IFRS "finansiel" format ✅
+        'Egenkapital', 'ShareholdersEquity',
         'TotalEquity', 'EquityAttributableToOwnersOfParent',
         'EquityAttributableToEquityHoldersOfParent', 'TotalShareholdersEquity' // ESEF variant
       ]),
@@ -688,10 +692,32 @@ serve(async (req) => {
         console.log(`      URL: ${url.toString().slice(0, 100)}${url.toString().length > 100 ? '...' : ''}`);
       });
       
-      // Look for yearly report XML documents - accept ANY XML that's not explicitly quarterly/half-yearly
-      // Look for yearly report XML documents
-      // PRIORITY 1: Pure XBRL (application/xml) - easier to parse
-      // PRIORITY 2: iXBRL (application/xhtml+xml) - requires different parsing
+      // Log available documents for debugging
+      console.log(`[DOCUMENT ANALYSIS] Analyzing ${source.dokumenter?.length || 0} documents for finansiel report...`);
+      source.dokumenter?.forEach((doc: any, idx: number) => {
+        const url = (doc.dokumentUrl || doc.dokumentGuid || '').toString().toLowerCase();
+        const hasFinansiel = url.includes('finansiel');
+        console.log(`  [${idx}] ${doc.dokumentType} - ${doc.dokumentMimeType}`);
+        console.log(`      Finansiel: ${hasFinansiel ? '✅ YES' : '❌ NO'}`);
+        console.log(`      URL sample: ${url.slice(0, 100)}${url.length > 100 ? '...' : ''}`);
+      });
+      
+      // PRIORITY 1: Look for "finansiel" XBRL - this has the actual financial data
+      const finansielXBRL = source.dokumenter?.find((doc: any) => {
+        const docType = doc.dokumentType?.toUpperCase() || '';
+        const mimeType = doc.dokumentMimeType?.toLowerCase() || '';
+        const url = (doc.dokumentUrl || doc.dokumentGuid || '').toString().toLowerCase();
+        
+        return docType === 'AARSRAPPORT' && 
+               mimeType === 'application/xml' && 
+               url.includes('finansiel');
+      });
+
+      if (finansielXBRL) {
+        console.log(`[DOC SELECT] ✅ Found FINANSIEL XBRL (contains actual financial data)`);
+      }
+      
+      // FALLBACK: Look for any yearly report XML documents
       const xbrlDocs = source.dokumenter?.filter((doc: any) => {
         const docType = doc.dokumentType?.toUpperCase() || '';
         const mimeType = doc.dokumentMimeType?.toLowerCase() || '';
@@ -708,15 +734,18 @@ serve(async (req) => {
         return isXMLFormat && !isNonYearly && !isKoncern;
       }) || [];
 
-      // Sort documents by priority:
-      // 1. Pure XBRL (application/xml) first
-      // 2. Documents with AARSRAPPORT type
-      // 3. Documents with FINANSIEL in type
-      const xbrlDoc = xbrlDocs.sort((a, b) => {
+      // Select document: prioritize finansiel, then fallback to sorted list
+      const xbrlDoc = finansielXBRL || xbrlDocs.sort((a, b) => {
         const aType = a.dokumentType?.toUpperCase() || '';
         const bType = b.dokumentType?.toUpperCase() || '';
         const aMime = a.dokumentMimeType?.toLowerCase() || '';
         const bMime = b.dokumentMimeType?.toLowerCase() || '';
+        const aUrl = (a.dokumentUrl || a.dokumentGuid || '').toString().toLowerCase();
+        const bUrl = (b.dokumentUrl || b.dokumentGuid || '').toString().toLowerCase();
+        
+        // FINANSIEL in URL beats non-finansiel
+        if (aUrl.includes('finansiel') && !bUrl.includes('finansiel')) return -1;
+        if (bUrl.includes('finansiel') && !aUrl.includes('finansiel')) return 1;
         
         // Pure XBRL beats iXBRL
         if (aMime === 'application/xml' && bMime !== 'application/xml') return -1;
@@ -726,7 +755,7 @@ serve(async (req) => {
         if (aType === 'AARSRAPPORT' && bType !== 'AARSRAPPORT') return -1;
         if (bType === 'AARSRAPPORT' && aType !== 'AARSRAPPORT') return 1;
         
-        // FINANSIEL beats non-finansiel
+        // FINANSIEL in type beats non-finansiel
         if (aType.includes('FINANSIEL') && !bType.includes('FINANSIEL')) return -1;
         if (bType.includes('FINANSIEL') && !aType.includes('FINANSIEL')) return 1;
         
