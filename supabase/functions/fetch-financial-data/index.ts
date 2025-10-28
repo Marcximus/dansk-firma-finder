@@ -311,7 +311,7 @@ serve(async (req) => {
           "query": {
             "term": { "cvrNummer": parseInt(cvr) }
           },
-          "size": 20,
+          "size": 50,
           "sort": [{ "offentliggoerelsesTidspunkt": { "order": "desc" }}]
         }
       },
@@ -326,7 +326,7 @@ serve(async (req) => {
               ]
             }
           },
-          "size": 20,
+          "size": 50,
           "sort": [{ "offentliggoerelsesTidspunkt": { "order": "desc" }}]
         }
       },
@@ -348,7 +348,7 @@ serve(async (req) => {
               ]
             }
           },
-          "size": 20,
+          "size": 50,
           "sort": [{ "offentliggoerelsesTidspunkt": { "order": "desc" }}]
         }
       },
@@ -365,14 +365,14 @@ serve(async (req) => {
               ]
             }
           },
-          "size": 20,
+          "size": 50,
           "sort": [{ "offentliggoerelsesTidspunkt": { "order": "desc" }}]
         }
       }
     ];
 
     console.log(`[STEP 1] Progressive query fallback with ${queryStrategies.length} strategies`);
-    console.log('[VERSION] v2.0 - 20 results per query, 15 reports processing');
+    console.log('[VERSION] v3.0 - 50 results per query, 30 reports processing');
     console.log('[STEP 1] Will try each strategy with 20s timeout until one succeeds');
 
     // Try each strategy until one works
@@ -522,7 +522,7 @@ serve(async (req) => {
     console.log(`[STEP 3] Sorted reports by date. Most recent: ${allHits[0]?._source.offentliggoerelsesTidspunkt}`);
     
     // Process up to 15 reports to ensure we get 5 yearly ones (accounting for quarterly/half-year reports)
-    const reportsToProcess = Math.min(allHits.length, 15);
+    const reportsToProcess = Math.min(allHits.length, 30);
     console.log(`[STEP 3] Processing up to ${reportsToProcess} reports to find 5 yearly reports`);
 
     let processedCount = 0; // Track reports we've examined
