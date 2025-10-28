@@ -102,7 +102,8 @@ const SigningRulesAccordion: React.FC<SigningRulesAccordionProps> = ({ cvrData }
           'BESTYRELSESMEDLEM.NÆSTFORMAND': 'Næstformand',
           'DIREKTØR': 'Direktør',
           'REVISOR': 'Revisor',
-          // Don't map SUPPLEANT here - role name will just be base role, badge will show suppleant status
+          'BESTYRELSESSUPPLEANT': 'Medarbejdervalgt Suppleant',
+          'SUPPLEANT': 'Medarbejdervalgt Suppleant',
         };
         
         let mappedRole = roleMap[specificRole] || specificRole;
@@ -157,15 +158,11 @@ const SigningRulesAccordion: React.FC<SigningRulesAccordionProps> = ({ cvrData }
               'BESTYRELSESMEDLEM.NÆSTFORMAND': 'Næstformand',
               'DIREKTØR': 'Direktør',
               'REVISOR': 'Revisor',
+              'BESTYRELSESSUPPLEANT': 'Medarbejdervalgt Suppleant',
+              'SUPPLEANT': 'Medarbejdervalgt Suppleant',
             };
             
             let mappedRole = roleMap[specificRole] || specificRole;
-            
-            // Add (Suppleant) suffix if applicable
-            const isSuppleant = specificRole?.includes('SUPPLEANT');
-            if (isSuppleant) {
-              mappedRole += ' (Suppleant)';
-            }
             
             console.log('✓ Mapped role from org.attributter:', mappedRole);
             return mappedRole;
