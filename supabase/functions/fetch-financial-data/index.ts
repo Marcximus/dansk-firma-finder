@@ -127,13 +127,39 @@ const parseXBRL = (xmlContent: string, period: string) => {
     // Extract the year from period string (e.g., "2024-01-01 - 2024-12-31" -> "2024")
     const year = period.split(' - ')[0].substring(0, 4);
 
-    // Find context IDs for period ranges (allows cross-year periods)
-    // Match periods that END in the target year - fiscal years can start in previous year
+    // Find ALL context IDs for periods ending in the target year
+    // Capture start/end dates to filter for full-year periods only
     // Used for income statement items
     const periodContextPattern = new RegExp(
-      `<xbrli:context id="([^"]+)">.*?<xbrli:startDate>\\d{4}-\\d{2}-\\d{2}</xbrli:startDate>.*?<xbrli:endDate>${year}-\\d{2}-\\d{2}</xbrli:endDate>.*?</xbrli:context>`,
+      `<xbrli:context id="([^"]+)">.*?<xbrli:startDate>(\\d{4})-(\\d{2})-(\\d{2})</xbrli:startDate>.*?<xbrli:endDate>${year}-(\\d{2})-(\\d{2})</xbrli:endDate>.*?</xbrli:context>`,
       'gis'
     );
+
+    const periodMatches = Array.from(xmlContent.matchAll(periodContextPattern));
+
+    // Filter for FULL YEAR contexts only (11+ months duration)
+    // This excludes quarterly/monthly data that might pollute annual figures
+    const fullYearPeriodContexts = periodMatches
+      .map(m => {
+        const contextId = m[1];
+        const startYear = parseInt(m[2]);
+        const startMonth = parseInt(m[3]);
+        const startDay = parseInt(m[4]);
+        const endMonth = parseInt(m[5]);
+        const endDay = parseInt(m[6]);
+        
+        // Calculate approximate duration in months
+        const startDate = new Date(startYear, startMonth - 1, startDay);
+        const endDate = new Date(parseInt(year), endMonth - 1, endDay);
+        const durationMonths = (endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24 * 30);
+        
+        return { contextId, durationMonths, startDate, endDate };
+      })
+      .filter(ctx => ctx.durationMonths >= 11) // Only full-year periods (11+ months)
+      .sort((a, b) => b.durationMonths - a.durationMonths) // Prioritize longer periods
+      .map(ctx => ctx.contextId);
+
+    const periodContextIds = fullYearPeriodContexts;
 
     // Find context IDs for instant points (handles any date within the year)
     // Used for balance sheet items
@@ -142,10 +168,7 @@ const parseXBRL = (xmlContent: string, period: string) => {
       'gis'
     );
 
-    const periodMatches = Array.from(xmlContent.matchAll(periodContextPattern));
     const instantMatches = Array.from(xmlContent.matchAll(instantContextPattern));
-
-    const periodContextIds = periodMatches.map(m => m[1]); // e.g., ["ctx-5", "ctx-16", "ctx-18"]
     const instantContextIds = instantMatches.map(m => m[1]); // e.g., ["ctx-7", "ctx-17", "ctx-19"]
 
     console.log(`[CONTEXT] Period contexts for ${year}: ${periodContextIds.join(', ')}`);
