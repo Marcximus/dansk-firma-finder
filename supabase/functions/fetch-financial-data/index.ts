@@ -105,43 +105,49 @@ const parseXBRL = (xmlContent: string, period: string) => {
   try {
     console.log(`[XBRL Parser] Processing ${xmlContent.length} bytes for period ${period}`);
     
-    // Helper to extract numeric value from XBRL tags
-    // Matches: <anyprefix:TagName contextRef="..." unitRef="..." decimals="...">VALUE</anyprefix:TagName>
-    const extractValue = (tagNames: string[]): number | null => {
-      for (const tagName of tagNames) {
-        // Pattern 1: iXBRL inline format with name attribute (ESEF 2023/2024)
-        // <ix:nonFraction name="ifrs-full:Revenue" contextRef="..." unitRef="..." decimals="..." format="ixt:numdotdecimal">1.500.000</ix:nonFraction>
-        const ixbrlInlinePattern = new RegExp(
-          `<ix:nonFraction[^>]+name="[^"]*:${tagName}"[^>]*>([\\d.,-\\s]+)</ix:nonFraction>`,
-          'gi'
-        );
-        
-        // Pattern 2: iXBRL nested format
-        const ixbrlNestedPattern = new RegExp(
-          `name="[^"]*:${tagName}"[^>]*>[\\s\\S]*?>([\\d.,-\\s]+)</ix:nonFraction>`,
-          'gi'
-        );
-        
-        // Pattern 3: Standard XBRL format: <fsa:Revenue>1500000000</fsa:Revenue>
-        const standardPattern = new RegExp(
-          `<[^:]+:${tagName}[^>]*>\\s*([\\d.-]+)\\s*</[^:]+:${tagName}>`,
-          'gi'
-        );
-        
-        // Pattern 4: ESEF format with ifrs-full namespace
-        const esefPattern = new RegExp(
-          `<ifrs-full:${tagName}[^>]*>\\s*([\\d.,-]+)\\s*</ifrs-full:${tagName}>`,
-          'gi'
-        );
-        
-        // Pattern 5: No namespace
-        const noNamespacePattern = new RegExp(
-          `<${tagName}[^>]*>\\s*([\\d.,-]+)\\s*</${tagName}>`,
-          'gi'
-        );
-        
-        // Try all patterns (iXBRL first as it's most common in 2023/2024)
-        for (const pattern of [ixbrlInlinePattern, ixbrlNestedPattern, standardPattern, esefPattern, noNamespacePattern]) {
+      // Helper to extract numeric value from XBRL tags
+      // Matches: <anyprefix:TagName contextRef="..." unitRef="..." decimals="...">VALUE</anyprefix:TagName>
+      const extractValue = (tagNames: string[]): number | null => {
+        for (const tagName of tagNames) {
+          // Pattern 1: Custom NOV: namespace (Novo Holdings 2023/2024)
+          const novPattern = new RegExp(
+            `<NOV:${tagName}[^>]*>\\s*([\\d.,-]+)\\s*</NOV:${tagName}>`,
+            'gi'
+          );
+          
+          // Pattern 2: iXBRL inline format with name attribute (ESEF 2023/2024)
+          // <ix:nonFraction name="ifrs-full:Revenue" contextRef="..." unitRef="..." decimals="..." format="ixt:numdotdecimal">1.500.000</ix:nonFraction>
+          const ixbrlInlinePattern = new RegExp(
+            `<ix:nonFraction[^>]+name="[^"]*:${tagName}"[^>]*>([\\d.,-\\s]+)</ix:nonFraction>`,
+            'gi'
+          );
+          
+          // Pattern 3: iXBRL nested format
+          const ixbrlNestedPattern = new RegExp(
+            `name="[^"]*:${tagName}"[^>]*>[\\s\\S]*?>([\\d.,-\\s]+)</ix:nonFraction>`,
+            'gi'
+          );
+          
+          // Pattern 4: ESEF format with ifrs-full namespace
+          const esefPattern = new RegExp(
+            `<ifrs-full:${tagName}[^>]*>\\s*([\\d.,-]+)\\s*</ifrs-full:${tagName}>`,
+            'gi'
+          );
+          
+          // Pattern 5: Standard XBRL format: <fsa:Revenue>1500000000</fsa:Revenue>
+          const standardPattern = new RegExp(
+            `<[^:]+:${tagName}[^>]*>\\s*([\\d.-]+)\\s*</[^:]+:${tagName}>`,
+            'gi'
+          );
+          
+          // Pattern 6: No namespace
+          const noNamespacePattern = new RegExp(
+            `<${tagName}[^>]*>\\s*([\\d.,-]+)\\s*</${tagName}>`,
+            'gi'
+          );
+          
+          // Try all patterns (NOV first for Novo Holdings, then iXBRL as it's most common in 2023/2024)
+          for (const pattern of [novPattern, ixbrlInlinePattern, ixbrlNestedPattern, esefPattern, standardPattern, noNamespacePattern]) {
           const matches = Array.from(xmlContent.matchAll(pattern));
           
           if (matches.length > 0) {
@@ -693,25 +699,42 @@ serve(async (req) => {
       });
       
       // Log available documents for debugging
-      console.log(`[DOCUMENT ANALYSIS] Analyzing ${source.dokumenter?.length || 0} documents for finansiel report...`);
+      console.log(`[DOCUMENT ANALYSIS] Analyzing ${source.dokumenter?.length || 0} documents...`);
       source.dokumenter?.forEach((doc: any, idx: number) => {
-        const url = (doc.dokumentUrl || doc.dokumentGuid || '').toString().toLowerCase();
-        const hasFinansiel = url.includes('finansiel');
-        console.log(`  [${idx}] ${doc.dokumentType} - ${doc.dokumentMimeType}`);
-        console.log(`      Finansiel: ${hasFinansiel ? '✅ YES' : '❌ NO'}`);
-        console.log(`      URL sample: ${url.slice(0, 100)}${url.length > 100 ? '...' : ''}`);
+        const docType = (doc.dokumentType || '').toUpperCase();
+        const mimeType = (doc.dokumentMimeType || '').toLowerCase();
+        const hasFinansiel = docType.includes('FINANSIEL');
+        console.log(`  [${idx}] ${doc.dokumentType}`);
+        console.log(`      MIME: ${mimeType}`);
+        console.log(`      Has FINANSIEL: ${hasFinansiel ? '✅ YES' : '❌ NO'}`);
       });
       
-      // PRIORITY 1: Look for "finansiel" XBRL - this has the actual financial data
+      // PRIORITY 1: Look for any document with "FINANSIEL" in dokumentType
       const finansielXBRL = source.dokumenter?.find((doc: any) => {
-        const docType = doc.dokumentType?.toUpperCase() || '';
-        const mimeType = doc.dokumentMimeType?.toLowerCase() || '';
-        const url = (doc.dokumentUrl || doc.dokumentGuid || '').toString().toLowerCase();
+        const docType = (doc.dokumentType || '').toUpperCase();
+        const mimeType = (doc.dokumentMimeType || '').toLowerCase();
         
-        return docType === 'AARSRAPPORT' && 
-               mimeType === 'application/xml' && 
-               url.includes('finansiel');
+        return docType.includes('FINANSIEL') && mimeType === 'application/xml';
       });
+
+      if (finansielXBRL) {
+        console.log(`[DOC SELECT] ✅ Found FINANSIEL document type: ${finansielXBRL.dokumentType}`);
+      }
+      
+      // PRIORITY 2: If multiple AARSRAPPORT XML docs exist, try the second one (often the financial one)
+      let secondAarsrapport = null;
+      if (!finansielXBRL) {
+        const aarsrapportXMLs = source.dokumenter?.filter((doc: any) => {
+          const docType = (doc.dokumentType || '').toUpperCase();
+          const mimeType = (doc.dokumentMimeType || '').toLowerCase();
+          return docType === 'AARSRAPPORT' && mimeType === 'application/xml';
+        }) || [];
+        
+        if (aarsrapportXMLs.length >= 2) {
+          console.log(`[DOC SELECT] Found ${aarsrapportXMLs.length} AARSRAPPORT XML docs, selecting second one`);
+          secondAarsrapport = aarsrapportXMLs[1];
+        }
+      }
 
       if (finansielXBRL) {
         console.log(`[DOC SELECT] ✅ Found FINANSIEL XBRL (contains actual financial data)`);
@@ -734,8 +757,8 @@ serve(async (req) => {
         return isXMLFormat && !isNonYearly && !isKoncern;
       }) || [];
 
-      // Select document: prioritize finansiel, then fallback to sorted list
-      const xbrlDoc = finansielXBRL || xbrlDocs.sort((a, b) => {
+      // Select document: prioritize finansiel, then second AARSRAPPORT, then fallback to sorted list
+      const xbrlDoc = finansielXBRL || secondAarsrapport || xbrlDocs.sort((a, b) => {
         const aType = a.dokumentType?.toUpperCase() || '';
         const bType = b.dokumentType?.toUpperCase() || '';
         const aMime = a.dokumentMimeType?.toLowerCase() || '';
@@ -826,6 +849,16 @@ serve(async (req) => {
             const xbrlContent = await xbrlResponse.text();
             console.log(`[STEP 2] Downloaded XBRL file (${xbrlContent.length} bytes)`);
             
+            // Log XML structure for debugging
+            const xmlSample = xbrlContent.substring(0, 500);
+            console.log(`XML sample (first 500 chars): ${xmlSample}`);
+            
+            // Detect namespaces
+            const hasNOV = xbrlContent.includes('xmlns:NOV=') || xbrlContent.includes('<NOV:');
+            const hasIFRS = xbrlContent.includes('xmlns:ifrs-full=') || xbrlContent.includes('<ifrs-full:');
+            const hasFSA = xbrlContent.includes('xmlns:fsa=') || xbrlContent.includes('<fsa:');
+            console.log(`Namespaces detected: NOV=${hasNOV}, IFRS=${hasIFRS}, FSA=${hasFSA}`);
+            
             // Extract the actual period from XBRL file with metadata fallback
             const actualPeriod = extractPeriodFromXBRL(xbrlContent, period);
             console.log(`[DEBUG] Report ${processedCount}/${reportsToProcess}: Metadata period = ${period}, Extracted XBRL period = ${actualPeriod}`);
@@ -851,6 +884,13 @@ serve(async (req) => {
               const reportYear = yearMatch ? parseInt(yearMatch[1]) : null;
               
               console.log(`[DEBUG] ✅ Successfully parsed data with ${Object.keys(parsedData).filter(k => parsedData[k] !== null).length} fields`);
+              
+              // Check if we got real financial data
+              const hasRevenue = parsedData.nettoomsaetning !== null;
+              const hasProfit = parsedData.aaretsResultat !== null;
+              const hasAssets = parsedData.statusBalance !== null;
+              console.log(`Keywords: Revenue=${hasRevenue}, Profit=${hasProfit}, Assets=${hasAssets}`);
+              
               financialData.push(parsedData);
               yearlyReportsFound++;
               
