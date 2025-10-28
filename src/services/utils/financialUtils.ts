@@ -36,12 +36,19 @@ export const extractFinancialData = (cvrData: any, parsedFinancialData?: any) =>
     
     // Transform and enrich XBRL data to match FinancialYearData interface
     const enrichedData = parsedFinancialData.financialData.map((periodData: any) => {
-      // Extract year from periode (format: "2024-12" or "2024-01-01")
+      // Extract year from periode - handle multiple formats
       let year = new Date().getFullYear();
       if (periodData.periode) {
-        const yearMatch = periodData.periode.match(/(\d{4})/);
-        if (yearMatch) {
-          year = parseInt(yearMatch[1]);
+        // Handle full date range: "2023-01-01 - 2023-12-31" (extract end year)
+        const rangeMatch = periodData.periode.match(/(\d{4})-\d{2}-\d{2}\s*-\s*(\d{4})-\d{2}-\d{2}/);
+        if (rangeMatch && rangeMatch[2]) {
+          year = parseInt(rangeMatch[2]);
+        } else {
+          // Handle simple format: "2024-12" or just "2024"
+          const yearMatch = periodData.periode.match(/(\d{4})/);
+          if (yearMatch) {
+            year = parseInt(yearMatch[1]);
+          }
         }
       }
       
@@ -69,8 +76,13 @@ export const extractFinancialData = (cvrData: any, parsedFinancialData?: any) =>
       };
     });
     
-    // Sort by year descending (most recent first)
-    enrichedData.sort((a, b) => b.year - a.year);
+    // Data is already sorted by edge function, no need to sort again
+    console.log('[financialUtils] Processing financial data:', {
+      periods: enrichedData.length,
+      years: enrichedData.map(d => d.year),
+      firstPeriod: enrichedData[0]?.periode,
+      lastPeriod: enrichedData[enrichedData.length - 1]?.periode
+    });
     
     const latestData = enrichedData[0]; // Most recent report
     

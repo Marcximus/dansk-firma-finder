@@ -5,22 +5,31 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
-// Helper to extract the period end date from XBRL context
+// Helper to extract the period (with date range when possible) from XBRL context
 const extractPeriodFromXBRL = (xmlContent: string, fallbackPeriod?: string): string => {
   console.log('[Period Extract] Attempting to extract period from XBRL');
   
-  // Strategy 1: Try to find period end date in context elements
+  // Strategy 1: Try to find both start and end dates for full range
+  const startDatePattern = /<[^:]+:startDate>(\d{4}-\d{2}-\d{2})<\/[^:]+:startDate>/i;
   const endDatePattern = /<[^:]+:endDate>(\d{4}-\d{2}-\d{2})<\/[^:]+:endDate>/i;
-  const match = xmlContent.match(endDatePattern);
+  const startMatch = xmlContent.match(startDatePattern);
+  const endMatch = xmlContent.match(endDatePattern);
   
-  if (match && match[1]) {
-    const date = new Date(match[1]);
+  if (startMatch && endMatch && startMatch[1] && endMatch[1]) {
+    const period = `${startMatch[1]} - ${endMatch[1]}`;
+    console.log(`[Period Extract] ✅ Found full date range: ${period}`);
+    return period;
+  }
+  
+  // Strategy 2: Try just end date (for year extraction)
+  if (endMatch && endMatch[1]) {
+    const date = new Date(endMatch[1]);
     const period = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
     console.log(`[Period Extract] ✅ Found endDate: ${period}`);
     return period;
   }
   
-  // Strategy 2: Try instant date
+  // Strategy 3: Try instant date
   const instantPattern = /<[^:]+:instant>(\d{4}-\d{2}-\d{2})<\/[^:]+:instant>/i;
   const instantMatch = xmlContent.match(instantPattern);
   
@@ -31,12 +40,11 @@ const extractPeriodFromXBRL = (xmlContent: string, fallbackPeriod?: string): str
     return period;
   }
   
-  // Strategy 3: Look for regnskabsperiode or accountingPeriod tags
+  // Strategy 4: Look for regnskabsperiode or accountingPeriod tags
   const periodTagPattern = /<[^>]*(?:regnskabsperiode|accountingPeriod|period)[^>]*>([^<]+)<\/[^>]+>/i;
   const periodMatch = xmlContent.match(periodTagPattern);
   
   if (periodMatch && periodMatch[1]) {
-    // Try to parse various date formats
     const periodText = periodMatch[1].trim();
     
     // Format: YYYY-MM-DD or YYYY/MM/DD
@@ -56,7 +64,7 @@ const extractPeriodFromXBRL = (xmlContent: string, fallbackPeriod?: string): str
     }
   }
   
-  // Strategy 4: Use fallback period from metadata
+  // Strategy 5: Use fallback period from metadata
   if (fallbackPeriod && fallbackPeriod !== 'N/A') {
     console.log(`[Period Extract] ⚠️ Using fallback period from metadata: ${fallbackPeriod}`);
     return fallbackPeriod;
@@ -518,6 +526,15 @@ serve(async (req) => {
     const yearlyHits = allHits.filter((hit: any) => isYearlyReport(hit._source));
     
     console.log(`[STEP 3] Found ${allHits.length} reports total, ${yearlyHits.length} yearly reports after filtering`);
+    
+    // Sort yearly reports by publication date descending (most recent first)
+    yearlyHits.sort((a: any, b: any) => {
+      const dateA = new Date(a._source.offentliggoerelsesTidspunkt || a._source.indlaesningsTidspunkt || 0);
+      const dateB = new Date(b._source.offentliggoerelsesTidspunkt || b._source.indlaesningsTidspunkt || 0);
+      return dateB.getTime() - dateA.getTime();
+    });
+    
+    console.log(`[STEP 3] Sorted yearly reports by date. Most recent: ${yearlyHits[0]?._source.offentliggoerelsesTidspunkt}`);
     
     // Process up to 5 most recent yearly reports to avoid CPU timeouts
     const reportsToProcess = Math.min(yearlyHits.length, 5);

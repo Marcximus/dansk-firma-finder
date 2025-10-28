@@ -13,14 +13,17 @@ const FinancialSpreadsheet: React.FC<FinancialSpreadsheetProps> = ({ historicalD
     hasData: !!d.nettoomsaetning || !!d.egenkapital
   })));
   
-  // Sort by year descending and get up to 5 most recent years
-  const sortedData = [...historicalData].sort((a, b) => (b.year || 0) - (a.year || 0));
-  const periods = sortedData.slice(0, 5);
+  // Data is already sorted by edge function and financialUtils - just take first 5
+  const periods = historicalData.slice(0, 5);
   
-  console.log('[FinancialSpreadsheet] Sorted & sliced to 5 periods:', periods.map(d => ({ 
-    year: d.year, 
-    periode: d.periode 
-  })));
+  // Extract display years for the quality indicator
+  const displayYears = periods.map(p => p.year).filter(y => y);
+  
+  console.log('[FinancialSpreadsheet] Displaying 5 most recent periods:', {
+    count: periods.length,
+    years: displayYears,
+    periods: periods.map(d => d.periode)
+  });
   
   // Format number in thousands with Danish locale
   const formatThousands = (value: number | null | undefined): string => {
@@ -39,10 +42,33 @@ const FinancialSpreadsheet: React.FC<FinancialSpreadsheetProps> = ({ historicalD
     return null;
   }
 
+  // Helper to get clean year label from periode
+  const getYearLabel = (periode: string): string => {
+    // Handle full date range: "2023-01-01 - 2023-12-31"
+    const rangeMatch = periode.match(/(\d{4})-\d{2}-\d{2}\s*-\s*(\d{4})-\d{2}-\d{2}/);
+    if (rangeMatch && rangeMatch[2]) {
+      return `${rangeMatch[2]}`;
+    }
+    
+    // Handle simple format: "2024-12"
+    const yearMatch = periode.match(/(\d{4})/);
+    if (yearMatch) {
+      return yearMatch[1];
+    }
+    
+    return periode;
+  };
+
   return (
     <Card>
       <CardHeader className="pb-3">
         <CardTitle className="text-lg">Regnskabsdata</CardTitle>
+        {displayYears.length > 0 && (
+          <p className="text-xs text-muted-foreground mt-1">
+            Viser regnskabsdata for {displayYears.length === 1 ? 'seneste år' : `de seneste ${displayYears.length} år`}: {displayYears.join(', ')}
+            {displayYears.length < 5 && ` • Kun ${displayYears.length} års data tilgængelig`}
+          </p>
+        )}
       </CardHeader>
       <CardContent className="overflow-x-auto p-0">
         <div className="border-t">
@@ -56,7 +82,9 @@ const FinancialSpreadsheet: React.FC<FinancialSpreadsheetProps> = ({ historicalD
                 <TableRow className="border-b">
                   <TableHead className="sticky left-0 bg-background min-w-[160px] h-8 text-xs font-medium">Post</TableHead>
                   {periods.map((period, idx) => (
-                    <TableHead key={idx} className="text-right h-8 text-xs font-medium px-3">{period.periode}</TableHead>
+                    <TableHead key={idx} className="text-right h-8 text-xs font-medium px-3">
+                      {getYearLabel(period.periode)}
+                    </TableHead>
                   ))}
                 </TableRow>
               </TableHeader>
@@ -105,7 +133,9 @@ const FinancialSpreadsheet: React.FC<FinancialSpreadsheetProps> = ({ historicalD
                 <TableRow className="border-b">
                   <TableHead className="sticky left-0 bg-background min-w-[160px] h-8 text-xs font-medium">Post</TableHead>
                   {periods.map((period, idx) => (
-                    <TableHead key={idx} className="text-right h-8 text-xs font-medium px-3">{period.periode}</TableHead>
+                    <TableHead key={idx} className="text-right h-8 text-xs font-medium px-3">
+                      {getYearLabel(period.periode)}
+                    </TableHead>
                   ))}
                 </TableRow>
               </TableHeader>
@@ -160,7 +190,9 @@ const FinancialSpreadsheet: React.FC<FinancialSpreadsheetProps> = ({ historicalD
                 <TableRow className="border-b">
                   <TableHead className="sticky left-0 bg-background min-w-[160px] h-8 text-xs font-medium">Nøgletal</TableHead>
                   {periods.map((period, idx) => (
-                    <TableHead key={idx} className="text-right h-8 text-xs font-medium px-3">{period.periode}</TableHead>
+                    <TableHead key={idx} className="text-right h-8 text-xs font-medium px-3">
+                      {getYearLabel(period.periode)}
+                    </TableHead>
                   ))}
                 </TableRow>
               </TableHeader>
