@@ -1,7 +1,7 @@
 import React from 'react';
 import { LineChart, Line, AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { TrendingUp, DollarSign, Users } from 'lucide-react';
+import { TrendingUp, DollarSign } from 'lucide-react';
 import { FinancialYearData } from '@/services/utils/mockFinancialData';
 
 interface FinancialChartsSectionProps {
@@ -15,12 +15,10 @@ const FinancialChartsSection: React.FC<FinancialChartsSectionProps> = ({ histori
     nettoomsaetning: Math.round(data.nettoomsaetning / 1000000), // Convert to millions
     bruttofortjeneste: Math.round(data.bruttofortjeneste / 1000000),
     aaretsResultat: Math.round(data.aaretsResultat / 1000000),
-    egenkapital: Math.round(data.egenkapital / 1000000),
-    antalAnsatte: data.antalAnsatte
+    egenkapital: Math.round(data.egenkapital / 1000000)
   })).reverse();
 
   const formatCurrency = (value: number) => `${value} mio. DKK`;
-  const formatEmployees = (value: number) => `${value} ansatte`;
 
   return (
     <div className="space-y-6">
@@ -90,43 +88,6 @@ const FinancialChartsSection: React.FC<FinancialChartsSectionProps> = ({ histori
                 dot={{ fill: "hsl(var(--accent))", strokeWidth: 2, r: 4 }}
               />
             </AreaChart>
-          </ResponsiveContainer>
-        </CardContent>
-      </Card>
-
-      {/* Employee Development */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Users className="h-4 w-4" />
-            Medarbejderudvikling
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <ResponsiveContainer width="100%" height={250}>
-            <BarChart data={chartData}>
-              <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
-              <XAxis 
-                dataKey="year" 
-                reversed={true}
-                tick={{ fontSize: 12 }}
-                interval="preserveStartEnd"
-                padding={{ left: 10, right: 10 }}
-              />
-              <YAxis 
-                className="text-sm"
-                tickFormatter={formatEmployees}
-              />
-              <Tooltip 
-                formatter={(value: number) => [formatEmployees(value), 'Antal ansatte']}
-                labelFormatter={(label) => `År ${label}`}
-              />
-              <Bar 
-                dataKey="antalAnsatte" 
-                fill="hsl(var(--primary))" 
-                radius={[4, 4, 0, 0]}
-              />
-            </BarChart>
           </ResponsiveContainer>
         </CardContent>
       </Card>

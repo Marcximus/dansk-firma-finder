@@ -4,7 +4,6 @@ import { AccordionContent, AccordionItem, AccordionTrigger } from '@/components/
 import { extractFinancialData } from '@/services/utils/financialUtils';
 import { TrendingUp } from 'lucide-react';
 import FinancialKPICard from './financial/FinancialKPICard';
-import EmploymentDataCard from './financial/EmploymentDataCard';
 import CapitalInformationCard from './financial/CapitalInformationCard';
 import FinancialReportsSection from './financial/FinancialReportsSection';
 import FinancialChartsSection from './financial/FinancialChartsSection';
@@ -96,12 +95,6 @@ const FinancialAccordion: React.FC<FinancialAccordionProps> = ({ cvr, cvrData })
           {financialData?.historicalData && financialData.historicalData.length > 0 && (
             <FinancialChartsSection historicalData={financialData.historicalData} />
           )}
-
-          {/* Employment Data */}
-          <EmploymentDataCard 
-            yearlyEmployment={financialData?.yearlyEmployment || []}
-            quarterlyEmployment={financialData?.quarterlyEmployment || []}
-          />
 
           {/* Capital Information & Accounting Periods */}
           <CapitalInformationCard 
