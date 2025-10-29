@@ -239,7 +239,7 @@ const FinancialSpreadsheet: React.FC<FinancialSpreadsheetProps> = ({ historicalD
                 <TableRow className="hover:bg-muted/30">
                   <TableCell className="sticky left-0 bg-background font-medium text-xs py-1.5 w-[200px] pl-6">Tilgodehavender fra salg</TableCell>
                   {periods.map((period, idx) => (
-                    <TableCell key={idx} className="text-right text-xs py-1.5 w-[120px]">{formatThousands(period.tilgodehavenderFraSalgOgTjenesteydelser)}</TableCell>
+                    <TableCell key={idx} className="text-right text-xs py-1.5 w-[120px]">{formatThousands(period.tilgodehavenderFraSalg)}</TableCell>
                   ))}
                 </TableRow>
                 <TableRow className="hover:bg-muted/30">
@@ -317,7 +317,7 @@ const FinancialSpreadsheet: React.FC<FinancialSpreadsheetProps> = ({ historicalD
                 <TableRow className="hover:bg-muted/30">
                   <TableCell className="sticky left-0 bg-background font-medium text-xs py-1.5 w-[200px] pl-4">Skyldige moms og afgifter</TableCell>
                   {periods.map((period, idx) => (
-                    <TableCell key={idx} className="text-right text-xs py-1.5 w-[120px]">{formatThousands(period.skyldideMomsOgAfgifter)}</TableCell>
+                    <TableCell key={idx} className="text-right text-xs py-1.5 w-[120px]">{formatThousands(period.skyldigeMomsOgAfgifter)}</TableCell>
                   ))}
                 </TableRow>
                 <TableRow className="hover:bg-muted/30">

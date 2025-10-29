@@ -58,20 +58,58 @@ export const extractFinancialData = (cvrData: any, parsedFinancialData?: any) =>
       return {
         year, // Add year field
         periode: periodData.periode,
+        
+        // Income Statement (Resultatopgørelse)
         nettoomsaetning: periodData.nettoomsaetning || 0,
         bruttofortjeneste: periodData.bruttofortjeneste || 0,
+        bruttotab: periodData.bruttotab || 0,
+        personaleomkostninger: periodData.personaleomkostninger || 0,
+        resultatAfPrimaerDrift: periodData.resultatAfPrimaerDrift || 0,
+        afskrivninger: periodData.afskrivninger || 0,
         driftsresultat: periodData.driftsresultat || 0,
+        driftsomkostninger: periodData.driftsomkostninger || 0,
+        finansielleIndtaegter: periodData.finansielleIndtaegter || 0,
+        finansielleOmkostninger: periodData.finansielleOmkostninger || 0,
         resultatFoerSkat: periodData.resultatFoerSkat || 0,
+        skatAfAaretsResultat: periodData.skatAfAaretsResultat || 0,
         aaretsResultat: periodData.aaretsResultat || 0,
+        
+        // Balance Sheet - Assets (Aktiver)
         anlaegsaktiverValue: periodData.anlaegsaktiverValue || 0,
+        immaterielleAnlaeggsaktiver: periodData.immaterielleAnlaeggsaktiver || 0,
+        materielleAnlaeggsaktiver: periodData.materielleAnlaeggsaktiver || 0,
+        andreAnlaegDriftsmaterielOgInventar: periodData.andreAnlaegDriftsmaterielOgInventar || 0,
+        finansielleAnlaeggsaktiver: periodData.finansielleAnlaeggsaktiver || 0,
+        deposita: periodData.deposita || 0,
         omsaetningsaktiver: periodData.omsaetningsaktiver || 0,
+        varebeholdninger: periodData.varebeholdninger || 0,
+        tilgodehavender: periodData.tilgodehavender || 0,
+        tilgodehavenderFraSalg: periodData.tilgodehavenderFraSalg || 0,
+        andreTilgodehavender: periodData.andreTilgodehavender || 0,
+        kravPaaIndbetalingAfVirksomhedskapital: periodData.kravPaaIndbetalingAfVirksomhedskapital || 0,
+        periodeafgraensningsporterAktiver: periodData.periodeafgraensningsporterAktiver || 0,
+        likviderMidler: periodData.likviderMidler || 0,
         statusBalance: periodData.statusBalance || 0,
+        
+        // Balance Sheet - Equity & Liabilities (Passiver)
         egenkapital: periodData.egenkapital || 0,
+        virksomhedskapital: periodData.virksomhedskapital || 0,
+        overfoertResultat: periodData.overfoertResultat || 0,
         hensatteForpligtelser: periodData.hensatteForpligtelser || 0,
         gaeldsforpligtelser: periodData.gaeldsforpligtelser || 0,
+        langfristetGaeld: periodData.langfristetGaeld || 0,
         kortfristetGaeld: periodData.kortfristetGaeld || 0,
+        leverandoererAfVarerOgTjenesteydelser: periodData.leverandoererAfVarerOgTjenesteydelser || 0,
+        gaeldTilAssocieretVirksomheder: periodData.gaeldTilAssocieretVirksomheder || 0,
+        skyldigeMomsOgAfgifter: periodData.skyldigeMomsOgAfgifter || 0,
+        andenGaeld: periodData.andenGaeld || 0,
+        feriepengeforpligtelser: periodData.feriepengeforpligtelser || 0,
+        periodeafgraensningsporterPassiver: periodData.periodeafgraensningsporterPassiver || 0,
+        
+        // Employment
         antalAnsatte: periodData.antalAnsatte || 0,
         antalAarsvaerk: periodData.antalAarsvaerk || 0,
+        
         ...ratios // Add calculated ratios
       };
     });
