@@ -37,7 +37,7 @@ const FinancialChartsSection: React.FC<FinancialChartsSectionProps> = ({ histori
         </CardHeader>
         <CardContent>
           <ResponsiveContainer width="100%" height={300}>
-            <LineChart data={chartData} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
+            <LineChart data={chartData} margin={{ top: 5, right: 20, left: 10, bottom: 10 }}>
               <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
               <XAxis 
                 dataKey="year" 
@@ -47,7 +47,8 @@ const FinancialChartsSection: React.FC<FinancialChartsSectionProps> = ({ histori
               <YAxis 
                 className="text-sm"
                 tickFormatter={formatCurrency}
-                domain={['auto', 'auto']}
+                domain={['dataMin - 10', 'dataMax + 10']}
+                width={80}
               />
               <Tooltip 
                 formatter={(value: number) => [formatCurrency(value), 'Årets resultat']}
@@ -76,7 +77,7 @@ const FinancialChartsSection: React.FC<FinancialChartsSectionProps> = ({ histori
         </CardHeader>
         <CardContent>
           <ResponsiveContainer width="100%" height={200}>
-            <LineChart data={chartData} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
+            <LineChart data={chartData} margin={{ top: 5, right: 20, left: 10, bottom: 10 }}>
               <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
               <XAxis 
                 dataKey="year" 
@@ -86,7 +87,8 @@ const FinancialChartsSection: React.FC<FinancialChartsSectionProps> = ({ histori
               <YAxis 
                 className="text-sm"
                 tickFormatter={formatCurrency}
-                domain={['auto', 'auto']}
+                domain={['dataMin - 10', 'dataMax + 10']}
+                width={80}
               />
               <Tooltip 
                 formatter={(value: number) => [formatCurrency(value), 'Egenkapital']}
