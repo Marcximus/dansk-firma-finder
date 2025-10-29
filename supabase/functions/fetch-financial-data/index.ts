@@ -124,44 +124,9 @@ const parseXBRL = (xmlContent: string, period: string) => {
   try {
     console.log(`[XBRL Parser] Processing ${xmlContent.length} bytes for period ${period}`);
     
-    // ========== DETAILED XML CONTENT LOGGING ==========
-    console.log('\n========== XML CONTENT SAMPLE ==========');
-    console.log(xmlContent.substring(0, 2000)); // First 2000 characters
-    console.log('========================================\n');
-    
-    // ========== NAMESPACE DETECTION ==========
-    const namespacePattern = /xmlns:([^=]+)="([^"]+)"/gi;
-    const namespaces = Array.from(xmlContent.matchAll(namespacePattern));
-    console.log('\n========== DETECTED NAMESPACES ==========');
-    namespaces.forEach(([, prefix, uri]) => {
-      console.log(`  ${prefix}: ${uri}`);
-    });
-    console.log('=========================================\n');
-    
-    // Detect which namespaces are actually used for financial data
-    const usedPrefixes = new Set<string>();
-    const tagPattern = /<([^:\s>]+):([^>\s]+)/g;
-    let tagMatch;
-    let tagCount = 0;
-    while ((tagMatch = tagPattern.exec(xmlContent)) !== null && tagCount < 50) {
-      usedPrefixes.add(tagMatch[1]);
-      tagCount++;
-    }
-    console.log('\n========== USED TAG PREFIXES (first 50 tags) ==========');
-    console.log(Array.from(usedPrefixes).join(', '));
-    console.log('========================================================\n');
-    
-    // Sample financial tags found in the document
-    const financialTagPattern = /<([^:]+):(Revenue|Assets|Equity|Nettoomsaetning|Aktiver|Egenkapital)[^>]*>([^<]+)</gi;
-    const sampleTags = Array.from(xmlContent.matchAll(financialTagPattern)).slice(0, 10);
-    console.log('\n========== SAMPLE FINANCIAL TAGS ==========');
-    sampleTags.forEach(([fullMatch, prefix, tag, value]) => {
-      console.log(`  ${prefix}:${tag} = ${value.substring(0, 50)}`);
-    });
-    console.log('===========================================\n');
-    
     // Extract the year from period string (e.g., "2024-01-01 - 2024-12-31" -> "2024")
     const year = period.split(' - ')[0].substring(0, 4);
+    console.log(`[XBRL Parser] Detected year: ${year}`);
 
     // Find ALL context IDs for periods ending in the target year
     // Capture start/end dates to filter for full-year periods only
