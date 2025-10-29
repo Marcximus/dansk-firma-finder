@@ -130,12 +130,34 @@ const parseXBRL = (xmlContent: string, period: string) => {
     // Find ALL context IDs for periods ending in the target year
     // Capture start/end dates to filter for full-year periods only
     // Used for income statement items
-    const periodContextPattern = new RegExp(
+    
+    // PHASE 1: Universal Context Detection - Multiple patterns for different XBRL formats
+    
+    // Pattern 1: Standard XBRL with xbrli: namespace (IFRS 2023+)
+    const xbrliPeriodPattern = new RegExp(
       `<xbrli:context id="([^"]+)">.*?<xbrli:startDate>(\\d{4})-(\\d{2})-(\\d{2})</xbrli:startDate>.*?<xbrli:endDate>${year}-(\\d{2})-(\\d{2})</xbrli:endDate>.*?</xbrli:context>`,
       'gis'
     );
+    
+    // Pattern 2: FSA format without namespace (Danish FSA 2018-2022)
+    const fsaPeriodPattern = new RegExp(
+      `<context id="([^"]+)">.*?<period>.*?<startDate>(\\d{4})-(\\d{2})-(\\d{2})</startDate>.*?<endDate>${year}-(\\d{2})-(\\d{2})</endDate>.*?</period>.*?</context>`,
+      'gis'
+    );
+    
+    // Pattern 3: Alternative FSA format with direct dates
+    const altPeriodPattern = new RegExp(
+      `<context[^>]+id="([^"]+)"[^>]*>.*?<startDate>(\\d{4})-(\\d{2})-(\\d{2})</startDate>.*?<endDate>${year}-(\\d{2})-(\\d{2})</endDate>.*?</context>`,
+      'gis'
+    );
 
-    const periodMatches = Array.from(xmlContent.matchAll(periodContextPattern));
+    // Try all patterns and combine results
+    let periodMatches: RegExpMatchArray[] = [];
+    periodMatches.push(...Array.from(xmlContent.matchAll(xbrliPeriodPattern)));
+    periodMatches.push(...Array.from(xmlContent.matchAll(fsaPeriodPattern)));
+    periodMatches.push(...Array.from(xmlContent.matchAll(altPeriodPattern)));
+    
+    console.log(`[CONTEXT DEBUG] Total period context matches found: ${periodMatches.length}`);
 
     // Filter for FULL YEAR contexts only (11+ months duration)
     // This excludes quarterly/monthly data that might pollute annual figures
@@ -163,13 +185,33 @@ const parseXBRL = (xmlContent: string, period: string) => {
 
     // Find context IDs for instant points (handles any date within the year)
     // Used for balance sheet items
-    const instantContextPattern = new RegExp(
+    
+    // Pattern 1: Standard XBRL with xbrli: namespace
+    const xbrliInstantPattern = new RegExp(
       `<xbrli:context id="([^"]+)">.*?<xbrli:instant>${year}-\\d{2}-\\d{2}</xbrli:instant>.*?</xbrli:context>`,
       'gis'
     );
+    
+    // Pattern 2: FSA format without namespace
+    const fsaInstantPattern = new RegExp(
+      `<context id="([^"]+)">.*?<instant>${year}-\\d{2}-\\d{2}</instant>.*?</context>`,
+      'gis'
+    );
+    
+    // Pattern 3: Alternative FSA format
+    const altInstantPattern = new RegExp(
+      `<context[^>]+id="([^"]+)"[^>]*>.*?<instant>${year}-\\d{2}-\\d{2}</instant>.*?</context>`,
+      'gis'
+    );
 
-    const instantMatches = Array.from(xmlContent.matchAll(instantContextPattern));
-    const instantContextIds = instantMatches.map(m => m[1]); // e.g., ["ctx-7", "ctx-17", "ctx-19"]
+    let instantMatches: RegExpMatchArray[] = [];
+    instantMatches.push(...Array.from(xmlContent.matchAll(xbrliInstantPattern)));
+    instantMatches.push(...Array.from(xmlContent.matchAll(fsaInstantPattern)));
+    instantMatches.push(...Array.from(xmlContent.matchAll(altInstantPattern)));
+    
+    const instantContextIds = instantMatches.map(m => m[1]);
+    
+    console.log(`[CONTEXT DEBUG] Total instant context matches found: ${instantMatches.length}`);
 
     console.log(`[CONTEXT] Period contexts for ${year}: ${periodContextIds.join(', ')}`);
     console.log(`[CONTEXT] Instant contexts for ${year}: ${instantContextIds.join(', ')}`);
@@ -209,8 +251,16 @@ const parseXBRL = (xmlContent: string, period: string) => {
       /**
        * Extract a numeric value from XBRL content by trying multiple tag patterns
        * Improved version that handles 2023/2024 IFRS-FULL format with context filtering
+       * PHASE 3: Debug-Driven Tag Discovery
        */
       const extractValue = (tagNames: string[], preferredContexts?: string[]): number | null => {
+        // PHASE 3: Temporary debug logging to discover actual tags in document
+        if (tagNames[0] === 'Revenue' || tagNames[0] === 'Personaleomkostninger') {
+          const allTags = xmlContent.match(/<[^:/>]+:[A-Z][a-zA-Z0-9]*(?:\s|>|\/)/g) || [];
+          const uniqueTags = [...new Set(allTags.slice(0, 150))].slice(0, 50);
+          console.log(`[TAG DISCOVERY] Sample tags in document for ${tagNames[0]}: ${uniqueTags.join(', ')}`);
+        }
+        
         for (const tagName of tagNames) {
           // Pattern 1: NOV: custom namespace (Novo Holdings 2023/2024)
           const novPattern = new RegExp(
@@ -403,7 +453,12 @@ const parseXBRL = (xmlContent: string, period: string) => {
           'RevenueFromContractsWithCustomers', // IFRS 15
           'Revenues', // Plural variant
           'TotalRevenue', // Broader than Revenue
-          'Omsaetning' // Danish variant (no umlaut)
+          'Omsaetning', // Danish variant (no umlaut)
+          // PHASE 2: Additional Danish-specific variations
+          'NettoomsaetningIAlt',
+          'OmsaetningIAlt',
+          'NettoOmsaetning',
+          'TotalOmsaetning'
         ], usePeriodContexts);
         
         // If we found Revenue, use it
@@ -433,7 +488,11 @@ const parseXBRL = (xmlContent: string, period: string) => {
       
       bruttofortjeneste: extractValue([
         'GrossProfit', 'GrossResult', 'Bruttofortjeneste', 'Bruttoavance',
-        'GrossProfitOrLoss', 'GrossProfitLoss', 'Bruttoavanse' // ESEF variant
+        'GrossProfitOrLoss', 'GrossProfitLoss', 'Bruttoavanse', // ESEF variant
+        // PHASE 2: Additional variations
+        'BruttofortjenesteIAlt',
+        'BruttoResultat',
+        'GrossMargin'
       ], usePeriodContexts),
       
       driftsresultat: extractValue([
@@ -539,10 +598,18 @@ const parseXBRL = (xmlContent: string, period: string) => {
       ], usePeriodContexts),
       
       // Detailed Income Statement items for ApS companies
+      // PHASE 2: Expanded tag coverage for Danish XBRL
       personaleomkostninger: extractValue([
         'Personaleomkostninger', 'EmployeeBenefitsExpense',
         'StaffCosts', 'PersonnelExpenses', 'EmployeeExpenses',
-        'WagesAndSalaries', 'LoenningerOgVederlag'
+        'WagesAndSalaries', 'LoenningerOgVederlag',
+        // Additional Danish variations
+        'PersonaleomkostningerIAlt',
+        'LoenOgVederlag',
+        'PersonnelCosts',
+        'EmployeeCosts',
+        'StaffExpenses',
+        'PersonaleOmkostninger'
       ], usePeriodContexts),
 
       bruttotab: (() => {
@@ -555,7 +622,14 @@ const parseXBRL = (xmlContent: string, period: string) => {
       resultatAfPrimaerDrift: extractValue([
         'ProfitLossFromOperatingActivities',
         'ResultatAfPrimaerDrift', 'OperatingProfitLoss',
-        'Driftsresultat', 'EBIT'
+        'Driftsresultat', 'EBIT',
+        // PHASE 2: Additional variations
+        'ResultatAfPrimaerDriftIAlt',
+        'ResultatFoerFinansiellerPoster',
+        'PrimaryOperatingProfit',
+        'OperatingResult',
+        'EarningsBeforeInterestAndTax',
+        'ResultatAfPrimaereDrift'
       ], usePeriodContexts),
       
       // Additional Balance Sheet - Assets breakdown
@@ -601,85 +675,141 @@ const parseXBRL = (xmlContent: string, period: string) => {
       ], useInstantContexts),
       
       // Detailed Balance Sheet - Assets
+      // PHASE 2: Expanded tag coverage
       andreAnlaegDriftsmaterielOgInventar: extractValue([
         'OtherFixturesFittingsToolsAndEquipment',
         'DriftsmaterielOgInventar', 'AndreAnlaeg',
-        'OtherPropertyPlantAndEquipment'
+        'OtherPropertyPlantAndEquipment',
+        // Additional variations
+        'AndreAnlaegIAlt',
+        'DriftsmaterielOgInventarIAlt',
+        'FixturesAndFittings'
       ], useInstantContexts),
 
       deposita: extractValue([
         'Deposita', 'Deposits', 'SecurityDeposits',
-        'RentDeposits', 'LeaseDeposits'
+        'RentDeposits', 'LeaseDeposits',
+        // Additional variations
+        'DepositaIAlt',
+        'DepositAssets'
       ], useInstantContexts),
 
       tilgodehavenderFraSalgOgTjenesteydelser: extractValue([
         'TradeReceivables', 'Varedebitorer',
         'TilgodehavenderFraSalg', 'AccountsReceivable',
-        'TradeAndOtherReceivables'
+        'TradeAndOtherReceivables',
+        // Additional variations
+        'TilgodehavenderFraSalgOgTjenesteydelserIAlt',
+        'VaredebitorerIAlt',
+        'TilgodehavenderFraSalgIAlt'
       ], useInstantContexts),
 
       andreTilgodehavender: extractValue([
         'OtherReceivables', 'AndreTilgodehavender',
-        'MiscellaneousReceivables', 'OtherCurrentReceivables'
+        'MiscellaneousReceivables', 'OtherCurrentReceivables',
+        // Additional variations
+        'AndreTilgodehavenderIAlt',
+        'OevrigeTilgodehavender'
       ], useInstantContexts),
 
       kravPaaIndbetalingAfVirksomhedskapital: extractValue([
         'ReceivablesFromShareholdersAndManagement',
         'KravPaaIndbetalingAfVirksomhedskapital',
-        'CapitalCallsReceivable', 'UnpaidShareCapital'
+        'CapitalCallsReceivable', 'UnpaidShareCapital',
+        // Additional variations
+        'KravPaaIndbetalingAfVirksomhedskapitalIAlt',
+        'UdestaaendeKapitalIndskud'
       ], useInstantContexts),
 
       periodeafgraensningsporterAktiver: extractValue([
         'PrepaymentsCurrent', 'Periodeafgraensningsposter',
-        'DeferredExpenses', 'PrepaidExpensesAndAccruedIncome'
+        'DeferredExpenses', 'PrepaidExpensesAndAccruedIncome',
+        // Additional variations
+        'PeriodeafgraensningsporterIAlt',
+        'ForudbetalteOmkostninger'
       ], useInstantContexts),
 
       likvideBehoelninger: extractValue([
         'CashAndCashEquivalents', 'Cash', 'LikviderMidler',
-        'LikvideBehoelninger', 'CashAtBankAndInHand'
+        'LikvideBehoelninger', 'CashAtBankAndInHand',
+        // Additional variations
+        'LikvideBehoelningerIAlt',
+        'LikviderMidlerIAlt'
       ], useInstantContexts),
       
       // Detailed Balance Sheet - Equity & Liabilities
+      // PHASE 2: Expanded tag coverage
       virksomhedskapital: extractValue([
         'ShareCapital', 'Virksomhedskapital', 'IssuedCapital',
-        'ContributedCapital', 'StatedCapital'
+        'ContributedCapital', 'StatedCapital',
+        // Additional variations
+        'VirksomhedskapitalIAlt',
+        'Selskabskapital',
+        'Aktiekapital'
       ], useInstantContexts),
 
       overfoertResultat: extractValue([
         'RetainedEarnings', 'OverfoertResultat',
         'AccumulatedProfit', 'RetainedProfitLoss',
-        'AccumulatedDeficit'
+        'AccumulatedDeficit',
+        // Additional variations
+        'OverfoertResultatIAlt',
+        'OpsparedOverskud',
+        'HenlagtOverskud'
       ], useInstantContexts),
 
       leverandoererAfVarerOgTjenesteydelser: extractValue([
         'TradePayables', 'Leverandoerer',
         'LeverandoererAfVarer', 'AccountsPayable',
-        'TradeAndOtherPayables'
+        'TradeAndOtherPayables',
+        // Additional variations
+        'LeverandoererAfVarerOgTjenesteydelerIAlt',
+        'LeverandoererIAlt',
+        'Kreditorer'
       ], useInstantContexts),
 
       gaeldTilAssocieretVirksomheder: extractValue([
         'PayablesToAssociates', 'GaeldTilAssocieretVirksomheder',
-        'AmountsDueToRelatedParties', 'PayablesToRelatedCompanies'
+        'AmountsDueToRelatedParties', 'PayablesToRelatedCompanies',
+        // Additional variations
+        'GaeldTilAssocieretVirksomhederIAlt',
+        'GaeldTilTilknyttedeVirksomheder'
       ], useInstantContexts),
 
       skyldideMomsOgAfgifter: extractValue([
         'VATPayable', 'SkyldideMomsOgAfgifter',
-        'TaxPayable', 'VATAndDutiesPayable'
+        'TaxPayable', 'VATAndDutiesPayable',
+        // Additional variations
+        'SkyldideMomsOgAfgifterIAlt',
+        'MomsGaeld',
+        'SkyldigeAfgifter'
       ], useInstantContexts),
 
       andenGaeld: extractValue([
         'OtherPayables', 'AndenGaeld',
-        'OtherCurrentLiabilities', 'MiscellaneousPayables'
+        'OtherCurrentLiabilities', 'MiscellaneousPayables',
+        // Additional variations
+        'AndenGaeldIAlt',
+        'OevrigGaeld',
+        'AndreGaeldsforpligtelser'
       ], useInstantContexts),
 
       feriepengeforpligtelser: extractValue([
         'HolidayPayObligations', 'Feriepengeforpligtelser',
-        'VacationPayLiability', 'AccruedHolidayPay'
+        'VacationPayLiability', 'AccruedHolidayPay',
+        // Additional variations
+        'FeriepengeforpligtelserIAlt',
+        'SkyldideFeriepenge',
+        'FeriepengeGaeld'
       ], useInstantContexts),
 
       periodeafgraensningsporterPassiver: extractValue([
         'DeferredIncome', 'AccrualsAndDeferredIncome',
-        'PeriodeafgraensningsporterPassiver', 'AccruedExpensesAndDeferredIncome'
+        'PeriodeafgraensningsporterPassiver', 'AccruedExpensesAndDeferredIncome',
+        // Additional variations
+        'PeriodeafgraensningsporterPassiverIAlt',
+        'ForudbetalteIntaegter',
+        'PeriodeafgraensningerPassiver'
       ], useInstantContexts),
       
       // Additional Balance Sheet - Liabilities breakdown
