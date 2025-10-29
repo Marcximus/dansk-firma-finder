@@ -40,16 +40,31 @@ export const extractOwnershipData = (cvrData: any) => {
     
     return relations
       .filter((rel: any) => {
-        const isActive = !rel.periode?.gyldigTil;
+        // Don't check rel.periode - a person can have other active relations (board member, etc.)
+        // Instead, check if they have ACTIVE ownership data in EJERREGISTER
         
-        // Check if this relation has ownership info in EJERREGISTER with actual ownership percentages
-        const hasOwnershipData = rel.organisationer?.some((org: any) => 
+        const ejerRegisterOrg = rel.organisationer?.find((org: any) => 
           org.hovedtype === 'REGISTER' && 
-          org.organisationsNavn?.some((n: any) => n.navn === 'EJERREGISTER') &&
-          hasOwnershipPercentage(org)
+          org.organisationsNavn?.some((n: any) => n.navn === 'EJERREGISTER')
         );
         
-        return isActive && hasOwnershipData;
+        if (!ejerRegisterOrg) return false;
+        
+        // Check if there's an ACTIVE membership with ownership data
+        const medlemsData = ejerRegisterOrg.medlemsData || [];
+        const hasActiveOwnership = medlemsData.some((member: any) => {
+          // Membership must be currently active
+          const isMembershipActive = !member.periode?.gyldigTil;
+          
+          // Membership must have ownership percentage
+          const hasOwnership = member.attributter?.some((attr: any) => 
+            attr.type === 'EJERANDEL_PROCENT' || attr.type === 'EJERANDEL_STEMMERET_PROCENT'
+          );
+          
+          return isMembershipActive && hasOwnership;
+        });
+        
+        return hasActiveOwnership;
       })
       .map((rel: any) => {
         let name = 'Ukendt';
@@ -66,7 +81,14 @@ export const extractOwnershipData = (cvrData: any) => {
 
         if (ejerRegisterOrg) {
           const medlemsData = ejerRegisterOrg.medlemsData || [];
-          const activeMember = medlemsData.find((m: any) => !m.periode?.gyldigTil) || medlemsData[0];
+          // Only use memberships that are currently active AND have ownership data
+          const activeMember = medlemsData.find((m: any) => {
+            const isActive = !m.periode?.gyldigTil;
+            const hasOwnershipAttr = m.attributter?.some((attr: any) => 
+              attr.type === 'EJERANDEL_PROCENT' || attr.type === 'EJERANDEL_STEMMERET_PROCENT'
+            );
+            return isActive && hasOwnershipAttr;
+          });
           
           if (activeMember) {
             const attributter = activeMember.attributter || [];
