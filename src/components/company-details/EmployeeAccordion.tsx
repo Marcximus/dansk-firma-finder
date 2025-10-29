@@ -36,11 +36,11 @@ const EmployeeAccordion: React.FC<EmployeeAccordionProps> = ({ cvr, cvrData }) =
   // Extract and process financial data
   const financialData = extractFinancialData(cvrData, parsedFinancialData);
 
-  // Format data for employee chart - reverse to show newest on left
+  // Format data for employee chart - oldest to newest (left to right)
   const chartData = financialData?.historicalData?.map(data => ({
     year: data.year.toString(),
     antalAnsatte: data.antalAnsatte
-  })).reverse() || [];
+  })) || [];
 
   const formatEmployees = (value: number) => `${value} ansatte`;
 
@@ -76,7 +76,6 @@ const EmployeeAccordion: React.FC<EmployeeAccordionProps> = ({ cvr, cvrData }) =
                     <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
                     <XAxis 
                       dataKey="year" 
-                      reversed={true}
                       tick={{ fontSize: 12 }}
                       interval="preserveStartEnd"
                       padding={{ left: 10, right: 10 }}

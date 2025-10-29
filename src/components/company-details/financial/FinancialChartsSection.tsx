@@ -9,14 +9,14 @@ interface FinancialChartsSectionProps {
 }
 
 const FinancialChartsSection: React.FC<FinancialChartsSectionProps> = ({ historicalData }) => {
-  // Format data for charts - reverse to show newest on left
+  // Format data for charts - oldest to newest (left to right)
   const chartData = historicalData.map(data => ({
     year: data.year.toString(),
     nettoomsaetning: Math.round(data.nettoomsaetning / 1000000), // Convert to millions
     bruttofortjeneste: Math.round(data.bruttofortjeneste / 1000000),
     aaretsResultat: Math.round(data.aaretsResultat / 1000000),
     egenkapital: Math.round(data.egenkapital / 1000000)
-  })).reverse();
+  }));
 
   const formatCurrency = (value: number) => `${value} mio. DKK`;
 
@@ -27,12 +27,12 @@ const FinancialChartsSection: React.FC<FinancialChartsSectionProps> = ({ histori
         <h4 className="font-semibold text-lg">Finansiel udvikling</h4>
       </div>
 
-      {/* Revenue and Profit Trend */}
+      {/* Årets Resultat Trend */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <DollarSign className="h-4 w-4" />
-            Omsætning og resultat (mio. DKK)
+            Årets Resultat (mio. DKK)
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -41,7 +41,6 @@ const FinancialChartsSection: React.FC<FinancialChartsSectionProps> = ({ histori
               <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
               <XAxis 
                 dataKey="year" 
-                reversed={true}
                 tick={{ fontSize: 12 }}
                 interval="preserveStartEnd"
                 padding={{ left: 10, right: 10 }}
@@ -52,41 +51,22 @@ const FinancialChartsSection: React.FC<FinancialChartsSectionProps> = ({ histori
                 domain={['auto', 'auto']}
               />
               <Tooltip 
-                formatter={(value: number, name: string) => [
-                  formatCurrency(value), 
-                  name === 'nettoomsaetning' ? 'Nettoomsætning' : 
-                  name === 'bruttofortjeneste' ? 'Bruttofortjeneste' : 'Årets resultat'
-                ]}
+                formatter={(value: number) => [formatCurrency(value), 'Årets resultat']}
                 labelFormatter={(label) => `År ${label}`}
               />
-              <Legend 
-                formatter={(value) => 
-                  value === 'nettoomsaetning' ? 'Nettoomsætning' : 
-                  value === 'bruttofortjeneste' ? 'Bruttofortjeneste' : 'Årets resultat'
-                }
-              />
               <Area 
                 type="monotone" 
-                dataKey="nettoomsaetning" 
-                stackId="1"
+                dataKey="aaretsResultat" 
                 stroke="hsl(var(--primary))" 
                 fill="hsl(var(--primary))" 
-                fillOpacity={0.3}
-              />
-              <Area 
-                type="monotone" 
-                dataKey="bruttofortjeneste" 
-                stackId="2"
-                stroke="hsl(var(--secondary))" 
-                fill="hsl(var(--secondary))" 
                 fillOpacity={0.3}
               />
               <Line 
                 type="monotone" 
                 dataKey="aaretsResultat" 
-                stroke="hsl(var(--accent))" 
-                strokeWidth={3}
-                dot={{ fill: "hsl(var(--accent))", strokeWidth: 2, r: 4 }}
+                stroke="hsl(var(--primary))" 
+                strokeWidth={2}
+                dot={{ fill: "hsl(var(--primary))", strokeWidth: 2, r: 4 }}
               />
             </AreaChart>
           </ResponsiveContainer>
@@ -107,7 +87,6 @@ const FinancialChartsSection: React.FC<FinancialChartsSectionProps> = ({ histori
               <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
               <XAxis 
                 dataKey="year" 
-                reversed={true}
                 tick={{ fontSize: 12 }}
                 interval="preserveStartEnd"
                 padding={{ left: 10, right: 10 }}
