@@ -37,12 +37,12 @@ const FinancialChartsSection: React.FC<FinancialChartsSectionProps> = ({ histori
         </CardHeader>
         <CardContent>
           <ResponsiveContainer width="100%" height={300}>
-            <AreaChart data={chartData}>
+            <LineChart data={chartData} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
               <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
               <XAxis 
                 dataKey="year" 
                 tick={{ fontSize: 13 }}
-                interval={0}
+                interval="preserveStartEnd"
               />
               <YAxis 
                 className="text-sm"
@@ -53,21 +53,15 @@ const FinancialChartsSection: React.FC<FinancialChartsSectionProps> = ({ histori
                 formatter={(value: number) => [formatCurrency(value), 'Årets resultat']}
                 labelFormatter={(label) => `År ${label}`}
               />
-              <Area 
-                type="monotone" 
-                dataKey="aaretsResultat" 
-                stroke="hsl(var(--primary))" 
-                fill="hsl(var(--primary))" 
-                fillOpacity={0.3}
-              />
               <Line 
                 type="monotone" 
                 dataKey="aaretsResultat" 
                 stroke="hsl(var(--primary))" 
-                strokeWidth={2}
-                dot={{ fill: "hsl(var(--primary))", strokeWidth: 2, r: 4 }}
+                strokeWidth={2.5}
+                dot={{ fill: "hsl(var(--primary))", strokeWidth: 2, r: 5 }}
+                activeDot={{ r: 7 }}
               />
-            </AreaChart>
+            </LineChart>
           </ResponsiveContainer>
         </CardContent>
       </Card>
@@ -82,12 +76,12 @@ const FinancialChartsSection: React.FC<FinancialChartsSectionProps> = ({ histori
         </CardHeader>
         <CardContent>
           <ResponsiveContainer width="100%" height={200}>
-            <LineChart data={chartData}>
+            <LineChart data={chartData} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
               <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
               <XAxis 
                 dataKey="year" 
                 tick={{ fontSize: 13 }}
-                interval={0}
+                interval="preserveStartEnd"
               />
               <YAxis 
                 className="text-sm"
@@ -102,9 +96,9 @@ const FinancialChartsSection: React.FC<FinancialChartsSectionProps> = ({ histori
                 type="monotone" 
                 dataKey="egenkapital" 
                 stroke="hsl(var(--primary))" 
-                strokeWidth={3}
-                dot={{ fill: "hsl(var(--primary))", strokeWidth: 2, r: 4 }}
-                activeDot={{ r: 6, stroke: "hsl(var(--primary))", strokeWidth: 2 }}
+                strokeWidth={2.5}
+                dot={{ fill: "hsl(var(--primary))", strokeWidth: 2, r: 5 }}
+                activeDot={{ r: 7 }}
               />
             </LineChart>
           </ResponsiveContainer>

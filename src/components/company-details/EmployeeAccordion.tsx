@@ -72,12 +72,12 @@ const EmployeeAccordion: React.FC<EmployeeAccordionProps> = ({ cvr, cvrData }) =
               </CardHeader>
               <CardContent>
                 <ResponsiveContainer width="100%" height={300}>
-                  <BarChart data={chartData}>
+                  <BarChart data={chartData} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
                     <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
                     <XAxis 
                       dataKey="year" 
                       tick={{ fontSize: 13 }}
-                      interval={0}
+                      interval="preserveStartEnd"
                     />
                     <YAxis 
                       className="text-sm"
