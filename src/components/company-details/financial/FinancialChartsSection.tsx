@@ -9,7 +9,7 @@ interface FinancialChartsSectionProps {
 }
 
 const FinancialChartsSection: React.FC<FinancialChartsSectionProps> = ({ historicalData }) => {
-  // Format data for charts
+  // Format data for charts - reverse to show newest on left
   const chartData = historicalData.map(data => ({
     year: data.year.toString(),
     nettoomsaetning: Math.round(data.nettoomsaetning / 1000000), // Convert to millions
@@ -17,7 +17,7 @@ const FinancialChartsSection: React.FC<FinancialChartsSectionProps> = ({ histori
     aaretsResultat: Math.round(data.aaretsResultat / 1000000),
     egenkapital: Math.round(data.egenkapital / 1000000),
     antalAnsatte: data.antalAnsatte
-  }));
+  })).reverse();
 
   const formatCurrency = (value: number) => `${value} mio. DKK`;
   const formatEmployees = (value: number) => `${value} ansatte`;
@@ -43,7 +43,10 @@ const FinancialChartsSection: React.FC<FinancialChartsSectionProps> = ({ histori
               <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
               <XAxis 
                 dataKey="year" 
-                className="text-sm"
+                reversed={true}
+                tick={{ fontSize: 12 }}
+                interval="preserveStartEnd"
+                padding={{ left: 10, right: 10 }}
               />
               <YAxis 
                 className="text-sm"
@@ -105,7 +108,10 @@ const FinancialChartsSection: React.FC<FinancialChartsSectionProps> = ({ histori
               <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
               <XAxis 
                 dataKey="year" 
-                className="text-sm"
+                reversed={true}
+                tick={{ fontSize: 12 }}
+                interval="preserveStartEnd"
+                padding={{ left: 10, right: 10 }}
               />
               <YAxis 
                 className="text-sm"
@@ -139,7 +145,10 @@ const FinancialChartsSection: React.FC<FinancialChartsSectionProps> = ({ histori
               <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
               <XAxis 
                 dataKey="year" 
-                className="text-sm"
+                reversed={true}
+                tick={{ fontSize: 12 }}
+                interval="preserveStartEnd"
+                padding={{ left: 10, right: 10 }}
               />
               <YAxis 
                 className="text-sm"
