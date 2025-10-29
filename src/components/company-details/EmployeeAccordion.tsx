@@ -36,13 +36,63 @@ const EmployeeAccordion: React.FC<EmployeeAccordionProps> = ({ cvr, cvrData }) =
   // Extract and process financial data
   const financialData = extractFinancialData(cvrData, parsedFinancialData);
 
-  // Format data for employee chart - oldest to newest (left to right)
-  const chartData = financialData?.historicalData?.map(data => ({
-    year: data.year.toString(),
-    antalAnsatte: data.antalAnsatte
-  })).slice().reverse() || [];
+  // Process employment data for chart - prefer monthly over quarterly
+  const processEmploymentData = () => {
+    const employmentData: Array<{
+      periode: string;
+      total: number;
+      fuldtid: number;
+      deltid: number;
+    }> = [];
 
-  const formatEmployees = (value: number) => `${value} ansatte`;
+    // Use monthly data if available
+    if (financialData?.yearlyEmployment && financialData.yearlyEmployment.length > 0) {
+      const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'Maj', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dec'];
+      
+      financialData.yearlyEmployment
+        .slice(0, 12) // Take last 12 months
+        .forEach((item: any) => {
+          const total = item.antalAnsatte || 0;
+          const fuldtid = item.antalAarsvaerk || 0;
+          const deltid = total - fuldtid;
+          
+          // Format periode based on available data
+          let periode = '';
+          if (item.maaned && item.aar) {
+            periode = `${monthNames[item.maaned - 1]} ${item.aar}`;
+          } else if (item.aar) {
+            periode = item.aar.toString();
+          }
+          
+          if (periode && total > 0) {
+            employmentData.push({ periode, total, fuldtid, deltid });
+          }
+        });
+    }
+    
+    // Fallback to quarterly data if no monthly data
+    if (employmentData.length === 0 && financialData?.quarterlyEmployment && financialData.quarterlyEmployment.length > 0) {
+      financialData.quarterlyEmployment
+        .slice(0, 12) // Take last 12 quarters
+        .forEach((item: any) => {
+          const total = item.antalAnsatte || 0;
+          const fuldtid = item.antalAarsvaerk || 0;
+          const deltid = total - fuldtid;
+          const periode = `${item.kvartal}. kvt ${item.aar}`;
+          
+          if (total > 0) {
+            employmentData.push({ periode, total, fuldtid, deltid });
+          }
+        });
+    }
+    
+    // Reverse to show oldest → newest (left to right)
+    return employmentData.reverse();
+  };
+
+  const chartData = processEmploymentData();
+
+  const formatEmployees = (value: number) => value.toString();
 
   return (
     <AccordionItem value="employees" className="border rounded-lg">
@@ -67,7 +117,7 @@ const EmployeeAccordion: React.FC<EmployeeAccordionProps> = ({ cvr, cvrData }) =
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Users className="h-4 w-4" />
-                  Medarbejderudvikling
+                  Medarbejderudvikling (seneste 12 måneder)
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -75,8 +125,8 @@ const EmployeeAccordion: React.FC<EmployeeAccordionProps> = ({ cvr, cvrData }) =
                   <BarChart data={chartData} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
                     <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
                     <XAxis 
-                      dataKey="year" 
-                      tick={{ fontSize: 13 }}
+                      dataKey="periode" 
+                      tick={{ fontSize: 12 }}
                       interval="preserveStartEnd"
                     />
                     <YAxis 
@@ -85,12 +135,21 @@ const EmployeeAccordion: React.FC<EmployeeAccordionProps> = ({ cvr, cvrData }) =
                       domain={[0, 'auto']}
                     />
                     <Tooltip 
-                      formatter={(value: number) => [formatEmployees(value), 'Antal ansatte']}
-                      labelFormatter={(label) => `År ${label}`}
+                      formatter={(value: number) => [value, '']}
+                      labelFormatter={(label) => label}
                     />
                     <Bar 
-                      dataKey="antalAnsatte" 
+                      dataKey="fuldtid" 
                       fill="hsl(var(--primary))" 
+                      stackId="a"
+                      name="Fuldtid (Årsværk)"
+                      radius={[0, 0, 0, 0]}
+                    />
+                    <Bar 
+                      dataKey="deltid" 
+                      fill="hsl(var(--chart-2))" 
+                      stackId="a"
+                      name="Deltid"
                       radius={[4, 4, 0, 0]}
                     />
                   </BarChart>
