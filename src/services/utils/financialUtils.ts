@@ -28,9 +28,33 @@ export const calculateFinancialRatios = (data: any) => {
 
 // Helper function to extract employment data from company or production units
 const getEmploymentData = (cvrData: any, fieldName: string) => {
+  // Helper function to sort employment data consistently
+  const sortEmploymentData = (data: any[]) => {
+    return data.sort((a, b) => {
+      // Sort by year first (ascending - oldest to newest)
+      if (a.aar !== b.aar) return a.aar - b.aar;
+      
+      // Then by month if both have it (handles maaned=0 for January)
+      if (a.maaned !== undefined && a.maaned !== null && 
+          b.maaned !== undefined && b.maaned !== null) {
+        return a.maaned - b.maaned;
+      }
+      
+      // Then by quarter if both have it
+      if (a.kvartal !== undefined && a.kvartal !== null && 
+          b.kvartal !== undefined && b.kvartal !== null) {
+        return a.kvartal - b.kvartal;
+      }
+      
+      return 0;
+    });
+  };
+
   // Try company level first
   if (cvrData?.Vrvirksomhed?.[fieldName]?.length > 0) {
-    return cvrData.Vrvirksomhed[fieldName];
+    const companyData = cvrData.Vrvirksomhed[fieldName];
+    // Sort company-level data before returning
+    return sortEmploymentData([...companyData]);
   }
   
   // Fallback to production unit level (aggregate from all units)
@@ -189,9 +213,11 @@ export const extractFinancialData = (cvrData: any, parsedFinancialData?: any) =>
         periode: latestData.periode
       },
       historicalData: enrichedData, // All parsed periods with ratios, properly structured
-      monthlyEmployment: getEmploymentData(cvrData, 'maanedsbeskaeftigelse').length > 0 
-        ? getEmploymentData(cvrData, 'maanedsbeskaeftigelse')
-        : getEmploymentData(cvrData, 'erstMaanedsbeskaeftigelse'),
+      monthlyEmployment: (() => {
+        const regular = getEmploymentData(cvrData, 'maanedsbeskaeftigelse');
+        const substitute = getEmploymentData(cvrData, 'erstMaanedsbeskaeftigelse');
+        return regular.length > 0 ? regular : substitute;
+      })(),
       yearlyEmployment: getEmploymentData(cvrData, 'aarsbeskaeftigelse'),
       quarterlyEmployment: getEmploymentData(cvrData, 'kvartalsbeskaeftigelse'),
       kapitalforhold: cvrData?.Vrvirksomhed?.kapitalforhold || [],
@@ -272,9 +298,11 @@ export const extractFinancialData = (cvrData: any, parsedFinancialData?: any) =>
   const result = {
     financialKPIs: getFinancialKPIs(),
     historicalData: [],
-    monthlyEmployment: getEmploymentData(cvrData, 'maanedsbeskaeftigelse').length > 0 
-      ? getEmploymentData(cvrData, 'maanedsbeskaeftigelse')
-      : getEmploymentData(cvrData, 'erstMaanedsbeskaeftigelse'),
+    monthlyEmployment: (() => {
+      const regular = getEmploymentData(cvrData, 'maanedsbeskaeftigelse');
+      const substitute = getEmploymentData(cvrData, 'erstMaanedsbeskaeftigelse');
+      return regular.length > 0 ? regular : substitute;
+    })(),
     yearlyEmployment: getEmploymentData(cvrData, 'aarsbeskaeftigelse'),
     quarterlyEmployment: getEmploymentData(cvrData, 'kvartalsbeskaeftigelse'),
     kapitalforhold: vrvirksomhed.kapitalforhold || [],
