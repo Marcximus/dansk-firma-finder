@@ -64,12 +64,65 @@ const FINANCIAL_EXPLANATIONS: Record<string, string> = {
   'overskudsgrad': 'Angiver hvor mange procent af omsætningen der bliver til overskud. Høj overskudsgrad betyder god indtjening på salget.'
 };
 
+interface RatioSpectrum {
+  poor: number;
+  fair: number;
+  good: number;
+  excellent: number;
+}
+
+const RATIO_SPECTRUMS: Record<string, RatioSpectrum> = {
+  'soliditetsgrad': { poor: 0, fair: 20, good: 30, excellent: 50 },
+  'likviditetsgrad': { poor: 0, fair: 100, good: 150, excellent: 200 },
+  'afkastningsgrad': { poor: -10, fair: 5, good: 10, excellent: 20 },
+  'overskudsgrad': { poor: -10, fair: 5, good: 10, excellent: 20 }
+};
+
+const SpectrumVisualization: React.FC<{
+  value: number | null;
+  spectrum: RatioSpectrum;
+}> = ({ value, spectrum }) => {
+  if (value === null) return null;
+  
+  const { poor, fair, good, excellent } = spectrum;
+  const range = excellent - poor;
+  const clampedValue = Math.max(poor, Math.min(excellent, value));
+  const position = ((clampedValue - poor) / range) * 100;
+  
+  return (
+    <div className="mt-3 space-y-2">
+      <div className="relative h-6 rounded-full overflow-hidden bg-gradient-to-r from-destructive via-yellow-500 to-green-500">
+        <div 
+          className="absolute top-0 bottom-0 w-0.5 bg-background shadow-lg"
+          style={{ left: `${position}%` }}
+        />
+        <div 
+          className="absolute top-1/2 -translate-y-1/2 w-3 h-3 bg-background rounded-full border-2 border-foreground shadow-lg"
+          style={{ left: `calc(${position}% - 6px)` }}
+        />
+      </div>
+      <div className="flex justify-between text-xs text-muted-foreground">
+        <span>{poor}%</span>
+        <span>{fair}%</span>
+        <span>{good}%</span>
+        <span>{excellent}%</span>
+      </div>
+      <div className="text-xs text-center font-medium">
+        Nuværende: {value.toFixed(1)}%
+      </div>
+    </div>
+  );
+};
+
 const FinancialRowWithTooltip: React.FC<{
   label: string;
   tooltipKey: string;
   className: string;
-}> = ({ label, tooltipKey, className }) => {
+  value?: number | null;
+  showSpectrum?: boolean;
+}> = ({ label, tooltipKey, className, value, showSpectrum = false }) => {
   const explanation = FINANCIAL_EXPLANATIONS[tooltipKey];
+  const spectrum = RATIO_SPECTRUMS[tooltipKey];
   
   if (!explanation) {
     return <TableCell className={className}>{label}</TableCell>;
@@ -81,8 +134,11 @@ const FinancialRowWithTooltip: React.FC<{
         <TooltipTrigger asChild>
           <span className="cursor-help">{label}</span>
         </TooltipTrigger>
-        <TooltipContent side="right" className="max-w-xs">
+        <TooltipContent side="right" className="max-w-sm">
           <p className="text-sm">{explanation}</p>
+          {showSpectrum && spectrum && value !== undefined && (
+            <SpectrumVisualization value={value} spectrum={spectrum} />
+          )}
         </TooltipContent>
       </Tooltip>
     </TableCell>
@@ -658,6 +714,8 @@ const FinancialSpreadsheet: React.FC<FinancialSpreadsheetProps> = ({ historicalD
                     label="Soliditetsgrad"
                     tooltipKey="soliditetsgrad"
                     className="sticky left-0 bg-background font-medium text-xs py-1.5 w-[200px]"
+                    value={periods[0]?.soliditetsgrad}
+                    showSpectrum={true}
                   />
                   {periods.map((period, idx) => (
                     <TableCell key={idx} className="text-right text-xs py-1.5 w-[120px]">{formatPercent(period.soliditetsgrad)}</TableCell>
@@ -668,6 +726,8 @@ const FinancialSpreadsheet: React.FC<FinancialSpreadsheetProps> = ({ historicalD
                     label="Likviditetsgrad"
                     tooltipKey="likviditetsgrad"
                     className="sticky left-0 bg-background font-medium text-xs py-1.5 w-[200px]"
+                    value={periods[0]?.likviditetsgrad}
+                    showSpectrum={true}
                   />
                   {periods.map((period, idx) => (
                     <TableCell key={idx} className="text-right text-xs py-1.5 w-[120px]">{formatPercent(period.likviditetsgrad)}</TableCell>
@@ -678,6 +738,8 @@ const FinancialSpreadsheet: React.FC<FinancialSpreadsheetProps> = ({ historicalD
                     label="Afkastningsgrad"
                     tooltipKey="afkastningsgrad"
                     className="sticky left-0 bg-background font-medium text-xs py-1.5 w-[200px]"
+                    value={periods[0]?.afkastningsgrad}
+                    showSpectrum={true}
                   />
                   {periods.map((period, idx) => (
                     <TableCell key={idx} className="text-right text-xs py-1.5 w-[120px]">{formatPercent(period.afkastningsgrad)}</TableCell>
@@ -688,6 +750,8 @@ const FinancialSpreadsheet: React.FC<FinancialSpreadsheetProps> = ({ historicalD
                     label="Overskudsgrad"
                     tooltipKey="overskudsgrad"
                     className="sticky left-0 bg-background font-medium text-xs py-1.5 w-[200px]"
+                    value={periods[0]?.overskudsgrad}
+                    showSpectrum={true}
                   />
                   {periods.map((period, idx) => (
                     <TableCell key={idx} className="text-right text-xs py-1.5 w-[120px]">{formatPercent(period.overskudsgrad)}</TableCell>
