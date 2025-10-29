@@ -1083,7 +1083,13 @@ const parseXBRL = (xmlContent: string, period: string) => {
   }
 };
 
+const FUNCTION_VERSION = "v2.1.0-EXTRACT-FIX";
+
 serve(async (req) => {
+  console.log("════════════════════════════════════════");
+  console.log(`🚀 FUNCTION VERSION: ${FUNCTION_VERSION}`);
+  console.log(`📅 TIMESTAMP: ${new Date().toISOString()}`);
+  console.log("════════════════════════════════════════");
   console.log('[STARTUP] fetch-financial-data edge function - XBRL parser version');
   
   // Handle CORS preflight requests
