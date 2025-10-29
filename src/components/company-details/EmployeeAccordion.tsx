@@ -56,7 +56,7 @@ const EmployeeAccordion: React.FC<EmployeeAccordionProps> = ({ cvr, cvrData }) =
           const fuldtid = Math.round((item.antalAarsvaerk || 0) * 100) / 100; // Handle decimal values
           const deltid = Math.max(0, total - fuldtid);
           
-          if (item.maaned && item.aar) {
+          if (item.maaned !== undefined && item.maaned !== null && item.aar) {
             const periode = `${monthNames[item.maaned - 1]} ${item.aar}`;
             employmentData.push({ periode, total, fuldtid, deltid });
           }
@@ -72,7 +72,7 @@ const EmployeeAccordion: React.FC<EmployeeAccordionProps> = ({ cvr, cvrData }) =
           const fuldtid = item.antalAarsvaerk || 0;
           const deltid = Math.max(0, total - fuldtid);
           
-          if (item.kvartal && item.aar) {
+          if (item.kvartal !== undefined && item.kvartal !== null && item.aar) {
             const periode = `${item.kvartal}. kvt ${item.aar}`;
             employmentData.push({ periode, total, fuldtid, deltid });
           }
