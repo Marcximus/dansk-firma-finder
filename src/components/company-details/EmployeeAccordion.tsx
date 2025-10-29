@@ -56,8 +56,18 @@ const EmployeeAccordion: React.FC<EmployeeAccordionProps> = ({ cvr, cvrData }) =
           const fuldtid = Math.round((item.antalAarsvaerk || 0) * 100) / 100; // Handle decimal values
           const deltid = Math.max(0, total - fuldtid);
           
-          if (item.maaned !== undefined && item.maaned !== null && item.aar) {
-            const periode = `${monthNames[item.maaned - 1]} ${item.aar}`;
+          if (item.aar) {
+            let periode: string;
+            
+            // If we have a valid month (1-12), use it
+            if (item.maaned !== undefined && item.maaned !== null && 
+                item.maaned >= 1 && item.maaned <= 12) {
+              periode = `${monthNames[item.maaned - 1]} ${item.aar}`;
+            } else {
+              // Fallback: just show year if month is missing/invalid
+              periode = `${item.aar}`;
+            }
+            
             employmentData.push({ periode, total, fuldtid, deltid });
           }
         });
@@ -72,8 +82,18 @@ const EmployeeAccordion: React.FC<EmployeeAccordionProps> = ({ cvr, cvrData }) =
           const fuldtid = item.antalAarsvaerk || 0;
           const deltid = Math.max(0, total - fuldtid);
           
-          if (item.kvartal !== undefined && item.kvartal !== null && item.aar) {
-            const periode = `${item.kvartal}. kvt ${item.aar}`;
+          if (item.aar) {
+            let periode: string;
+            
+            // If we have a valid quarter (1-4), use it
+            if (item.kvartal !== undefined && item.kvartal !== null && 
+                item.kvartal >= 1 && item.kvartal <= 4) {
+              periode = `${item.kvartal}. kvt ${item.aar}`;
+            } else {
+              // Fallback: just show year if quarter is missing/invalid
+              periode = `${item.aar}`;
+            }
+            
             employmentData.push({ periode, total, fuldtid, deltid });
           }
         });
