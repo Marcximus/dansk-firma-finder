@@ -773,73 +773,75 @@ const FinancialSpreadsheet: React.FC<FinancialSpreadsheetProps> = ({ historicalD
           </div>
 
           {/* Key Ratios */}
-          <div>
-            <div className="bg-muted/30 px-4 py-2">
-              <h3 className="font-semibold text-sm">Nøgletal i %</h3>
+          {isExpanded && (
+            <div>
+              <div className="bg-muted/30 px-4 py-2">
+                <h3 className="font-semibold text-sm">Nøgletal i %</h3>
+              </div>
+              <Table>
+                <TableHeader>
+                  <TableRow className="border-b">
+                    <TableHead className="sticky left-0 bg-background w-[200px] h-8 text-xs font-medium">Nøgletal</TableHead>
+                    {periods.map((period, idx) => (
+                      <TableHead key={idx} className="text-right h-8 text-xs font-medium w-[120px]">
+                        {getYearLabel(period.periode)}
+                      </TableHead>
+                    ))}
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  <TableRow className="hover:bg-muted/30">
+                    <FinancialRowWithTooltip
+                      label="Soliditetsgrad"
+                      tooltipKey="soliditetsgrad"
+                      className="sticky left-0 bg-background font-medium text-xs py-1.5 w-[200px]"
+                      value={periods[0]?.soliditetsgrad}
+                      showSpectrum={true}
+                    />
+                    {periods.map((period, idx) => (
+                      <TableCell key={idx} className="text-right text-xs py-1.5 w-[120px]">{formatPercent(period.soliditetsgrad)}</TableCell>
+                    ))}
+                  </TableRow>
+                  <TableRow className="hover:bg-muted/30">
+                    <FinancialRowWithTooltip
+                      label="Likviditetsgrad"
+                      tooltipKey="likviditetsgrad"
+                      className="sticky left-0 bg-background font-medium text-xs py-1.5 w-[200px]"
+                      value={periods[0]?.likviditetsgrad}
+                      showSpectrum={true}
+                    />
+                    {periods.map((period, idx) => (
+                      <TableCell key={idx} className="text-right text-xs py-1.5 w-[120px]">{formatPercent(period.likviditetsgrad)}</TableCell>
+                    ))}
+                  </TableRow>
+                  <TableRow className="hover:bg-muted/30">
+                    <FinancialRowWithTooltip
+                      label="Afkastningsgrad"
+                      tooltipKey="afkastningsgrad"
+                      className="sticky left-0 bg-background font-medium text-xs py-1.5 w-[200px]"
+                      value={periods[0]?.afkastningsgrad}
+                      showSpectrum={true}
+                    />
+                    {periods.map((period, idx) => (
+                      <TableCell key={idx} className="text-right text-xs py-1.5 w-[120px]">{formatPercent(period.afkastningsgrad)}</TableCell>
+                    ))}
+                  </TableRow>
+                  <TableRow className="hover:bg-muted/30">
+                    <FinancialRowWithTooltip
+                      label="Overskudsgrad"
+                      tooltipKey="overskudsgrad"
+                      className="sticky left-0 bg-background font-medium text-xs py-1.5 w-[200px]"
+                      value={periods[0]?.overskudsgrad}
+                      showSpectrum={true}
+                    />
+                    {periods.map((period, idx) => (
+                      <TableCell key={idx} className="text-right text-xs py-1.5 w-[120px]">{formatPercent(period.overskudsgrad)}</TableCell>
+                    ))}
+                  </TableRow>
+                </TableBody>
+              </Table>
             </div>
-            <Table>
-              <TableHeader>
-                <TableRow className="border-b">
-                  <TableHead className="sticky left-0 bg-background w-[200px] h-8 text-xs font-medium">Nøgletal</TableHead>
-                  {periods.map((period, idx) => (
-                    <TableHead key={idx} className="text-right h-8 text-xs font-medium w-[120px]">
-                      {getYearLabel(period.periode)}
-                    </TableHead>
-                  ))}
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                <TableRow className="hover:bg-muted/30">
-                  <FinancialRowWithTooltip
-                    label="Soliditetsgrad"
-                    tooltipKey="soliditetsgrad"
-                    className="sticky left-0 bg-background font-medium text-xs py-1.5 w-[200px]"
-                    value={periods[0]?.soliditetsgrad}
-                    showSpectrum={true}
-                  />
-                  {periods.map((period, idx) => (
-                    <TableCell key={idx} className="text-right text-xs py-1.5 w-[120px]">{formatPercent(period.soliditetsgrad)}</TableCell>
-                  ))}
-                </TableRow>
-                <TableRow className="hover:bg-muted/30">
-                  <FinancialRowWithTooltip
-                    label="Likviditetsgrad"
-                    tooltipKey="likviditetsgrad"
-                    className="sticky left-0 bg-background font-medium text-xs py-1.5 w-[200px]"
-                    value={periods[0]?.likviditetsgrad}
-                    showSpectrum={true}
-                  />
-                  {periods.map((period, idx) => (
-                    <TableCell key={idx} className="text-right text-xs py-1.5 w-[120px]">{formatPercent(period.likviditetsgrad)}</TableCell>
-                  ))}
-                </TableRow>
-                <TableRow className="hover:bg-muted/30">
-                  <FinancialRowWithTooltip
-                    label="Afkastningsgrad"
-                    tooltipKey="afkastningsgrad"
-                    className="sticky left-0 bg-background font-medium text-xs py-1.5 w-[200px]"
-                    value={periods[0]?.afkastningsgrad}
-                    showSpectrum={true}
-                  />
-                  {periods.map((period, idx) => (
-                    <TableCell key={idx} className="text-right text-xs py-1.5 w-[120px]">{formatPercent(period.afkastningsgrad)}</TableCell>
-                  ))}
-                </TableRow>
-                <TableRow className="hover:bg-muted/30">
-                  <FinancialRowWithTooltip
-                    label="Overskudsgrad"
-                    tooltipKey="overskudsgrad"
-                    className="sticky left-0 bg-background font-medium text-xs py-1.5 w-[200px]"
-                    value={periods[0]?.overskudsgrad}
-                    showSpectrum={true}
-                  />
-                  {periods.map((period, idx) => (
-                    <TableCell key={idx} className="text-right text-xs py-1.5 w-[120px]">{formatPercent(period.overskudsgrad)}</TableCell>
-                  ))}
-                </TableRow>
-              </TableBody>
-            </Table>
-          </div>
+          )}
         </div>
       </CardContent>
     </Card>
