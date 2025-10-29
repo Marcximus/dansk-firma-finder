@@ -282,6 +282,52 @@ const parseXBRL = (xmlContent: string, period: string) => {
     if (receivableTags.length > 0) console.log(`  Found Receivable tags: ${receivableTags.join(', ')}`);
     if (tradeTags.length > 0) console.log(`  Found Trade tags: ${tradeTags.join(', ')}`);
     
+    // Sample ALL tags in the document to understand the actual structure
+    console.log('[TAG SAMPLE] Extracting sample of ALL tags in document...');
+    const allTagPattern = /<([a-zA-Z0-9_-]+:[a-zA-Z0-9_-]+)(?:\s+[^>]*)?>/g;
+    const allTagMatches = xmlContent.matchAll(allTagPattern);
+    const allTags = new Set<string>();
+    
+    for (const match of allTagMatches) {
+      const fullTag = match[1]; // e.g., "fsa:Assets" or "ifrs-full:EmployeeBenefitsExpense"
+      allTags.add(fullTag);
+      if (allTags.size >= 200) break; // Limit to first 200 unique tags
+    }
+    
+    const tagArray = Array.from(allTags);
+    console.log(`[TAG SAMPLE] Total unique tags found: ${allTags.size}`);
+    console.log(`[TAG SAMPLE] First 50 tags: ${tagArray.slice(0, 50).join(', ')}`);
+    console.log(`[TAG SAMPLE] Tags 51-100: ${tagArray.slice(50, 100).join(', ')}`);
+    console.log(`[TAG SAMPLE] Tags 101-150: ${tagArray.slice(100, 150).join(', ')}`);
+    console.log(`[TAG SAMPLE] Tags 151-200: ${tagArray.slice(150, 200).join(', ')}`);
+    
+    // Targeted discovery for specific missing fields
+    console.log('[FIELD DISCOVERY] Searching for specific missing fields...');
+    const searchTerms = [
+      { term: 'supplier', field: 'Leverandoerer' },
+      { term: 'creditor', field: 'Leverandoerer' },
+      { term: 'vendor', field: 'Leverandoerer' },
+      { term: 'associate', field: 'GaeldTilAssocieretVirksomheder' },
+      { term: 'related', field: 'GaeldTilAssocieretVirksomheder' },
+      { term: 'vat', field: 'SkyldideMomsOgAfgifter' },
+      { term: 'prepaid', field: 'Periodeafgrænsningsposter' },
+      { term: 'accrual', field: 'Periodeafgrænsningsposter' },
+      { term: 'accrued', field: 'Periodeafgrænsningsposter' },
+      { term: 'deferred', field: 'Periodeafgrænsningsposter' },
+      { term: 'share', field: 'Virksomhedskapital' },
+      { term: 'equity', field: 'Egenkapital' },
+      { term: 'retained', field: 'Overfoert' },
+      { term: 'longterm', field: 'Langfristede' },
+      { term: 'noncurrent', field: 'Langfristede' }
+    ];
+    
+    for (const { term, field } of searchTerms) {
+      const tags = discoverAvailableTags(xmlContent, term);
+      if (tags.length > 0) {
+        console.log(`  [${field}] Found tags containing "${term}": ${tags.join(', ')}`);
+      }
+    }
+    
       /**
        * Parse a string value to number, handling spaces, commas, and negatives
        */
