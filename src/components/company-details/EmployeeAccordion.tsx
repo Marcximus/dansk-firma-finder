@@ -40,7 +40,7 @@ const EmployeeAccordion: React.FC<EmployeeAccordionProps> = ({ cvr, cvrData }) =
   const chartData = financialData?.historicalData?.map(data => ({
     year: data.year.toString(),
     antalAnsatte: data.antalAnsatte
-  })) || [];
+  })).slice().reverse() || [];
 
   const formatEmployees = (value: number) => `${value} ansatte`;
 
@@ -76,9 +76,8 @@ const EmployeeAccordion: React.FC<EmployeeAccordionProps> = ({ cvr, cvrData }) =
                     <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
                     <XAxis 
                       dataKey="year" 
-                      tick={{ fontSize: 12 }}
-                      interval="preserveStartEnd"
-                      padding={{ left: 10, right: 10 }}
+                      tick={{ fontSize: 13 }}
+                      interval={0}
                     />
                     <YAxis 
                       className="text-sm"

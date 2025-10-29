@@ -16,7 +16,7 @@ const FinancialChartsSection: React.FC<FinancialChartsSectionProps> = ({ histori
     bruttofortjeneste: Math.round(data.bruttofortjeneste / 1000000),
     aaretsResultat: Math.round(data.aaretsResultat / 1000000),
     egenkapital: Math.round(data.egenkapital / 1000000)
-  }));
+  })).slice().reverse();
 
   const formatCurrency = (value: number) => `${value} mio. DKK`;
 
@@ -41,9 +41,8 @@ const FinancialChartsSection: React.FC<FinancialChartsSectionProps> = ({ histori
               <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
               <XAxis 
                 dataKey="year" 
-                tick={{ fontSize: 12 }}
-                interval="preserveStartEnd"
-                padding={{ left: 10, right: 10 }}
+                tick={{ fontSize: 13 }}
+                interval={0}
               />
               <YAxis 
                 className="text-sm"
@@ -87,9 +86,8 @@ const FinancialChartsSection: React.FC<FinancialChartsSectionProps> = ({ histori
               <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
               <XAxis 
                 dataKey="year" 
-                tick={{ fontSize: 12 }}
-                interval="preserveStartEnd"
-                padding={{ left: 10, right: 10 }}
+                tick={{ fontSize: 13 }}
+                interval={0}
               />
               <YAxis 
                 className="text-sm"
