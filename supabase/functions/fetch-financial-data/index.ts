@@ -618,42 +618,14 @@ const parseXBRL = (xmlContent: string, period: string) => {
         return revenueAndOperatingIncome;
       })(),
       
-      // Extract raw GrossProfitLoss value first to determine if it's profit or loss
-      bruttofortjeneste: (() => {
-        const rawValue = extractValue([
-          'GrossProfit', 'GrossResult', 'Bruttofortjeneste', 'Bruttoavance',
-          'GrossProfitOrLoss', 'GrossProfitLoss', 'Bruttoavanse', // ESEF variant
-          // PHASE 2: Additional variations
-          'BruttofortjenesteIAlt',
-          'BruttoResultat',
-          'GrossMargin'
-        ], usePeriodContexts, 'bruttofortjeneste');
-        
-        console.log(`[BRUTTOFORTJENESTE] Raw extracted value: ${rawValue}`);
-        
-        // Only return value if it's POSITIVE (actual profit)
-        const result = rawValue !== null && rawValue > 0 ? rawValue : 0;
-        console.log(`[BRUTTOFORTJENESTE] Final value (positive only): ${result}`);
-        return result;
-      })(),
-      
-      bruttotab: (() => {
-        const rawValue = extractValue([
-          'GrossProfit', 'GrossResult', 'Bruttofortjeneste', 'Bruttoavance',
-          'GrossProfitOrLoss', 'GrossProfitLoss', 'Bruttoavanse', // ESEF variant
-          // PHASE 2: Additional variations
-          'BruttofortjenesteIAlt',
-          'BruttoResultat',
-          'GrossMargin'
-        ], usePeriodContexts, 'bruttotab');
-        
-        console.log(`[BRUTTOTAB] Raw extracted value: ${rawValue}`);
-        
-        // Only return value if it's NEGATIVE (actual loss), convert to positive for display
-        const result = rawValue !== null && rawValue < 0 ? Math.abs(rawValue) : 0;
-        console.log(`[BRUTTOTAB] Final value (absolute if negative): ${result}`);
-        return result;
-      })(),
+      bruttofortjeneste: extractValue([
+        'GrossProfit', 'GrossResult', 'Bruttofortjeneste', 'Bruttoavance',
+        'GrossProfitOrLoss', 'GrossProfitLoss', 'Bruttoavanse', // ESEF variant
+        // PHASE 2: Additional variations
+        'BruttofortjenesteIAlt',
+        'BruttoResultat',
+        'GrossMargin'
+      ], usePeriodContexts),
       
       driftsresultat: extractValue([
         'ProfitLossFromOperatingActivities', // IFRS "finansiel" format ✅

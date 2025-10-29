@@ -10,27 +10,11 @@ const FinancialSpreadsheet: React.FC<FinancialSpreadsheetProps> = ({ historicalD
   console.log('[FinancialSpreadsheet] Received data:', historicalData.map(d => ({ 
     year: d.year, 
     periode: d.periode,
-    hasData: !!d.nettoomsaetning || !!d.egenkapital,
-    bruttofortjeneste: d.bruttofortjeneste,
-    bruttotab: d.bruttotab,
-    personaleomkostninger: d.personaleomkostninger,
-    afskrivninger: d.afskrivninger,
-    finansielleOmkostninger: d.finansielleOmkostninger
+    hasData: !!d.nettoomsaetning || !!d.egenkapital
   })));
   
   // Data is already sorted by edge function and financialUtils - just take first 5
   const periods = historicalData.slice(0, 5);
-  
-  // Check bruttotab values specifically
-  console.log('[FinancialSpreadsheet] Bruttotab values check:', {
-    hasBruttotab: periods.some(p => p.bruttotab > 0),
-    bruttotabValues: periods.map(p => ({ year: p.year, bruttotab: p.bruttotab }))
-  });
-
-  console.log('[FinancialSpreadsheet] Bruttofortjeneste values check:', {
-    hasBruttofortjeneste: periods.some(p => p.bruttofortjeneste > 0),
-    bruttofortjenesteValues: periods.map(p => ({ year: p.year, bruttofortjeneste: p.bruttofortjeneste }))
-  });
   
   // Extract display years for the quality indicator
   const displayYears = periods.map(p => p.year).filter(y => y);
@@ -111,25 +95,18 @@ const FinancialSpreadsheet: React.FC<FinancialSpreadsheetProps> = ({ historicalD
                     <TableCell key={idx} className="text-right text-xs py-1.5 w-[120px]">{formatThousands(period.nettoomsaetning)}</TableCell>
                   ))}
                 </TableRow>
-                {/* Show Bruttofortjeneste row only if there's positive gross profit in ANY period */}
-                {periods.some(p => p.bruttofortjeneste > 0) && (
-                  <TableRow className="hover:bg-muted/30">
-                    <TableCell className="sticky left-0 bg-background font-medium text-xs py-1.5 w-[200px]">Bruttofortjeneste</TableCell>
-                    {periods.map((period, idx) => (
-                      <TableCell key={idx} className="text-right text-xs py-1.5 w-[120px]">{formatThousands(period.bruttofortjeneste)}</TableCell>
-                    ))}
-                  </TableRow>
-                )}
-
-                {/* Show Bruttotab row only if there's a gross loss in ANY period */}
-                {periods.some(p => p.bruttotab > 0) && (
-                  <TableRow className="hover:bg-muted/30">
-                    <TableCell className="sticky left-0 bg-background font-medium text-xs py-1.5 w-[200px]">Bruttotab</TableCell>
-                    {periods.map((period, idx) => (
-                      <TableCell key={idx} className="text-right text-xs py-1.5 w-[120px]">-{formatThousands(period.bruttotab)}</TableCell>
-                    ))}
-                  </TableRow>
-                )}
+                <TableRow className="hover:bg-muted/30">
+                  <TableCell className="sticky left-0 bg-background font-medium text-xs py-1.5 w-[200px]">Bruttofortjeneste</TableCell>
+                  {periods.map((period, idx) => (
+                    <TableCell key={idx} className="text-right text-xs py-1.5 w-[120px]">{formatThousands(period.bruttofortjeneste)}</TableCell>
+                  ))}
+                </TableRow>
+                <TableRow className="hover:bg-muted/30">
+                  <TableCell className="sticky left-0 bg-background font-medium text-xs py-1.5 w-[200px] pl-4">Bruttotab</TableCell>
+                  {periods.map((period, idx) => (
+                    <TableCell key={idx} className="text-right text-xs py-1.5 w-[120px]">{period.bruttotab ? formatThousands(period.bruttotab) : '-'}</TableCell>
+                  ))}
+                </TableRow>
                 <TableRow className="hover:bg-muted/30">
                   <TableCell className="sticky left-0 bg-background font-medium text-xs py-1.5 w-[200px] pl-4">Personaleomkostninger</TableCell>
                   {periods.map((period, idx) => (
