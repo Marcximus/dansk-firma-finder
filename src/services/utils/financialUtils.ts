@@ -72,8 +72,12 @@ const getEmploymentData = (cvrData: any, fieldName: string) => {
     return Array.from(aggregated.values()).sort((a, b) => {
       // Sort by year, then month/quarter
       if (a.aar !== b.aar) return a.aar - b.aar;
-      if (a.maaned && b.maaned) return a.maaned - b.maaned;
-      if (a.kvartal && b.kvartal) return a.kvartal - b.kvartal;
+      if (a.maaned !== undefined && a.maaned !== null && b.maaned !== undefined && b.maaned !== null) {
+        return a.maaned - b.maaned;
+      }
+      if (a.kvartal !== undefined && a.kvartal !== null && b.kvartal !== undefined && b.kvartal !== null) {
+        return a.kvartal - b.kvartal;
+      }
       return 0;
     });
   }
