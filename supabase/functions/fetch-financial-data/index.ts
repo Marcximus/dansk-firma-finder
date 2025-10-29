@@ -375,6 +375,12 @@ const parseXBRL = (xmlContent: string, period: string) => {
           }
         }
 
+        // ❌ NO MATCH - Log all tags that were searched
+        console.log(`❌ [NO MATCH] Failed to find any of these tags: ${tagNames.join(', ')}`);
+        if (preferredContexts && preferredContexts.length > 0) {
+          console.log(`   Searched in contexts: ${preferredContexts.join(', ')}`);
+        }
+
         return null;
       };
 
@@ -496,26 +502,37 @@ const parseXBRL = (xmlContent: string, period: string) => {
       
       // Additional Income Statement items
       driftsomkostninger: extractValue([
-        'OperatingExpense', 'OperatingExpenses', 'Driftsomkostninger',
+        'Driftsomkostninger', 'OmkostningerIAlt',
+        'Distributionsomkostninger', 'Administrationsomkostninger',
+        'OperatingExpense', 'OperatingExpenses',
         'DistributionCosts', 'AdministrativeExpenses', 'CostOfSales'
       ], usePeriodContexts),
       
       finansielleIndtaegter: extractValue([
+        'FinansielleIndtaegter', 'FinansielleIndtægter',
+        'Renteindtaegter', 'Udbytteindtaegter',
         'FinanceIncome', 'FinancialIncome', 'FinancialRevenue',
         'InterestIncome', 'DividendIncome', 'InvestmentIncome'
       ], usePeriodContexts),
       
       finansielleOmkostninger: extractValue([
+        'FinansielleOmkostninger', 'Renteomkostninger',
+        'AndreFinansielleOmkostninger',
         'FinanceCosts', 'FinanceExpense', 'FinancialExpenses',
         'InterestExpense', 'InterestExpenses'
       ], usePeriodContexts),
       
       skatAfAaretsResultat: extractValue([
+        'SkatAfAaretsResultat', 'SkatAfResultat',
+        'AktuelleSkat', 'UdskudtSkat',
         'IncomeTaxExpenseContinuingOperations', 'TaxExpense',
         'IncomeTaxExpense', 'CurrentTax', 'TaxOnProfitOrLoss'
       ], usePeriodContexts),
       
       afskrivninger: extractValue([
+        'AfskrivningerIAlt', 'Afskrivninger',
+        'AfskrivningerPaaMaterielleAnlaegsaktiver',
+        'AfskrivningerPaaImmaterielleAnlaegsaktiver',
         'DepreciationAndAmortisationExpense', 'Depreciation',
         'DepreciationAmortisationAndImpairmentLoss',
         'DepreciationAndAmortisation'
@@ -523,37 +540,50 @@ const parseXBRL = (xmlContent: string, period: string) => {
       
       // Additional Balance Sheet - Assets breakdown
       immaterielleAnlaeggsaktiver: extractValue([
-        'IntangibleAssetsOtherThanGoodwill', 'IntangibleAssets',
-        'Goodwill', 'IntangibleAssets'
+        'ImmaterielleAnlaegsaktiver', 'ImmaterielleAktiver',
+        'Goodwill', 'AndenImmaterielleAnlaegsaktiver',
+        'IntangibleAssetsOtherThanGoodwill', 'IntangibleAssets'
       ], useInstantContexts),
       
       materielleAnlaeggsaktiver: extractValue([
+        'MaterielleAnlaegsaktiver', 'MaterielleAktiver',
+        'GrundeOgBygninger', 'ProduktionsanlaegOgMaskiner',
         'PropertyPlantAndEquipment', 'TangibleAssets',
         'Property', 'LandAndBuildings'
       ], useInstantContexts),
       
       finansielleAnlaeggsaktiver: extractValue([
+        'FinansielleAnlaegsaktiver', 'FinansielleAktiver',
+        'KapitalandeleiTilknyttedeVirksomheder',
+        'KapitalandeleiAssocieretVirksomheder',
+        'AndreVaerdipapirerOgKapitalandele',
         'NoncurrentFinancialAssets', 'LongtermInvestments',
         'InvestmentProperty', 'FinancialAssets'
       ], useInstantContexts),
       
       varebeholdninger: extractValue([
+        'Varebeholdninger', 'LagerbeholdningerIAlt',
         'Inventories', 'Inventory', 'Stocks',
         'RawMaterialsAndConsumables'
       ], useInstantContexts),
       
       tilgodehavender: extractValue([
+        'TilgodehavenderIAlt', 'Tilgodehavender',
+        'Varedebitorer', 'AndreTilgodehavender',
         'TradeAndOtherCurrentReceivables', 'CurrentReceivables',
         'TradeReceivables', 'Receivables', 'AccountsReceivable'
       ], useInstantContexts),
       
       likviderMidler: extractValue([
+        'LikviderMidler', 'LikvideBehoelninger',
         'CashAndCashEquivalents', 'Cash',
         'BankDeposits', 'CashAtBankAndInHand'
       ], useInstantContexts),
       
       // Additional Balance Sheet - Liabilities breakdown
       langfristetGaeld: extractValue([
+        'LangfristetGaeld', 'LangfristedeGaeldsforpligtelser',
+        'LangfristetGaeldTilKreditinstitutter',
         'NoncurrentLiabilities', 'LongtermLiabilities',
         'LongtermDebt', 'NoncurrentFinancialLiabilities'
       ], useInstantContexts)
