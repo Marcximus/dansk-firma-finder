@@ -1,5 +1,5 @@
 import React from 'react';
-import { LineChart, Line, AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
+import { LineChart, Line, AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, ReferenceLine } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { TrendingUp, DollarSign } from 'lucide-react';
 import { FinancialYearData } from '@/services/utils/mockFinancialData';
@@ -47,14 +47,15 @@ const FinancialChartsSection: React.FC<FinancialChartsSectionProps> = ({ histori
               <YAxis 
                 className="text-sm"
                 tickFormatter={formatCurrency}
-                domain={['dataMin - 10', 'dataMax + 10']}
+                domain={[(dataMin: number) => Math.floor(dataMin * 1.1), (dataMax: number) => Math.ceil(dataMax * 1.1)]}
                 width={80}
               />
               <Tooltip 
                 formatter={(value: number) => [formatCurrency(value), 'Årets resultat']}
                 labelFormatter={(label) => `År ${label}`}
               />
-              <Line 
+              <ReferenceLine y={0} stroke="hsl(var(--muted-foreground))" strokeDasharray="3 3" strokeOpacity={0.5} />
+              <Line
                 type="monotone" 
                 dataKey="aaretsResultat" 
                 stroke="hsl(var(--primary))" 
@@ -76,7 +77,7 @@ const FinancialChartsSection: React.FC<FinancialChartsSectionProps> = ({ histori
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <ResponsiveContainer width="100%" height={200}>
+          <ResponsiveContainer width="100%" height={300}>
             <LineChart data={chartData} margin={{ top: 5, right: 20, left: 10, bottom: 10 }}>
               <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
               <XAxis 
@@ -87,7 +88,7 @@ const FinancialChartsSection: React.FC<FinancialChartsSectionProps> = ({ histori
               <YAxis 
                 className="text-sm"
                 tickFormatter={formatCurrency}
-                domain={['dataMin - 10', 'dataMax + 10']}
+                domain={[(dataMin: number) => Math.floor(dataMin * 0.9), (dataMax: number) => Math.ceil(dataMax * 1.1)]}
                 width={80}
               />
               <Tooltip 
