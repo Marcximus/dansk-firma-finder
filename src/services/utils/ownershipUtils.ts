@@ -50,18 +50,31 @@ export const extractOwnershipData = (cvrData: any) => {
         
         if (!ejerRegisterOrg) return false;
         
-        // Check if there's an ACTIVE membership with ownership data
+        // Check if there's an ACTIVE membership with ownership data > 0
         const medlemsData = ejerRegisterOrg.medlemsData || [];
         const hasActiveOwnership = medlemsData.some((member: any) => {
           // Membership must be currently active
           const isMembershipActive = !member.periode?.gyldigTil;
+          if (!isMembershipActive) return false;
           
-          // Membership must have ownership percentage
-          const hasOwnership = member.attributter?.some((attr: any) => 
-            attr.type === 'EJERANDEL_PROCENT' || attr.type === 'EJERANDEL_STEMMERET_PROCENT'
-          );
+          // Membership must have ownership percentage > 0
+          const hasValidOwnership = member.attributter?.some((attr: any) => {
+            if (attr.type !== 'EJERANDEL_PROCENT' && attr.type !== 'EJERANDEL_STEMMERET_PROCENT') {
+              return false;
+            }
+            
+            // Check if there's an ACTIVE value that is > 0
+            const vaerdier = attr.vaerdier || [];
+            const activeValue = vaerdier.find((v: any) => !v.periode?.gyldigTil);
+            
+            // Only count as ownership if active value exists AND is greater than 0
+            if (!activeValue || !activeValue.vaerdi) return false;
+            
+            const ownershipValue = parseFloat(activeValue.vaerdi);
+            return ownershipValue > 0;
+          });
           
-          return isMembershipActive && hasOwnership;
+          return hasValidOwnership;
         });
         
         return hasActiveOwnership;
@@ -97,7 +110,7 @@ export const extractOwnershipData = (cvrData: any) => {
             const ejerandelAttr = attributter.find((attr: any) => attr.type === 'EJERANDEL_PROCENT');
             if (ejerandelAttr) {
               const vaerdier = ejerandelAttr.vaerdier || [];
-              const activeValue = vaerdier.find((v: any) => !v.periode?.gyldigTil) || vaerdier[0];
+              const activeValue = vaerdier.find((v: any) => !v.periode?.gyldigTil);
               if (activeValue?.vaerdi) {
                 ownershipPercentage = parseFloat(activeValue.vaerdi);
               }
@@ -107,7 +120,7 @@ export const extractOwnershipData = (cvrData: any) => {
             const stemmeretAttr = attributter.find((attr: any) => attr.type === 'EJERANDEL_STEMMERET_PROCENT');
             if (stemmeretAttr) {
               const vaerdier = stemmeretAttr.vaerdier || [];
-              const activeValue = vaerdier.find((v: any) => !v.periode?.gyldigTil) || vaerdier[0];
+              const activeValue = vaerdier.find((v: any) => !v.periode?.gyldigTil);
               if (activeValue?.vaerdi) {
                 votingRights = parseFloat(activeValue.vaerdi);
               }
