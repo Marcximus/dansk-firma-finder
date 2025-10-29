@@ -1327,13 +1327,20 @@ serve(async (req) => {
       
       // Use the best document we found
       if (bestParsedData && bestScore >= 3) {
-        console.log(`[SUCCESS] Using document with score ${bestScore}/8: ${bestDocumentUrl.slice(0, 80)}...`);
+        // Extract year from the period
+        const yearMatch = bestPeriod.match(/(\d{4})/);
+        const reportYear = yearMatch ? parseInt(yearMatch[1]) : null;
+        
+        // Skip if we already have data for this year (prevent duplicates)
+        if (reportYear && yearsProcessed.has(reportYear)) {
+          console.log(`[SKIP] Year ${reportYear} already processed - skipping duplicate`);
+          continue;
+        }
+        
+        console.log(`[SUCCESS] Using document with score ${bestScore}/8 for year ${reportYear}: ${bestDocumentUrl.slice(0, 80)}...`);
         
         reportMetadata.documentUrl = bestDocumentUrl;
         financialReports.push(reportMetadata);
-        
-        const yearMatch = bestPeriod.match(/(\d{4})/);
-        const reportYear = yearMatch ? parseInt(yearMatch[1]) : null;
         
         console.log(`[DEBUG] ✅ Successfully parsed data with ${bestScore} key fields`);
         
