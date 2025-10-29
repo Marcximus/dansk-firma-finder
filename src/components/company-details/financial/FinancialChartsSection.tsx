@@ -49,6 +49,7 @@ const FinancialChartsSection: React.FC<FinancialChartsSectionProps> = ({ histori
               <YAxis 
                 className="text-sm"
                 tickFormatter={formatCurrency}
+                domain={['auto', 'auto']}
               />
               <Tooltip 
                 formatter={(value: number, name: string) => [
@@ -114,6 +115,7 @@ const FinancialChartsSection: React.FC<FinancialChartsSectionProps> = ({ histori
               <YAxis 
                 className="text-sm"
                 tickFormatter={formatCurrency}
+                domain={['auto', 'auto']}
               />
               <Tooltip 
                 formatter={(value: number) => [formatCurrency(value), 'Egenkapital']}

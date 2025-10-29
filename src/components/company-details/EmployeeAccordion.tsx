@@ -84,6 +84,7 @@ const EmployeeAccordion: React.FC<EmployeeAccordionProps> = ({ cvr, cvrData }) =
                     <YAxis 
                       className="text-sm"
                       tickFormatter={formatEmployees}
+                      domain={[0, 'auto']}
                     />
                     <Tooltip 
                       formatter={(value: number) => [formatEmployees(value), 'Antal ansatte']}
