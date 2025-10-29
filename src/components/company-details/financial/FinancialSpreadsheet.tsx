@@ -95,18 +95,25 @@ const FinancialSpreadsheet: React.FC<FinancialSpreadsheetProps> = ({ historicalD
                     <TableCell key={idx} className="text-right text-xs py-1.5 w-[120px]">{formatThousands(period.nettoomsaetning)}</TableCell>
                   ))}
                 </TableRow>
-                <TableRow className="hover:bg-muted/30">
-                  <TableCell className="sticky left-0 bg-background font-medium text-xs py-1.5 w-[200px]">Bruttofortjeneste</TableCell>
-                  {periods.map((period, idx) => (
-                    <TableCell key={idx} className="text-right text-xs py-1.5 w-[120px]">{formatThousands(period.bruttofortjeneste)}</TableCell>
-                  ))}
-                </TableRow>
-                <TableRow className="hover:bg-muted/30">
-                  <TableCell className="sticky left-0 bg-background font-medium text-xs py-1.5 w-[200px] pl-4">Bruttotab</TableCell>
-                  {periods.map((period, idx) => (
-                    <TableCell key={idx} className="text-right text-xs py-1.5 w-[120px]">{period.bruttotab ? formatThousands(period.bruttotab) : '-'}</TableCell>
-                  ))}
-                </TableRow>
+                {/* Show Bruttofortjeneste row only if there's positive gross profit in ANY period */}
+                {periods.some(p => p.bruttofortjeneste > 0) && (
+                  <TableRow className="hover:bg-muted/30">
+                    <TableCell className="sticky left-0 bg-background font-medium text-xs py-1.5 w-[200px]">Bruttofortjeneste</TableCell>
+                    {periods.map((period, idx) => (
+                      <TableCell key={idx} className="text-right text-xs py-1.5 w-[120px]">{formatThousands(period.bruttofortjeneste)}</TableCell>
+                    ))}
+                  </TableRow>
+                )}
+
+                {/* Show Bruttotab row only if there's a gross loss in ANY period */}
+                {periods.some(p => p.bruttotab > 0) && (
+                  <TableRow className="hover:bg-muted/30">
+                    <TableCell className="sticky left-0 bg-background font-medium text-xs py-1.5 w-[200px]">Bruttotab</TableCell>
+                    {periods.map((period, idx) => (
+                      <TableCell key={idx} className="text-right text-xs py-1.5 w-[120px]">-{formatThousands(period.bruttotab)}</TableCell>
+                    ))}
+                  </TableRow>
+                )}
                 <TableRow className="hover:bg-muted/30">
                   <TableCell className="sticky left-0 bg-background font-medium text-xs py-1.5 w-[200px] pl-4">Personaleomkostninger</TableCell>
                   {periods.map((period, idx) => (
