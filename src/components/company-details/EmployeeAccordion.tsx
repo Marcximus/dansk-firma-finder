@@ -50,13 +50,13 @@ const EmployeeAccordion: React.FC<EmployeeAccordionProps> = ({ cvr, cvrData }) =
       const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'Maj', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dec'];
       
       financialData.monthlyEmployment
-        .slice(0, 12) // Take last 12 months
+        .slice(-12) // Take last 12 months (most recent)
         .forEach((item: any) => {
           const total = item.antalAnsatte || 0;
           const fuldtid = Math.round((item.antalAarsvaerk || 0) * 100) / 100; // Handle decimal values
           const deltid = Math.max(0, total - fuldtid);
           
-          if (item.maaned && item.aar && total > 0) {
+          if (item.maaned && item.aar) {
             const periode = `${monthNames[item.maaned - 1]} ${item.aar}`;
             employmentData.push({ periode, total, fuldtid, deltid });
           }
@@ -66,13 +66,13 @@ const EmployeeAccordion: React.FC<EmployeeAccordionProps> = ({ cvr, cvrData }) =
     // Priority 2: Fallback to quarterly data if no monthly data
     if (employmentData.length === 0 && financialData?.quarterlyEmployment && financialData.quarterlyEmployment.length > 0) {
       financialData.quarterlyEmployment
-        .slice(0, 12) // Take last 12 quarters
+        .slice(-12) // Take last 12 quarters (most recent)
         .forEach((item: any) => {
           const total = item.antalAnsatte || 0;
           const fuldtid = item.antalAarsvaerk || 0;
           const deltid = Math.max(0, total - fuldtid);
           
-          if (total > 0) {
+          if (item.kvartal && item.aar) {
             const periode = `${item.kvartal}. kvt ${item.aar}`;
             employmentData.push({ periode, total, fuldtid, deltid });
           }
@@ -82,13 +82,13 @@ const EmployeeAccordion: React.FC<EmployeeAccordionProps> = ({ cvr, cvrData }) =
     // Priority 3: Last resort - use yearly data if neither monthly nor quarterly exists
     if (employmentData.length === 0 && financialData?.yearlyEmployment && financialData.yearlyEmployment.length > 0) {
       financialData.yearlyEmployment
-        .slice(0, 10) // Take last 10 years
+        .slice(-10) // Take last 10 years (most recent)
         .forEach((item: any) => {
           const total = item.antalAnsatte || 0;
           const fuldtid = item.antalAarsvaerk || 0;
           const deltid = Math.max(0, total - fuldtid);
           
-          if (item.aar && total > 0) {
+          if (item.aar) {
             const periode = item.aar.toString();
             employmentData.push({ periode, total, fuldtid, deltid });
           }
