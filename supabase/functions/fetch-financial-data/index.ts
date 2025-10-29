@@ -538,6 +538,26 @@ const parseXBRL = (xmlContent: string, period: string) => {
         'DepreciationAndAmortisation'
       ], usePeriodContexts),
       
+      // Detailed Income Statement items for ApS companies
+      personaleomkostninger: extractValue([
+        'Personaleomkostninger', 'EmployeeBenefitsExpense',
+        'StaffCosts', 'PersonnelExpenses', 'EmployeeExpenses',
+        'WagesAndSalaries', 'LoenningerOgVederlag'
+      ], usePeriodContexts),
+
+      bruttotab: (() => {
+        const bruttofortjeneste = extractValue([
+          'GrossProfit', 'GrossResult', 'Bruttofortjeneste'
+        ], usePeriodContexts);
+        return bruttofortjeneste !== null && bruttofortjeneste < 0 ? bruttofortjeneste : null;
+      })(),
+
+      resultatAfPrimaerDrift: extractValue([
+        'ProfitLossFromOperatingActivities',
+        'ResultatAfPrimaerDrift', 'OperatingProfitLoss',
+        'Driftsresultat', 'EBIT'
+      ], usePeriodContexts),
+      
       // Additional Balance Sheet - Assets breakdown
       immaterielleAnlaeggsaktiver: extractValue([
         'ImmaterielleAnlaegsaktiver', 'ImmaterielleAktiver',
@@ -578,6 +598,88 @@ const parseXBRL = (xmlContent: string, period: string) => {
         'LikviderMidler', 'LikvideBehoelninger',
         'CashAndCashEquivalents', 'Cash',
         'BankDeposits', 'CashAtBankAndInHand'
+      ], useInstantContexts),
+      
+      // Detailed Balance Sheet - Assets
+      andreAnlaegDriftsmaterielOgInventar: extractValue([
+        'OtherFixturesFittingsToolsAndEquipment',
+        'DriftsmaterielOgInventar', 'AndreAnlaeg',
+        'OtherPropertyPlantAndEquipment'
+      ], useInstantContexts),
+
+      deposita: extractValue([
+        'Deposita', 'Deposits', 'SecurityDeposits',
+        'RentDeposits', 'LeaseDeposits'
+      ], useInstantContexts),
+
+      tilgodehavenderFraSalgOgTjenesteydelser: extractValue([
+        'TradeReceivables', 'Varedebitorer',
+        'TilgodehavenderFraSalg', 'AccountsReceivable',
+        'TradeAndOtherReceivables'
+      ], useInstantContexts),
+
+      andreTilgodehavender: extractValue([
+        'OtherReceivables', 'AndreTilgodehavender',
+        'MiscellaneousReceivables', 'OtherCurrentReceivables'
+      ], useInstantContexts),
+
+      kravPaaIndbetalingAfVirksomhedskapital: extractValue([
+        'ReceivablesFromShareholdersAndManagement',
+        'KravPaaIndbetalingAfVirksomhedskapital',
+        'CapitalCallsReceivable', 'UnpaidShareCapital'
+      ], useInstantContexts),
+
+      periodeafgraensningsporterAktiver: extractValue([
+        'PrepaymentsCurrent', 'Periodeafgraensningsposter',
+        'DeferredExpenses', 'PrepaidExpensesAndAccruedIncome'
+      ], useInstantContexts),
+
+      likvideBehoelninger: extractValue([
+        'CashAndCashEquivalents', 'Cash', 'LikviderMidler',
+        'LikvideBehoelninger', 'CashAtBankAndInHand'
+      ], useInstantContexts),
+      
+      // Detailed Balance Sheet - Equity & Liabilities
+      virksomhedskapital: extractValue([
+        'ShareCapital', 'Virksomhedskapital', 'IssuedCapital',
+        'ContributedCapital', 'StatedCapital'
+      ], useInstantContexts),
+
+      overfoertResultat: extractValue([
+        'RetainedEarnings', 'OverfoertResultat',
+        'AccumulatedProfit', 'RetainedProfitLoss',
+        'AccumulatedDeficit'
+      ], useInstantContexts),
+
+      leverandoererAfVarerOgTjenesteydelser: extractValue([
+        'TradePayables', 'Leverandoerer',
+        'LeverandoererAfVarer', 'AccountsPayable',
+        'TradeAndOtherPayables'
+      ], useInstantContexts),
+
+      gaeldTilAssocieretVirksomheder: extractValue([
+        'PayablesToAssociates', 'GaeldTilAssocieretVirksomheder',
+        'AmountsDueToRelatedParties', 'PayablesToRelatedCompanies'
+      ], useInstantContexts),
+
+      skyldideMomsOgAfgifter: extractValue([
+        'VATPayable', 'SkyldideMomsOgAfgifter',
+        'TaxPayable', 'VATAndDutiesPayable'
+      ], useInstantContexts),
+
+      andenGaeld: extractValue([
+        'OtherPayables', 'AndenGaeld',
+        'OtherCurrentLiabilities', 'MiscellaneousPayables'
+      ], useInstantContexts),
+
+      feriepengeforpligtelser: extractValue([
+        'HolidayPayObligations', 'Feriepengeforpligtelser',
+        'VacationPayLiability', 'AccruedHolidayPay'
+      ], useInstantContexts),
+
+      periodeafgraensningsporterPassiver: extractValue([
+        'DeferredIncome', 'AccrualsAndDeferredIncome',
+        'PeriodeafgraensningsporterPassiver', 'AccruedExpensesAndDeferredIncome'
       ], useInstantContexts),
       
       // Additional Balance Sheet - Liabilities breakdown
