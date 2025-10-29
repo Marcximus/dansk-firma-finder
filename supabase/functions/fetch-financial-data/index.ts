@@ -126,7 +126,6 @@ const parseXBRL = (xmlContent: string, period: string) => {
     
     // Extract the year from period string (e.g., "2024-01-01 - 2024-12-31" -> "2024")
     const year = period.split(' - ')[0].substring(0, 4);
-    console.log(`[XBRL Parser] Detected year: ${year}`);
 
     // Find ALL context IDs for periods ending in the target year
     // Capture start/end dates to filter for full-year periods only
@@ -946,10 +945,9 @@ serve(async (req) => {
     });
     console.log(`[YEAR DISCOVERY] Years found in API response: ${Array.from(yearsSeen).sort().reverse().join(', ')}`);
     
-    // Process up to 10 reports maximum to stay within CPU limits
-    // Loop will stop early after finding 5 yearly reports
-    const reportsToProcess = Math.min(allHits.length, 10);
-    console.log(`[YEAR DISCOVERY] Will process max ${reportsToProcess} reports to find 5 yearly reports\n`);
+    // Process up to 15 reports to ensure we get 5 yearly ones (accounting for quarterly/half-year reports)
+    const reportsToProcess = Math.min(allHits.length, 30);
+    console.log(`[YEAR DISCOVERY] Will process ${reportsToProcess} reports to find 5 yearly reports\n`);
 
     let processedCount = 0; // Track reports we've examined
     let yearlyReportsFound = 0; // Track actual yearly reports found
