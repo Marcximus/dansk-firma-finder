@@ -1338,7 +1338,7 @@ serve(async (req) => {
       }
       
       // Use the best document we found
-      if (bestParsedData && bestScore >= 3) {
+      if (bestParsedData && bestScore >= 2) {
         // Extract year from the PARSED DATA, not from metadata
         // The parsed data's periode field contains the actual year from XBRL
         let reportYear: number | null = null;
