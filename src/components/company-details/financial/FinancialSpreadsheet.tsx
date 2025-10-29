@@ -83,7 +83,7 @@ const FinancialSpreadsheet: React.FC<FinancialSpreadsheetProps> = ({ historicalD
                   <TableHead className="sticky left-0 bg-background w-[200px] h-8 text-xs font-medium">Post</TableHead>
                   {periods.map((period, idx) => (
                     <TableHead key={idx} className="text-right h-8 text-xs font-medium w-[120px]">
-                      {getYearLabel(period.periode)}
+                      {period.year || getYearLabel(period.periode)}
                     </TableHead>
                   ))}
                 </TableRow>
