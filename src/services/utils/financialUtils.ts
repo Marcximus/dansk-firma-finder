@@ -26,6 +26,61 @@ export const calculateFinancialRatios = (data: any) => {
   return ratios;
 };
 
+// Helper function to extract employment data from company or production units
+const getEmploymentData = (cvrData: any, fieldName: string) => {
+  // Try company level first
+  if (cvrData?.Vrvirksomhed?.[fieldName]?.length > 0) {
+    return cvrData.Vrvirksomhed[fieldName];
+  }
+  
+  // Fallback to production unit level (aggregate from all units)
+  const productionUnits = cvrData?.productionUnits || [];
+  const allEmploymentData: any[] = [];
+  
+  for (const unit of productionUnits) {
+    if (unit.VrproduktionsEnhed?.[fieldName]?.length > 0) {
+      allEmploymentData.push(...unit.VrproduktionsEnhed[fieldName]);
+    }
+  }
+  
+  // If we found production unit data, aggregate by period
+  if (allEmploymentData.length > 0) {
+    // Group by period (year/month/quarter) and sum employees
+    const aggregated = new Map();
+    
+    for (const item of allEmploymentData) {
+      // Create unique key based on period
+      const key = fieldName.includes('maaned') || fieldName.includes('erstMaaned')
+        ? `${item.aar}-${item.maaned}`
+        : fieldName.includes('kvartal')
+        ? `${item.aar}-Q${item.kvartal}`
+        : `${item.aar}`;
+      
+      if (!aggregated.has(key)) {
+        aggregated.set(key, { ...item });
+      } else {
+        // Sum up employees from multiple units
+        const existing = aggregated.get(key);
+        existing.antalAnsatte = (existing.antalAnsatte || 0) + (item.antalAnsatte || 0);
+        existing.antalAarsvaerk = (existing.antalAarsvaerk || 0) + (item.antalAarsvaerk || 0);
+        if (item.antalInklusivEjere) {
+          existing.antalInklusivEjere = (existing.antalInklusivEjere || 0) + (item.antalInklusivEjere || 0);
+        }
+      }
+    }
+    
+    return Array.from(aggregated.values()).sort((a, b) => {
+      // Sort by year, then month/quarter
+      if (a.aar !== b.aar) return a.aar - b.aar;
+      if (a.maaned && b.maaned) return a.maaned - b.maaned;
+      if (a.kvartal && b.kvartal) return a.kvartal - b.kvartal;
+      return 0;
+    });
+  }
+  
+  return [];
+};
+
 // Helper functions for extracting financial data from parsed XBRL
 export const extractFinancialData = (cvrData: any, parsedFinancialData?: any) => {
   console.log('extractFinancialData - Input:', { cvrData, parsedFinancialData });
@@ -130,9 +185,11 @@ export const extractFinancialData = (cvrData: any, parsedFinancialData?: any) =>
         periode: latestData.periode
       },
       historicalData: enrichedData, // All parsed periods with ratios, properly structured
-      monthlyEmployment: cvrData?.Vrvirksomhed?.maanedsbeskaeftigelse || cvrData?.Vrvirksomhed?.erstMaanedsbeskaeftigelse || [],
-      yearlyEmployment: cvrData?.Vrvirksomhed?.aarsbeskaeftigelse || [],
-      quarterlyEmployment: cvrData?.Vrvirksomhed?.kvartalsbeskaeftigelse || [],
+      monthlyEmployment: getEmploymentData(cvrData, 'maanedsbeskaeftigelse').length > 0 
+        ? getEmploymentData(cvrData, 'maanedsbeskaeftigelse')
+        : getEmploymentData(cvrData, 'erstMaanedsbeskaeftigelse'),
+      yearlyEmployment: getEmploymentData(cvrData, 'aarsbeskaeftigelse'),
+      quarterlyEmployment: getEmploymentData(cvrData, 'kvartalsbeskaeftigelse'),
       kapitalforhold: cvrData?.Vrvirksomhed?.kapitalforhold || [],
       regnskabsperiode: cvrData?.Vrvirksomhed?.regnskabsperiode || [],
       hasRealData: true,
@@ -211,9 +268,11 @@ export const extractFinancialData = (cvrData: any, parsedFinancialData?: any) =>
   const result = {
     financialKPIs: getFinancialKPIs(),
     historicalData: [],
-    monthlyEmployment: vrvirksomhed.maanedsbeskaeftigelse || vrvirksomhed.erstMaanedsbeskaeftigelse || [],
-    yearlyEmployment: vrvirksomhed.aarsbeskaeftigelse || [],
-    quarterlyEmployment: vrvirksomhed.kvartalsbeskaeftigelse || [],
+    monthlyEmployment: getEmploymentData(cvrData, 'maanedsbeskaeftigelse').length > 0 
+      ? getEmploymentData(cvrData, 'maanedsbeskaeftigelse')
+      : getEmploymentData(cvrData, 'erstMaanedsbeskaeftigelse'),
+    yearlyEmployment: getEmploymentData(cvrData, 'aarsbeskaeftigelse'),
+    quarterlyEmployment: getEmploymentData(cvrData, 'kvartalsbeskaeftigelse'),
     kapitalforhold: vrvirksomhed.kapitalforhold || [],
     regnskabsperiode: vrvirksomhed.regnskabsperiode || [],
     hasRealData: false,
