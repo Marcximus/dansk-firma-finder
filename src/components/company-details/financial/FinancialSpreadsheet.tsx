@@ -75,7 +75,7 @@ const FinancialRowWithTooltip: React.FC<{
         <TooltipTrigger asChild>
           <span className="cursor-help">{label}</span>
         </TooltipTrigger>
-        <TooltipContent side="right" className="max-w-xs z-[100]">
+        <TooltipContent side="right" className="max-w-xs">
           <p className="text-sm">{explanation}</p>
         </TooltipContent>
       </Tooltip>
