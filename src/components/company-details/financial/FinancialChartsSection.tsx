@@ -39,13 +39,11 @@ const FinancialChartsSection: React.FC<FinancialChartsSectionProps> = ({ histori
           <ResponsiveContainer width="100%" height={300}>
             <AreaChart data={chartData} margin={{ top: 5, right: 20, left: 10, bottom: 10 }}>
               <defs>
-                <linearGradient id="colorPositive" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="hsl(217, 91%, 60%)" stopOpacity={0.4}/>
-                  <stop offset="95%" stopColor="hsl(217, 91%, 60%)" stopOpacity={0.05}/>
-                </linearGradient>
-                <linearGradient id="colorNegative" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="hsl(0, 84%, 60%)" stopOpacity={0.05}/>
-                  <stop offset="95%" stopColor="hsl(0, 84%, 60%)" stopOpacity={0.4}/>
+                <linearGradient id="colorResultGradient" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="hsl(217, 91%, 60%)" stopOpacity={0.6}/>
+                  <stop offset="50%" stopColor="hsl(217, 91%, 60%)" stopOpacity={0.1}/>
+                  <stop offset="50%" stopColor="hsl(0, 84%, 60%)" stopOpacity={0.1}/>
+                  <stop offset="100%" stopColor="hsl(0, 84%, 60%)" stopOpacity={0.6}/>
                 </linearGradient>
               </defs>
               <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
@@ -70,7 +68,7 @@ const FinancialChartsSection: React.FC<FinancialChartsSectionProps> = ({ histori
                 dataKey="aaretsResultat" 
                 stroke="hsl(217, 91%, 60%)" 
                 strokeWidth={2.5}
-                fill="url(#colorPositive)"
+                fill="url(#colorResultGradient)"
                 dot={{ fill: "hsl(217, 91%, 60%)", strokeWidth: 2, r: 5 }}
                 activeDot={{ r: 7 }}
               />
@@ -91,13 +89,11 @@ const FinancialChartsSection: React.FC<FinancialChartsSectionProps> = ({ histori
           <ResponsiveContainer width="100%" height={300}>
             <AreaChart data={chartData} margin={{ top: 5, right: 20, left: 10, bottom: 10 }}>
               <defs>
-                <linearGradient id="colorPositiveEquity" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="hsl(217, 91%, 60%)" stopOpacity={0.4}/>
-                  <stop offset="95%" stopColor="hsl(217, 91%, 60%)" stopOpacity={0.05}/>
-                </linearGradient>
-                <linearGradient id="colorNegativeEquity" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="hsl(0, 84%, 60%)" stopOpacity={0.05}/>
-                  <stop offset="95%" stopColor="hsl(0, 84%, 60%)" stopOpacity={0.4}/>
+                <linearGradient id="colorEquityGradient" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="hsl(217, 91%, 60%)" stopOpacity={0.6}/>
+                  <stop offset="50%" stopColor="hsl(217, 91%, 60%)" stopOpacity={0.1}/>
+                  <stop offset="50%" stopColor="hsl(0, 84%, 60%)" stopOpacity={0.1}/>
+                  <stop offset="100%" stopColor="hsl(0, 84%, 60%)" stopOpacity={0.6}/>
                 </linearGradient>
               </defs>
               <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
@@ -122,7 +118,7 @@ const FinancialChartsSection: React.FC<FinancialChartsSectionProps> = ({ histori
                 dataKey="egenkapital" 
                 stroke="hsl(217, 91%, 60%)" 
                 strokeWidth={2.5}
-                fill="url(#colorPositiveEquity)"
+                fill="url(#colorEquityGradient)"
                 dot={{ fill: "hsl(217, 91%, 60%)", strokeWidth: 2, r: 5 }}
                 activeDot={{ r: 7 }}
               />
