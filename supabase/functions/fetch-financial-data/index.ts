@@ -112,6 +112,24 @@ const isFullYearPeriod = (periodString: string): boolean => {
   return true;
 };
 
+// Helper function to discover available tags in XBRL containing a search term
+const discoverAvailableTags = (xmlContent: string, searchTerm: string): string[] => {
+  const tagPattern = /<([a-zA-Z0-9_-]+:[a-zA-Z0-9_-]+)(?:\s+[^>]*)?>/gi;
+  const matches = xmlContent.matchAll(tagPattern);
+  
+  const foundTags = new Set<string>();
+  for (const match of matches) {
+    const fullTag = match[1];
+    const tagName = fullTag.split(':')[1];
+    
+    if (tagName && tagName.toLowerCase().includes(searchTerm.toLowerCase())) {
+      foundTags.add(tagName);
+    }
+  }
+  
+  return Array.from(foundTags);
+};
+
 // Score parsed financial data based on number of non-null key fields
 const scoreFinancialData = (data: any): number => {
   if (!data) return 0;
@@ -239,6 +257,30 @@ const parseXBRL = (xmlContent: string, period: string) => {
     if (!useInstantContexts) {
       console.log(`[CONTEXT] No instant contexts found - using fallback mode (no context filtering)`);
     }
+    
+    // Discover available tags for commonly missed fields
+    console.log('[TAG DISCOVERY] Searching for common missing fields...');
+    const employeeTags = discoverAvailableTags(xmlContent, 'Employee');
+    const staffTags = discoverAvailableTags(xmlContent, 'Staff');
+    const personnelTags = discoverAvailableTags(xmlContent, 'Personnel');
+    const depositTags = discoverAvailableTags(xmlContent, 'Deposit');
+    const capitalTags = discoverAvailableTags(xmlContent, 'Capital');
+    const holidayTags = discoverAvailableTags(xmlContent, 'Holiday');
+    const vacationTags = discoverAvailableTags(xmlContent, 'Vacation');
+    const payableTags = discoverAvailableTags(xmlContent, 'Payable');
+    const receivableTags = discoverAvailableTags(xmlContent, 'Receivable');
+    const tradeTags = discoverAvailableTags(xmlContent, 'Trade');
+    
+    if (employeeTags.length > 0) console.log(`  Found Employee tags: ${employeeTags.join(', ')}`);
+    if (staffTags.length > 0) console.log(`  Found Staff tags: ${staffTags.join(', ')}`);
+    if (personnelTags.length > 0) console.log(`  Found Personnel tags: ${personnelTags.join(', ')}`);
+    if (depositTags.length > 0) console.log(`  Found Deposit tags: ${depositTags.join(', ')}`);
+    if (capitalTags.length > 0) console.log(`  Found Capital tags: ${capitalTags.join(', ')}`);
+    if (holidayTags.length > 0) console.log(`  Found Holiday tags: ${holidayTags.join(', ')}`);
+    if (vacationTags.length > 0) console.log(`  Found Vacation tags: ${vacationTags.join(', ')}`);
+    if (payableTags.length > 0) console.log(`  Found Payable tags: ${payableTags.join(', ')}`);
+    if (receivableTags.length > 0) console.log(`  Found Receivable tags: ${receivableTags.join(', ')}`);
+    if (tradeTags.length > 0) console.log(`  Found Trade tags: ${tradeTags.join(', ')}`);
     
       /**
        * Parse a string value to number, handling spaces, commas, and negatives
@@ -615,13 +657,15 @@ const parseXBRL = (xmlContent: string, period: string) => {
         'Personaleomkostninger', 'EmployeeBenefitsExpense',
         'StaffCosts', 'PersonnelExpenses', 'EmployeeExpenses',
         'WagesAndSalaries', 'LoenningerOgVederlag',
-        // Additional Danish variations
-        'PersonaleomkostningerIAlt',
-        'LoenOgVederlag',
-        'PersonnelCosts',
-        'EmployeeCosts',
-        'StaffExpenses',
-        'PersonaleOmkostninger'
+        'PersonaleomkostningerIAlt', 'LoenOgVederlag',
+        'PersonnelCosts', 'EmployeeCosts', 'StaffExpenses',
+        'PersonaleOmkostninger',
+        // Expanded variations for better matching
+        'EmployeeBenefitsExpenses', 'WagesAndSalariesExpense',
+        'EmployeeCompensation', 'PersonnelCost', 'LaborCosts',
+        'PayrollExpenses', 'WagesCosts', 'SalariesAndWages',
+        'EmployeeBenefitExpense', 'StaffCost', 'PersonnelExpense',
+        'LoenOgGager', 'Loenomkostninger', 'PersonaleCosts'
       ], usePeriodContexts),
 
       bruttotab: (() => {
@@ -701,44 +745,59 @@ const parseXBRL = (xmlContent: string, period: string) => {
       deposita: extractValue([
         'Deposita', 'Deposits', 'SecurityDeposits',
         'RentDeposits', 'LeaseDeposits',
-        // Additional variations
-        'DepositaIAlt',
-        'DepositAssets'
+        'DepositaIAlt', 'DepositAssets',
+        // Expanded variations
+        'DepositsLongtermInvestmentsAndReceivables',
+        'LongtermDeposits', 'SecurityDeposit', 'RentalDeposits',
+        'DepositReceivables', 'GuaranteeDeposits', 'CashDeposits',
+        'OtherDeposits', 'Depositum'
       ], useInstantContexts),
 
       tilgodehavenderFraSalgOgTjenesteydelser: extractValue([
         'TradeReceivables', 'Varedebitorer',
         'TilgodehavenderFraSalg', 'AccountsReceivable',
         'TradeAndOtherReceivables',
-        // Additional variations
         'TilgodehavenderFraSalgOgTjenesteydelserIAlt',
-        'VaredebitorerIAlt',
-        'TilgodehavenderFraSalgIAlt'
+        'VaredebitorerIAlt', 'TilgodehavenderFraSalgIAlt',
+        // Expanded variations
+        'ShorttermTradeReceivables', 'CurrentTradeReceivables',
+        'TradeAndOtherCurrentReceivables', 'SalesReceivables',
+        'CustomerReceivables', 'TradeDebtors', 'AccountReceivable',
+        'TilgodehavenderFraKunder', 'Kundetilgodehavender'
       ], useInstantContexts),
 
       andreTilgodehavender: extractValue([
         'OtherReceivables', 'AndreTilgodehavender',
         'MiscellaneousReceivables', 'OtherCurrentReceivables',
-        // Additional variations
-        'AndreTilgodehavenderIAlt',
-        'OevrigeTilgodehavender'
+        'AndreTilgodehavenderIAlt', 'OevrigeTilgodehavender',
+        // Expanded variations
+        'OtherShorttermReceivables', 'OtherCurrentAssets',
+        'MiscellaneousCurrentReceivables', 'SundryReceivables',
+        'OtherDebtors', 'OtherAccountsReceivable',
+        'AndreTilgodehavenderKortfristet', 'OevrigDebitorer'
       ], useInstantContexts),
 
       kravPaaIndbetalingAfVirksomhedskapital: extractValue([
         'ReceivablesFromShareholdersAndManagement',
         'KravPaaIndbetalingAfVirksomhedskapital',
         'CapitalCallsReceivable', 'UnpaidShareCapital',
-        // Additional variations
         'KravPaaIndbetalingAfVirksomhedskapitalIAlt',
-        'UdestaaendeKapitalIndskud'
+        'UdestaaendeKapitalIndskud',
+        // Expanded variations
+        'ContributedCapitalInArrears', 'ShareCapitalNotPaidIn',
+        'CapitalCallReceivables', 'OutstandingShareCapital',
+        'UnpaidContributions', 'CapitalContributionsReceivable',
+        'IkkeIndbetalteKapitalandele'
       ], useInstantContexts),
 
       periodeafgraensningsporterAktiver: extractValue([
         'PrepaymentsCurrent', 'Periodeafgraensningsposter',
         'DeferredExpenses', 'PrepaidExpensesAndAccruedIncome',
-        // Additional variations
-        'PeriodeafgraensningsporterIAlt',
-        'ForudbetalteOmkostninger'
+        'PeriodeafgraensningsporterIAlt', 'ForudbetalteOmkostninger',
+        // Expanded variations
+        'DeferredIncomeAssets', 'PrepaidExpenses', 'Prepayments',
+        'AccruedIncome', 'DeferredCharges', 'PrepaidCosts',
+        'PeriodeafgraensningerAktiver', 'ForudbetalteOgPeriodiseredeOmkostninger'
       ], useInstantContexts),
 
       likvideBehoelninger: extractValue([
@@ -754,10 +813,11 @@ const parseXBRL = (xmlContent: string, period: string) => {
       virksomhedskapital: extractValue([
         'ShareCapital', 'Virksomhedskapital', 'IssuedCapital',
         'ContributedCapital', 'StatedCapital',
-        // Additional variations
-        'VirksomhedskapitalIAlt',
-        'Selskabskapital',
-        'Aktiekapital'
+        'VirksomhedskapitalIAlt', 'Selskabskapital', 'Aktiekapital',
+        // Expanded variations
+        'IssuedShareCapital', 'PaidInCapital', 'NominalCapital',
+        'RegisteredCapital', 'EquityCapital', 'OrdinaryShares',
+        'Anpartskapital', 'TegnetKapital', 'IndskudtKapital'
       ], useInstantContexts),
 
       overfoertResultat: extractValue([
@@ -774,54 +834,68 @@ const parseXBRL = (xmlContent: string, period: string) => {
         'TradePayables', 'Leverandoerer',
         'LeverandoererAfVarer', 'AccountsPayable',
         'TradeAndOtherPayables',
-        // Additional variations
         'LeverandoererAfVarerOgTjenesteydelerIAlt',
-        'LeverandoererIAlt',
-        'Kreditorer'
+        'LeverandoererIAlt', 'Kreditorer',
+        // Expanded variations
+        'ShorttermTradePayables', 'CurrentTradePayables',
+        'SupplierPayables', 'TradeCreditors', 'VendorPayables',
+        'AccountPayable', 'LeverandoerGaeld', 'Kreditorgjald'
       ], useInstantContexts),
 
       gaeldTilAssocieretVirksomheder: extractValue([
         'PayablesToAssociates', 'GaeldTilAssocieretVirksomheder',
         'AmountsDueToRelatedParties', 'PayablesToRelatedCompanies',
-        // Additional variations
         'GaeldTilAssocieretVirksomhederIAlt',
-        'GaeldTilTilknyttedeVirksomheder'
+        'GaeldTilTilknyttedeVirksomheder',
+        // Expanded variations
+        'PayablesToAffiliates', 'PayablesToGroupCompanies',
+        'IntercompanyPayables', 'RelatedPartyPayables',
+        'PayablesToSubsidiaries', 'GaeldTilKoncernvirksomheder'
       ], useInstantContexts),
 
       skyldideMomsOgAfgifter: extractValue([
         'VATPayable', 'SkyldideMomsOgAfgifter',
         'TaxPayable', 'VATAndDutiesPayable',
-        // Additional variations
-        'SkyldideMomsOgAfgifterIAlt',
-        'MomsGaeld',
-        'SkyldigeAfgifter'
+        'SkyldideMomsOgAfgifterIAlt', 'MomsGaeld', 'SkyldigeAfgifter',
+        // Expanded variations
+        'ValueAddedTaxPayable', 'SalesTaxPayable', 'DutiesPayable',
+        'TaxesAndDutiesPayable', 'VATLiability', 'MomsGaeldsskyldig',
+        'SkyldideSkatoger', 'AfgiftsGaeld'
       ], useInstantContexts),
 
       andenGaeld: extractValue([
         'OtherPayables', 'AndenGaeld',
         'OtherCurrentLiabilities', 'MiscellaneousPayables',
-        // Additional variations
-        'AndenGaeldIAlt',
-        'OevrigGaeld',
-        'AndreGaeldsforpligtelser'
+        'AndenGaeldIAlt', 'OevrigGaeld', 'AndreGaeldsforpligtelser',
+        // Expanded variations
+        'OtherShorttermLiabilities', 'OtherCreditors',
+        'MiscellaneousCurrentLiabilities', 'SundryPayables',
+        'OtherAccountsPayable', 'OevrigeKortfristeteGaeld',
+        'AndenKortfristetGaeld'
       ], useInstantContexts),
 
       feriepengeforpligtelser: extractValue([
         'HolidayPayObligations', 'Feriepengeforpligtelser',
         'VacationPayLiability', 'AccruedHolidayPay',
-        // Additional variations
-        'FeriepengeforpligtelserIAlt',
-        'SkyldideFeriepenge',
-        'FeriepengeGaeld'
+        'FeriepengeforpligtelserIAlt', 'SkyldideFeriepenge',
+        'FeriepengeGaeld',
+        // Expanded variations
+        'HolidayPayLiability', 'VacationPayObligations',
+        'AccruedVacationPay', 'HolidayPayAccrual',
+        'VacationAccrual', 'HolidayAllowanceLiability',
+        'FeriepengeSkyldighed', 'OpsparedeFeriepenge'
       ], useInstantContexts),
 
       periodeafgraensningsporterPassiver: extractValue([
         'DeferredIncome', 'AccrualsAndDeferredIncome',
         'PeriodeafgraensningsporterPassiver', 'AccruedExpensesAndDeferredIncome',
-        // Additional variations
         'PeriodeafgraensningsporterPassiverIAlt',
-        'ForudbetalteIntaegter',
-        'PeriodeafgraensningerPassiver'
+        'ForudbetalteIntaegter', 'PeriodeafgraensningerPassiver',
+        // Expanded variations
+        'DeferredRevenue', 'UnearnedRevenue', 'AccruedExpenses',
+        'DeferredCredits', 'AdvancePaymentsFromCustomers',
+        'PrepaidIncome', 'PeriodiseredePassiver',
+        'ForudbetalingerFraKunder'
       ], useInstantContexts),
       
       // Additional Balance Sheet - Liabilities breakdown
