@@ -55,7 +55,13 @@ const FINANCIAL_EXPLANATIONS: Record<string, string> = {
   'anden_gaeld': 'Diverse anden kortfristet gæld som ikke passer i andre kategorier.',
   'skyldige_moms': 'Moms og afgifter virksomheden har indkrævet men endnu ikke betalt.',
   'feriepengeforpligtelser': 'Optjent ferieløn til medarbejdere der endnu ikke er udbetalt.',
-  'periodeafgraensningsposter_passiver': 'Forudbetalte indtægter eller omkostninger der vedrører fremtidige perioder.'
+  'periodeafgraensningsposter_passiver': 'Forudbetalte indtægter eller omkostninger der vedrører fremtidige perioder.',
+  
+  // Key Ratios
+  'soliditetsgrad': 'Viser hvor stor en del af virksomhedens aktiver der er finansieret med egenkapital. Høj soliditet betyder mindre gæld og bedre finansiel stabilitet.',
+  'likviditetsgrad': 'Måler virksomhedens evne til at betale sine kortfristede forpligtelser. Over 100% betyder virksomheden kan dække sine kortsigtede gældsforpligtelser.',
+  'afkastningsgrad': 'Viser hvor meget virksomheden tjener på sin investerede kapital. Høj afkastningsgrad betyder god indtjening i forhold til investeret kapital.',
+  'overskudsgrad': 'Angiver hvor mange procent af omsætningen der bliver til overskud. Høj overskudsgrad betyder god indtjening på salget.'
 };
 
 const FinancialRowWithTooltip: React.FC<{
@@ -103,16 +109,29 @@ const FinancialSpreadsheet: React.FC<FinancialSpreadsheetProps> = ({ historicalD
   });
   
   // Format number in thousands with Danish locale
-  const formatThousands = (value: number | null | undefined): string => {
+  const formatThousands = (value: number | null | undefined, isNegativeContext: boolean = false): string => {
     if (value === null || value === undefined) return '-';
     const thousands = Math.round(value / 1000);
-    return thousands.toLocaleString('da-DK');
+    const formatted = thousands.toLocaleString('da-DK');
+    
+    // Color negative numbers or bruttotab red
+    if (thousands < 0 || isNegativeContext) {
+      return formatted;
+    }
+    return formatted;
   };
   
   // Format percentage with 1 decimal
   const formatPercent = (value: number | null | undefined): string => {
     if (value === null || value === undefined) return '-';
     return value.toFixed(1);
+  };
+  
+  // Helper to determine if value should be red
+  const getValueColor = (value: number | null | undefined, isNegativeContext: boolean = false): string => {
+    if (value === null || value === undefined) return '';
+    if (value < 0 || isNegativeContext) return 'text-destructive';
+    return '';
   };
 
   if (periods.length === 0) {
@@ -175,7 +194,7 @@ const FinancialSpreadsheet: React.FC<FinancialSpreadsheetProps> = ({ historicalD
                     className="sticky left-0 bg-background font-bold text-sm py-2 w-[200px] bg-muted/20"
                   />
                   {periods.map((period, idx) => (
-                    <TableCell key={idx} className="text-right font-semibold text-sm py-2 w-[120px]">{formatThousands(period.nettoomsaetning)}</TableCell>
+                    <TableCell key={idx} className={`text-right font-semibold text-sm py-2 w-[120px] ${getValueColor(period.nettoomsaetning)}`}>{formatThousands(period.nettoomsaetning)}</TableCell>
                   ))}
                 </TableRow>
                 {/* Level 2: Section Subtotal */}
@@ -186,7 +205,7 @@ const FinancialSpreadsheet: React.FC<FinancialSpreadsheetProps> = ({ historicalD
                     className="sticky left-0 bg-background font-semibold text-xs py-1.5 w-[200px] border-t"
                   />
                   {periods.map((period, idx) => (
-                    <TableCell key={idx} className="text-right font-medium text-xs py-1.5 w-[120px] border-t">{formatThousands(period.bruttofortjeneste)}</TableCell>
+                    <TableCell key={idx} className={`text-right font-medium text-xs py-1.5 w-[120px] border-t ${getValueColor(period.bruttofortjeneste)}`}>{formatThousands(period.bruttofortjeneste)}</TableCell>
                   ))}
                 </TableRow>
                 {/* Level 3: Category Item */}
@@ -197,7 +216,7 @@ const FinancialSpreadsheet: React.FC<FinancialSpreadsheetProps> = ({ historicalD
                     className="sticky left-0 bg-background font-medium text-xs py-1.5 w-[200px] pl-4"
                   />
                   {periods.map((period, idx) => (
-                    <TableCell key={idx} className="text-right text-xs py-1.5 w-[120px]">{period.bruttotab ? formatThousands(period.bruttotab) : '-'}</TableCell>
+                    <TableCell key={idx} className={`text-right text-xs py-1.5 w-[120px] text-destructive`}>{period.bruttotab ? formatThousands(period.bruttotab, true) : '-'}</TableCell>
                   ))}
                 </TableRow>
                 {/* Level 3: Category Item */}
@@ -208,7 +227,7 @@ const FinancialSpreadsheet: React.FC<FinancialSpreadsheetProps> = ({ historicalD
                     className="sticky left-0 bg-background font-medium text-xs py-1.5 w-[200px] pl-4"
                   />
                   {periods.map((period, idx) => (
-                    <TableCell key={idx} className="text-right text-xs py-1.5 w-[120px]">{formatThousands(period.personaleomkostninger)}</TableCell>
+                    <TableCell key={idx} className={`text-right text-xs py-1.5 w-[120px] ${getValueColor(period.personaleomkostninger)}`}>{formatThousands(period.personaleomkostninger)}</TableCell>
                   ))}
                 </TableRow>
                 {/* Level 4: Detail Item */}
@@ -219,7 +238,7 @@ const FinancialSpreadsheet: React.FC<FinancialSpreadsheetProps> = ({ historicalD
                     className="sticky left-0 bg-background font-normal italic text-xs py-1 w-[200px] pl-6 text-muted-foreground"
                   />
                   {periods.map((period, idx) => (
-                    <TableCell key={idx} className="text-right italic text-xs py-1 w-[120px] text-muted-foreground">{formatThousands(period.afskrivninger)}</TableCell>
+                    <TableCell key={idx} className={`text-right italic text-xs py-1 w-[120px] text-muted-foreground ${getValueColor(period.afskrivninger)}`}>{formatThousands(period.afskrivninger)}</TableCell>
                   ))}
                 </TableRow>
                 {/* Level 2: Section Subtotal */}
@@ -230,7 +249,7 @@ const FinancialSpreadsheet: React.FC<FinancialSpreadsheetProps> = ({ historicalD
                     className="sticky left-0 bg-background font-semibold text-xs py-1.5 w-[200px] border-t"
                   />
                   {periods.map((period, idx) => (
-                    <TableCell key={idx} className="text-right font-medium text-xs py-1.5 w-[120px] border-t">{formatThousands(period.resultatAfPrimaerDrift || period.driftsresultat)}</TableCell>
+                    <TableCell key={idx} className={`text-right font-medium text-xs py-1.5 w-[120px] border-t ${getValueColor(period.resultatAfPrimaerDrift || period.driftsresultat)}`}>{formatThousands(period.resultatAfPrimaerDrift || period.driftsresultat)}</TableCell>
                   ))}
                 </TableRow>
                 {/* Level 4: Detail Item */}
@@ -241,7 +260,7 @@ const FinancialSpreadsheet: React.FC<FinancialSpreadsheetProps> = ({ historicalD
                     className="sticky left-0 bg-background font-normal italic text-xs py-1 w-[200px] pl-6 text-muted-foreground"
                   />
                   {periods.map((period, idx) => (
-                    <TableCell key={idx} className="text-right italic text-xs py-1 w-[120px] text-muted-foreground">{formatThousands(period.finansielleIndtaegter)}</TableCell>
+                    <TableCell key={idx} className={`text-right italic text-xs py-1 w-[120px] text-muted-foreground ${getValueColor(period.finansielleIndtaegter)}`}>{formatThousands(period.finansielleIndtaegter)}</TableCell>
                   ))}
                 </TableRow>
                 {/* Level 4: Detail Item */}
@@ -252,7 +271,7 @@ const FinancialSpreadsheet: React.FC<FinancialSpreadsheetProps> = ({ historicalD
                     className="sticky left-0 bg-background font-normal italic text-xs py-1 w-[200px] pl-6 text-muted-foreground"
                   />
                   {periods.map((period, idx) => (
-                    <TableCell key={idx} className="text-right italic text-xs py-1 w-[120px] text-muted-foreground">{formatThousands(period.finansielleOmkostninger)}</TableCell>
+                    <TableCell key={idx} className={`text-right italic text-xs py-1 w-[120px] text-muted-foreground ${getValueColor(period.finansielleOmkostninger)}`}>{formatThousands(period.finansielleOmkostninger)}</TableCell>
                   ))}
                 </TableRow>
                 {/* Level 2: Section Subtotal */}
@@ -263,7 +282,7 @@ const FinancialSpreadsheet: React.FC<FinancialSpreadsheetProps> = ({ historicalD
                     className="sticky left-0 bg-background font-semibold text-xs py-1.5 w-[200px] border-t"
                   />
                   {periods.map((period, idx) => (
-                    <TableCell key={idx} className="text-right font-medium text-xs py-1.5 w-[120px] border-t">{formatThousands(period.driftsresultat)}</TableCell>
+                    <TableCell key={idx} className={`text-right font-medium text-xs py-1.5 w-[120px] border-t ${getValueColor(period.driftsresultat)}`}>{formatThousands(period.driftsresultat)}</TableCell>
                   ))}
                 </TableRow>
                 {/* Level 2: Section Subtotal */}
@@ -274,7 +293,7 @@ const FinancialSpreadsheet: React.FC<FinancialSpreadsheetProps> = ({ historicalD
                     className="sticky left-0 bg-background font-semibold text-xs py-1.5 w-[200px] border-t"
                   />
                   {periods.map((period, idx) => (
-                    <TableCell key={idx} className="text-right font-medium text-xs py-1.5 w-[120px] border-t">{formatThousands(period.resultatFoerSkat)}</TableCell>
+                    <TableCell key={idx} className={`text-right font-medium text-xs py-1.5 w-[120px] border-t ${getValueColor(period.resultatFoerSkat)}`}>{formatThousands(period.resultatFoerSkat)}</TableCell>
                   ))}
                 </TableRow>
                 {/* Level 4: Detail Item */}
@@ -285,7 +304,7 @@ const FinancialSpreadsheet: React.FC<FinancialSpreadsheetProps> = ({ historicalD
                     className="sticky left-0 bg-background font-normal italic text-xs py-1 w-[200px] pl-6 text-muted-foreground"
                   />
                   {periods.map((period, idx) => (
-                    <TableCell key={idx} className="text-right italic text-xs py-1 w-[120px] text-muted-foreground">{formatThousands(period.skatAfAaretsResultat)}</TableCell>
+                    <TableCell key={idx} className={`text-right italic text-xs py-1 w-[120px] text-muted-foreground ${getValueColor(period.skatAfAaretsResultat)}`}>{formatThousands(period.skatAfAaretsResultat)}</TableCell>
                   ))}
                 </TableRow>
                 {/* Level 1: Primary Total */}
@@ -296,7 +315,7 @@ const FinancialSpreadsheet: React.FC<FinancialSpreadsheetProps> = ({ historicalD
                     className="sticky left-0 bg-background font-bold text-sm py-2 w-[200px] bg-muted/20 border-t-2"
                   />
                   {periods.map((period, idx) => (
-                    <TableCell key={idx} className="text-right font-semibold text-sm py-2 w-[120px] border-t-2">{formatThousands(period.aaretsResultat)}</TableCell>
+                    <TableCell key={idx} className={`text-right font-semibold text-sm py-2 w-[120px] border-t-2 ${getValueColor(period.aaretsResultat)}`}>{formatThousands(period.aaretsResultat)}</TableCell>
                   ))}
                 </TableRow>
               </TableBody>
@@ -482,7 +501,7 @@ const FinancialSpreadsheet: React.FC<FinancialSpreadsheetProps> = ({ historicalD
                     className="sticky left-0 bg-background font-semibold text-xs py-1.5 w-[200px] border-t"
                   />
                   {periods.map((period, idx) => (
-                    <TableCell key={idx} className="text-right font-medium text-xs py-1.5 w-[120px] border-t">{formatThousands(period.egenkapital)}</TableCell>
+                    <TableCell key={idx} className={`text-right font-medium text-xs py-1.5 w-[120px] border-t ${getValueColor(period.egenkapital)}`}>{formatThousands(period.egenkapital)}</TableCell>
                   ))}
                 </TableRow>
                 {/* Level 3: Category Item */}
@@ -504,7 +523,7 @@ const FinancialSpreadsheet: React.FC<FinancialSpreadsheetProps> = ({ historicalD
                     className="sticky left-0 bg-background font-medium text-xs py-1.5 w-[200px] pl-4"
                   />
                   {periods.map((period, idx) => (
-                    <TableCell key={idx} className="text-right text-xs py-1.5 w-[120px]">{formatThousands(period.overfoertResultat)}</TableCell>
+                    <TableCell key={idx} className={`text-right text-xs py-1.5 w-[120px] ${getValueColor(period.overfoertResultat)}`}>{formatThousands(period.overfoertResultat)}</TableCell>
                   ))}
                 </TableRow>
                 {/* Level 2: Section Subtotal */}
@@ -635,25 +654,41 @@ const FinancialSpreadsheet: React.FC<FinancialSpreadsheetProps> = ({ historicalD
               </TableHeader>
               <TableBody>
                 <TableRow className="hover:bg-muted/30">
-                  <TableCell className="sticky left-0 bg-background font-medium text-xs py-1.5 w-[200px]">Soliditetsgrad</TableCell>
+                  <FinancialRowWithTooltip
+                    label="Soliditetsgrad"
+                    tooltipKey="soliditetsgrad"
+                    className="sticky left-0 bg-background font-medium text-xs py-1.5 w-[200px]"
+                  />
                   {periods.map((period, idx) => (
                     <TableCell key={idx} className="text-right text-xs py-1.5 w-[120px]">{formatPercent(period.soliditetsgrad)}</TableCell>
                   ))}
                 </TableRow>
                 <TableRow className="hover:bg-muted/30">
-                  <TableCell className="sticky left-0 bg-background font-medium text-xs py-1.5 w-[200px]">Likviditetsgrad</TableCell>
+                  <FinancialRowWithTooltip
+                    label="Likviditetsgrad"
+                    tooltipKey="likviditetsgrad"
+                    className="sticky left-0 bg-background font-medium text-xs py-1.5 w-[200px]"
+                  />
                   {periods.map((period, idx) => (
                     <TableCell key={idx} className="text-right text-xs py-1.5 w-[120px]">{formatPercent(period.likviditetsgrad)}</TableCell>
                   ))}
                 </TableRow>
                 <TableRow className="hover:bg-muted/30">
-                  <TableCell className="sticky left-0 bg-background font-medium text-xs py-1.5 w-[200px]">Afkastningsgrad</TableCell>
+                  <FinancialRowWithTooltip
+                    label="Afkastningsgrad"
+                    tooltipKey="afkastningsgrad"
+                    className="sticky left-0 bg-background font-medium text-xs py-1.5 w-[200px]"
+                  />
                   {periods.map((period, idx) => (
                     <TableCell key={idx} className="text-right text-xs py-1.5 w-[120px]">{formatPercent(period.afkastningsgrad)}</TableCell>
                   ))}
                 </TableRow>
                 <TableRow className="hover:bg-muted/30">
-                  <TableCell className="sticky left-0 bg-background font-medium text-xs py-1.5 w-[200px]">Overskudsgrad</TableCell>
+                  <FinancialRowWithTooltip
+                    label="Overskudsgrad"
+                    tooltipKey="overskudsgrad"
+                    className="sticky left-0 bg-background font-medium text-xs py-1.5 w-[200px]"
+                  />
                   {periods.map((period, idx) => (
                     <TableCell key={idx} className="text-right text-xs py-1.5 w-[120px]">{formatPercent(period.overskudsgrad)}</TableCell>
                   ))}
