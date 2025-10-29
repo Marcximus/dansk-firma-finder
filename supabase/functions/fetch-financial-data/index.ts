@@ -644,21 +644,21 @@ const parseXBRL = (xmlContent: string, period: string) => {
         'ProfitLossForYear', 'NetProfitLoss'
       ], usePeriodContexts),
       
-      // Balance Sheet - Assets (Aktiver) - use instant contexts
+      // Balance Sheet - Assets (Aktiver) - search ALL contexts (no filtering)
       anlaegsaktiverValue: extractValue([
         'NoncurrentAssets', // EXACT TAG from logs! ✅
         'PropertyPlantAndEquipment', // Also exact!
         'Anlaeggsaktiver', 'AnlaegsAktiver', 'Anlaegsaktiver', // FSA Danish variants FIRST
         'Anlægsaktiver', 'FixedAssets', 
         'LongtermAssets', 'NonCurrentAssets'
-      ], useInstantContexts, 'anlaegsaktiverValue'),
+      ], undefined, 'anlaegsaktiverValue'),
       
       omsaetningsaktiver: extractValue([
         'CurrentAssets', // EXACT TAG from logs! ✅
         'OmsaetningsAktiver', 'Omsaetningsaktiver', // FSA Danish variants FIRST
         'Omsætningsaktiver', 'ShorttermAssets',
         'ShortTermAssets'
-      ], useInstantContexts, 'omsaetningsaktiver'),
+      ], undefined, 'omsaetningsaktiver'),
       
       statusBalance: extractValue([
         'Assets', // EXACT TAG from logs! ✅
@@ -666,34 +666,34 @@ const parseXBRL = (xmlContent: string, period: string) => {
         'AktiverIAlt', 'Aktiver', 'SumAktiver', // FSA Danish variants FIRST
         'TotalAssets', 'Balance',
         'SumOfAssets', 'TotalAssetsAndEquityAndLiabilities' // ESEF variant (balance sheet total)
-      ], useInstantContexts, 'statusBalance'),
+      ], undefined, 'statusBalance'),
       
-      // Balance Sheet - Equity & Liabilities (Passiver) - use instant contexts
+      // Balance Sheet - Equity & Liabilities (Passiver) - search ALL contexts (no filtering)
       egenkapital: extractValue([
         'EgenkapitalIAlt', 'Egenkapital', 'SumEgenkapital', // FSA Danish variants FIRST
         'Equity', // IFRS "finansiel" format ✅
         'ShareholdersEquity',
         'TotalEquity', 'EquityAttributableToOwnersOfParent',
         'EquityAttributableToEquityHoldersOfParent', 'TotalShareholdersEquity' // ESEF variant
-      ], useInstantContexts),
+      ], undefined),
       
       hensatteForpligtelser: extractValue([
         'Provisions', 'HensatteForpligtelser', 'ProvisionsForLiabilities',
         'TotalProvisions'
-      ], useInstantContexts),
+      ], undefined),
       
       gaeldsforpligtelser: extractValue([
         'GaeldsforpligtelserIAlt', 'Gaeldsforpligtelser', 'SumGaeld', // FSA Danish variants FIRST
         'Liabilities', 'Gældsforpligtelser', 'TotalLiabilities',
         'LiabilitiesOtherThanProvisions',
         'TotalLiabilitiesAndEquity', 'LiabilitiesAndEquity' // ESEF variants
-      ], useInstantContexts),
+      ], undefined),
       
       kortfristetGaeld: extractValue([
         'ShorttermLiabilitiesOtherThanProvisions', 'KortfristetGæld', 
         'CurrentLiabilities', 'ShortTermLiabilities',
         'ShorttermDebt'
-      ], useInstantContexts),
+      ], undefined),
       
       // Additional Income Statement items
       driftsomkostninger: extractValue([
@@ -775,12 +775,12 @@ const parseXBRL = (xmlContent: string, period: string) => {
         'ResultatAfPrimaereDrift'
       ], usePeriodContexts, 'resultatAfPrimaerDrift'),
       
-      // Additional Balance Sheet - Assets breakdown
+      // Additional Balance Sheet - Assets breakdown - search ALL contexts
       immaterielleAnlaeggsaktiver: extractValue([
         'ImmaterielleAnlaegsaktiver', 'ImmaterielleAktiver',
         'Goodwill', 'AndenImmaterielleAnlaegsaktiver',
         'IntangibleAssetsOtherThanGoodwill', 'IntangibleAssets'
-      ], useInstantContexts),
+      ], undefined),
       
       materielleAnlaeggsaktiver: extractValue([
         'PropertyPlantAndEquipment', // EXACT TAG from logs! ✅
@@ -788,7 +788,7 @@ const parseXBRL = (xmlContent: string, period: string) => {
         'GrundeOgBygninger', 'ProduktionsanlaegOgMaskiner',
         'TangibleAssets',
         'Property', 'LandAndBuildings'
-      ], useInstantContexts, 'materielleAnlaeggsaktiver'),
+      ], undefined, 'materielleAnlaeggsaktiver'),
       
       finansielleAnlaeggsaktiver: extractValue([
         'FinansielleAnlaegsaktiver', 'FinansielleAktiver',
@@ -797,26 +797,26 @@ const parseXBRL = (xmlContent: string, period: string) => {
         'AndreVaerdipapirerOgKapitalandele',
         'NoncurrentFinancialAssets', 'LongtermInvestments',
         'InvestmentProperty', 'FinancialAssets'
-      ], useInstantContexts),
+      ], undefined),
       
       varebeholdninger: extractValue([
         'Varebeholdninger', 'LagerbeholdningerIAlt',
         'Inventories', 'Inventory', 'Stocks',
         'RawMaterialsAndConsumables'
-      ], useInstantContexts),
+      ], undefined),
       
       tilgodehavender: extractValue([
         'TilgodehavenderIAlt', 'Tilgodehavender',
         'Varedebitorer', 'AndreTilgodehavender',
         'TradeAndOtherCurrentReceivables', 'CurrentReceivables',
         'TradeReceivables', 'Receivables', 'AccountsReceivable'
-      ], useInstantContexts),
+      ], undefined),
       
       likviderMidler: extractValue([
         'LikviderMidler', 'LikvideBehoelninger',
         'CashAndCashEquivalents', 'Cash',
         'BankDeposits', 'CashAtBankAndInHand'
-      ], useInstantContexts),
+      ], undefined),
       
       // Detailed Balance Sheet - Assets
       // PHASE 2: Expanded tag coverage
@@ -829,7 +829,7 @@ const parseXBRL = (xmlContent: string, period: string) => {
         'AndreAnlaegIAlt',
         'DriftsmaterielOgInventarIAlt',
         'FixturesAndFittings'
-      ], useInstantContexts, 'andreAnlaegDriftsmaterielOgInventar'),
+      ], undefined, 'andreAnlaegDriftsmaterielOgInventar'),
 
       deposita: extractValue([
         'DepositsLongtermInvestmentsAndReceivables', // EXACT TAG from logs! ✅
@@ -840,7 +840,7 @@ const parseXBRL = (xmlContent: string, period: string) => {
         'LongtermDeposits', 'SecurityDeposit', 'RentalDeposits',
         'DepositReceivables', 'GuaranteeDeposits', 'CashDeposits',
         'OtherDeposits', 'Depositum'
-      ], useInstantContexts, 'deposita'),
+      ], undefined, 'deposita'),
 
       tilgodehavenderFraSalgOgTjenesteydelser: extractValue([
         'ShorttermTradeReceivables', // EXACT TAG from logs! ✅
@@ -854,7 +854,7 @@ const parseXBRL = (xmlContent: string, period: string) => {
         'TradeAndOtherCurrentReceivables', 'SalesReceivables',
         'CustomerReceivables', 'TradeDebtors', 'AccountReceivable',
         'TilgodehavenderFraKunder', 'Kundetilgodehavender'
-      ], useInstantContexts, 'tilgodehavenderFraSalgOgTjenesteydelser'),
+      ], undefined, 'tilgodehavenderFraSalgOgTjenesteydelser'),
 
       andreTilgodehavender: extractValue([
         'OtherShorttermReceivables', // EXACT TAG from logs! ✅
@@ -866,7 +866,7 @@ const parseXBRL = (xmlContent: string, period: string) => {
         'MiscellaneousCurrentReceivables', 'SundryReceivables',
         'OtherDebtors', 'OtherAccountsReceivable',
         'AndreTilgodehavenderKortfristet', 'OevrigDebitorer'
-      ], useInstantContexts, 'andreTilgodehavender'),
+      ], undefined, 'andreTilgodehavender'),
 
       kravPaaIndbetalingAfVirksomhedskapital: extractValue([
         'ContributedCapitalInArrears', // EXACT TAG from logs! ✅
@@ -880,7 +880,7 @@ const parseXBRL = (xmlContent: string, period: string) => {
         'CapitalCallReceivables', 'OutstandingShareCapital',
         'UnpaidContributions', 'CapitalContributionsReceivable',
         'IkkeIndbetalteKapitalandele'
-      ], useInstantContexts, 'kravPaaIndbetalingAfVirksomhedskapital'),
+      ], undefined, 'kravPaaIndbetalingAfVirksomhedskapital'),
 
       periodeafgraensningsporterAktiver: extractValue([
         'DeferredIncomeAssets', // EXACT TAG from logs! ✅
@@ -891,7 +891,7 @@ const parseXBRL = (xmlContent: string, period: string) => {
         'PrepaidExpenses', 'Prepayments',
         'AccruedIncome', 'DeferredCharges', 'PrepaidCosts',
         'PeriodeafgraensningerAktiver', 'ForudbetalteOgPeriodiseredeOmkostninger'
-      ], useInstantContexts, 'periodeafgraensningsporterAktiver'),
+      ], undefined, 'periodeafgraensningsporterAktiver'),
 
       likvideBehoelninger: extractValue([
         'CashAndCashEquivalents', // EXACT TAG from logs! ✅
@@ -900,7 +900,7 @@ const parseXBRL = (xmlContent: string, period: string) => {
         // Additional variations
         'LikvideBehoelningerIAlt',
         'LikviderMidlerIAlt'
-      ], useInstantContexts, 'likvideBehoelninger'),
+      ], undefined, 'likvideBehoelninger'),
       
       // Detailed Balance Sheet - Equity & Liabilities
       // PHASE 2: Expanded tag coverage
@@ -913,7 +913,7 @@ const parseXBRL = (xmlContent: string, period: string) => {
         'IssuedShareCapital', 'PaidInCapital', 'NominalCapital',
         'RegisteredCapital', 'EquityCapital', 'OrdinaryShares',
         'Anpartskapital', 'TegnetKapital', 'IndskudtKapital'
-      ], useInstantContexts, 'virksomhedskapital'),
+      ], undefined, 'virksomhedskapital'),
 
       overfoertResultat: extractValue([
         'RetainedEarnings', // EXACT TAG from logs! ✅
@@ -924,7 +924,7 @@ const parseXBRL = (xmlContent: string, period: string) => {
         'OverfoertResultatIAlt',
         'OpsparedOverskud',
         'HenlagtOverskud'
-      ], useInstantContexts, 'overfoertResultat'),
+      ], undefined, 'overfoertResultat'),
 
       leverandoererAfVarerOgTjenesteydelser: extractValue([
         'ShorttermTradePayables', // EXACT TAG from logs! ✅
@@ -937,7 +937,7 @@ const parseXBRL = (xmlContent: string, period: string) => {
         'CurrentTradePayables',
         'SupplierPayables', 'TradeCreditors', 'VendorPayables',
         'AccountPayable', 'LeverandoerGaeld', 'Kreditorgjald'
-      ], useInstantContexts, 'leverandoererAfVarerOgTjenesteydelser'),
+      ], undefined, 'leverandoererAfVarerOgTjenesteydelser'),
 
       gaeldTilAssocieretVirksomheder: extractValue([
         'ShorttermPayablesToAssociates', // EXACT TAG from logs! ✅
@@ -949,7 +949,7 @@ const parseXBRL = (xmlContent: string, period: string) => {
         'PayablesToAffiliates', 'PayablesToGroupCompanies',
         'IntercompanyPayables', 'RelatedPartyPayables',
         'PayablesToSubsidiaries', 'GaeldTilKoncernvirksomheder'
-      ], useInstantContexts, 'gaeldTilAssocieretVirksomheder'),
+      ], undefined, 'gaeldTilAssocieretVirksomheder'),
 
       skyldideMomsOgAfgifter: extractValue([
         'VatAndDutiesPayables', // EXACT TAG from logs! ✅
@@ -960,7 +960,7 @@ const parseXBRL = (xmlContent: string, period: string) => {
         'ValueAddedTaxPayable', 'SalesTaxPayable', 'DutiesPayable',
         'TaxesAndDutiesPayable', 'VATLiability', 'MomsGaeldsskyldig',
         'SkyldideSkatoger', 'AfgiftsGaeld'
-      ], useInstantContexts, 'skyldideMomsOgAfgifter'),
+      ], undefined, 'skyldideMomsOgAfgifter'),
 
       andenGaeld: extractValue([
         'OtherPayablesIncludingTaxPayablesLiabilitiesOtherThanProvisionsShortterm', // EXACT TAG from logs! ✅
@@ -972,7 +972,7 @@ const parseXBRL = (xmlContent: string, period: string) => {
         'MiscellaneousCurrentLiabilities', 'SundryPayables',
         'OtherAccountsPayable', 'OevrigeKortfristeteGaeld',
         'AndenKortfristetGaeld'
-      ], useInstantContexts, 'andenGaeld'),
+      ], undefined, 'andenGaeld'),
 
       feriepengeforpligtelser: extractValue([
         'HolidayPayObligations', 'Feriepengeforpligtelser',
@@ -984,7 +984,7 @@ const parseXBRL = (xmlContent: string, period: string) => {
         'AccruedVacationPay', 'HolidayPayAccrual',
         'VacationAccrual', 'HolidayAllowanceLiability',
         'FeriepengeSkyldighed', 'OpsparedeFeriepenge'
-      ], useInstantContexts),
+      ], undefined),
 
       periodeafgraensningsporterPassiver: extractValue([
         'ShorttermDeferredIncome', // EXACT TAG from logs! ✅
@@ -997,7 +997,7 @@ const parseXBRL = (xmlContent: string, period: string) => {
         'DeferredCredits', 'AdvancePaymentsFromCustomers',
         'PrepaidIncome', 'PeriodiseredePassiver',
         'ForudbetalingerFraKunder'
-      ], useInstantContexts, 'periodeafgraensningsporterPassiver'),
+      ], undefined, 'periodeafgraensningsporterPassiver'),
       
       // Additional Balance Sheet - Liabilities breakdown
       langfristetGaeld: extractValue([
