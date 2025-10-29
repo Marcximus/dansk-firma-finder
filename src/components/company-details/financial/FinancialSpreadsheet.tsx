@@ -70,16 +70,16 @@ const FinancialRowWithTooltip: React.FC<{
   }
   
   return (
-    <Tooltip>
-      <TooltipTrigger asChild>
-        <TableCell className={`${className} cursor-help`}>
-          {label}
-        </TableCell>
-      </TooltipTrigger>
-      <TooltipContent side="right" className="max-w-xs">
-        <p className="text-sm">{explanation}</p>
-      </TooltipContent>
-    </Tooltip>
+    <TableCell className={className}>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <span className="cursor-help">{label}</span>
+        </TooltipTrigger>
+        <TooltipContent side="right" className="max-w-xs">
+          <p className="text-sm">{explanation}</p>
+        </TooltipContent>
+      </Tooltip>
+    </TableCell>
   );
 };
 
