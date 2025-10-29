@@ -627,10 +627,14 @@ const parseXBRL = (xmlContent: string, period: string) => {
           'BruttofortjenesteIAlt',
           'BruttoResultat',
           'GrossMargin'
-        ], usePeriodContexts);
+        ], usePeriodContexts, 'bruttofortjeneste');
+        
+        console.log(`[BRUTTOFORTJENESTE] Raw extracted value: ${rawValue}`);
         
         // Only return value if it's POSITIVE (actual profit)
-        return rawValue !== null && rawValue > 0 ? rawValue : 0;
+        const result = rawValue !== null && rawValue > 0 ? rawValue : 0;
+        console.log(`[BRUTTOFORTJENESTE] Final value (positive only): ${result}`);
+        return result;
       })(),
       
       bruttotab: (() => {
@@ -641,10 +645,14 @@ const parseXBRL = (xmlContent: string, period: string) => {
           'BruttofortjenesteIAlt',
           'BruttoResultat',
           'GrossMargin'
-        ], usePeriodContexts);
+        ], usePeriodContexts, 'bruttotab');
+        
+        console.log(`[BRUTTOTAB] Raw extracted value: ${rawValue}`);
         
         // Only return value if it's NEGATIVE (actual loss), convert to positive for display
-        return rawValue !== null && rawValue < 0 ? Math.abs(rawValue) : 0;
+        const result = rawValue !== null && rawValue < 0 ? Math.abs(rawValue) : 0;
+        console.log(`[BRUTTOTAB] Final value (absolute if negative): ${result}`);
+        return result;
       })(),
       
       driftsresultat: extractValue([
