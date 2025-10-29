@@ -9,6 +9,18 @@ const corsHeaders = {
 const extractPeriodFromXBRL = (xmlContent: string, fallbackPeriod?: string): string => {
   console.log('[Period Extract] Attempting to extract period from XBRL');
   
+  // Strategy 0: Try ReportingPeriod tags (GSD namespace)
+  const reportingStartPattern = /<[^:]+:ReportingPeriodStartDate[^>]*>(\d{4}-\d{2}-\d{2})<\/[^:]+:ReportingPeriodStartDate>/i;
+  const reportingEndPattern = /<[^:]+:ReportingPeriodEndDate[^>]*>(\d{4}-\d{2}-\d{2})<\/[^:]+:ReportingPeriodEndDate>/i;
+  const reportingStartMatch = xmlContent.match(reportingStartPattern);
+  const reportingEndMatch = xmlContent.match(reportingEndPattern);
+  
+  if (reportingStartMatch && reportingEndMatch && reportingStartMatch[1] && reportingEndMatch[1]) {
+    const period = `${reportingStartMatch[1]} - ${reportingEndMatch[1]}`;
+    console.log(`[Period Extract] ✅ Found ReportingPeriod tags: ${period}`);
+    return period;
+  }
+  
   // Strategy 1: Try to find both start and end dates for full range
   const startDatePattern = /<[^:]+:startDate>(\d{4}-\d{2}-\d{2})<\/[^:]+:startDate>/i;
   const endDatePattern = /<[^:]+:endDate>(\d{4}-\d{2}-\d{2})<\/[^:]+:endDate>/i;
@@ -1327,17 +1339,32 @@ serve(async (req) => {
       
       // Use the best document we found
       if (bestParsedData && bestScore >= 3) {
-        // Extract year from the period
-        const yearMatch = bestPeriod.match(/(\d{4})/);
-        const reportYear = yearMatch ? parseInt(yearMatch[1]) : null;
+        // Extract year from the PARSED DATA, not from metadata
+        // The parsed data's periode field contains the actual year from XBRL
+        let reportYear: number | null = null;
+        
+        if (bestParsedData.periode && bestParsedData.periode !== 'N/A') {
+          // Try to extract year from periode (e.g., "2021-01", "2021-01-01 - 2021-12-31")
+          const yearMatch = bestParsedData.periode.match(/(\d{4})/);
+          reportYear = yearMatch ? parseInt(yearMatch[1]) : null;
+        }
+        
+        // If no year from periode, try bestPeriod as fallback
+        if (!reportYear && bestPeriod) {
+          const yearMatch = bestPeriod.match(/(\d{4})/);
+          reportYear = yearMatch ? parseInt(yearMatch[1]) : null;
+        }
         
         // Skip if we already have data for this year (prevent duplicates)
         if (reportYear && yearsProcessed.has(reportYear)) {
           console.log(`[SKIP] Year ${reportYear} already processed - skipping duplicate`);
+          console.log(`   Parsed periode: ${bestParsedData.periode}`);
+          console.log(`   Metadata period: ${bestPeriod}`);
           continue;
         }
         
         console.log(`[SUCCESS] Using document with score ${bestScore}/8 for year ${reportYear}: ${bestDocumentUrl.slice(0, 80)}...`);
+        console.log(`   Extracted year from: ${bestParsedData.periode || bestPeriod}`);
         
         reportMetadata.documentUrl = bestDocumentUrl;
         financialReports.push(reportMetadata);
