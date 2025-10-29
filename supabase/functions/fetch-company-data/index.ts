@@ -132,6 +132,17 @@ async function fetchProductionUnits(cvr: string, auth: string) {
   
   try {
     const productionUnitQuery = {
+      "_source": [
+        "VrproduktionsEnhed.pNummer",
+        "VrproduktionsEnhed.beliggenhedsadresse",
+        "VrproduktionsEnhed.hovedbranche",
+        "VrproduktionsEnhed.bibranche1",
+        "VrproduktionsEnhed.navne",
+        "VrproduktionsEnhed.maanedsbeskaeftigelse",
+        "VrproduktionsEnhed.erstMaanedsbeskaeftigelse",
+        "VrproduktionsEnhed.aarsbeskaeftigelse",
+        "VrproduktionsEnhed.kvartalsbeskaeftigelse"
+      ],
       "query": {
         "bool": {
           "must": [

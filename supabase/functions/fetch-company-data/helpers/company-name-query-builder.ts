@@ -30,7 +30,11 @@ export const buildCompanyNameQuery = (companyName: string) => {
       "Vrvirksomhed.livsforloeb",
       "Vrvirksomhed.telefonNummer",
       "Vrvirksomhed.elektroniskPost",
-      "Vrvirksomhed.hjemmeside"
+      "Vrvirksomhed.hjemmeside",
+      "Vrvirksomhed.maanedsbeskaeftigelse",
+      "Vrvirksomhed.erstMaanedsbeskaeftigelse",
+      "Vrvirksomhed.aarsbeskaeftigelse",
+      "Vrvirksomhed.kvartalsbeskaeftigelse"
     ],
     "query": {
       "bool": {

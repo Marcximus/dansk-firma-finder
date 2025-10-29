@@ -17,7 +17,11 @@ export const buildPersonQuery = (personName: string) => {
       "Vrvirksomhed.livsforloeb",
       "Vrvirksomhed.telefonNummer",
       "Vrvirksomhed.elektroniskPost",
-      "Vrvirksomhed.hjemmeside"
+      "Vrvirksomhed.hjemmeside",
+      "Vrvirksomhed.maanedsbeskaeftigelse",
+      "Vrvirksomhed.erstMaanedsbeskaeftigelse",
+      "Vrvirksomhed.aarsbeskaeftigelse",
+      "Vrvirksomhed.kvartalsbeskaeftigelse"
     ],
     "query": {
       "nested": {
