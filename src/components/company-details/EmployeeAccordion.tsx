@@ -45,42 +45,51 @@ const EmployeeAccordion: React.FC<EmployeeAccordionProps> = ({ cvr, cvrData }) =
       deltid: number;
     }> = [];
 
-    // Use monthly data if available
-    if (financialData?.yearlyEmployment && financialData.yearlyEmployment.length > 0) {
+    // Priority 1: Try monthly data (maanedsbeskaeftigelse or erstMaanedsbeskaeftigelse)
+    if (financialData?.monthlyEmployment && financialData.monthlyEmployment.length > 0) {
       const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'Maj', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dec'];
       
-      financialData.yearlyEmployment
+      financialData.monthlyEmployment
         .slice(0, 12) // Take last 12 months
         .forEach((item: any) => {
           const total = item.antalAnsatte || 0;
-          const fuldtid = item.antalAarsvaerk || 0;
-          const deltid = total - fuldtid;
+          const fuldtid = Math.round((item.antalAarsvaerk || 0) * 100) / 100; // Handle decimal values
+          const deltid = Math.max(0, total - fuldtid);
           
-          // Format periode based on available data
-          let periode = '';
-          if (item.maaned && item.aar) {
-            periode = `${monthNames[item.maaned - 1]} ${item.aar}`;
-          } else if (item.aar) {
-            periode = item.aar.toString();
-          }
-          
-          if (periode && total > 0) {
+          if (item.maaned && item.aar && total > 0) {
+            const periode = `${monthNames[item.maaned - 1]} ${item.aar}`;
             employmentData.push({ periode, total, fuldtid, deltid });
           }
         });
     }
     
-    // Fallback to quarterly data if no monthly data
+    // Priority 2: Fallback to quarterly data if no monthly data
     if (employmentData.length === 0 && financialData?.quarterlyEmployment && financialData.quarterlyEmployment.length > 0) {
       financialData.quarterlyEmployment
         .slice(0, 12) // Take last 12 quarters
         .forEach((item: any) => {
           const total = item.antalAnsatte || 0;
           const fuldtid = item.antalAarsvaerk || 0;
-          const deltid = total - fuldtid;
-          const periode = `${item.kvartal}. kvt ${item.aar}`;
+          const deltid = Math.max(0, total - fuldtid);
           
           if (total > 0) {
+            const periode = `${item.kvartal}. kvt ${item.aar}`;
+            employmentData.push({ periode, total, fuldtid, deltid });
+          }
+        });
+    }
+    
+    // Priority 3: Last resort - use yearly data if neither monthly nor quarterly exists
+    if (employmentData.length === 0 && financialData?.yearlyEmployment && financialData.yearlyEmployment.length > 0) {
+      financialData.yearlyEmployment
+        .slice(0, 10) // Take last 10 years
+        .forEach((item: any) => {
+          const total = item.antalAnsatte || 0;
+          const fuldtid = item.antalAarsvaerk || 0;
+          const deltid = Math.max(0, total - fuldtid);
+          
+          if (item.aar && total > 0) {
+            const periode = item.aar.toString();
             employmentData.push({ periode, total, fuldtid, deltid });
           }
         });
@@ -160,6 +169,7 @@ const EmployeeAccordion: React.FC<EmployeeAccordionProps> = ({ cvr, cvrData }) =
 
           {/* Employment Data Cards */}
           <EmploymentDataCard 
+            monthlyEmployment={financialData?.monthlyEmployment || []}
             yearlyEmployment={financialData?.yearlyEmployment || []}
             quarterlyEmployment={financialData?.quarterlyEmployment || []}
           />

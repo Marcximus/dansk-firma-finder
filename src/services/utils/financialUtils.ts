@@ -130,6 +130,7 @@ export const extractFinancialData = (cvrData: any, parsedFinancialData?: any) =>
         periode: latestData.periode
       },
       historicalData: enrichedData, // All parsed periods with ratios, properly structured
+      monthlyEmployment: cvrData?.Vrvirksomhed?.maanedsbeskaeftigelse || cvrData?.Vrvirksomhed?.erstMaanedsbeskaeftigelse || [],
       yearlyEmployment: cvrData?.Vrvirksomhed?.aarsbeskaeftigelse || [],
       quarterlyEmployment: cvrData?.Vrvirksomhed?.kvartalsbeskaeftigelse || [],
       kapitalforhold: cvrData?.Vrvirksomhed?.kapitalforhold || [],
@@ -145,6 +146,7 @@ export const extractFinancialData = (cvrData: any, parsedFinancialData?: any) =>
     return {
       financialKPIs: null,
       historicalData: [],
+      monthlyEmployment: [],
       yearlyEmployment: [],
       quarterlyEmployment: [],
       kapitalforhold: [],
@@ -209,6 +211,7 @@ export const extractFinancialData = (cvrData: any, parsedFinancialData?: any) =>
   const result = {
     financialKPIs: getFinancialKPIs(),
     historicalData: [],
+    monthlyEmployment: vrvirksomhed.maanedsbeskaeftigelse || vrvirksomhed.erstMaanedsbeskaeftigelse || [],
     yearlyEmployment: vrvirksomhed.aarsbeskaeftigelse || [],
     quarterlyEmployment: vrvirksomhed.kvartalsbeskaeftigelse || [],
     kapitalforhold: vrvirksomhed.kapitalforhold || [],
