@@ -1,6 +1,8 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Button } from '@/components/ui/button';
+import { ChevronDown, ChevronUp } from 'lucide-react';
 import {
   Tooltip,
   TooltipContent,
@@ -146,6 +148,8 @@ const FinancialRowWithTooltip: React.FC<{
 };
 
 const FinancialSpreadsheet: React.FC<FinancialSpreadsheetProps> = ({ historicalData }) => {
+  const [isExpanded, setIsExpanded] = useState(false);
+  
   console.log('[FinancialSpreadsheet] Received data:', historicalData.map(d => ({ 
     year: d.year, 
     periode: d.periode,
@@ -215,13 +219,35 @@ const FinancialSpreadsheet: React.FC<FinancialSpreadsheetProps> = ({ historicalD
     <TooltipProvider delayDuration={300}>
       <Card>
       <CardHeader className="pb-3">
-        <CardTitle className="text-lg">Regnskabsdata</CardTitle>
-        {displayYears.length > 0 && (
-          <p className="text-xs text-muted-foreground mt-1">
-            Viser regnskabsdata for {displayYears.length === 1 ? 'seneste år' : `de seneste ${displayYears.length} år`}: {displayYears.join(', ')}
-            {displayYears.length < 5 && ` • Kun ${displayYears.length} års data tilgængelig`}
-          </p>
-        )}
+        <div className="flex items-start justify-between">
+          <div className="flex-1">
+            <CardTitle className="text-lg">Regnskabsdata</CardTitle>
+            {displayYears.length > 0 && (
+              <p className="text-xs text-muted-foreground mt-1">
+                Viser regnskabsdata for {displayYears.length === 1 ? 'seneste år' : `de seneste ${displayYears.length} år`}: {displayYears.join(', ')}
+                {displayYears.length < 5 && ` • Kun ${displayYears.length} års data tilgængelig`}
+              </p>
+            )}
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setIsExpanded(!isExpanded)}
+            className="flex items-center gap-2 ml-4"
+          >
+            {isExpanded ? (
+              <>
+                <ChevronUp className="h-4 w-4" />
+                <span className="hidden sm:inline">Skjul detaljer</span>
+              </>
+            ) : (
+              <>
+                <ChevronDown className="h-4 w-4" />
+                <span className="hidden sm:inline">Udvid Regnskabet</span>
+              </>
+            )}
+          </Button>
+        </div>
       </CardHeader>
       <CardContent className="overflow-x-auto p-0">
         <div className="border-t">
@@ -265,38 +291,44 @@ const FinancialSpreadsheet: React.FC<FinancialSpreadsheetProps> = ({ historicalD
                   ))}
                 </TableRow>
                 {/* Level 3: Category Item */}
-                <TableRow className="hover:bg-muted/30">
-                  <FinancialRowWithTooltip
-                    label="Bruttotab"
-                    tooltipKey="bruttotab"
-                    className="sticky left-0 bg-background font-medium text-xs py-1.5 w-[200px] pl-4"
-                  />
-                  {periods.map((period, idx) => (
-                    <TableCell key={idx} className={`text-right text-xs py-1.5 w-[120px] text-destructive`}>{period.bruttotab ? formatThousands(period.bruttotab, true) : '-'}</TableCell>
-                  ))}
-                </TableRow>
+                {isExpanded && (
+                  <TableRow className="hover:bg-muted/30">
+                    <FinancialRowWithTooltip
+                      label="Bruttotab"
+                      tooltipKey="bruttotab"
+                      className="sticky left-0 bg-background font-medium text-xs py-1.5 w-[200px] pl-4"
+                    />
+                    {periods.map((period, idx) => (
+                      <TableCell key={idx} className={`text-right text-xs py-1.5 w-[120px] text-destructive`}>{period.bruttotab ? formatThousands(period.bruttotab, true) : '-'}</TableCell>
+                    ))}
+                  </TableRow>
+                )}
                 {/* Level 3: Category Item */}
-                <TableRow className="hover:bg-muted/30">
-                  <FinancialRowWithTooltip
-                    label="Personaleomkostninger"
-                    tooltipKey="personaleomkostninger"
-                    className="sticky left-0 bg-background font-medium text-xs py-1.5 w-[200px] pl-4"
-                  />
-                  {periods.map((period, idx) => (
-                    <TableCell key={idx} className={`text-right text-xs py-1.5 w-[120px] ${getValueColor(period.personaleomkostninger)}`}>{formatThousands(period.personaleomkostninger)}</TableCell>
-                  ))}
-                </TableRow>
+                {isExpanded && (
+                  <TableRow className="hover:bg-muted/30">
+                    <FinancialRowWithTooltip
+                      label="Personaleomkostninger"
+                      tooltipKey="personaleomkostninger"
+                      className="sticky left-0 bg-background font-medium text-xs py-1.5 w-[200px] pl-4"
+                    />
+                    {periods.map((period, idx) => (
+                      <TableCell key={idx} className={`text-right text-xs py-1.5 w-[120px] ${getValueColor(period.personaleomkostninger)}`}>{formatThousands(period.personaleomkostninger)}</TableCell>
+                    ))}
+                  </TableRow>
+                )}
                 {/* Level 4: Detail Item */}
-                <TableRow className="hover:bg-muted/30">
-                  <FinancialRowWithTooltip
-                    label="Afskrivninger"
-                    tooltipKey="afskrivninger"
-                    className="sticky left-0 bg-background font-normal italic text-xs py-1 w-[200px] pl-6 text-muted-foreground"
-                  />
-                  {periods.map((period, idx) => (
-                    <TableCell key={idx} className={`text-right italic text-xs py-1 w-[120px] text-muted-foreground ${getValueColor(period.afskrivninger)}`}>{formatThousands(period.afskrivninger)}</TableCell>
-                  ))}
-                </TableRow>
+                {isExpanded && (
+                  <TableRow className="hover:bg-muted/30">
+                    <FinancialRowWithTooltip
+                      label="Afskrivninger"
+                      tooltipKey="afskrivninger"
+                      className="sticky left-0 bg-background font-normal italic text-xs py-1 w-[200px] pl-6 text-muted-foreground"
+                    />
+                    {periods.map((period, idx) => (
+                      <TableCell key={idx} className={`text-right italic text-xs py-1 w-[120px] text-muted-foreground ${getValueColor(period.afskrivninger)}`}>{formatThousands(period.afskrivninger)}</TableCell>
+                    ))}
+                  </TableRow>
+                )}
                 {/* Level 2: Section Subtotal */}
                 <TableRow className="hover:bg-muted/30">
                   <FinancialRowWithTooltip
@@ -309,27 +341,31 @@ const FinancialSpreadsheet: React.FC<FinancialSpreadsheetProps> = ({ historicalD
                   ))}
                 </TableRow>
                 {/* Level 4: Detail Item */}
-                <TableRow className="hover:bg-muted/30">
-                  <FinancialRowWithTooltip
-                    label="Finansielle indtægter"
-                    tooltipKey="finansielle_indtaegter"
-                    className="sticky left-0 bg-background font-normal italic text-xs py-1 w-[200px] pl-6 text-muted-foreground"
-                  />
-                  {periods.map((period, idx) => (
-                    <TableCell key={idx} className={`text-right italic text-xs py-1 w-[120px] text-muted-foreground ${getValueColor(period.finansielleIndtaegter)}`}>{formatThousands(period.finansielleIndtaegter)}</TableCell>
-                  ))}
-                </TableRow>
+                {isExpanded && (
+                  <TableRow className="hover:bg-muted/30">
+                    <FinancialRowWithTooltip
+                      label="Finansielle indtægter"
+                      tooltipKey="finansielle_indtaegter"
+                      className="sticky left-0 bg-background font-normal italic text-xs py-1 w-[200px] pl-6 text-muted-foreground"
+                    />
+                    {periods.map((period, idx) => (
+                      <TableCell key={idx} className={`text-right italic text-xs py-1 w-[120px] text-muted-foreground ${getValueColor(period.finansielleIndtaegter)}`}>{formatThousands(period.finansielleIndtaegter)}</TableCell>
+                    ))}
+                  </TableRow>
+                )}
                 {/* Level 4: Detail Item */}
-                <TableRow className="hover:bg-muted/30">
-                  <FinancialRowWithTooltip
-                    label="Finansielle omkostninger"
-                    tooltipKey="finansielle_omkostninger"
-                    className="sticky left-0 bg-background font-normal italic text-xs py-1 w-[200px] pl-6 text-muted-foreground"
-                  />
-                  {periods.map((period, idx) => (
-                    <TableCell key={idx} className={`text-right italic text-xs py-1 w-[120px] text-muted-foreground ${getValueColor(period.finansielleOmkostninger)}`}>{formatThousands(period.finansielleOmkostninger)}</TableCell>
-                  ))}
-                </TableRow>
+                {isExpanded && (
+                  <TableRow className="hover:bg-muted/30">
+                    <FinancialRowWithTooltip
+                      label="Finansielle omkostninger"
+                      tooltipKey="finansielle_omkostninger"
+                      className="sticky left-0 bg-background font-normal italic text-xs py-1 w-[200px] pl-6 text-muted-foreground"
+                    />
+                    {periods.map((period, idx) => (
+                      <TableCell key={idx} className={`text-right italic text-xs py-1 w-[120px] text-muted-foreground ${getValueColor(period.finansielleOmkostninger)}`}>{formatThousands(period.finansielleOmkostninger)}</TableCell>
+                    ))}
+                  </TableRow>
+                )}
                 {/* Level 2: Section Subtotal */}
                 <TableRow className="hover:bg-muted/30">
                   <FinancialRowWithTooltip
@@ -353,16 +389,18 @@ const FinancialSpreadsheet: React.FC<FinancialSpreadsheetProps> = ({ historicalD
                   ))}
                 </TableRow>
                 {/* Level 4: Detail Item */}
-                <TableRow className="hover:bg-muted/30">
-                  <FinancialRowWithTooltip
-                    label="Skat af årets resultat"
-                    tooltipKey="skat_af_aarets_resultat"
-                    className="sticky left-0 bg-background font-normal italic text-xs py-1 w-[200px] pl-6 text-muted-foreground"
-                  />
-                  {periods.map((period, idx) => (
-                    <TableCell key={idx} className={`text-right italic text-xs py-1 w-[120px] text-muted-foreground ${getValueColor(period.skatAfAaretsResultat)}`}>{formatThousands(period.skatAfAaretsResultat)}</TableCell>
-                  ))}
-                </TableRow>
+                {isExpanded && (
+                  <TableRow className="hover:bg-muted/30">
+                    <FinancialRowWithTooltip
+                      label="Skat af årets resultat"
+                      tooltipKey="skat_af_aarets_resultat"
+                      className="sticky left-0 bg-background font-normal italic text-xs py-1 w-[200px] pl-6 text-muted-foreground"
+                    />
+                    {periods.map((period, idx) => (
+                      <TableCell key={idx} className={`text-right italic text-xs py-1 w-[120px] text-muted-foreground ${getValueColor(period.skatAfAaretsResultat)}`}>{formatThousands(period.skatAfAaretsResultat)}</TableCell>
+                    ))}
+                  </TableRow>
+                )}
                 {/* Level 1: Primary Total */}
                 <TableRow className="hover:bg-muted/30">
                   <FinancialRowWithTooltip
@@ -407,60 +445,70 @@ const FinancialSpreadsheet: React.FC<FinancialSpreadsheetProps> = ({ historicalD
                   ))}
                 </TableRow>
                 {/* Level 3: Category Item */}
-                <TableRow className="hover:bg-muted/30">
-                  <FinancialRowWithTooltip
-                    label="Immaterielle anlægsaktiver"
-                    tooltipKey="immaterielle_anlaegstiver"
-                    className="sticky left-0 bg-background font-medium text-xs py-1.5 w-[200px] pl-4"
-                  />
-                  {periods.map((period, idx) => (
-                    <TableCell key={idx} className="text-right text-xs py-1.5 w-[120px]">{formatThousands(period.immaterielleAnlaeggsaktiver)}</TableCell>
-                  ))}
-                </TableRow>
+                {isExpanded && (
+                  <TableRow className="hover:bg-muted/30">
+                    <FinancialRowWithTooltip
+                      label="Immaterielle anlægsaktiver"
+                      tooltipKey="immaterielle_anlaegstiver"
+                      className="sticky left-0 bg-background font-medium text-xs py-1.5 w-[200px] pl-4"
+                    />
+                    {periods.map((period, idx) => (
+                      <TableCell key={idx} className="text-right text-xs py-1.5 w-[120px]">{formatThousands(period.immaterielleAnlaeggsaktiver)}</TableCell>
+                    ))}
+                  </TableRow>
+                )}
                 {/* Level 3: Category Item */}
-                <TableRow className="hover:bg-muted/30">
-                  <FinancialRowWithTooltip
-                    label="Materielle anlægsaktiver"
-                    tooltipKey="materielle_anlaegstiver"
-                    className="sticky left-0 bg-background font-medium text-xs py-1.5 w-[200px] pl-4"
-                  />
-                  {periods.map((period, idx) => (
-                    <TableCell key={idx} className="text-right text-xs py-1.5 w-[120px]">{formatThousands(period.materielleAnlaeggsaktiver)}</TableCell>
-                  ))}
-                </TableRow>
+                {isExpanded && (
+                  <TableRow className="hover:bg-muted/30">
+                    <FinancialRowWithTooltip
+                      label="Materielle anlægsaktiver"
+                      tooltipKey="materielle_anlaegstiver"
+                      className="sticky left-0 bg-background font-medium text-xs py-1.5 w-[200px] pl-4"
+                    />
+                    {periods.map((period, idx) => (
+                      <TableCell key={idx} className="text-right text-xs py-1.5 w-[120px]">{formatThousands(period.materielleAnlaeggsaktiver)}</TableCell>
+                    ))}
+                  </TableRow>
+                )}
                 {/* Level 4: Detail Item */}
-                <TableRow className="hover:bg-muted/30">
-                  <FinancialRowWithTooltip
-                    label="Andre anlæg, driftsmateriel og inventar"
-                    tooltipKey="andre_anlaeg"
-                    className="sticky left-0 bg-background font-normal italic text-xs py-1 w-[200px] pl-8 text-muted-foreground"
-                  />
-                  {periods.map((period, idx) => (
-                    <TableCell key={idx} className="text-right italic text-xs py-1 w-[120px] text-muted-foreground">{formatThousands(period.andreAnlaegDriftsmaterielOgInventar)}</TableCell>
-                  ))}
-                </TableRow>
+                {isExpanded && (
+                  <TableRow className="hover:bg-muted/30">
+                    <FinancialRowWithTooltip
+                      label="Andre anlæg, driftsmateriel og inventar"
+                      tooltipKey="andre_anlaeg"
+                      className="sticky left-0 bg-background font-normal italic text-xs py-1 w-[200px] pl-8 text-muted-foreground"
+                    />
+                    {periods.map((period, idx) => (
+                      <TableCell key={idx} className="text-right italic text-xs py-1 w-[120px] text-muted-foreground">{formatThousands(period.andreAnlaegDriftsmaterielOgInventar)}</TableCell>
+                    ))}
+                  </TableRow>
+                )}
                 {/* Level 3: Category Item */}
-                <TableRow className="hover:bg-muted/30">
-                  <FinancialRowWithTooltip
-                    label="Finansielle anlægsaktiver"
-                    tooltipKey="finansielle_anlaegstiver"
-                    className="sticky left-0 bg-background font-medium text-xs py-1.5 w-[200px] pl-4"
-                  />
-                  {periods.map((period, idx) => (
-                    <TableCell key={idx} className="text-right text-xs py-1.5 w-[120px]">{formatThousands(period.finansielleAnlaeggsaktiver)}</TableCell>
-                  ))}
-                </TableRow>
+                {isExpanded && (
+                  <TableRow className="hover:bg-muted/30">
+                    <FinancialRowWithTooltip
+                      label="Finansielle anlægsaktiver"
+                      tooltipKey="finansielle_anlaegstiver"
+                      className="sticky left-0 bg-background font-medium text-xs py-1.5 w-[200px] pl-4"
+                    />
+                    {periods.map((period, idx) => (
+                      <TableCell key={idx} className="text-right text-xs py-1.5 w-[120px]">{formatThousands(period.finansielleAnlaeggsaktiver)}</TableCell>
+                    ))}
+                  </TableRow>
+                )}
                 {/* Level 4: Detail Item */}
-                <TableRow className="hover:bg-muted/30">
-                  <FinancialRowWithTooltip
-                    label="Deposita"
-                    tooltipKey="deposita"
-                    className="sticky left-0 bg-background font-normal italic text-xs py-1 w-[200px] pl-8 text-muted-foreground"
-                  />
-                  {periods.map((period, idx) => (
-                    <TableCell key={idx} className="text-right italic text-xs py-1 w-[120px] text-muted-foreground">{formatThousands(period.deposita)}</TableCell>
-                  ))}
-                </TableRow>
+                {isExpanded && (
+                  <TableRow className="hover:bg-muted/30">
+                    <FinancialRowWithTooltip
+                      label="Deposita"
+                      tooltipKey="deposita"
+                      className="sticky left-0 bg-background font-normal italic text-xs py-1 w-[200px] pl-8 text-muted-foreground"
+                    />
+                    {periods.map((period, idx) => (
+                      <TableCell key={idx} className="text-right italic text-xs py-1 w-[120px] text-muted-foreground">{formatThousands(period.deposita)}</TableCell>
+                    ))}
+                  </TableRow>
+                )}
                 {/* Level 2: Section Subtotal */}
                 <TableRow className="hover:bg-muted/30">
                   <FinancialRowWithTooltip
@@ -473,82 +521,96 @@ const FinancialSpreadsheet: React.FC<FinancialSpreadsheetProps> = ({ historicalD
                   ))}
                 </TableRow>
                 {/* Level 3: Category Item */}
-                <TableRow className="hover:bg-muted/30">
-                  <FinancialRowWithTooltip
-                    label="Varebeholdninger"
-                    tooltipKey="varebeholdninger"
-                    className="sticky left-0 bg-background font-medium text-xs py-1.5 w-[200px] pl-4"
-                  />
-                  {periods.map((period, idx) => (
-                    <TableCell key={idx} className="text-right text-xs py-1.5 w-[120px]">{formatThousands(period.varebeholdninger)}</TableCell>
-                  ))}
-                </TableRow>
+                {isExpanded && (
+                  <TableRow className="hover:bg-muted/30">
+                    <FinancialRowWithTooltip
+                      label="Varebeholdninger"
+                      tooltipKey="varebeholdninger"
+                      className="sticky left-0 bg-background font-medium text-xs py-1.5 w-[200px] pl-4"
+                    />
+                    {periods.map((period, idx) => (
+                      <TableCell key={idx} className="text-right text-xs py-1.5 w-[120px]">{formatThousands(period.varebeholdninger)}</TableCell>
+                    ))}
+                  </TableRow>
+                )}
                 {/* Level 3: Category Item */}
-                <TableRow className="hover:bg-muted/30">
-                  <FinancialRowWithTooltip
-                    label="Tilgodehavender"
-                    tooltipKey="tilgodehavender"
-                    className="sticky left-0 bg-background font-medium text-xs py-1.5 w-[200px] pl-4"
-                  />
-                  {periods.map((period, idx) => (
-                    <TableCell key={idx} className="text-right text-xs py-1.5 w-[120px]">{formatThousands(period.tilgodehavender)}</TableCell>
-                  ))}
-                </TableRow>
+                {isExpanded && (
+                  <TableRow className="hover:bg-muted/30">
+                    <FinancialRowWithTooltip
+                      label="Tilgodehavender"
+                      tooltipKey="tilgodehavender"
+                      className="sticky left-0 bg-background font-medium text-xs py-1.5 w-[200px] pl-4"
+                    />
+                    {periods.map((period, idx) => (
+                      <TableCell key={idx} className="text-right text-xs py-1.5 w-[120px]">{formatThousands(period.tilgodehavender)}</TableCell>
+                    ))}
+                  </TableRow>
+                )}
                 {/* Level 4: Detail Item */}
-                <TableRow className="hover:bg-muted/30">
-                  <FinancialRowWithTooltip
-                    label="Tilgodehavender fra salg"
-                    tooltipKey="tilgodehavender_fra_salg"
-                    className="sticky left-0 bg-background font-normal italic text-xs py-1 w-[200px] pl-8 text-muted-foreground"
-                  />
-                  {periods.map((period, idx) => (
-                    <TableCell key={idx} className="text-right italic text-xs py-1 w-[120px] text-muted-foreground">{formatThousands(period.tilgodehavenderFraSalg)}</TableCell>
-                  ))}
-                </TableRow>
+                {isExpanded && (
+                  <TableRow className="hover:bg-muted/30">
+                    <FinancialRowWithTooltip
+                      label="Tilgodehavender fra salg"
+                      tooltipKey="tilgodehavender_fra_salg"
+                      className="sticky left-0 bg-background font-normal italic text-xs py-1 w-[200px] pl-8 text-muted-foreground"
+                    />
+                    {periods.map((period, idx) => (
+                      <TableCell key={idx} className="text-right italic text-xs py-1 w-[120px] text-muted-foreground">{formatThousands(period.tilgodehavenderFraSalg)}</TableCell>
+                    ))}
+                  </TableRow>
+                )}
                 {/* Level 4: Detail Item */}
-                <TableRow className="hover:bg-muted/30">
-                  <FinancialRowWithTooltip
-                    label="Andre tilgodehavender"
-                    tooltipKey="andre_tilgodehavender"
-                    className="sticky left-0 bg-background font-normal italic text-xs py-1 w-[200px] pl-8 text-muted-foreground"
-                  />
-                  {periods.map((period, idx) => (
-                    <TableCell key={idx} className="text-right italic text-xs py-1 w-[120px] text-muted-foreground">{formatThousands(period.andreTilgodehavender)}</TableCell>
-                  ))}
-                </TableRow>
+                {isExpanded && (
+                  <TableRow className="hover:bg-muted/30">
+                    <FinancialRowWithTooltip
+                      label="Andre tilgodehavender"
+                      tooltipKey="andre_tilgodehavender"
+                      className="sticky left-0 bg-background font-normal italic text-xs py-1 w-[200px] pl-8 text-muted-foreground"
+                    />
+                    {periods.map((period, idx) => (
+                      <TableCell key={idx} className="text-right italic text-xs py-1 w-[120px] text-muted-foreground">{formatThousands(period.andreTilgodehavender)}</TableCell>
+                    ))}
+                  </TableRow>
+                )}
                 {/* Level 4: Detail Item */}
-                <TableRow className="hover:bg-muted/30">
-                  <FinancialRowWithTooltip
-                    label="Krav på indbetaling af virksomhedskapital"
-                    tooltipKey="krav_paa_indbetaling"
-                    className="sticky left-0 bg-background font-normal italic text-xs py-1 w-[200px] pl-8 text-muted-foreground"
-                  />
-                  {periods.map((period, idx) => (
-                    <TableCell key={idx} className="text-right italic text-xs py-1 w-[120px] text-muted-foreground">{formatThousands(period.kravPaaIndbetalingAfVirksomhedskapital)}</TableCell>
-                  ))}
-                </TableRow>
+                {isExpanded && (
+                  <TableRow className="hover:bg-muted/30">
+                    <FinancialRowWithTooltip
+                      label="Krav på indbetaling af virksomhedskapital"
+                      tooltipKey="krav_paa_indbetaling"
+                      className="sticky left-0 bg-background font-normal italic text-xs py-1 w-[200px] pl-8 text-muted-foreground"
+                    />
+                    {periods.map((period, idx) => (
+                      <TableCell key={idx} className="text-right italic text-xs py-1 w-[120px] text-muted-foreground">{formatThousands(period.kravPaaIndbetalingAfVirksomhedskapital)}</TableCell>
+                    ))}
+                  </TableRow>
+                )}
                 {/* Level 3: Category Item */}
-                <TableRow className="hover:bg-muted/30">
-                  <FinancialRowWithTooltip
-                    label="Periodeafgrænsningsposter"
-                    tooltipKey="periodeafgraensningsposter_aktiver"
-                    className="sticky left-0 bg-background font-medium text-xs py-1.5 w-[200px] pl-4"
-                  />
-                  {periods.map((period, idx) => (
-                    <TableCell key={idx} className="text-right text-xs py-1.5 w-[120px]">{formatThousands(period.periodeafgraensningsporterAktiver)}</TableCell>
-                  ))}
-                </TableRow>
+                {isExpanded && (
+                  <TableRow className="hover:bg-muted/30">
+                    <FinancialRowWithTooltip
+                      label="Periodeafgrænsningsposter"
+                      tooltipKey="periodeafgraensningsposter_aktiver"
+                      className="sticky left-0 bg-background font-medium text-xs py-1.5 w-[200px] pl-4"
+                    />
+                    {periods.map((period, idx) => (
+                      <TableCell key={idx} className="text-right text-xs py-1.5 w-[120px]">{formatThousands(period.periodeafgraensningsporterAktiver)}</TableCell>
+                    ))}
+                  </TableRow>
+                )}
                 {/* Level 3: Category Item */}
-                <TableRow className="hover:bg-muted/30">
-                  <FinancialRowWithTooltip
-                    label="Likvide midler"
-                    tooltipKey="likvide_midler"
-                    className="sticky left-0 bg-background font-medium text-xs py-1.5 w-[200px] pl-4"
-                  />
-                  {periods.map((period, idx) => (
-                    <TableCell key={idx} className="text-right text-xs py-1.5 w-[120px]">{formatThousands(period.likviderMidler)}</TableCell>
-                  ))}
-                </TableRow>
+                {isExpanded && (
+                  <TableRow className="hover:bg-muted/30">
+                    <FinancialRowWithTooltip
+                      label="Likvide midler"
+                      tooltipKey="likvide_midler"
+                      className="sticky left-0 bg-background font-medium text-xs py-1.5 w-[200px] pl-4"
+                    />
+                    {periods.map((period, idx) => (
+                      <TableCell key={idx} className="text-right text-xs py-1.5 w-[120px]">{formatThousands(period.likviderMidler)}</TableCell>
+                    ))}
+                  </TableRow>
+                )}
                 {/* Level 2: Section Subtotal */}
                 <TableRow className="hover:bg-muted/30">
                   <FinancialRowWithTooltip
@@ -561,27 +623,31 @@ const FinancialSpreadsheet: React.FC<FinancialSpreadsheetProps> = ({ historicalD
                   ))}
                 </TableRow>
                 {/* Level 3: Category Item */}
-                <TableRow className="hover:bg-muted/30">
-                  <FinancialRowWithTooltip
-                    label="Virksomhedskapital"
-                    tooltipKey="virksomhedskapital"
-                    className="sticky left-0 bg-background font-medium text-xs py-1.5 w-[200px] pl-4"
-                  />
-                  {periods.map((period, idx) => (
-                    <TableCell key={idx} className="text-right text-xs py-1.5 w-[120px]">{formatThousands(period.virksomhedskapital)}</TableCell>
-                  ))}
-                </TableRow>
+                {isExpanded && (
+                  <TableRow className="hover:bg-muted/30">
+                    <FinancialRowWithTooltip
+                      label="Virksomhedskapital"
+                      tooltipKey="virksomhedskapital"
+                      className="sticky left-0 bg-background font-medium text-xs py-1.5 w-[200px] pl-4"
+                    />
+                    {periods.map((period, idx) => (
+                      <TableCell key={idx} className="text-right text-xs py-1.5 w-[120px]">{formatThousands(period.virksomhedskapital)}</TableCell>
+                    ))}
+                  </TableRow>
+                )}
                 {/* Level 3: Category Item */}
-                <TableRow className="hover:bg-muted/30">
-                  <FinancialRowWithTooltip
-                    label="Overført resultat"
-                    tooltipKey="overfoert_resultat"
-                    className="sticky left-0 bg-background font-medium text-xs py-1.5 w-[200px] pl-4"
-                  />
-                  {periods.map((period, idx) => (
-                    <TableCell key={idx} className={`text-right text-xs py-1.5 w-[120px] ${getValueColor(period.overfoertResultat)}`}>{formatThousands(period.overfoertResultat)}</TableCell>
-                  ))}
-                </TableRow>
+                {isExpanded && (
+                  <TableRow className="hover:bg-muted/30">
+                    <FinancialRowWithTooltip
+                      label="Overført resultat"
+                      tooltipKey="overfoert_resultat"
+                      className="sticky left-0 bg-background font-medium text-xs py-1.5 w-[200px] pl-4"
+                    />
+                    {periods.map((period, idx) => (
+                      <TableCell key={idx} className={`text-right text-xs py-1.5 w-[120px] ${getValueColor(period.overfoertResultat)}`}>{formatThousands(period.overfoertResultat)}</TableCell>
+                    ))}
+                  </TableRow>
+                )}
                 {/* Level 2: Section Subtotal */}
                 <TableRow className="hover:bg-muted/30">
                   <FinancialRowWithTooltip
@@ -605,82 +671,96 @@ const FinancialSpreadsheet: React.FC<FinancialSpreadsheetProps> = ({ historicalD
                   ))}
                 </TableRow>
                 {/* Level 3: Category Item */}
-                <TableRow className="hover:bg-muted/30">
-                  <FinancialRowWithTooltip
-                    label="Langfristet gæld"
-                    tooltipKey="langfristet_gaeld"
-                    className="sticky left-0 bg-background font-medium text-xs py-1.5 w-[200px] pl-4"
-                  />
-                  {periods.map((period, idx) => (
-                    <TableCell key={idx} className="text-right text-xs py-1.5 w-[120px]">{formatThousands(period.langfristetGaeld)}</TableCell>
-                  ))}
-                </TableRow>
+                {isExpanded && (
+                  <TableRow className="hover:bg-muted/30">
+                    <FinancialRowWithTooltip
+                      label="Langfristet gæld"
+                      tooltipKey="langfristet_gaeld"
+                      className="sticky left-0 bg-background font-medium text-xs py-1.5 w-[200px] pl-4"
+                    />
+                    {periods.map((period, idx) => (
+                      <TableCell key={idx} className="text-right text-xs py-1.5 w-[120px]">{formatThousands(period.langfristetGaeld)}</TableCell>
+                    ))}
+                  </TableRow>
+                )}
                 {/* Level 3: Category Item */}
-                <TableRow className="hover:bg-muted/30">
-                  <FinancialRowWithTooltip
-                    label="Leverandører af varer"
-                    tooltipKey="leverandoerer"
-                    className="sticky left-0 bg-background font-medium text-xs py-1.5 w-[200px] pl-4"
-                  />
-                  {periods.map((period, idx) => (
-                    <TableCell key={idx} className="text-right text-xs py-1.5 w-[120px]">{formatThousands(period.leverandoererAfVarer)}</TableCell>
-                  ))}
-                </TableRow>
+                {isExpanded && (
+                  <TableRow className="hover:bg-muted/30">
+                    <FinancialRowWithTooltip
+                      label="Leverandører af varer"
+                      tooltipKey="leverandoerer"
+                      className="sticky left-0 bg-background font-medium text-xs py-1.5 w-[200px] pl-4"
+                    />
+                    {periods.map((period, idx) => (
+                      <TableCell key={idx} className="text-right text-xs py-1.5 w-[120px]">{formatThousands(period.leverandoererAfVarer)}</TableCell>
+                    ))}
+                  </TableRow>
+                )}
                 {/* Level 4: Detail Item */}
-                <TableRow className="hover:bg-muted/30">
-                  <FinancialRowWithTooltip
-                    label="Gæld til associerede virksomheder"
-                    tooltipKey="gaeld_til_associerede"
-                    className="sticky left-0 bg-background font-normal italic text-xs py-1 w-[200px] pl-8 text-muted-foreground"
-                  />
-                  {periods.map((period, idx) => (
-                    <TableCell key={idx} className="text-right italic text-xs py-1 w-[120px] text-muted-foreground">{formatThousands(period.gaeldTilAssocieretVirksomhed)}</TableCell>
-                  ))}
-                </TableRow>
+                {isExpanded && (
+                  <TableRow className="hover:bg-muted/30">
+                    <FinancialRowWithTooltip
+                      label="Gæld til associerede virksomheder"
+                      tooltipKey="gaeld_til_associerede"
+                      className="sticky left-0 bg-background font-normal italic text-xs py-1 w-[200px] pl-8 text-muted-foreground"
+                    />
+                    {periods.map((period, idx) => (
+                      <TableCell key={idx} className="text-right italic text-xs py-1 w-[120px] text-muted-foreground">{formatThousands(period.gaeldTilAssocieretVirksomhed)}</TableCell>
+                    ))}
+                  </TableRow>
+                )}
                 {/* Level 3: Category Item */}
-                <TableRow className="hover:bg-muted/30">
-                  <FinancialRowWithTooltip
-                    label="Anden gæld"
-                    tooltipKey="anden_gaeld"
-                    className="sticky left-0 bg-background font-medium text-xs py-1.5 w-[200px] pl-4"
-                  />
-                  {periods.map((period, idx) => (
-                    <TableCell key={idx} className="text-right text-xs py-1.5 w-[120px]">{formatThousands(period.andenGaeld)}</TableCell>
-                  ))}
-                </TableRow>
+                {isExpanded && (
+                  <TableRow className="hover:bg-muted/30">
+                    <FinancialRowWithTooltip
+                      label="Anden gæld"
+                      tooltipKey="anden_gaeld"
+                      className="sticky left-0 bg-background font-medium text-xs py-1.5 w-[200px] pl-4"
+                    />
+                    {periods.map((period, idx) => (
+                      <TableCell key={idx} className="text-right text-xs py-1.5 w-[120px]">{formatThousands(period.andenGaeld)}</TableCell>
+                    ))}
+                  </TableRow>
+                )}
                 {/* Level 4: Detail Item */}
-                <TableRow className="hover:bg-muted/30">
-                  <FinancialRowWithTooltip
-                    label="Skyldige moms og afgifter"
-                    tooltipKey="skyldige_moms"
-                    className="sticky left-0 bg-background font-normal italic text-xs py-1 w-[200px] pl-8 text-muted-foreground"
-                  />
-                  {periods.map((period, idx) => (
-                    <TableCell key={idx} className="text-right italic text-xs py-1 w-[120px] text-muted-foreground">{formatThousands(period.skyldigeMomsOgAfgifter)}</TableCell>
-                  ))}
-                </TableRow>
+                {isExpanded && (
+                  <TableRow className="hover:bg-muted/30">
+                    <FinancialRowWithTooltip
+                      label="Skyldige moms og afgifter"
+                      tooltipKey="skyldige_moms"
+                      className="sticky left-0 bg-background font-normal italic text-xs py-1 w-[200px] pl-8 text-muted-foreground"
+                    />
+                    {periods.map((period, idx) => (
+                      <TableCell key={idx} className="text-right italic text-xs py-1 w-[120px] text-muted-foreground">{formatThousands(period.skyldigeMomsOgAfgifter)}</TableCell>
+                    ))}
+                  </TableRow>
+                )}
                 {/* Level 4: Detail Item */}
-                <TableRow className="hover:bg-muted/30">
-                  <FinancialRowWithTooltip
-                    label="Feriepengeforpligtelser"
-                    tooltipKey="feriepengeforpligtelser"
-                    className="sticky left-0 bg-background font-normal italic text-xs py-1 w-[200px] pl-8 text-muted-foreground"
-                  />
-                  {periods.map((period, idx) => (
-                    <TableCell key={idx} className="text-right italic text-xs py-1 w-[120px] text-muted-foreground">{formatThousands(period.feriepengeforpligtelse)}</TableCell>
-                  ))}
-                </TableRow>
+                {isExpanded && (
+                  <TableRow className="hover:bg-muted/30">
+                    <FinancialRowWithTooltip
+                      label="Feriepengeforpligtelser"
+                      tooltipKey="feriepengeforpligtelser"
+                      className="sticky left-0 bg-background font-normal italic text-xs py-1 w-[200px] pl-8 text-muted-foreground"
+                    />
+                    {periods.map((period, idx) => (
+                      <TableCell key={idx} className="text-right italic text-xs py-1 w-[120px] text-muted-foreground">{formatThousands(period.feriepengeforpligtelse)}</TableCell>
+                    ))}
+                  </TableRow>
+                )}
                 {/* Level 4: Detail Item */}
-                <TableRow className="hover:bg-muted/30">
-                  <FinancialRowWithTooltip
-                    label="Periodeafgrænsningsposter"
-                    tooltipKey="periodeafgraensningsposter_passiver"
-                    className="sticky left-0 bg-background font-normal italic text-xs py-1 w-[200px] pl-8 text-muted-foreground"
-                  />
-                  {periods.map((period, idx) => (
-                    <TableCell key={idx} className="text-right italic text-xs py-1 w-[120px] text-muted-foreground">{formatThousands(period.periodeafgraensningsporterPassiver)}</TableCell>
-                  ))}
-                </TableRow>
+                {isExpanded && (
+                  <TableRow className="hover:bg-muted/30">
+                    <FinancialRowWithTooltip
+                      label="Periodeafgrænsningsposter"
+                      tooltipKey="periodeafgraensningsposter_passiver"
+                      className="sticky left-0 bg-background font-normal italic text-xs py-1 w-[200px] pl-8 text-muted-foreground"
+                    />
+                    {periods.map((period, idx) => (
+                      <TableCell key={idx} className="text-right italic text-xs py-1 w-[120px] text-muted-foreground">{formatThousands(period.periodeafgraensningsporterPassiver)}</TableCell>
+                    ))}
+                  </TableRow>
+                )}
                 {/* Level 1: Primary Total */}
                 <TableRow className="hover:bg-muted/30">
                   <TableCell className="sticky left-0 bg-background font-bold text-sm py-2 w-[200px] bg-muted/20 border-t-2">Årets balance</TableCell>
