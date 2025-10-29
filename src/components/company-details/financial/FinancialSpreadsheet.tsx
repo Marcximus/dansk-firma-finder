@@ -10,11 +10,27 @@ const FinancialSpreadsheet: React.FC<FinancialSpreadsheetProps> = ({ historicalD
   console.log('[FinancialSpreadsheet] Received data:', historicalData.map(d => ({ 
     year: d.year, 
     periode: d.periode,
-    hasData: !!d.nettoomsaetning || !!d.egenkapital
+    hasData: !!d.nettoomsaetning || !!d.egenkapital,
+    bruttofortjeneste: d.bruttofortjeneste,
+    bruttotab: d.bruttotab,
+    personaleomkostninger: d.personaleomkostninger,
+    afskrivninger: d.afskrivninger,
+    finansielleOmkostninger: d.finansielleOmkostninger
   })));
   
   // Data is already sorted by edge function and financialUtils - just take first 5
   const periods = historicalData.slice(0, 5);
+  
+  // Check bruttotab values specifically
+  console.log('[FinancialSpreadsheet] Bruttotab values check:', {
+    hasBruttotab: periods.some(p => p.bruttotab > 0),
+    bruttotabValues: periods.map(p => ({ year: p.year, bruttotab: p.bruttotab }))
+  });
+
+  console.log('[FinancialSpreadsheet] Bruttofortjeneste values check:', {
+    hasBruttofortjeneste: periods.some(p => p.bruttofortjeneste > 0),
+    bruttofortjenesteValues: periods.map(p => ({ year: p.year, bruttofortjeneste: p.bruttofortjeneste }))
+  });
   
   // Extract display years for the quality indicator
   const displayYears = periods.map(p => p.year).filter(y => y);
