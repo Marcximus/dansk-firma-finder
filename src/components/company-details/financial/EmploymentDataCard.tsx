@@ -1,6 +1,7 @@
 
 import React from 'react';
-import { Users } from 'lucide-react';
+import { Users, Info } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface EmploymentDataCardProps {
   monthlyEmployment?: any[];
@@ -25,9 +26,42 @@ const EmploymentDataCard: React.FC<EmploymentDataCardProps> = ({ monthlyEmployme
               <thead>
                 <tr className="border-b">
                   <th className="text-left py-2">Periode</th>
-                  <th className="text-right py-2">Ansatte</th>
-                  <th className="text-right py-2">Fuldtid</th>
-                  <th className="text-right py-2">Deltid</th>
+                  <th className="text-right py-2">
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger className="inline-flex items-center gap-1">
+                          Ansatte <Info className="h-3 w-3" />
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>Det samlede antal ansatte (hovedtal)</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  </th>
+                  <th className="text-right py-2">
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger className="inline-flex items-center gap-1">
+                          Fuldtid <Info className="h-3 w-3" />
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>Årsværk (FTE) - arbejdskapacitet målt i fuldtidsækvivalenter.<br />F.eks. 1.47 = 1 fuldtid + 1 person på 47% tid</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  </th>
+                  <th className="text-right py-2">
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger className="inline-flex items-center gap-1">
+                          Deltid <Info className="h-3 w-3" />
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>Beregnet forskel mellem ansatte og årsværk.<br />Ikke præcis antal deltidsansatte</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  </th>
                 </tr>
               </thead>
               <tbody>
