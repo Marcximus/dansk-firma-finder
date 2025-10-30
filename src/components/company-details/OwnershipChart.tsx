@@ -217,7 +217,8 @@ const OwnershipChart: React.FC<OwnershipChartProps> = ({ owners }) => {
           
           <Tooltip 
             content={<CustomTooltip />}
-            offset={30}
+            offset={100}
+            allowEscapeViewBox={{ x: true, y: true }}
             wrapperStyle={{ pointerEvents: 'none' }}
           />
         </PieChart>
