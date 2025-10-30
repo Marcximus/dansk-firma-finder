@@ -46,30 +46,25 @@ const EmployeeAccordion: React.FC<EmployeeAccordionProps> = ({ cvr, cvrData }) =
       deltid: number;
     }> = [];
 
-    // Priority 1: Try monthly data (maanedsbeskaeftigelse or erstMaanedsbeskaeftigelse)
+    // Priority 1: Try monthly data (already sorted newest first)
     if (financialData?.monthlyEmployment && financialData.monthlyEmployment.length > 0) {
       const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'Maj', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dec'];
       
-      // Filter to only last 2 years, then take last 12 months
-      const recentData = financialData.monthlyEmployment
-        .filter((item: any) => item.aar >= currentYear - 2);
-      
-      recentData
-        .slice(-12) // Take last 12 months (most recent)
+      // Data is already sorted newest first, take first 12 entries
+      financialData.monthlyEmployment
+        .slice(0, 12)
         .forEach((item: any) => {
           const total = item.antalAnsatte || 0;
-          const fuldtid = Math.round((item.antalAarsvaerk || 0) * 100) / 100; // Handle decimal values
+          const fuldtid = Math.round((item.antalAarsvaerk || 0) * 100) / 100;
           const deltid = Math.max(0, total - fuldtid);
           
           if (item.aar) {
             let periode: string;
             
-            // If we have a valid month (1-12), use it
             if (item.maaned !== undefined && item.maaned !== null && 
                 item.maaned >= 1 && item.maaned <= 12) {
               periode = `${monthNames[item.maaned - 1]} ${item.aar}`;
             } else {
-              // Fallback: just show year if month is missing/invalid
               periode = `${item.aar}`;
             }
             
@@ -80,12 +75,8 @@ const EmployeeAccordion: React.FC<EmployeeAccordionProps> = ({ cvr, cvrData }) =
     
     // Priority 2: Fallback to quarterly data if no monthly data
     if (employmentData.length === 0 && financialData?.quarterlyEmployment && financialData.quarterlyEmployment.length > 0) {
-      // Filter to only last 2 years, then take last 12 quarters
-      const recentData = financialData.quarterlyEmployment
-        .filter((item: any) => item.aar >= currentYear - 2);
-      
-      recentData
-        .slice(-12) // Take last 12 quarters (most recent)
+      financialData.quarterlyEmployment
+        .slice(0, 12)
         .forEach((item: any) => {
           const total = item.antalAnsatte || 0;
           const fuldtid = item.antalAarsvaerk || 0;
@@ -94,12 +85,10 @@ const EmployeeAccordion: React.FC<EmployeeAccordionProps> = ({ cvr, cvrData }) =
           if (item.aar) {
             let periode: string;
             
-            // If we have a valid quarter (1-4), use it
             if (item.kvartal !== undefined && item.kvartal !== null && 
                 item.kvartal >= 1 && item.kvartal <= 4) {
               periode = `${item.kvartal}. kvt ${item.aar}`;
             } else {
-              // Fallback: just show year if quarter is missing/invalid
               periode = `${item.aar}`;
             }
             
@@ -108,14 +97,10 @@ const EmployeeAccordion: React.FC<EmployeeAccordionProps> = ({ cvr, cvrData }) =
         });
     }
     
-    // Priority 3: Last resort - use yearly data if neither monthly nor quarterly exists
+    // Priority 3: Last resort - use yearly data
     if (employmentData.length === 0 && financialData?.yearlyEmployment && financialData.yearlyEmployment.length > 0) {
-      // Filter to only last 2 years
-      const recentData = financialData.yearlyEmployment
-        .filter((item: any) => item.aar >= currentYear - 2);
-      
-      recentData
-        .slice(-10) // Take last 10 years (most recent)
+      financialData.yearlyEmployment
+        .slice(0, 10)
         .forEach((item: any) => {
           const total = item.antalAnsatte || 0;
           const fuldtid = item.antalAarsvaerk || 0;
@@ -128,7 +113,7 @@ const EmployeeAccordion: React.FC<EmployeeAccordionProps> = ({ cvr, cvrData }) =
         });
     }
     
-    // Reverse to show oldest → newest (left to right)
+    // Reverse to show oldest → newest (left to right) in chart
     return employmentData.reverse();
   };
 

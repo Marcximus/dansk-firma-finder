@@ -65,7 +65,7 @@ const EmploymentDataCard: React.FC<EmploymentDataCardProps> = ({ monthlyEmployme
                 </tr>
               </thead>
               <tbody>
-                {monthlyEmployment.slice(-12).reverse().map((item: any, index: number) => {
+                {monthlyEmployment.slice(0, 12).map((item: any, index: number) => {
                   const periode = item.maaned && item.aar ? `${monthNames[item.maaned - 1]} ${item.aar}` : item.aar;
                   const ansatte = item.antalAnsatte || 0;
                   const fuldtid = item.antalAarsvaerk || 0;
@@ -93,7 +93,7 @@ const EmploymentDataCard: React.FC<EmploymentDataCardProps> = ({ monthlyEmployme
             Antal ansatte pr år
           </h4>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {yearlyEmployment.slice(-6).reverse().map((employment: any, index: number) => (
+            {yearlyEmployment.slice(0, 6).map((employment: any, index: number) => (
               <div key={index} className="border rounded p-3">
                 <div className="font-semibold text-center text-lg">{employment.aar}</div>
                 <div className="space-y-1 text-sm mt-2">
@@ -121,7 +121,7 @@ const EmploymentDataCard: React.FC<EmploymentDataCardProps> = ({ monthlyEmployme
             Antal ansatte pr kvartal
           </h4>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            {quarterlyEmployment.slice(-8).reverse().map((employment: any, index: number) => (
+            {quarterlyEmployment.slice(0, 8).map((employment: any, index: number) => (
               <div key={index} className="border rounded p-3 text-center">
                 <div className="font-medium">Q{employment.kvartal} {employment.aar}</div>
                 <div className="text-sm text-muted-foreground space-y-1 mt-2">

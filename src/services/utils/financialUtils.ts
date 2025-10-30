@@ -236,15 +236,19 @@ export const extractFinancialData = (cvrData: any, parsedFinancialData?: any) =>
         const regular = getEmploymentData(cvrData, 'maanedsbeskaeftigelse');
         const substitute = getEmploymentData(cvrData, 'erstMaanedsbeskaeftigelse');
         
-        // If both have data, use whichever has the most recent year
-        if (regular.length > 0 && substitute.length > 0) {
-          const regularLatest = Math.max(...regular.map(d => d.aar || 0));
-          const substituteLatest = Math.max(...substitute.map(d => d.aar || 0));
-          return substituteLatest > regularLatest ? substitute : regular;
-        }
+        // Merge both sources and sort by date
+        const combined = [...regular, ...substitute];
         
-        // Otherwise use whichever has data
-        return regular.length > 0 ? regular : substitute;
+        if (combined.length === 0) return [];
+        
+        // Sort by year and month (newest first)
+        return combined.sort((a, b) => {
+          if (a.aar !== b.aar) return b.aar - a.aar; // Newest year first
+          if (a.maaned !== undefined && b.maaned !== undefined) {
+            return b.maaned - a.maaned; // Newest month first
+          }
+          return 0;
+        });
       })(),
       yearlyEmployment: getEmploymentData(cvrData, 'aarsbeskaeftigelse'),
       quarterlyEmployment: getEmploymentData(cvrData, 'kvartalsbeskaeftigelse'),
@@ -329,7 +333,20 @@ export const extractFinancialData = (cvrData: any, parsedFinancialData?: any) =>
     monthlyEmployment: (() => {
       const regular = getEmploymentData(cvrData, 'maanedsbeskaeftigelse');
       const substitute = getEmploymentData(cvrData, 'erstMaanedsbeskaeftigelse');
-      return regular.length > 0 ? regular : substitute;
+      
+      // Merge both sources and sort by date
+      const combined = [...regular, ...substitute];
+      
+      if (combined.length === 0) return [];
+      
+      // Sort by year and month (newest first)
+      return combined.sort((a, b) => {
+        if (a.aar !== b.aar) return b.aar - a.aar; // Newest year first
+        if (a.maaned !== undefined && b.maaned !== undefined) {
+          return b.maaned - a.maaned; // Newest month first
+        }
+        return 0;
+      });
     })(),
     yearlyEmployment: getEmploymentData(cvrData, 'aarsbeskaeftigelse'),
     quarterlyEmployment: getEmploymentData(cvrData, 'kvartalsbeskaeftigelse'),
