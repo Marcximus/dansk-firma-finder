@@ -151,7 +151,7 @@ const EmployeeAccordion: React.FC<EmployeeAccordionProps> = ({ cvr, cvrData }) =
                     <Line 
                       type="monotone"
                       dataKey="total" 
-                      stroke="hsl(var(--primary))" 
+                      stroke="hsl(var(--chart-1))" 
                       strokeWidth={2}
                       name="Total"
                       dot={{ r: 3 }}
