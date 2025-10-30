@@ -182,6 +182,13 @@ const EmployeeAccordion: React.FC<EmployeeAccordionProps> = ({ cvr, cvrData }) =
             </Card>
           )}
 
+          {/* Employment Data Cards */}
+          <EmploymentDataCard 
+            monthlyEmployment={financialData?.monthlyEmployment || []}
+            yearlyEmployment={financialData?.yearlyEmployment || []}
+            quarterlyEmployment={financialData?.quarterlyEmployment || []}
+          />
+
           {/* Salary Information */}
           {financialData?.historicalData && financialData.historicalData.length > 0 && (
             <SalaryInformationCard 
@@ -189,13 +196,6 @@ const EmployeeAccordion: React.FC<EmployeeAccordionProps> = ({ cvr, cvrData }) =
               quarterlyEmployment={financialData.quarterlyEmployment || []}
             />
           )}
-
-          {/* Employment Data Cards */}
-          <EmploymentDataCard 
-            monthlyEmployment={financialData?.monthlyEmployment || []}
-            yearlyEmployment={financialData?.yearlyEmployment || []}
-            quarterlyEmployment={financialData?.quarterlyEmployment || []}
-          />
         </div>
       </AccordionContent>
     </AccordionItem>
