@@ -26,7 +26,11 @@ const SalaryInformationCard: React.FC<SalaryInformationCardProps> = ({ historica
   // Get the most recent period with personnel cost data
   const latestData = historicalData.find(d => d.personaleomkostninger && d.personaleomkostninger > 0);
   
+  console.log('[SalaryInformationCard] historicalData:', historicalData);
+  console.log('[SalaryInformationCard] latestData:', latestData);
+  
   if (!latestData || !latestData.personaleomkostninger) {
+    console.log('[SalaryInformationCard] No data - returning null');
     return null;
   }
 
@@ -34,6 +38,13 @@ const SalaryInformationCard: React.FC<SalaryInformationCardProps> = ({ historica
   const antalAnsatte = latestData.antalAnsatte || 0;
   const antalAarsvaerk = latestData.antalAarsvaerk || 0;
   const nettoomsaetning = latestData.nettoomsaetning || 0;
+  
+  console.log('[SalaryInformationCard] Values:', {
+    personaleomkostninger,
+    antalAnsatte,
+    antalAarsvaerk,
+    nettoomsaetning
+  });
 
   // Calculate salary metrics
   const metrics = useMemo((): SalaryMetrics => {
