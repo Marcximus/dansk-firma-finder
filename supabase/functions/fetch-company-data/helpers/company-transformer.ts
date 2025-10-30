@@ -47,8 +47,9 @@ export const transformCompanyData = (hit: any, determineLegalForm: (vrvirksomhed
   // Get current status using enhanced logic
   const status = determineStatus(vrvirksomhed);
   
-  // Get employee count from latest employment data
-  const latestEmployment = vrvirksomhed.aarsbeskaeftigelse?.[0];
+  // Get employee count from current employment data (where gyldigTil is null) or the most recent
+  const currentEmployment = vrvirksomhed.aarsbeskaeftigelse?.find((emp: any) => emp.periode?.gyldigTil === null);
+  const latestEmployment = currentEmployment || vrvirksomhed.aarsbeskaeftigelse?.[vrvirksomhed.aarsbeskaeftigelse.length - 1];
   const employeeCount = latestEmployment?.antalAnsatte || latestEmployment?.antalAarsvaerk || 0;
   
   // Build address string
