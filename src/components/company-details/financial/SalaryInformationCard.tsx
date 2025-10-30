@@ -45,12 +45,12 @@ const SalaryInformationCard: React.FC<SalaryInformationCardProps> = ({ historica
   const metrics = useMemo((): SalaryMetrics => {
     const partTimeCount = Math.max(0, antalAnsatte - antalAarsvaerk);
     
-    // Average employee salary range (70-80% of personnel costs)
+    // Average employee salary range (70-90% of personnel costs)
     const avgEmployeeSalaryLow = antalAnsatte > 0 
       ? (personaleomkostninger * 0.70) / antalAnsatte / 12
       : 0;
     const avgEmployeeSalaryHigh = antalAnsatte > 0 
-      ? (personaleomkostninger * 0.80) / antalAnsatte / 12
+      ? (personaleomkostninger * 0.90) / antalAnsatte / 12
       : 0;
 
     // Part-time employee average range (5-10% of personnel costs)
@@ -65,9 +65,9 @@ const SalaryInformationCard: React.FC<SalaryInformationCardProps> = ({ historica
     const estimatedCEOSalaryLow = (personaleomkostninger * 0.15) / 12;
     const estimatedCEOSalaryHigh = (personaleomkostninger * 0.30) / 12;
 
-    // Productivity metrics (use mid-range 75% for calculations)
+    // Productivity metrics (use mid-range 80% for calculations)
     const avgEmployeeSalaryMid = antalAnsatte > 0 
-      ? (personaleomkostninger * 0.75) / antalAnsatte / 12
+      ? (personaleomkostninger * 0.80) / antalAnsatte / 12
       : 0;
     
     const revenuePerEmployee = antalAnsatte > 0 && nettoomsaetning > 0
@@ -197,7 +197,7 @@ const SalaryInformationCard: React.FC<SalaryInformationCardProps> = ({ historica
                   <div>
                     <p className="font-medium">Estimerede lønniveauer:</p>
                     <ul className="text-muted-foreground space-y-0.5 ml-2">
-                      <li>• Medarbejder: 70-80% af personaleomkostninger</li>
+                      <li>• Medarbejder: 70-90% af personaleomkostninger</li>
                       <li>• Deltid: 5-10% af personaleomkostninger</li>
                       <li>• CEO: 15-30% af personaleomkostninger</li>
                     </ul>
@@ -256,7 +256,7 @@ const SalaryInformationCard: React.FC<SalaryInformationCardProps> = ({ historica
                 </TooltipTrigger>
                 <TooltipContent side="top" className="max-w-xs">
                   <p className="text-xs">
-                    Estimeret ud fra 70-80% af personaleomkostninger fordelt på alle medarbejdere.
+                    Estimeret ud fra 70-90% af personaleomkostninger fordelt på alle medarbejdere.
                     Inkluderer løn, pension og sociale bidrag.
                   </p>
                 </TooltipContent>
