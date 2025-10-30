@@ -11,8 +11,10 @@ interface SalaryInformationCardProps {
 }
 
 interface SalaryMetrics {
-  avgEmployeeSalary: number;
-  avgPartTimeSalary: number;
+  avgEmployeeSalaryLow: number;
+  avgEmployeeSalaryHigh: number;
+  avgPartTimeSalaryLow: number;
+  avgPartTimeSalaryHigh: number;
   estimatedCEOSalaryLow: number;
   estimatedCEOSalaryHigh: number;
   revenuePerEmployee: number;
@@ -43,21 +45,31 @@ const SalaryInformationCard: React.FC<SalaryInformationCardProps> = ({ historica
   const metrics = useMemo((): SalaryMetrics => {
     const partTimeCount = Math.max(0, antalAnsatte - antalAarsvaerk);
     
-    // Average employee salary (75% of personnel costs = direct wages)
-    const avgEmployeeSalary = antalAnsatte > 0 
-      ? (personaleomkostninger * 0.75) / antalAnsatte / 12
+    // Average employee salary range (70-80% of personnel costs)
+    const avgEmployeeSalaryLow = antalAnsatte > 0 
+      ? (personaleomkostninger * 0.70) / antalAnsatte / 12
+      : 0;
+    const avgEmployeeSalaryHigh = antalAnsatte > 0 
+      ? (personaleomkostninger * 0.80) / antalAnsatte / 12
       : 0;
 
-    // Part-time employee average (7.5% of personnel costs)
-    const avgPartTimeSalary = partTimeCount > 0
-      ? (personaleomkostninger * 0.075) / partTimeCount / 12
+    // Part-time employee average range (5-10% of personnel costs)
+    const avgPartTimeSalaryLow = partTimeCount > 0
+      ? (personaleomkostninger * 0.05) / partTimeCount / 12
+      : 0;
+    const avgPartTimeSalaryHigh = partTimeCount > 0
+      ? (personaleomkostninger * 0.10) / partTimeCount / 12
       : 0;
 
     // CEO salary estimates (15-30% of personnel costs)
     const estimatedCEOSalaryLow = (personaleomkostninger * 0.15) / 12;
     const estimatedCEOSalaryHigh = (personaleomkostninger * 0.30) / 12;
 
-    // Productivity metrics
+    // Productivity metrics (use mid-range 75% for calculations)
+    const avgEmployeeSalaryMid = antalAnsatte > 0 
+      ? (personaleomkostninger * 0.75) / antalAnsatte / 12
+      : 0;
+    
     const revenuePerEmployee = antalAnsatte > 0 && nettoomsaetning > 0
       ? nettoomsaetning / antalAnsatte
       : 0;
@@ -66,13 +78,15 @@ const SalaryInformationCard: React.FC<SalaryInformationCardProps> = ({ historica
       ? (personaleomkostninger / nettoomsaetning) * 100
       : 0;
 
-    // CEO ratio
-    const ceoRatioLow = avgEmployeeSalary > 0 ? estimatedCEOSalaryLow / avgEmployeeSalary : 0;
-    const ceoRatioHigh = avgEmployeeSalary > 0 ? estimatedCEOSalaryHigh / avgEmployeeSalary : 0;
+    // CEO ratio (using mid-range employee salary)
+    const ceoRatioLow = avgEmployeeSalaryMid > 0 ? estimatedCEOSalaryLow / avgEmployeeSalaryMid : 0;
+    const ceoRatioHigh = avgEmployeeSalaryMid > 0 ? estimatedCEOSalaryHigh / avgEmployeeSalaryMid : 0;
 
     return {
-      avgEmployeeSalary,
-      avgPartTimeSalary,
+      avgEmployeeSalaryLow,
+      avgEmployeeSalaryHigh,
+      avgPartTimeSalaryLow,
+      avgPartTimeSalaryHigh,
       estimatedCEOSalaryLow,
       estimatedCEOSalaryHigh,
       revenuePerEmployee,
@@ -200,12 +214,12 @@ const SalaryInformationCard: React.FC<SalaryInformationCardProps> = ({ historica
                       <Users className="h-4 w-4" />
                       Gennemsnitlig medarbejderløn
                     </div>
-                    <div className="text-2xl font-bold">
-                      {formatCurrency(metrics.avgEmployeeSalary)}
+                    <div className="text-xl font-bold">
+                      {formatCurrency(metrics.avgEmployeeSalaryLow)} - {formatCurrency(metrics.avgEmployeeSalaryHigh)}
                       <span className="text-sm font-normal text-muted-foreground">/md</span>
                     </div>
                     <div className="text-xs text-muted-foreground">
-                      {formatCurrency(metrics.avgEmployeeSalary * 12)} årligt
+                      {formatCurrency(metrics.avgEmployeeSalaryLow * 12)} - {formatCurrency(metrics.avgEmployeeSalaryHigh * 12)} årligt
                     </div>
                     <div className="text-xs text-muted-foreground">
                       {antalAnsatte} medarbejder{antalAnsatte !== 1 ? 'e' : ''}
@@ -214,7 +228,7 @@ const SalaryInformationCard: React.FC<SalaryInformationCardProps> = ({ historica
                 </TooltipTrigger>
                 <TooltipContent side="top" className="max-w-xs">
                   <p className="text-xs">
-                    Estimeret ud fra 75% af personaleomkostninger fordelt på alle medarbejdere.
+                    Estimeret ud fra 70-80% af personaleomkostninger fordelt på alle medarbejdere.
                     Inkluderer løn, pension og sociale bidrag.
                   </p>
                 </TooltipContent>
@@ -228,14 +242,14 @@ const SalaryInformationCard: React.FC<SalaryInformationCardProps> = ({ historica
                   <div className="space-y-2 p-4 rounded-lg border bg-card hover:bg-accent/5 transition-colors cursor-help">
                     <div className="flex items-center gap-2 text-sm font-medium">
                       <Users className="h-4 w-4" />
-                      Deltidsmedarbejderløn
+                      Gennemsnitlig deltidsmedarbejderløn
                     </div>
-                    <div className="text-2xl font-bold">
-                      {formatCurrency(metrics.avgPartTimeSalary)}
+                    <div className="text-xl font-bold">
+                      {formatCurrency(metrics.avgPartTimeSalaryLow)} - {formatCurrency(metrics.avgPartTimeSalaryHigh)}
                       <span className="text-sm font-normal text-muted-foreground">/md</span>
                     </div>
                     <div className="text-xs text-muted-foreground">
-                      {formatCurrency(metrics.avgPartTimeSalary * 12)} årligt
+                      {formatCurrency(metrics.avgPartTimeSalaryLow * 12)} - {formatCurrency(metrics.avgPartTimeSalaryHigh * 12)} årligt
                     </div>
                     <div className="text-xs text-muted-foreground">
                       ~{metrics.partTimeCount.toFixed(0)} deltidsansatte
@@ -244,7 +258,7 @@ const SalaryInformationCard: React.FC<SalaryInformationCardProps> = ({ historica
                 </TooltipTrigger>
                 <TooltipContent side="top" className="max-w-xs">
                   <p className="text-xs">
-                    Estimeret ud fra 7,5% af personaleomkostninger fordelt på deltidsansatte.
+                    Estimeret ud fra 5-10% af personaleomkostninger fordelt på deltidsansatte.
                     Antal deltidsansatte = Total ansatte - Årsværk.
                   </p>
                 </TooltipContent>
@@ -423,9 +437,10 @@ const SalaryInformationCard: React.FC<SalaryInformationCardProps> = ({ historica
               <div className="space-y-1">
                 <p><strong>Estimerede lønniveauer:</strong></p>
                 <ul className="list-disc list-inside ml-2 space-y-0.5">
-                  <li>Baseret på typiske fordelinger i danske virksomheder</li>
+                  <li>Medarbejderløn: 70-80% af personaleomkostninger</li>
+                  <li>Deltidsløn: 5-10% af personaleomkostninger (hvis deltidsansatte)</li>
+                  <li>CEO-løn: 15-30% af personaleomkostninger (branchegennemsnit)</li>
                   <li>Faktiske individuelle lønninger kan variere betydeligt</li>
-                  <li>CEO-løn estimeret fra branchegennemsnit (15-30% af personaleomkostninger)</li>
                 </ul>
               </div>
               <p className="italic">Disse tal er estimater og bør behandles som vejledende.</p>
