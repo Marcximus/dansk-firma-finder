@@ -117,7 +117,27 @@ export const transformCompanyData = (hit: any, determineLegalForm: (vrvirksomhed
   let founders: string | null = null;
   if (vrvirksomhed.deltagerRelation) {
     const founderRelations = vrvirksomhed.deltagerRelation.filter((relation: any) => {
-      return relation._medlemsData?.attributter?.some((attr: any) => attr.type === 'STIFTER');
+      // Check enriched _medlemsData first
+      if (relation._medlemsData?.attributter?.some((attr: any) => attr.type === 'STIFTER')) {
+        return true;
+      }
+      
+      // Fallback: Check original organisationer structure
+      if (relation.organisationer) {
+        return relation.organisationer.some((org: any) => {
+          if (org.medlemsData) {
+            return org.medlemsData.some((medlem: any) => {
+              return medlem.attributter?.some((attr: any) => 
+                attr.type === 'FUNKTION' && 
+                attr.vaerdier?.some((v: any) => v.vaerdi === 'STIFTERE')
+              );
+            });
+          }
+          return false;
+        });
+      }
+      
+      return false;
     });
     
     if (founderRelations.length > 0) {
