@@ -1,7 +1,6 @@
 import React, { useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Wallet, TrendingUp, TrendingDown, Users, Award, Calculator, Info } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, Legend, ResponsiveContainer } from 'recharts';
 
@@ -174,10 +173,32 @@ const SalaryInformationCard: React.FC<SalaryInformationCardProps> = ({ historica
     <TooltipProvider>
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-lg">
-            <Wallet className="h-5 w-5" />
-            Lønforhold og Produktivitet
-          </CardTitle>
+          <div className="flex items-start justify-between gap-4">
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <Wallet className="h-5 w-5" />
+              Lønforhold og Produktivitet
+            </CardTitle>
+            
+            {/* Compact Info Section */}
+            <div className="flex-shrink-0 max-w-md">
+              <div className="text-xs space-y-2 p-3 rounded-lg border bg-muted/30">
+                <div className="flex items-start gap-2">
+                  <Info className="h-3.5 w-3.5 text-amber-600 dark:text-amber-400 mt-0.5 flex-shrink-0" />
+                  <div className="space-y-1.5">
+                    <p className="font-semibold">Beregningsmetode:</p>
+                    <ul className="space-y-0.5 text-muted-foreground">
+                      <li>• Medarbejderløn: 70-80% af personaleomkostninger</li>
+                      <li>• Deltidsløn: 5-10% af personaleomkostninger</li>
+                      <li>• CEO-løn: 15-30% af personaleomkostninger</li>
+                    </ul>
+                    <p className="italic text-muted-foreground mt-1">
+                      Estimater baseret på branchegennemsnit
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </CardHeader>
         <CardContent className="space-y-6">
           {/* Total Personnel Costs */}
@@ -448,33 +469,6 @@ const SalaryInformationCard: React.FC<SalaryInformationCardProps> = ({ historica
               </ResponsiveContainer>
             </div>
           )}
-
-          {/* Disclaimer */}
-          <Alert className="border-amber-200 bg-amber-50 dark:bg-amber-950/20">
-            <Info className="h-4 w-4 text-amber-600 dark:text-amber-400" />
-            <AlertDescription className="text-xs text-foreground/80 space-y-2">
-              <p className="font-semibold">Vigtig information om beregninger:</p>
-              <div className="space-y-1">
-                <p><strong>Personaleomkostninger inkluderer:</strong></p>
-                <ul className="list-disc list-inside ml-2 space-y-0.5">
-                  <li>Løn og honorarer</li>
-                  <li>Pensionsbidrag (typisk 10-15%)</li>
-                  <li>Sociale omkostninger (AER, barsel, sygdom)</li>
-                  <li>Andre personaleydelser</li>
-                </ul>
-              </div>
-              <div className="space-y-1">
-                <p><strong>Estimerede lønniveauer:</strong></p>
-                <ul className="list-disc list-inside ml-2 space-y-0.5">
-                  <li>Medarbejderløn: 70-80% af personaleomkostninger</li>
-                  <li>Deltidsløn: 5-10% af personaleomkostninger (hvis deltidsansatte)</li>
-                  <li>CEO-løn: 15-30% af personaleomkostninger (branchegennemsnit)</li>
-                  <li>Faktiske individuelle lønninger kan variere betydeligt</li>
-                </ul>
-              </div>
-              <p className="italic">Disse tal er estimater og bør behandles som vejledende.</p>
-            </AlertDescription>
-          </Alert>
         </CardContent>
       </Card>
     </TooltipProvider>
