@@ -53,6 +53,12 @@ const getEmploymentData = (cvrData: any, fieldName: string) => {
   // Try company level first
   if (cvrData?.Vrvirksomhed?.[fieldName]?.length > 0) {
     const companyData = cvrData.Vrvirksomhed[fieldName];
+    console.log(`[EMPLOYMENT DATA] ${fieldName}:`, {
+      count: companyData.length,
+      years: companyData.map((d: any) => d.aar).sort((a: number, b: number) => a - b),
+      first: companyData[0],
+      last: companyData[companyData.length - 1]
+    });
     // Sort company-level data before returning
     return sortEmploymentData([...companyData]);
   }

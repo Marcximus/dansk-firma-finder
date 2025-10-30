@@ -38,6 +38,7 @@ const EmployeeAccordion: React.FC<EmployeeAccordionProps> = ({ cvr, cvrData }) =
 
   // Process employment data for chart - prefer monthly over quarterly
   const processEmploymentData = () => {
+    const currentYear = new Date().getFullYear();
     const employmentData: Array<{
       periode: string;
       total: number;
@@ -49,7 +50,11 @@ const EmployeeAccordion: React.FC<EmployeeAccordionProps> = ({ cvr, cvrData }) =
     if (financialData?.monthlyEmployment && financialData.monthlyEmployment.length > 0) {
       const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'Maj', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dec'];
       
-      financialData.monthlyEmployment
+      // Filter to only last 2 years, then take last 12 months
+      const recentData = financialData.monthlyEmployment
+        .filter((item: any) => item.aar >= currentYear - 2);
+      
+      recentData
         .slice(-12) // Take last 12 months (most recent)
         .forEach((item: any) => {
           const total = item.antalAnsatte || 0;
@@ -75,7 +80,11 @@ const EmployeeAccordion: React.FC<EmployeeAccordionProps> = ({ cvr, cvrData }) =
     
     // Priority 2: Fallback to quarterly data if no monthly data
     if (employmentData.length === 0 && financialData?.quarterlyEmployment && financialData.quarterlyEmployment.length > 0) {
-      financialData.quarterlyEmployment
+      // Filter to only last 2 years, then take last 12 quarters
+      const recentData = financialData.quarterlyEmployment
+        .filter((item: any) => item.aar >= currentYear - 2);
+      
+      recentData
         .slice(-12) // Take last 12 quarters (most recent)
         .forEach((item: any) => {
           const total = item.antalAnsatte || 0;
@@ -101,7 +110,11 @@ const EmployeeAccordion: React.FC<EmployeeAccordionProps> = ({ cvr, cvrData }) =
     
     // Priority 3: Last resort - use yearly data if neither monthly nor quarterly exists
     if (employmentData.length === 0 && financialData?.yearlyEmployment && financialData.yearlyEmployment.length > 0) {
-      financialData.yearlyEmployment
+      // Filter to only last 2 years
+      const recentData = financialData.yearlyEmployment
+        .filter((item: any) => item.aar >= currentYear - 2);
+      
+      recentData
         .slice(-10) // Take last 10 years (most recent)
         .forEach((item: any) => {
           const total = item.antalAnsatte || 0;
@@ -120,6 +133,16 @@ const EmployeeAccordion: React.FC<EmployeeAccordionProps> = ({ cvr, cvrData }) =
   };
 
   const chartData = processEmploymentData();
+  
+  // Calculate latest year for data availability message
+  const latestYear = chartData.length > 0 
+    ? Math.max(...chartData.map(d => {
+        const match = d.periode.match(/\d{4}/);
+        return match ? parseInt(match[0]) : 0;
+      }))
+    : 0;
+  const currentYear = new Date().getFullYear();
+  const isDataOld = latestYear > 0 && latestYear < currentYear - 1;
 
   const formatEmployees = (value: number) => value.toString();
 
@@ -146,7 +169,12 @@ const EmployeeAccordion: React.FC<EmployeeAccordionProps> = ({ cvr, cvrData }) =
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Users className="h-4 w-4" />
-                  Medarbejderudvikling (seneste 12 måneder)
+                  Medarbejderudvikling (seneste 2 år)
+                  {isDataOld && (
+                    <span className="text-xs text-muted-foreground font-normal ml-1">
+                      - Seneste tilgængelige data: {latestYear}
+                    </span>
+                  )}
                 </CardTitle>
               </CardHeader>
               <CardContent>
