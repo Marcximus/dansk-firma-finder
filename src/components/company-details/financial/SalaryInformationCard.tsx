@@ -7,6 +7,7 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsToolti
 
 interface SalaryInformationCardProps {
   historicalData: any[];
+  quarterlyEmployment: any[];
 }
 
 interface SalaryMetrics {
@@ -22,7 +23,7 @@ interface SalaryMetrics {
   hasRevenue: boolean;
 }
 
-const SalaryInformationCard: React.FC<SalaryInformationCardProps> = ({ historicalData }) => {
+const SalaryInformationCard: React.FC<SalaryInformationCardProps> = ({ historicalData, quarterlyEmployment }) => {
   // Get the most recent period with personnel cost data
   const latestData = historicalData.find(d => d.personaleomkostninger && d.personaleomkostninger > 0);
   
@@ -30,9 +31,12 @@ const SalaryInformationCard: React.FC<SalaryInformationCardProps> = ({ historica
     return null;
   }
 
+  // Get the most recent quarterly employment data
+  const latestQuarterly = quarterlyEmployment?.[0]; // Already sorted newest first
+  const antalAnsatte = latestQuarterly?.antalAnsatte || 0;
+  const antalAarsvaerk = latestQuarterly?.antalAarsvaerk || 0;
+  
   const personaleomkostninger = latestData.personaleomkostninger;
-  const antalAnsatte = latestData.antalAnsatte || 0;
-  const antalAarsvaerk = latestData.antalAarsvaerk || 0;
   const nettoomsaetning = latestData.nettoomsaetning || 0;
 
   // Calculate salary metrics
@@ -82,11 +86,38 @@ const SalaryInformationCard: React.FC<SalaryInformationCardProps> = ({ historica
 
   // Process historical data for trend chart
   const trendData = useMemo(() => {
+    // Create year → employment map from quarterly data
+    const employmentByYear = new Map<number, { antalAnsatte: number; antalAarsvaerk: number }[]>();
+    quarterlyEmployment.forEach(q => {
+      const year = q.aar;
+      if (!employmentByYear.has(year)) {
+        employmentByYear.set(year, []);
+      }
+      employmentByYear.get(year)!.push({
+        antalAnsatte: q.antalAnsatte || 0,
+        antalAarsvaerk: q.antalAarsvaerk || 0
+      });
+    });
+
+    // Calculate yearly averages
+    const yearlyAvgEmployment = new Map<number, { antalAnsatte: number; antalAarsvaerk: number }>();
+    employmentByYear.forEach((quarters, year) => {
+      const avgAnsatte = quarters.reduce((sum, q) => sum + q.antalAnsatte, 0) / quarters.length;
+      const avgAarsvaerk = quarters.reduce((sum, q) => sum + q.antalAarsvaerk, 0) / quarters.length;
+      yearlyAvgEmployment.set(year, {
+        antalAnsatte: Math.round(avgAnsatte),
+        antalAarsvaerk: avgAarsvaerk
+      });
+    });
+
     return historicalData
-      .filter(d => d.personaleomkostninger > 0 && d.antalAnsatte > 0)
+      .filter(d => d.personaleomkostninger > 0)
       .slice(0, 5) // Last 5 years
       .map(d => {
-        const avgSalary = ((d.personaleomkostninger * 0.75) / d.antalAnsatte / 12);
+        const employment = yearlyAvgEmployment.get(d.year) || { antalAnsatte: 0, antalAarsvaerk: 0 };
+        if (employment.antalAnsatte === 0) return null;
+        
+        const avgSalary = ((d.personaleomkostninger * 0.75) / employment.antalAnsatte / 12);
         const ceoSalaryMid = ((d.personaleomkostninger * 0.225) / 12);
         const ratio = avgSalary > 0 ? ceoSalaryMid / avgSalary : 0;
         
@@ -96,8 +127,9 @@ const SalaryInformationCard: React.FC<SalaryInformationCardProps> = ({ historica
           ceoRatio: parseFloat(ratio.toFixed(1))
         };
       })
+      .filter((d): d is NonNullable<typeof d> => d !== null)
       .reverse(); // Oldest to newest
-  }, [historicalData]);
+  }, [historicalData, quarterlyEmployment]);
 
   // Calculate year-over-year change
   const yoyChange = useMemo(() => {
