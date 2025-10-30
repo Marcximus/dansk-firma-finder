@@ -124,42 +124,36 @@ const FinancialChartsSection: React.FC<FinancialChartsSectionProps> = ({ histori
                 activeDot={{ r: 7 }}
               />
               
-              {/* Negative area for Årets resultat - red fill below zero */}
+              {/* Negative area for Årets resultat - red fill below zero (NO STROKE) */}
               <Area
                 type="monotone"
                 dataKey="aaretsResultatNegative"
-                stroke="hsl(217, 91%, 60%)"
-                strokeWidth={3}
+                stroke="none"
+                strokeWidth={0}
                 fill="hsl(0, 84%, 60%)"
                 fillOpacity={0.15}
                 connectNulls={false}
-                dot={(props) => {
-                  const { cx, cy, payload } = props;
-                  if (payload.aaretsResultat < 0) {
-                    return <circle cx={cx} cy={cy} r={5} fill="hsl(0, 84%, 60%)" strokeWidth={2} stroke="hsl(0, 84%, 60%)" />;
-                  }
-                  return null;
-                }}
-                activeDot={{ r: 7, fill: "hsl(0, 84%, 60%)" }}
               />
               
-              {/* Positive area for Årets resultat - blue fill above zero */}
+              {/* Positive area for Årets resultat - blue fill above zero (NO STROKE) */}
               <Area
                 type="monotone"
                 dataKey="aaretsResultatPositive"
-                stroke="hsl(217, 91%, 60%)"
-                strokeWidth={3}
+                stroke="none"
+                strokeWidth={0}
                 fill="hsl(217, 91%, 60%)"
                 fillOpacity={0.2}
                 connectNulls={false}
-                dot={(props) => {
-                  const { cx, cy, payload } = props;
-                  if (payload.aaretsResultat >= 0) {
-                    return <circle cx={cx} cy={cy} r={5} fill="hsl(217, 91%, 60%)" strokeWidth={2} stroke="hsl(217, 91%, 60%)" />;
-                  }
-                  return null;
-                }}
-                activeDot={{ r: 7, fill: "hsl(217, 91%, 60%)" }}
+              />
+              
+              {/* Continuous line for Årets resultat on top */}
+              <Line 
+                type="monotone" 
+                dataKey="aaretsResultat"
+                stroke="hsl(217, 91%, 60%)"
+                strokeWidth={3}
+                dot={{ fill: "hsl(217, 91%, 60%)", strokeWidth: 2, r: 5 }}
+                activeDot={{ r: 7 }}
               />
             </AreaChart>
           </ChartContainer>
@@ -205,42 +199,36 @@ const FinancialChartsSection: React.FC<FinancialChartsSectionProps> = ({ histori
               />
               <ReferenceLine y={0} stroke="hsl(var(--muted-foreground))" strokeDasharray="3 3" strokeOpacity={0.5} />
               
-              {/* Negative area for Egenkapital - red fill below zero */}
+              {/* Negative area for Egenkapital - red fill below zero (NO STROKE) */}
               <Area
                 type="monotone"
                 dataKey="egenkapitalNegative"
-                stroke="hsl(217, 91%, 60%)"
-                strokeWidth={2.5}
+                stroke="none"
+                strokeWidth={0}
                 fill="hsl(0, 84%, 60%)"
                 fillOpacity={0.15}
                 connectNulls={false}
-                dot={(props) => {
-                  const { cx, cy, payload } = props;
-                  if (payload.egenkapital < 0) {
-                    return <circle cx={cx} cy={cy} r={5} fill="hsl(0, 84%, 60%)" strokeWidth={2} stroke="hsl(0, 84%, 60%)" />;
-                  }
-                  return null;
-                }}
-                activeDot={{ r: 7, fill: "hsl(0, 84%, 60%)" }}
               />
               
-              {/* Positive area for Egenkapital - blue fill above zero */}
+              {/* Positive area for Egenkapital - blue fill above zero (NO STROKE) */}
               <Area
                 type="monotone"
                 dataKey="egenkapitalPositive"
-                stroke="hsl(217, 91%, 60%)"
-                strokeWidth={2.5}
+                stroke="none"
+                strokeWidth={0}
                 fill="hsl(217, 91%, 60%)"
                 fillOpacity={0.2}
                 connectNulls={false}
-                dot={(props) => {
-                  const { cx, cy, payload } = props;
-                  if (payload.egenkapital >= 0) {
-                    return <circle cx={cx} cy={cy} r={5} fill="hsl(217, 91%, 60%)" strokeWidth={2} stroke="hsl(217, 91%, 60%)" />;
-                  }
-                  return null;
-                }}
-                activeDot={{ r: 7, fill: "hsl(217, 91%, 60%)" }}
+              />
+              
+              {/* Continuous line for Egenkapital on top */}
+              <Line 
+                type="monotone" 
+                dataKey="egenkapital"
+                stroke="hsl(217, 91%, 60%)"
+                strokeWidth={2.5}
+                dot={{ fill: "hsl(217, 91%, 60%)", strokeWidth: 2, r: 5 }}
+                activeDot={{ r: 7 }}
               />
             </AreaChart>
           </ChartContainer>
