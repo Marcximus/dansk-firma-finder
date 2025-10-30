@@ -16,7 +16,7 @@ export interface CompanyTransformationResult {
   email: string | null;
   legalForm: string;
   status: string;
-  founders: Array<{ name: string; cvr?: string; enhedstype?: string }> | null;
+  founders: Array<{ name: string; cvr?: string }> | null;
   realCvrData: any;
   foundPersons?: string[]; // Track found persons in search
 }
@@ -114,24 +114,26 @@ export const transformCompanyData = (hit: any, determineLegalForm: (vrvirksomhed
   const website = currentWebsite?.kontaktoplysning || vrvirksomhed.hjemmeside?.[vrvirksomhed.hjemmeside.length - 1]?.kontaktoplysning || null;
   
   // Get founders from deltagerRelation
-  let founders: Array<{ name: string; cvr?: string; enhedstype?: string }> | null = null;
+  let founders: Array<{ name: string; cvr?: string }> | null = null;
   if (vrvirksomhed.deltagerRelation) {
     const founderRelations = vrvirksomhed.deltagerRelation.filter((relation: any) => {
       // Check enriched _medlemsData first
-      const medlemsData = relation._medlemsData;
-      if (medlemsData) {
-        return medlemsData.some((medlem: any) => {
-          const attributes = medlem.attributter || [];
-          return attributes.some((attr: any) => attr.type === 'STIFTER');
-        });
+      if (relation._medlemsData?.attributter?.some((attr: any) => attr.type === 'STIFTER')) {
+        return true;
       }
       
-      // Fallback to direct medlemsData check
-      const directMembersData = relation.medlemsData;
-      if (directMembersData) {
-        return directMembersData.some((medlem: any) => {
-          const attributes = medlem.attributter || [];
-          return attributes.some((attr: any) => attr.type === 'STIFTER');
+      // Fallback: Check original organisationer structure
+      if (relation.organisationer) {
+        return relation.organisationer.some((org: any) => {
+          if (org.medlemsData) {
+            return org.medlemsData.some((medlem: any) => {
+              return medlem.attributter?.some((attr: any) => 
+                attr.type === 'FUNKTION' && 
+                attr.vaerdier?.some((v: any) => v.vaerdi === 'STIFTERE')
+              );
+            });
+          }
+          return false;
         });
       }
       
@@ -139,35 +141,19 @@ export const transformCompanyData = (hit: any, determineLegalForm: (vrvirksomhed
     });
     
     if (founderRelations.length > 0) {
-      console.log('=== FOUNDER EXTRACTION DEBUG ===');
-      console.log('Found founder relations:', founderRelations.length);
-      
-      founders = founderRelations.map((relation: any, index: number) => {
+      founders = founderRelations.map((relation: any) => {
         const deltager = relation._enrichedDeltagerData || relation.deltager;
-        console.log(`\nFounder ${index + 1}:`, {
-          hasEnrichedData: !!relation._enrichedDeltagerData,
-          enhedstype: deltager?.enhedstype,
-          enhedsNummer: deltager?.enhedsNummer,
-          fullDeltager: JSON.stringify(deltager, null, 2).substring(0, 500)
-        });
-        
         const currentName = deltager?.navne?.find((n: any) => n.periode?.gyldigTil === null);
         const name = currentName?.navn || deltager?.navne?.[deltager.navne.length - 1]?.navn || 'Ikke oplyst';
         
-        // Extract enhedstype and CVR number
-        const enhedstype = deltager?.enhedstype;
+        // Extract CVR number if the founder is a company (virksomhed)
         let cvr: string | undefined = undefined;
-        if (enhedstype === 'VIRKSOMHED') {
+        if (deltager?.enhedstype === 'VIRKSOMHED') {
           cvr = deltager?.enhedsNummer?.toString();
         }
         
-        console.log(`Extracted:`, { name, cvr, enhedstype });
-        
-        return { name, cvr, enhedstype };
+        return { name, cvr };
       });
-      
-      console.log('\nFinal founders array:', founders);
-      console.log('=== END FOUNDER DEBUG ===\n');
     }
   }
   
