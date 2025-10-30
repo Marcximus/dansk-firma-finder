@@ -222,6 +222,15 @@ export const extractFinancialData = (cvrData: any, parsedFinancialData?: any) =>
       monthlyEmployment: (() => {
         const regular = getEmploymentData(cvrData, 'maanedsbeskaeftigelse');
         const substitute = getEmploymentData(cvrData, 'erstMaanedsbeskaeftigelse');
+        
+        // If both have data, use whichever has the most recent year
+        if (regular.length > 0 && substitute.length > 0) {
+          const regularLatest = Math.max(...regular.map(d => d.aar || 0));
+          const substituteLatest = Math.max(...substitute.map(d => d.aar || 0));
+          return substituteLatest > regularLatest ? substitute : regular;
+        }
+        
+        // Otherwise use whichever has data
         return regular.length > 0 ? regular : substitute;
       })(),
       yearlyEmployment: getEmploymentData(cvrData, 'aarsbeskaeftigelse'),
