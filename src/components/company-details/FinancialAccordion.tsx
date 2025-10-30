@@ -5,7 +5,6 @@ import { extractFinancialData } from '@/services/utils/financialUtils';
 import { TrendingUp } from 'lucide-react';
 import FinancialKPICard from './financial/FinancialKPICard';
 import CapitalInformationCard from './financial/CapitalInformationCard';
-import FinancialReportsSection from './financial/FinancialReportsSection';
 import FinancialChartsSection from './financial/FinancialChartsSection';
 import FinancialSpreadsheet from './financial/FinancialSpreadsheet';
 import { getFinancialData } from '@/services/companyAPI';
@@ -101,9 +100,6 @@ const FinancialAccordion: React.FC<FinancialAccordionProps> = ({ cvr, cvrData })
             kapitalforhold={financialData?.kapitalforhold || []}
             regnskabsperiode={financialData?.regnskabsperiode || []}
           />
-
-          {/* Financial Reports */}
-          <FinancialReportsSection cvr={cvr} />
         </div>
       </AccordionContent>
     </AccordionItem>
