@@ -35,6 +35,54 @@ export const calculateFinancialRatios = (data: any, useBruttofortjeneste: boolea
   return ratios;
 };
 
+// Helper function to aggregate monthly employment data into quarterly
+const aggregateMonthlyToQuarterly = (monthlyData: any[]) => {
+  if (!monthlyData || monthlyData.length === 0) return [];
+  
+  const quarterlyMap = new Map<string, any>();
+  
+  monthlyData.forEach(item => {
+    const quarter = Math.ceil((item.maaned + 1) / 3); // month 0-11 -> Q1-Q4
+    const key = `${item.aar}-Q${quarter}`;
+    
+    if (!quarterlyMap.has(key)) {
+      quarterlyMap.set(key, {
+        aar: item.aar,
+        kvartal: quarter,
+        antalAnsatte: [],
+        antalAarsvaerk: [],
+        antalInklusivEjere: []
+      });
+    }
+    
+    const q = quarterlyMap.get(key)!;
+    if (item.antalAnsatte !== undefined) q.antalAnsatte.push(item.antalAnsatte);
+    if (item.antalAarsvaerk !== undefined) q.antalAarsvaerk.push(item.antalAarsvaerk);
+    if (item.antalInklusivEjere !== undefined) q.antalInklusivEjere.push(item.antalInklusivEjere);
+  });
+  
+  // Calculate averages for each quarter
+  const result = Array.from(quarterlyMap.values()).map(q => ({
+    aar: q.aar,
+    kvartal: q.kvartal,
+    antalAnsatte: q.antalAnsatte.length > 0 
+      ? Math.round(q.antalAnsatte.reduce((sum: number, val: number) => sum + val, 0) / q.antalAnsatte.length)
+      : 0,
+    antalAarsvaerk: q.antalAarsvaerk.length > 0
+      ? Math.round(q.antalAarsvaerk.reduce((sum: number, val: number) => sum + val, 0) / q.antalAarsvaerk.length)
+      : 0,
+    antalInklusivEjere: q.antalInklusivEjere.length > 0
+      ? Math.round(q.antalInklusivEjere.reduce((sum: number, val: number) => sum + val, 0) / q.antalInklusivEjere.length)
+      : undefined
+  }));
+  
+  // Sort newest first
+  return result.sort((a, b) => {
+    if (a.aar !== b.aar) return b.aar - a.aar;
+    return b.kvartal - a.kvartal;
+  });
+};
+
 // Helper function to extract employment data from company or production units
 const getEmploymentData = (cvrData: any, fieldName: string) => {
   // Helper function to sort employment data consistently (NEWEST FIRST)
@@ -241,7 +289,28 @@ export const extractFinancialData = (cvrData: any, parsedFinancialData?: any) =>
         });
       })(),
       yearlyEmployment: getEmploymentData(cvrData, 'aarsbeskaeftigelse'), // Already sorted newest first
-      quarterlyEmployment: getEmploymentData(cvrData, 'kvartalsbeskaeftigelse'), // Already sorted newest first
+      quarterlyEmployment: (() => {
+        // First check if we have newer monthly data to aggregate
+        const regular = getEmploymentData(cvrData, 'maanedsbeskaeftigelse');
+        const substitute = getEmploymentData(cvrData, 'erstMaanedsbeskaeftigelse');
+        const combined = [...substitute, ...regular]; // Prioritize erstMaanedsbeskaeftigelse
+        
+        const existingQuarterly = getEmploymentData(cvrData, 'kvartalsbeskaeftigelse');
+        
+        // Check if quarterly data is outdated (older than 1 year or empty)
+        const now = new Date();
+        const currentYear = now.getFullYear();
+        const latestQuarterlyYear = existingQuarterly.length > 0 ? existingQuarterly[0].aar : 0;
+        const isQuarterlyOutdated = latestQuarterlyYear < currentYear - 1;
+        
+        // If we have monthly data and quarterly is outdated/missing, aggregate it
+        if (combined.length > 0 && (existingQuarterly.length === 0 || isQuarterlyOutdated)) {
+          console.log('[EMPLOYMENT] Aggregating monthly to quarterly. Latest quarterly year:', latestQuarterlyYear, 'vs current:', currentYear);
+          return aggregateMonthlyToQuarterly(combined);
+        }
+        
+        return existingQuarterly;
+      })(),
       kapitalforhold: cvrData?.Vrvirksomhed?.kapitalforhold || [],
       regnskabsperiode: cvrData?.Vrvirksomhed?.regnskabsperiode || [],
       hasRealData: true,
@@ -339,7 +408,28 @@ export const extractFinancialData = (cvrData: any, parsedFinancialData?: any) =>
       });
     })(),
     yearlyEmployment: getEmploymentData(cvrData, 'aarsbeskaeftigelse'), // Already sorted newest first
-    quarterlyEmployment: getEmploymentData(cvrData, 'kvartalsbeskaeftigelse'), // Already sorted newest first
+    quarterlyEmployment: (() => {
+      // First check if we have newer monthly data to aggregate
+      const regular = getEmploymentData(cvrData, 'maanedsbeskaeftigelse');
+      const substitute = getEmploymentData(cvrData, 'erstMaanedsbeskaeftigelse');
+      const combined = [...substitute, ...regular]; // Prioritize erstMaanedsbeskaeftigelse
+      
+      const existingQuarterly = getEmploymentData(cvrData, 'kvartalsbeskaeftigelse');
+      
+      // Check if quarterly data is outdated (older than 1 year or empty)
+      const now = new Date();
+      const currentYear = now.getFullYear();
+      const latestQuarterlyYear = existingQuarterly.length > 0 ? existingQuarterly[0].aar : 0;
+      const isQuarterlyOutdated = latestQuarterlyYear < currentYear - 1;
+      
+      // If we have monthly data and quarterly is outdated/missing, aggregate it
+      if (combined.length > 0 && (existingQuarterly.length === 0 || isQuarterlyOutdated)) {
+        console.log('[EMPLOYMENT] Aggregating monthly to quarterly (CVR fallback). Latest quarterly year:', latestQuarterlyYear, 'vs current:', currentYear);
+        return aggregateMonthlyToQuarterly(combined);
+      }
+      
+      return existingQuarterly;
+    })(),
     kapitalforhold: vrvirksomhed.kapitalforhold || [],
     regnskabsperiode: vrvirksomhed.regnskabsperiode || [],
     hasRealData: false,
