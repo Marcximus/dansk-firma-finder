@@ -2,7 +2,7 @@
 import React from 'react';
 import { AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Company } from '@/services/companyAPI';
-import { FileText, Building2, Hash, MapPin, Calendar, Briefcase, Globe, DollarSign, ScrollText, User } from 'lucide-react';
+import { FileText, Building2, Hash, MapPin, Calendar, Briefcase, DollarSign, ScrollText, User } from 'lucide-react';
 import { format } from 'date-fns';
 import { da } from 'date-fns/locale';
 import { extractExtendedInfo } from '@/services/cvrUtils';
@@ -39,15 +39,6 @@ const BasicInfoAccordion: React.FC<BasicInfoAccordionProps> = ({ company, cvrDat
     } catch {
       return dateString;
     }
-  };
-
-  const getWebsite = () => {
-    if (!cvrData) return company.website;
-    
-    const currentWebsite = cvrData.hjemmeside?.find((site: any) => site.periode?.gyldigTil === null);
-    return currentWebsite?.kontaktoplysning || 
-           cvrData.hjemmeside?.[cvrData.hjemmeside.length - 1]?.kontaktoplysning || 
-           company.website || null;
   };
 
   const getStartDate = () => {
@@ -117,7 +108,6 @@ const BasicInfoAccordion: React.FC<BasicInfoAccordionProps> = ({ company, cvrDat
     };
   };
 
-  const website = getWebsite();
   const address = getAddress();
   const extendedInfo = extractExtendedInfo(cvrData);
 
@@ -170,22 +160,6 @@ const BasicInfoAccordion: React.FC<BasicInfoAccordionProps> = ({ company, cvrDat
             />
           )}
           
-          {website && (
-            <InfoRow 
-              icon={Globe} 
-              label="Hjemmeside" 
-              value={
-                <a 
-                  href={website.startsWith('http') ? website : `https://${website}`} 
-                  target="_blank" 
-                  rel="noopener noreferrer" 
-                  className="text-primary hover:underline"
-                >
-                  {website}
-                </a>
-              }
-            />
-          )}
         </div>
       </AccordionContent>
     </AccordionItem>

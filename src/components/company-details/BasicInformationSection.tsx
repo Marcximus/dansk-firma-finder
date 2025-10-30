@@ -2,7 +2,7 @@
 import React from 'react';
 import { Company } from '@/services/companyAPI';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Building, MapPin, Calendar, Users, Globe, Mail, Phone } from 'lucide-react';
+import { Building, MapPin, Calendar, Users, Mail, Phone } from 'lucide-react';
 import { formatPhoneNumber } from '@/services/utils/formatUtils';
 
 interface BasicInformationSectionProps {
@@ -14,7 +14,45 @@ const BasicInformationSection: React.FC<BasicInformationSectionProps> = ({ compa
   const currentAddress = cvrData?.beliggenhedsadresse?.find((addr: any) => addr.periode?.gyldigTil === null);
   const currentEmail = cvrData?.elektroniskPost?.find((email: any) => email.periode?.gyldigTil === null);
   const currentPhone = cvrData?.telefonNummer?.find((phone: any) => phone.periode?.gyldigTil === null);
-  const currentWebsite = cvrData?.hjemmeside?.find((site: any) => site.periode?.gyldigTil === null);
+  
+  // Extract CEO/Director information
+  const getCEO = () => {
+    if (!cvrData?.Vrvirksomhed?.deltagerRelation) return null;
+    
+    for (const relation of cvrData.Vrvirksomhed.deltagerRelation) {
+      const personName = relation.deltager?.navne?.find((n: any) => n.periode?.gyldigTil === null)?.navn ||
+                        relation.deltager?.navne?.[relation.deltager.navne.length - 1]?.navn;
+      
+      if (relation.organisationer) {
+        for (const org of relation.organisationer) {
+          // Check if this is a director role
+          if (org.hovedtype === 'DIREKTION') {
+            return personName;
+          }
+          
+          // Also check medlemsData for director role
+          if (org.medlemsData) {
+            for (const medlem of org.medlemsData) {
+              if (medlem.attributter) {
+                for (const attr of medlem.attributter) {
+                  if (attr.type === 'FUNKTION' && attr.vaerdier) {
+                    for (const vaerdi of attr.vaerdier) {
+                      if (vaerdi.vaerdi === 'DIREKTØR' || vaerdi.vaerdi?.includes('DIREKTØR')) {
+                        return personName;
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+    return null;
+  };
+  
+  const ceo = getCEO();
 
   const formatAddress = (addr: any) => {
     if (!addr) return `${company.address}, ${company.postalCode} ${company.city}`;
@@ -93,6 +131,13 @@ const BasicInformationSection: React.FC<BasicInformationSectionProps> = ({ compa
             </div>
           </div>
           
+          {ceo && (
+            <div>
+              <span className="text-sm font-medium text-muted-foreground">Direktør</span>
+              <div className="font-medium">{ceo}</div>
+            </div>
+          )}
+          
           {currentEmail && (
             <div className="flex items-center gap-2">
               <Mail className="h-4 w-4 text-muted-foreground" />
@@ -114,14 +159,6 @@ const BasicInformationSection: React.FC<BasicInformationSectionProps> = ({ compa
             </div>
           )}
           
-          {currentWebsite && (
-            <div className="flex items-center gap-2">
-              <Globe className="h-4 w-4 text-muted-foreground" />
-              <a href={currentWebsite.kontaktoplysning} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
-                {currentWebsite.kontaktoplysning}
-              </a>
-            </div>
-          )}
         </CardContent>
       </Card>
     </div>
