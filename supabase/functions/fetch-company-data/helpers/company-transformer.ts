@@ -16,7 +16,7 @@ export interface CompanyTransformationResult {
   email: string | null;
   legalForm: string;
   status: string;
-  founders: Array<{ name: string; cvr?: string }> | null;
+  founders: Array<{ name: string; cvr?: string; type?: string; identifier?: string }> | null;
   realCvrData: any;
   foundPersons?: string[]; // Track found persons in search
 }
@@ -114,7 +114,7 @@ export const transformCompanyData = (hit: any, determineLegalForm: (vrvirksomhed
   const website = currentWebsite?.kontaktoplysning || vrvirksomhed.hjemmeside?.[vrvirksomhed.hjemmeside.length - 1]?.kontaktoplysning || null;
   
   // Get founders from deltagerRelation
-  let founders: Array<{ name: string; cvr?: string }> | null = null;
+  let founders: Array<{ name: string; cvr?: string; type?: string; identifier?: string }> | null = null;
   if (vrvirksomhed.deltagerRelation) {
     const founderRelations = vrvirksomhed.deltagerRelation.filter((relation: any) => {
       // Check enriched _medlemsData first
@@ -146,13 +146,22 @@ export const transformCompanyData = (hit: any, determineLegalForm: (vrvirksomhed
         const currentName = deltager?.navne?.find((n: any) => n.periode?.gyldigTil === null);
         const name = currentName?.navn || deltager?.navne?.[deltager.navne.length - 1]?.navn || 'Ikke oplyst';
         
-        // Extract CVR number if the founder is a company (virksomhed)
+        // Extract entity type and identifier
+        const enhedstype = deltager?.enhedstype; // 'VIRKSOMHED' or 'PERSON'
+        const identifier = deltager?.enhedsNummer?.toString();
+        
+        // For backward compatibility, keep cvr for companies
         let cvr: string | undefined = undefined;
-        if (deltager?.enhedstype === 'VIRKSOMHED') {
-          cvr = deltager?.enhedsNummer?.toString();
+        if (enhedstype === 'VIRKSOMHED') {
+          cvr = identifier;
         }
         
-        return { name, cvr };
+        return { 
+          name, 
+          cvr,              // Backward compatibility
+          type: enhedstype, // 'PERSON' or 'VIRKSOMHED'
+          identifier        // Works for both CVR numbers and person IDs
+        };
       });
     }
   }

@@ -3,10 +3,12 @@ import React from 'react';
 import { AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Company } from '@/services/companyAPI';
 import { extractExtendedInfo } from '@/services/cvrUtils';
-import { Info, Phone, MapPin, Briefcase, TrendingUp, DollarSign, Calendar, FileText, Mail, Activity, User } from 'lucide-react';
+import { Info, Phone, MapPin, Briefcase, TrendingUp, DollarSign, Calendar, FileText, Mail, Activity, User, Building2 } from 'lucide-react';
 import { formatPhoneNumber } from '@/services/utils/formatUtils';
 import { format } from 'date-fns';
 import { da } from 'date-fns/locale';
+import { useNavigate } from 'react-router-dom';
+import { generateCompanyUrl, generatePersonUrl } from '@/lib/urlUtils';
 
 interface ExtendedInfoAccordionProps {
   company: Company;
@@ -14,6 +16,7 @@ interface ExtendedInfoAccordionProps {
 }
 
 const ExtendedInfoAccordion: React.FC<ExtendedInfoAccordionProps> = ({ company, cvrData }) => {
+  const navigate = useNavigate();
   console.log('ExtendedInfoAccordion - Raw CVR Data:', cvrData);
   
   const extendedInfo = extractExtendedInfo(cvrData);
@@ -204,22 +207,41 @@ const ExtendedInfoAccordion: React.FC<ExtendedInfoAccordionProps> = ({ company, 
               icon={User} 
               label="Stiftet af" 
               value={
-                <div className="flex flex-wrap gap-1">
-                  {company.founders.map((founder, index) => (
-                    <span key={index}>
-                      {founder.cvr ? (
-                        <a
-                          href={`/company/${founder.cvr}`}
-                          className="text-primary hover:underline"
-                        >
-                          {founder.name}
-                        </a>
-                      ) : (
-                        <span>{founder.name}</span>
-                      )}
-                      {index < company.founders!.length - 1 && ', '}
-                    </span>
-                  ))}
+                <div className="flex flex-wrap gap-2">
+                  {company.founders.map((founder, index) => {
+                    const isPerson = founder.type === 'PERSON';
+                    const isCompany = founder.type === 'VIRKSOMHED';
+                    const canNavigate = (isPerson || isCompany) && founder.identifier;
+                    
+                    return (
+                      <span key={index}>
+                        {canNavigate ? (
+                          <button
+                            onClick={() => {
+                              if (isPerson) {
+                                const url = generatePersonUrl(founder.name, founder.identifier);
+                                navigate(url);
+                              } else if (isCompany && founder.identifier) {
+                                const url = generateCompanyUrl(founder.name, founder.identifier);
+                                navigate(url);
+                              }
+                            }}
+                            className="font-medium hover:text-primary underline decoration-dotted underline-offset-2 text-left inline-flex items-center gap-1.5"
+                          >
+                            {isPerson ? (
+                              <User className="h-3.5 w-3.5 text-teal-600 flex-shrink-0" />
+                            ) : (
+                              <Building2 className="h-3.5 w-3.5 text-purple-600 flex-shrink-0" />
+                            )}
+                            {founder.name}
+                          </button>
+                        ) : (
+                          <span className="font-medium">{founder.name}</span>
+                        )}
+                        {index < company.founders!.length - 1 && ', '}
+                      </span>
+                    );
+                  })}
                 </div>
               }
             />
