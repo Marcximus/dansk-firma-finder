@@ -12,6 +12,15 @@ interface OwnershipChartProps {
   owners: Owner[];
 }
 
+interface ChartDataPoint {
+  name: string;
+  value: number;
+  displayValue: string;
+  color: string;
+  ownershipValue?: string;
+  votingValue?: string;
+}
+
 const COLORS = [
   'hsl(var(--chart-1))',
   'hsl(var(--chart-2))',
@@ -43,6 +52,8 @@ const OwnershipChart: React.FC<OwnershipChartProps> = ({ owners }) => {
     value: parsePercentage(owner.ejerandel),
     displayValue: owner.ejerandel || 'Ikke oplyst',
     color: COLORS[index % COLORS.length],
+    ownershipValue: owner.ejerandel || 'Ikke oplyst',
+    votingValue: owner.stemmerettigheder || 'Ikke oplyst',
   })).filter(d => d.value > 0);
 
   // Prepare data for voting rights (inner ring)
@@ -51,16 +62,28 @@ const OwnershipChart: React.FC<OwnershipChartProps> = ({ owners }) => {
     value: parsePercentage(owner.stemmerettigheder),
     displayValue: owner.stemmerettigheder || 'Ikke oplyst',
     color: COLORS[index % COLORS.length],
+    ownershipValue: owner.ejerandel || 'Ikke oplyst',
+    votingValue: owner.stemmerettigheder || 'Ikke oplyst',
   })).filter(d => d.value > 0);
 
   if (ownershipData.length === 0 && votingData.length === 0) return null;
 
   const CustomTooltip = ({ active, payload }: any) => {
     if (active && payload && payload.length) {
+      const data = payload[0].payload;
       return (
-        <div className="bg-background border border-border rounded-lg shadow-lg p-3">
-          <p className="font-semibold text-sm">{payload[0].payload.name}</p>
-          <p className="text-xs text-muted-foreground">{payload[0].payload.displayValue}</p>
+        <div className="bg-background border border-border rounded-lg shadow-lg p-4 min-w-[200px]">
+          <p className="font-semibold text-sm mb-2 border-b border-border pb-2">{data.name}</p>
+          <div className="space-y-1.5">
+            <div className="flex justify-between items-center gap-4">
+              <span className="text-xs text-muted-foreground">Ejerandel:</span>
+              <span className="text-xs font-medium">{data.ownershipValue}</span>
+            </div>
+            <div className="flex justify-between items-center gap-4">
+              <span className="text-xs text-muted-foreground">Stemmerettigheder:</span>
+              <span className="text-xs font-medium">{data.votingValue}</span>
+            </div>
+          </div>
         </div>
       );
     }
@@ -110,18 +133,6 @@ const OwnershipChart: React.FC<OwnershipChartProps> = ({ owners }) => {
           <Tooltip content={<CustomTooltip />} />
         </PieChart>
       </ResponsiveContainer>
-      
-      {/* Legend */}
-      <div className="mt-4 space-y-2 text-xs sm:text-sm">
-        <div className="flex items-center gap-2 justify-center">
-          <div className="w-4 h-4 rounded-full border-2 border-current opacity-100"></div>
-          <span className="text-muted-foreground">Ejerandel (ydre ring)</span>
-        </div>
-        <div className="flex items-center gap-2 justify-center">
-          <div className="w-4 h-4 rounded-full border-2 border-current opacity-70"></div>
-          <span className="text-muted-foreground">Stemmerettigheder (indre ring)</span>
-        </div>
-      </div>
     </div>
   );
 };
