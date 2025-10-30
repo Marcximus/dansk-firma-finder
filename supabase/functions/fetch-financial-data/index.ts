@@ -1441,7 +1441,7 @@ serve(async (req) => {
     ];
 
     console.log(`[STEP 1] Progressive query fallback with ${queryStrategies.length} strategies`);
-    console.log('[VERSION] v3.1-OPTIMIZED - 50 results per query, 15 reports processing (CPU optimized)');
+    console.log('[VERSION] v3.2-PRIORITY - Strict document priority: FINANSIEL → AARSRAPPORT only');
     console.log('[STEP 1] Will try each strategy with 20s timeout until one succeeds');
 
     // Try each strategy until one works
@@ -1651,36 +1651,67 @@ serve(async (req) => {
       
       // Log available documents for debugging
       console.log(`[DOCUMENT ANALYSIS] Analyzing ${source.dokumenter?.length || 0} documents...`);
+      
+      const rejectedTypes = ['HALVÅRSRAPPORT', 'DELÅRSRAPPORT', 'AARSRAPPORT_ESEF'];
+      let rejectedCount = 0;
+      
       source.dokumenter?.forEach((doc: any, idx: number) => {
         const docType = (doc.dokumentType || '').toUpperCase();
         const mimeType = (doc.dokumentMimeType || '').toLowerCase();
-        console.log(`  [${idx}] ${doc.dokumentType} - ${mimeType}`);
+        
+        const isRejected = rejectedTypes.some(reject => docType.includes(reject));
+        if (isRejected) {
+          console.log(`  [${idx}] ❌ SKIPPED: ${doc.dokumentType} (interim/unwanted report)`);
+          rejectedCount++;
+        } else {
+          console.log(`  [${idx}] ${doc.dokumentType} - ${mimeType}`);
+        }
       });
       
-      // Collect ALL AARSRAPPORT XML documents as candidates
-      const aarsrapportXMLs = source.dokumenter?.filter((doc: any) => {
+      if (rejectedCount > 0) {
+        console.log(`[DOCUMENT FILTER] Rejected ${rejectedCount} interim/unwanted reports`);
+      }
+      
+      // STRICT PRIORITY SYSTEM:
+      // Priority 1: AARSRAPPORT_FINANSIEL (full financial annual report)
+      // Priority 2: AARSRAPPORT (standard annual report)
+      // NEVER: HALVÅRSRAPPORT, DELÅRSRAPPORT, AARSRAPPORT_ESEF, iXBRL
+      
+      const allDocs = source.dokumenter || [];
+      
+      // Priority 1: Look for "Årsrapport (finansiel) XBRL"
+      let selectedDocument = allDocs.find((doc: any) => {
         const docType = (doc.dokumentType || '').toUpperCase();
         const mimeType = (doc.dokumentMimeType || '').toLowerCase();
-        
-        // Accept multiple AARSRAPPORT variants for ESEF/IFRS format
-        const validTypes = [
-          'AARSRAPPORT',
-          'AARSRAPPORT_ESEF',      // ESEF format (2023/2024)
-          'AARSRAPPORT_FINANSIEL'  // Financial XBRL variant
-        ];
-        
-        return validTypes.includes(docType) && mimeType === 'application/xml';
-      }) || [];
+        return docType === 'AARSRAPPORT_FINANSIEL' && mimeType === 'application/xml';
+      });
       
-      console.log(`[DOC SELECT] Found ${aarsrapportXMLs.length} AARSRAPPORT XML documents - will test all to find financial data`);
+      if (selectedDocument) {
+        console.log(`[DOC SELECT] ✅ Priority 1: Found AARSRAPPORT_FINANSIEL (finansiel XBRL)`);
+      } else {
+        // Priority 2: Fall back to standard "Årsrapport XBRL"
+        selectedDocument = allDocs.find((doc: any) => {
+          const docType = (doc.dokumentType || '').toUpperCase();
+          const mimeType = (doc.dokumentMimeType || '').toLowerCase();
+          return docType === 'AARSRAPPORT' && mimeType === 'application/xml';
+        });
+        
+        if (selectedDocument) {
+          console.log(`[DOC SELECT] ⚠️ Priority 2: Found AARSRAPPORT (standard XBRL, finansiel not available)`);
+        }
+      }
       
-      if (aarsrapportXMLs.length === 0) {
-        console.log(`[DOC SELECT] ❌ No AARSRAPPORT XML documents found - skipping this report`);
+      if (!selectedDocument) {
+        console.log(`[DOC SELECT] ❌ No valid annual report found (neither AARSRAPPORT_FINANSIEL nor AARSRAPPORT) - skipping`);
         continue;
       }
       
-      // Step 3: Test all AARSRAPPORT XML documents and pick the one with most financial data
-      console.log(`[STEP 2] Testing ${aarsrapportXMLs.length} AARSRAPPORT XML documents to find financial data...`);
+      // Create array with ONLY the selected document (no testing multiple docs)
+      const aarsrapportXMLs = [selectedDocument];
+      console.log(`[DOC SELECT] Processing ONLY: ${selectedDocument.dokumentType}`);
+      
+      // Step 3: Process the selected document (only 1 document now)
+      console.log(`[STEP 2] Processing selected AARSRAPPORT document (priority-based selection)...`);
       
       let bestParsedData = null;
       let bestScore = 0;
