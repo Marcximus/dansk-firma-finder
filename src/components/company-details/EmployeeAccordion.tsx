@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
-import { Users } from 'lucide-react';
+import { Users, TrendingUp, TrendingDown } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { extractFinancialData } from '@/services/utils/financialUtils';
@@ -142,10 +142,139 @@ const EmployeeAccordion: React.FC<EmployeeAccordionProps> = ({ cvr, cvrData }) =
                       domain={[0, 'auto']}
                     />
                     <Tooltip 
-                      contentStyle={{ 
-                        backgroundColor: 'hsl(var(--popover))', 
-                        border: '1px solid hsl(var(--border))',
-                        borderRadius: '6px'
+                      content={({ active, payload }) => {
+                        if (!active || !payload || !payload.length) return null;
+                        
+                        const data = payload[0].payload;
+                        const currentIndex = chartData.findIndex(d => d.periode === data.periode);
+                        const previousData = currentIndex > 0 ? chartData[currentIndex - 1] : null;
+                        
+                        const total = data.total;
+                        const fuldtid = data.fuldtid;
+                        const deltid = data.deltid;
+                        
+                        let totalChange = null;
+                        let fuldtidChange = null;
+                        let deltidChange = null;
+                        
+                        if (previousData) {
+                          if (previousData.total > 0) {
+                            const change = ((total - previousData.total) / previousData.total) * 100;
+                            totalChange = {
+                              value: Math.abs(change),
+                              isPositive: change > 0,
+                              absolute: total - previousData.total
+                            };
+                          }
+                          
+                          if (previousData.fuldtid > 0) {
+                            const change = ((fuldtid - previousData.fuldtid) / previousData.fuldtid) * 100;
+                            fuldtidChange = {
+                              value: Math.abs(change),
+                              isPositive: change > 0,
+                              absolute: fuldtid - previousData.fuldtid
+                            };
+                          }
+                          
+                          if (previousData.deltid > 0) {
+                            const change = ((deltid - previousData.deltid) / previousData.deltid) * 100;
+                            deltidChange = {
+                              value: Math.abs(change),
+                              isPositive: change > 0,
+                              absolute: deltid - previousData.deltid
+                            };
+                          }
+                        }
+                        
+                        const fuldtidPercent = total > 0 ? (fuldtid / total) * 100 : 0;
+                        const deltidPercent = total > 0 ? (deltid / total) * 100 : 0;
+                        
+                        return (
+                          <div className="bg-popover border border-border rounded-lg p-3 shadow-lg">
+                            <div className="space-y-3">
+                              <div className="font-semibold text-sm border-b pb-2">
+                                {data.periode}
+                              </div>
+                              
+                              {/* Total Employees */}
+                              <div className="space-y-1">
+                                <div className="flex justify-between items-center gap-6">
+                                  <span className="text-xs text-muted-foreground">Total ansatte:</span>
+                                  <span className="font-semibold text-sm">{total}</span>
+                                </div>
+                                {totalChange && (
+                                  <div className="flex items-center gap-2 text-xs">
+                                    {totalChange.isPositive ? (
+                                      <TrendingUp className="h-3 w-3 text-green-600 dark:text-green-400" />
+                                    ) : (
+                                      <TrendingDown className="h-3 w-3 text-red-600 dark:text-red-400" />
+                                    )}
+                                    <span className={totalChange.isPositive ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}>
+                                      {totalChange.isPositive ? '+' : '-'}{totalChange.value.toFixed(1)}%
+                                    </span>
+                                    <span className="text-muted-foreground">
+                                      ({totalChange.isPositive ? '+' : ''}{totalChange.absolute})
+                                    </span>
+                                  </div>
+                                )}
+                              </div>
+                              
+                              {/* Full-time */}
+                              <div className="space-y-1 pt-2 border-t">
+                                <div className="flex justify-between items-center gap-6">
+                                  <span className="text-xs text-muted-foreground">Fuldtid (Årsværk):</span>
+                                  <span className="font-semibold text-sm">{fuldtid.toFixed(1)}</span>
+                                </div>
+                                <div className="text-xs text-muted-foreground">
+                                  {fuldtidPercent.toFixed(0)}% af total
+                                </div>
+                                {fuldtidChange && (
+                                  <div className="flex items-center gap-2 text-xs">
+                                    {fuldtidChange.isPositive ? (
+                                      <TrendingUp className="h-3 w-3 text-green-600 dark:text-green-400" />
+                                    ) : (
+                                      <TrendingDown className="h-3 w-3 text-red-600 dark:text-red-400" />
+                                    )}
+                                    <span className={fuldtidChange.isPositive ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}>
+                                      {fuldtidChange.isPositive ? '+' : '-'}{fuldtidChange.value.toFixed(1)}%
+                                    </span>
+                                    <span className="text-muted-foreground">
+                                      ({fuldtidChange.isPositive ? '+' : ''}{fuldtidChange.absolute.toFixed(1)})
+                                    </span>
+                                  </div>
+                                )}
+                              </div>
+                              
+                              {/* Part-time */}
+                              {deltid > 0 && (
+                                <div className="space-y-1 pt-2 border-t">
+                                  <div className="flex justify-between items-center gap-6">
+                                    <span className="text-xs text-muted-foreground">Deltid:</span>
+                                    <span className="font-semibold text-sm">{deltid.toFixed(0)}</span>
+                                  </div>
+                                  <div className="text-xs text-muted-foreground">
+                                    {deltidPercent.toFixed(0)}% af total
+                                  </div>
+                                  {deltidChange && (
+                                    <div className="flex items-center gap-2 text-xs">
+                                      {deltidChange.isPositive ? (
+                                        <TrendingUp className="h-3 w-3 text-green-600 dark:text-green-400" />
+                                      ) : (
+                                        <TrendingDown className="h-3 w-3 text-red-600 dark:text-red-400" />
+                                      )}
+                                      <span className={deltidChange.isPositive ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}>
+                                        {deltidChange.isPositive ? '+' : '-'}{deltidChange.value.toFixed(1)}%
+                                      </span>
+                                      <span className="text-muted-foreground">
+                                        ({deltidChange.isPositive ? '+' : ''}{deltidChange.absolute.toFixed(0)})
+                                      </span>
+                                    </div>
+                                  )}
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        );
                       }}
                     />
                     <Legend />
