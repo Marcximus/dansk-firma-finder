@@ -1367,9 +1367,9 @@ serve(async (req) => {
     // Step 1: Search for financial reports using POST with Elasticsearch query
     const searchUrl = 'http://distribution.virk.dk/offentliggoerelser/_search';
     
-    // Add date range to reduce query scope (last 6 years for comprehensive data)
-    const sixYearsAgo = new Date();
-    sixYearsAgo.setFullYear(sixYearsAgo.getFullYear() - 6);
+    // Add date range to reduce query scope (last 8 years to ensure 7 years of valid annual reports)
+    const eightYearsAgo = new Date();
+    eightYearsAgo.setFullYear(eightYearsAgo.getFullYear() - 8);
     
     // Progressive query strategies - simple to complex
     // We'll try each strategy until one succeeds
@@ -1400,7 +1400,7 @@ serve(async (req) => {
         }
       },
       {
-        name: 'CVR + Date Range (6 years)',
+        name: 'CVR + Date Range (8 years)',
         query: {
           "query": {
             "bool": {
@@ -1409,7 +1409,7 @@ serve(async (req) => {
                 { 
                   "range": { 
                     "offentliggoerelsesTidspunkt": {
-                      "gte": sixYearsAgo.toISOString(),
+                      "gte": eightYearsAgo.toISOString(),
                       "lte": new Date().toISOString()
                     }
                   }
