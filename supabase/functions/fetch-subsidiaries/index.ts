@@ -33,9 +33,62 @@ serve(async (req) => {
 
     const auth = btoa(`${username}:${password}`);
     
-    // Build Elasticsearch query to find companies where this CVR appears as an owner
-    // Broadened search to find all ownership relations, not just EJERREGISTER
-    const query = {
+    console.log('Step 1: Fetching enhedsNummer for CVR:', cvr);
+    const startTime = Date.now();
+
+    // Step 1: Get the enhedsNummer (10-digit entity number) for this CVR
+    const enhedsNummerQuery = {
+      query: {
+        term: {
+          "Vrvirksomhed.cvrNummer": cvr
+        }
+      },
+      _source: ["Vrvirksomhed.enhedsNummer", "Vrvirksomhed.cvrNummer"],
+      size: 1
+    };
+
+    const timeoutPromise = (seconds: number) => new Promise((_, reject) => 
+      setTimeout(() => reject(new Error(`Request timeout after ${seconds} seconds`)), seconds * 1000)
+    );
+
+    const enhedsNummerResponse = await Promise.race([
+      fetch('https://distribution.virk.dk/cvr-permanent/virksomhed/_search', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Basic ${auth}`,
+        },
+        body: JSON.stringify(enhedsNummerQuery),
+      }),
+      timeoutPromise(15)
+    ]) as Response;
+
+    if (!enhedsNummerResponse.ok) {
+      console.error('Failed to fetch enhedsNummer:', enhedsNummerResponse.status);
+      return new Response(
+        JSON.stringify({ 
+          error: 'Failed to fetch company entity number', 
+          subsidiaries: []
+        }),
+        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const enhedsNummerData = await enhedsNummerResponse.json();
+    const enhedsNummer = enhedsNummerData.hits?.hits?.[0]?._source?.Vrvirksomhed?.enhedsNummer;
+
+    if (!enhedsNummer) {
+      console.log('No enhedsNummer found for CVR:', cvr);
+      return new Response(
+        JSON.stringify({ subsidiaries: [] }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    console.log('Step 2: Searching for subsidiaries using enhedsNummer:', enhedsNummer);
+
+    // Step 2: Find all companies that list this entity as their HOVEDSELSKAB (parent company)
+    const subsidiaryQuery = {
       query: {
         bool: {
           must: [
@@ -43,23 +96,38 @@ serve(async (req) => {
               nested: {
                 path: "Vrvirksomhed.deltagerRelation",
                 query: {
-                  bool: {
-                    must: [
-                      {
-                        term: {
-                          "Vrvirksomhed.deltagerRelation.deltager.forretningsnoegle": cvr
-                        }
-                      },
-                      {
-                        bool: {
-                          must_not: {
-                            exists: {
-                              field: "Vrvirksomhed.deltagerRelation.periode.gyldigTil"
+                  nested: {
+                    path: "Vrvirksomhed.deltagerRelation.organisationer",
+                    query: {
+                      bool: {
+                        must: [
+                          {
+                            term: {
+                              "Vrvirksomhed.deltagerRelation.organisationer.enhedsNummerOrganisation": enhedsNummer
+                            }
+                          },
+                          {
+                            term: {
+                              "Vrvirksomhed.deltagerRelation.organisationer.hovedtype": "HOVEDSELSKAB"
                             }
                           }
-                        }
+                        ]
                       }
-                    ]
+                    }
+                  }
+                }
+              }
+            },
+            {
+              nested: {
+                path: "Vrvirksomhed.livsforloeb",
+                query: {
+                  bool: {
+                    must_not: {
+                      exists: {
+                        field: "Vrvirksomhed.livsforloeb.periode.gyldigTil"
+                      }
+                    }
                   }
                 }
               }
@@ -67,90 +135,75 @@ serve(async (req) => {
           ]
         }
       },
-      size: 100,
       _source: [
         "Vrvirksomhed.cvrNummer",
         "Vrvirksomhed.virksomhedMetadata.nyesteNavn",
         "Vrvirksomhed.virksomhedMetadata.sammensatStatus",
         "Vrvirksomhed.deltagerRelation"
       ],
-      size: 30  // Reduced from 100 for better performance
+      size: 50
     };
 
-    console.log('Searching for subsidiaries of CVR:', cvr);
-    const startTime = Date.now();
-
-    // Create a timeout promise
-    const timeoutPromise = new Promise((_, reject) => 
-      setTimeout(() => reject(new Error('Request timeout after 30 seconds')), 30000)
-    );
-
-    // Create the fetch promise
-    const fetchPromise = fetch(
-      'https://distribution.virk.dk/cvr-permanent/virksomhed/_search',
-      {
+    const subsidiaryResponse = await Promise.race([
+      fetch('https://distribution.virk.dk/cvr-permanent/virksomhed/_search', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Basic ${auth}`,
         },
-        body: JSON.stringify(query),
-      }
-    );
+        body: JSON.stringify(subsidiaryQuery),
+      }),
+      timeoutPromise(30)
+    ]) as Response;
 
-    // Race between timeout and fetch
-    const response = await Promise.race([fetchPromise, timeoutPromise]) as Response;
     const elapsed = Date.now() - startTime;
-    console.log(`API request completed in ${elapsed}ms`);
+    console.log(`Total request completed in ${elapsed}ms`);
 
-    if (!response.ok) {
-      console.error('API request failed:', response.status, response.statusText);
+    if (!subsidiaryResponse.ok) {
+      console.error('API request failed:', subsidiaryResponse.status, subsidiaryResponse.statusText);
       return new Response(
         JSON.stringify({ 
           error: 'Failed to fetch subsidiaries', 
-          subsidiaries: [],
-          timeout: false
+          subsidiaries: []
         }),
         { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    const data = await response.json();
-    console.log('API response hits:', data.hits?.total?.value || 0);
+    const data = await subsidiaryResponse.json();
+    console.log('Found subsidiary hits:', data.hits?.total?.value || 0);
 
     const subsidiaries = (data.hits?.hits || []).map((hit: any) => {
       const vrvirksomhed = hit._source?.Vrvirksomhed;
       
-      // Find the relation with this parent CVR to get ownership percentage
-      const ownerRelation = vrvirksomhed?.deltagerRelation?.find((rel: any) => 
-        rel.deltager?.forretningsnoegle === cvr && !rel.periode?.gyldigTil
-      );
-
+      // Find the HOVEDSELSKAB relationship to extract ownership details
       let ownershipPercentage = null;
       let votingRights = null;
-      let relationshipType = null;
 
-      if (ownerRelation) {
-        // Look for ownership data in all organizations, not just EJERREGISTER
-        const allOrganizations = ownerRelation.organisationer || [];
+      const deltagerRelations = vrvirksomhed?.deltagerRelation || [];
+      
+      for (const relation of deltagerRelations) {
+        const organisations = relation.organisationer || [];
         
-        for (const org of allOrganizations) {
-          const medlemsData = org.medlemsData || [];
-          
-          // Extract organization type for display
-          if (org.organisationsNavn && org.organisationsNavn.length > 0) {
-            relationshipType = org.organisationsNavn[0].navn;
-          }
-          
-          // Look for ownership attributes
-          for (const medlem of medlemsData) {
-            const attributter = medlem.attributter || [];
+        for (const org of organisations) {
+          // Check if this is the parent company relationship
+          if (org.enhedsNummerOrganisation === enhedsNummer && org.hovedtype === "HOVEDSELSKAB") {
+            // Extract ownership attributes
+            const attributter = org.attributter || [];
+            
             for (const attr of attributter) {
-              if (attr.type === 'EJERANDEL_PROCENT' && attr.vaerdi) {
-                ownershipPercentage = attr.vaerdi;
-              }
-              if (attr.type === 'EJERANDEL_STEMMERET_PROCENT' && attr.vaerdi) {
-                votingRights = attr.vaerdi;
+              const vaerdier = attr.vaerdier || [];
+              
+              for (const vaerdi of vaerdier) {
+                // Check if this is an active value (no gyldigTil)
+                if (!vaerdi.periode?.gyldigTil) {
+                  if (attr.type === 'EJERANDEL_PROCENT') {
+                    ownershipPercentage = vaerdi.vaerdi;
+                  }
+                  if (attr.type === 'EJERANDEL_STEMMEANDEL_PROCENT') {
+                    votingRights = vaerdi.vaerdi;
+                  }
+                }
               }
             }
           }
@@ -163,11 +216,11 @@ serve(async (req) => {
         status: vrvirksomhed?.virksomhedMetadata?.sammensatStatus || 'NORMAL',
         ownershipPercentage,
         votingRights,
-        relationshipType
+        relationshipType: 'DATTERSELSKAB'
       };
-    }).filter((sub: any) => sub.cvr); // Only filter out invalid entries, keep all with CVR
+    }).filter((sub: any) => sub.cvr);
 
-    console.log('Found subsidiaries:', subsidiaries.length);
+    console.log('Processed subsidiaries:', subsidiaries.length);
 
     return new Response(
       JSON.stringify({ subsidiaries }),
