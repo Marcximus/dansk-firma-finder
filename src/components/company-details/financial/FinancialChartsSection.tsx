@@ -135,9 +135,14 @@ const FinancialChartsSection: React.FC<FinancialChartsSectionProps> = ({ histori
                 strokeWidth={2.5}
                 fill="url(#colorResultNegative)"
                 connectNulls={false}
-                dot={false}
-                activeDot={false}
-                isAnimationActive={false}
+                dot={(props: any) => {
+                  if (!props.payload.aaretsResultatNegative) return null;
+                  return <circle cx={props.cx} cy={props.cy} r={4} fill="hsl(0, 70%, 55%)" strokeWidth={2} stroke="hsl(0, 70%, 55%)" />;
+                }}
+                activeDot={(props: any) => {
+                  if (!props.payload.aaretsResultatNegative) return null;
+                  return <circle cx={props.cx} cy={props.cy} r={6} fill="hsl(0, 70%, 55%)" stroke="hsl(0, 70%, 55%)" />;
+                }}
               />
               {/* Positive portion of Årets resultat */}
               <Area 
@@ -148,16 +153,12 @@ const FinancialChartsSection: React.FC<FinancialChartsSectionProps> = ({ histori
                 fill="url(#colorResultPositive)"
                 connectNulls={false}
                 dot={(props: any) => {
-                  const { cx, cy, payload } = props;
-                  const value = payload.aaretsResultat;
-                  const color = value < 0 ? "hsl(0, 70%, 55%)" : "hsl(217, 91%, 60%)";
-                  return <circle cx={cx} cy={cy} r={4} fill={color} strokeWidth={2} stroke={color} />;
+                  if (!props.payload.aaretsResultatPositive) return null;
+                  return <circle cx={props.cx} cy={props.cy} r={4} fill="hsl(217, 91%, 60%)" strokeWidth={2} stroke="hsl(217, 91%, 60%)" />;
                 }}
                 activeDot={(props: any) => {
-                  const { cx, cy, payload } = props;
-                  const value = payload.aaretsResultat;
-                  const color = value < 0 ? "hsl(0, 70%, 55%)" : "hsl(217, 91%, 60%)";
-                  return <circle cx={cx} cy={cy} r={6} fill={color} stroke={color} />;
+                  if (!props.payload.aaretsResultatPositive) return null;
+                  return <circle cx={props.cx} cy={props.cy} r={6} fill="hsl(217, 91%, 60%)" stroke="hsl(217, 91%, 60%)" />;
                 }}
               />
             </AreaChart>
@@ -221,9 +222,14 @@ const FinancialChartsSection: React.FC<FinancialChartsSectionProps> = ({ histori
                 strokeWidth={2.5}
                 fill="url(#colorEquityNegative)"
                 connectNulls={false}
-                dot={false}
-                activeDot={false}
-                isAnimationActive={false}
+                dot={(props: any) => {
+                  if (!props.payload.egenkapitalNegative) return null;
+                  return <circle cx={props.cx} cy={props.cy} r={4} fill="hsl(0, 70%, 55%)" strokeWidth={2} stroke="hsl(0, 70%, 55%)" />;
+                }}
+                activeDot={(props: any) => {
+                  if (!props.payload.egenkapitalNegative) return null;
+                  return <circle cx={props.cx} cy={props.cy} r={6} fill="hsl(0, 70%, 55%)" stroke="hsl(0, 70%, 55%)" />;
+                }}
               />
               {/* Positive portion of Egenkapital */}
               <Area 
@@ -234,16 +240,12 @@ const FinancialChartsSection: React.FC<FinancialChartsSectionProps> = ({ histori
                 fill="url(#colorEquityPositive)"
                 connectNulls={false}
                 dot={(props: any) => {
-                  const { cx, cy, payload } = props;
-                  const value = payload.egenkapital;
-                  const color = value < 0 ? "hsl(0, 70%, 55%)" : "hsl(217, 91%, 60%)";
-                  return <circle cx={cx} cy={cy} r={4} fill={color} strokeWidth={2} stroke={color} />;
+                  if (!props.payload.egenkapitalPositive) return null;
+                  return <circle cx={props.cx} cy={props.cy} r={4} fill="hsl(217, 91%, 60%)" strokeWidth={2} stroke="hsl(217, 91%, 60%)" />;
                 }}
                 activeDot={(props: any) => {
-                  const { cx, cy, payload } = props;
-                  const value = payload.egenkapital;
-                  const color = value < 0 ? "hsl(0, 70%, 55%)" : "hsl(217, 91%, 60%)";
-                  return <circle cx={cx} cy={cy} r={6} fill={color} stroke={color} />;
+                  if (!props.payload.egenkapitalPositive) return null;
+                  return <circle cx={props.cx} cy={props.cy} r={6} fill="hsl(217, 91%, 60%)" stroke="hsl(217, 91%, 60%)" />;
                 }}
               />
             </AreaChart>
