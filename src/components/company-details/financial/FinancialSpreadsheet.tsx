@@ -222,11 +222,6 @@ const FinancialSpreadsheet: React.FC<FinancialSpreadsheetProps> = ({ historicalD
         <div className="flex items-start justify-between">
           <div className="flex-1">
             <CardTitle className="text-lg">Regnskabsdata</CardTitle>
-            {displayYears.length > 0 && (
-              <p className="text-xs text-muted-foreground mt-1">
-                Viser regnskabsdata for {displayYears.length === 1 ? 'seneste år' : `de seneste ${displayYears.length} år`}: {displayYears.join(', ')}
-              </p>
-            )}
           </div>
           <Button
             variant="outline"
