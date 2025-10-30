@@ -396,7 +396,7 @@ const SigningRulesAccordion: React.FC<SigningRulesAccordionProps> = ({ cvrData }
   };
 
   return (
-    <AccordionItem value="signing-rules" id="signing-rules-section" className="border rounded-lg">
+    <AccordionItem value="signing-rules" data-accordion-value="signing-rules" className="border rounded-lg">
       <AccordionTrigger className="px-2 sm:px-4 md:px-6 py-2 sm:py-3 md:py-4 hover:no-underline">
         <div className="flex items-center gap-1.5 sm:gap-2">
           <FileText className="h-4 w-4 sm:h-4.5 sm:w-4.5 md:h-5 md:w-5" />

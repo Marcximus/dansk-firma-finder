@@ -136,9 +136,17 @@ const BasicInformationSection: React.FC<BasicInformationSectionProps> = ({ compa
               <span className="text-sm font-medium text-muted-foreground">Direktør</span>
               <button
                 onClick={() => {
-                  const section = document.getElementById('signing-rules-section');
-                  if (section) {
-                    section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                  const accordionTrigger = document.querySelector('[data-accordion-value="signing-rules"]') as HTMLElement;
+                  if (accordionTrigger) {
+                    // Open the accordion if it's not already open
+                    const accordionItem = accordionTrigger.closest('[data-state]');
+                    if (accordionItem && accordionItem.getAttribute('data-state') === 'closed') {
+                      accordionTrigger.click();
+                    }
+                    // Wait a bit for the accordion to open, then scroll
+                    setTimeout(() => {
+                      accordionTrigger.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }, 100);
                   }
                 }}
                 className="font-medium text-primary hover:underline cursor-pointer text-left"
