@@ -3,8 +3,10 @@ import React from 'react';
 import { AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Company } from '@/services/companyAPI';
 import { extractExtendedInfo } from '@/services/cvrUtils';
-import { Info, Phone, MapPin, Briefcase, TrendingUp, DollarSign, Calendar, FileText, Mail, Activity } from 'lucide-react';
+import { Info, Phone, MapPin, Briefcase, TrendingUp, DollarSign, Calendar, FileText, Mail, Activity, User } from 'lucide-react';
 import { formatPhoneNumber } from '@/services/utils/formatUtils';
+import { format } from 'date-fns';
+import { da } from 'date-fns/locale';
 
 interface ExtendedInfoAccordionProps {
   company: Company;
@@ -40,6 +42,47 @@ const ExtendedInfoAccordion: React.FC<ExtendedInfoAccordionProps> = ({ company, 
            cvrData.virksomhedsstatus?.[cvrData.virksomhedsstatus.length - 1]?.status ||
            company.status || 
            'Ikke oplyst';
+  };
+
+  const formatDate = (dateString: string) => {
+    if (!dateString) return 'Ikke oplyst';
+    try {
+      const date = new Date(dateString);
+      return format(date, 'd MMMM yyyy', { locale: da });
+    } catch {
+      return dateString;
+    }
+  };
+
+  const getStartDate = () => {
+    // Extract the actual Vrvirksomhed data
+    const vrvirksomhed = cvrData?.Vrvirksomhed || cvrData;
+    
+    // Priority 1: Direct stiftelsesDato field
+    if (vrvirksomhed?.stiftelsesDato) {
+      return formatDate(vrvirksomhed.stiftelsesDato);
+    }
+    
+    // Priority 2: livsforloeb registration date
+    const livsforloebDate = vrvirksomhed?.livsforloeb?.[0]?.periode?.gyldigFra;
+    if (livsforloebDate) {
+      return formatDate(livsforloebDate);
+    }
+    
+    // Priority 3: Check for FØRSTE_REGNSKABSPERIODE_START in attributter
+    const regnskabStart = vrvirksomhed?.attributter?.find((attr: any) => 
+      attr.type === 'FØRSTE_REGNSKABSPERIODE_START'
+    );
+    if (regnskabStart?.vaerdier?.[0]?.vaerdi) {
+      return formatDate(regnskabStart.vaerdier[0].vaerdi);
+    }
+    
+    // Priority 4: Fallback to company.yearFounded
+    if (company.yearFounded) {
+      return company.yearFounded.toString();
+    }
+    
+    return 'Ikke oplyst';
   };
 
   const contactInfo = getContactInfo();
@@ -149,6 +192,20 @@ const ExtendedInfoAccordion: React.FC<ExtendedInfoAccordionProps> = ({ company, 
             label="Regnskabsår" 
             value={extendedInfo?.accountingYear} 
           />
+          
+          <InfoRow 
+            icon={Calendar} 
+            label="Startdato" 
+            value={getStartDate()} 
+          />
+          
+          {company.founders && (
+            <InfoRow 
+              icon={User} 
+              label="Stiftet af" 
+              value={company.founders} 
+            />
+          )}
 
           {/* Secondary Industries */}
           {extendedInfo?.secondaryIndustries && extendedInfo.secondaryIndustries.length > 0 && (

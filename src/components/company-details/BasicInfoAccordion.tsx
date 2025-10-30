@@ -150,20 +150,6 @@ const BasicInfoAccordion: React.FC<BasicInfoAccordionProps> = ({ company, cvrDat
           />
           
           <InfoRow 
-            icon={Calendar} 
-            label="Startdato" 
-            value={getStartDate()} 
-          />
-          
-          {company.founders && (
-            <InfoRow 
-              icon={User} 
-              label="Stiftet af" 
-              value={company.founders} 
-            />
-          )}
-          
-          <InfoRow 
             icon={Briefcase} 
             label={isMobile ? "Form" : "Virksomhedsform"} 
             value={getLegalForm()} 
