@@ -1,5 +1,6 @@
 import React from 'react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
+import { TrendingUp } from 'lucide-react';
 
 interface Owner {
   navn: string;
@@ -47,6 +48,9 @@ const parsePercentageRange = (percentageStr: string | undefined): { min: number;
 
 const OwnershipChart: React.FC<OwnershipChartProps> = ({ owners }) => {
   if (!owners || owners.length === 0) return null;
+  
+  // Check if this is a listed company (single owner with type LISTED)
+  const isListedCompany = owners.length === 1 && (owners[0] as any)._isListedCompany;
 
   // Calculate dynamic height based on number of owners
   const calculateHeight = (numOwners: number): string => {
@@ -117,6 +121,20 @@ const OwnershipChart: React.FC<OwnershipChartProps> = ({ owners }) => {
     return null;
   };
 
+  // Don't show chart for listed companies
+  if (isListedCompany) {
+    return (
+      <div className="flex items-center justify-center p-8 text-center">
+        <div className="space-y-2">
+          <TrendingUp className="h-12 w-12 text-blue-500 mx-auto" />
+          <p className="text-sm text-muted-foreground">
+            Børsnoteret selskab med offentligt ejerskab
+          </p>
+        </div>
+      </div>
+    );
+  }
+  
   return (
     <div className={`w-full ${heightClass}`}>
       <ResponsiveContainer width="100%" height="100%">

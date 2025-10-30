@@ -2,7 +2,7 @@
 import React from 'react';
 import { AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { extractOwnershipData } from '@/services/cvrUtils';
-import { Building2, MapPin, Calendar, Percent, Users, Network, User } from 'lucide-react';
+import { Building2, MapPin, Calendar, Percent, Users, Network, User, TrendingUp } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { generateCompanyUrl, generatePersonUrl } from '@/lib/urlUtils';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
@@ -47,49 +47,57 @@ const OwnershipAccordion: React.FC<OwnershipAccordionProps> = ({
                   ownershipData.currentOwners.map((ejer: any, index: number) => {
                     const isPerson = ejer.type === 'PERSON';
                     const isCompany = ejer.type === 'VIRKSOMHED';
-                    const borderColor = isPerson ? 'border-teal-200' : 'border-purple-200';
+                    const isListed = ejer.type === 'LISTED' || ejer._isListedCompany;
+                    const borderColor = isPerson ? 'border-teal-200' : isListed ? 'border-blue-200' : 'border-purple-200';
                     
                     return (
                       <div key={index} className={`border-l-2 sm:border-l-4 ${borderColor} pl-3 sm:pl-4 py-2`}>
                         <div className="flex items-center gap-2 flex-wrap">
-                          <TooltipProvider>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <button
-                                  onClick={() => {
-                                    if (!ejer.navn || !ejer.type) {
-                                      console.warn('[OwnershipAccordion] Invalid owner data:', ejer);
-                                      return;
-                                    }
-                                    
-                                    if (isPerson) {
-                                      const url = generatePersonUrl(ejer.navn, ejer.identifier);
-                                      navigate(url);
-                                    } else if (isCompany && ejer.identifier) {
-                                      const url = generateCompanyUrl(ejer.navn, ejer.identifier);
-                                      navigate(url);
-                                    }
-                                  }}
-                                  className="font-semibold text-sm sm:text-base hover:text-primary underline decoration-dotted underline-offset-2 text-left flex items-center gap-1.5"
-                                  disabled={!isPerson && !isCompany}
-                                >
-                                  {isPerson ? (
-                                    <User className="h-4 w-4 text-teal-600 flex-shrink-0" />
-                                  ) : isCompany ? (
-                                    <Building2 className="h-4 w-4 text-purple-600 flex-shrink-0" />
-                                  ) : null}
-                                  {ejer.navn}
-                                </button>
-                              </TooltipTrigger>
-                              <TooltipContent>
-                                <p>
-                                  {isPerson && 'Se personens tilknytninger'}
-                                  {isCompany && 'Se virksomhedsoplysninger'}
-                                  {!isPerson && !isCompany && 'Ingen detaljer tilgængelige'}
-                                </p>
-                              </TooltipContent>
-                            </Tooltip>
-                          </TooltipProvider>
+                          {isListed ? (
+                            <div className="font-semibold text-sm sm:text-base flex items-center gap-1.5">
+                              <TrendingUp className="h-4 w-4 text-blue-600 flex-shrink-0" />
+                              {ejer.navn}
+                            </div>
+                          ) : (
+                            <TooltipProvider>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <button
+                                    onClick={() => {
+                                      if (!ejer.navn || !ejer.type) {
+                                        console.warn('[OwnershipAccordion] Invalid owner data:', ejer);
+                                        return;
+                                      }
+                                      
+                                      if (isPerson) {
+                                        const url = generatePersonUrl(ejer.navn, ejer.identifier);
+                                        navigate(url);
+                                      } else if (isCompany && ejer.identifier) {
+                                        const url = generateCompanyUrl(ejer.navn, ejer.identifier);
+                                        navigate(url);
+                                      }
+                                    }}
+                                    className="font-semibold text-sm sm:text-base hover:text-primary underline decoration-dotted underline-offset-2 text-left flex items-center gap-1.5"
+                                    disabled={!isPerson && !isCompany}
+                                  >
+                                    {isPerson ? (
+                                      <User className="h-4 w-4 text-teal-600 flex-shrink-0" />
+                                    ) : isCompany ? (
+                                      <Building2 className="h-4 w-4 text-purple-600 flex-shrink-0" />
+                                    ) : null}
+                                    {ejer.navn}
+                                  </button>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  <p>
+                                    {isPerson && 'Se personens tilknytninger'}
+                                    {isCompany && 'Se virksomhedsoplysninger'}
+                                    {!isPerson && !isCompany && 'Ingen detaljer tilgængelige'}
+                                  </p>
+                                </TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
+                          )}
                           {isPerson && (
                             <Badge variant="outline" className="text-xs">
                               Person
@@ -101,30 +109,39 @@ const OwnershipAccordion: React.FC<OwnershipAccordionProps> = ({
                             </Badge>
                           )}
                         </div>
-                        <div className="text-xs sm:text-sm text-muted-foreground flex items-center gap-1 mb-1 break-words mt-1">
-                          <MapPin className="h-3 w-3 flex-shrink-0" />
-                          <span className="break-words">{ejer.adresse}</span>
-                        </div>
-                        <div className="text-xs sm:text-sm space-y-0.5">
-                          {ejer.ejerandel && ejer.ejerandel !== 'Ikke oplyst' && (
-                            <div className="flex items-center gap-1">
-                              <Percent className="h-3 w-3 flex-shrink-0" />
-                              <span>Ejerandel: <span className="font-medium">{ejer.ejerandel}</span></span>
-                            </div>
-                          )}
-                          {ejer.stemmerettigheder && ejer.stemmerettigheder !== 'Ikke oplyst' && (
-                            <div className="flex items-center gap-1">
-                              <Percent className="h-3 w-3 flex-shrink-0" />
-                              <span>Stemmerettigheder: <span className="font-medium">{ejer.stemmerettigheder}</span></span>
-                            </div>
-                          )}
-                          {ejer.periode && (
-                            <div className="flex items-center gap-1">
-                              <Calendar className="h-3 w-3 flex-shrink-0" />
-                              <span className="break-words">Periode: {ejer.periode.gyldigFra || 'Ukendt'} - {ejer.periode.gyldigTil || 'Nuværende'}</span>
-                            </div>
-                          )}
-                        </div>
+                        {!isListed && ejer.adresse && (
+                          <div className="text-xs sm:text-sm text-muted-foreground flex items-center gap-1 mb-1 break-words mt-1">
+                            <MapPin className="h-3 w-3 flex-shrink-0" />
+                            <span className="break-words">{ejer.adresse}</span>
+                          </div>
+                        )}
+                        {isListed && (
+                          <div className="text-xs sm:text-sm text-muted-foreground mt-1">
+                            Ejerskabet er fordelt blandt offentlige aktionærer
+                          </div>
+                        )}
+                        {!isListed && (
+                          <div className="text-xs sm:text-sm space-y-0.5">
+                            {ejer.ejerandel && ejer.ejerandel !== 'Ikke oplyst' && (
+                              <div className="flex items-center gap-1">
+                                <Percent className="h-3 w-3 flex-shrink-0" />
+                                <span>Ejerandel: <span className="font-medium">{ejer.ejerandel}</span></span>
+                              </div>
+                            )}
+                            {ejer.stemmerettigheder && ejer.stemmerettigheder !== 'Ikke oplyst' && (
+                              <div className="flex items-center gap-1">
+                                <Percent className="h-3 w-3 flex-shrink-0" />
+                                <span>Stemmerettigheder: <span className="font-medium">{ejer.stemmerettigheder}</span></span>
+                              </div>
+                            )}
+                            {ejer.periode && ejer.periode.gyldigFra && (
+                              <div className="flex items-center gap-1">
+                                <Calendar className="h-3 w-3 flex-shrink-0" />
+                                <span className="break-words">Periode: {ejer.periode.gyldigFra || 'Ukendt'} - {ejer.periode.gyldigTil || 'Nuværende'}</span>
+                              </div>
+                            )}
+                          </div>
+                        )}
                       </div>
                     );
                   })

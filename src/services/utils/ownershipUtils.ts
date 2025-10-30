@@ -27,20 +27,63 @@ export const extractOwnershipData = (cvrData: any) => {
   // Handle both wrapped and unwrapped Vrvirksomhed data structures
   const vrvirksomhed = cvrData?.Vrvirksomhed || cvrData;
   
+  // Check if the company is publicly traded (børsnoteret)
+  const checkIfListed = (): boolean => {
+    const attributter = vrvirksomhed?.attributter || [];
+    const boersAttr = attributter.find((attr: any) => 
+      attr.type === 'BØRSNOTERET' || 
+      attr.type === 'BOERSNOTERET' ||
+      attr.type?.toUpperCase().includes('BØRS')
+    );
+    
+    if (boersAttr?.vaerdier) {
+      const currentValue = boersAttr.vaerdier.find((v: any) => v.periode?.gyldigTil === null);
+      const value = currentValue || boersAttr.vaerdier[boersAttr.vaerdier.length - 1];
+      return value?.vaerdi === 'true' || value?.vaerdi === true || value?.vaerdi === 'Ja';
+    }
+    
+    const directValue = vrvirksomhed?.boersnoteret;
+    return directValue === true || directValue === 'true' || directValue === 'Ja';
+  };
+  
+  const isListed = checkIfListed();
+  
   if (!vrvirksomhed || !vrvirksomhed.deltagerRelation) {
     console.log('[ownershipUtils] No valid data structure found:', {
       hasCvrData: !!cvrData,
       hasVrvirksomhed: !!cvrData?.Vrvirksomhed,
       isUnwrapped: !!cvrData?.deltagerRelation,
-      structure: cvrData ? Object.keys(cvrData).slice(0, 5) : []
+      structure: cvrData ? Object.keys(cvrData).slice(0, 5) : [],
+      isListed
     });
+    
+    // If company is listed but no ownership data, return special entry
+    if (isListed) {
+      return {
+        currentOwners: [{
+          navn: 'Børsnoteret - offentligt handlet',
+          adresse: '',
+          ejerandel: '100%',
+          stemmerettigheder: '100%',
+          periode: { gyldigFra: '', gyldigTil: '' },
+          type: 'LISTED' as const,
+          identifier: '',
+          cvr: undefined,
+          _hasEnrichedData: false,
+          _isListedCompany: true
+        }],
+        subsidiaries: []
+      };
+    }
+    
     return { currentOwners: [], subsidiaries: [] };
   }
 
   console.log('[ownershipUtils] ✓ Data structure detected:', {
     isWrapped: !!cvrData?.Vrvirksomhed,
     hasRelations: !!vrvirksomhed.deltagerRelation,
-    relationCount: vrvirksomhed.deltagerRelation?.length || 0
+    relationCount: vrvirksomhed.deltagerRelation?.length || 0,
+    isListed
   });
 
   // Helper function to check if an organization has actual ownership percentage data
@@ -398,6 +441,25 @@ export const extractOwnershipData = (cvrData: any) => {
 
   const ownershipFromRelations = getOwnershipFromRelations();
   const subsidiariesFromRelations = getSubsidiariesFromRelations();
+
+  // If company is listed and no specific owners found, return special entry
+  if (isListed && ownershipFromRelations.length === 0) {
+    return {
+      currentOwners: [{
+        navn: 'Børsnoteret - offentligt handlet',
+        adresse: '',
+        ejerandel: '100%',
+        stemmerettigheder: '100%',
+        periode: { gyldigFra: '', gyldigTil: '' },
+        type: 'LISTED' as const,
+        identifier: '',
+        cvr: undefined,
+        _hasEnrichedData: false,
+        _isListedCompany: true
+      }],
+      subsidiaries: subsidiariesFromRelations
+    };
+  }
 
   return {
     currentOwners: ownershipFromRelations,
