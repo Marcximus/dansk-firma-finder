@@ -215,7 +215,12 @@ const OwnershipChart: React.FC<OwnershipChartProps> = ({ owners }) => {
             </Pie>
           )}
           
-          <Tooltip content={<CustomTooltip />} />
+          <Tooltip 
+            content={<CustomTooltip />} 
+            wrapperStyle={{ outline: 'none' }}
+            position={{ x: 0, y: 0 }}
+            allowEscapeViewBox={{ x: true, y: true }}
+          />
         </PieChart>
       </ResponsiveContainer>
     </div>
