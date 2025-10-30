@@ -179,7 +179,25 @@ const BasicInfoAccordion: React.FC<BasicInfoAccordionProps> = ({ company, cvrDat
             <InfoRow 
               icon={User} 
               label="Direktør" 
-              value={ceo} 
+              value={
+                <button
+                  onClick={() => {
+                    const accordionTrigger = document.querySelector('[data-accordion-value="signing-rules"]') as HTMLElement;
+                    if (accordionTrigger) {
+                      const accordionItem = accordionTrigger.closest('[data-state]');
+                      if (accordionItem && accordionItem.getAttribute('data-state') === 'closed') {
+                        accordionTrigger.click();
+                      }
+                      setTimeout(() => {
+                        accordionTrigger.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                      }, 100);
+                    }
+                  }}
+                  className="text-primary hover:underline cursor-pointer text-left"
+                >
+                  {ceo}
+                </button>
+              }
             />
           )}
           
