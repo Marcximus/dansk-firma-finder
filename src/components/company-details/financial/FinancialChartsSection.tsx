@@ -30,10 +30,15 @@ const FinancialChartsSection: React.FC<FinancialChartsSectionProps> = ({ histori
 
   const formatCurrency = (value: number) => `${value} mio. DKK`;
 
+  // Check if all nettoomsaetning values are 0
+  const allRevenueZero = chartData.every(d => d.nettoomsaetning === 0);
+  const revenueKey = allRevenueZero ? 'bruttofortjeneste' : 'nettoomsaetning';
+  const revenueLabel = allRevenueZero ? 'Bruttofortjeneste' : 'Nettoomsætning';
+
   // Chart config for dual-line chart
   const revenueAndResultConfig = {
-    nettoomsaetning: {
-      label: "Nettoomsætning",
+    [revenueKey]: {
+      label: revenueLabel,
       color: "hsl(142, 76%, 36%)",
     },
     aaretsResultat: {
@@ -62,7 +67,7 @@ const FinancialChartsSection: React.FC<FinancialChartsSectionProps> = ({ histori
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <DollarSign className="h-4 w-4" />
-            Nettoomsætning & Årets resultat (mio. DKK)
+            {revenueLabel} & Årets resultat (mio. DKK)
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -94,10 +99,10 @@ const FinancialChartsSection: React.FC<FinancialChartsSectionProps> = ({ histori
               <ReferenceLine y={0} stroke="hsl(var(--muted-foreground))" strokeDasharray="3 3" strokeOpacity={0.5} />
               <Line 
                 type="monotone" 
-                dataKey="nettoomsaetning" 
-                stroke="var(--color-nettoomsaetning)"
+                dataKey={revenueKey}
+                stroke={`var(--color-${revenueKey})`}
                 strokeWidth={3}
-                dot={{ fill: "var(--color-nettoomsaetning)", strokeWidth: 2, r: 5 }}
+                dot={{ fill: `var(--color-${revenueKey})`, strokeWidth: 2, r: 5 }}
                 activeDot={{ r: 7 }}
               />
               <Line 
