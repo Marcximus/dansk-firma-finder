@@ -9,6 +9,7 @@ import { format } from 'date-fns';
 import { da } from 'date-fns/locale';
 import { useNavigate } from 'react-router-dom';
 import { generateCompanyUrl, generatePersonUrl } from '@/lib/urlUtils';
+import { useToast } from '@/hooks/use-toast';
 
 interface ExtendedInfoAccordionProps {
   company: Company;
@@ -17,6 +18,7 @@ interface ExtendedInfoAccordionProps {
 
 const ExtendedInfoAccordion: React.FC<ExtendedInfoAccordionProps> = ({ company, cvrData }) => {
   const navigate = useNavigate();
+  const { toast } = useToast();
   console.log('ExtendedInfoAccordion - Raw CVR Data:', cvrData);
   
   const extendedInfo = extractExtendedInfo(cvrData);
@@ -339,12 +341,31 @@ const ExtendedInfoAccordion: React.FC<ExtendedInfoAccordionProps> = ({ company, 
                         {canNavigate ? (
                           <button
                             onClick={() => {
-                              if (isPerson) {
-                                const url = generatePersonUrl(founder.name, founder.identifier);
-                                navigate(url);
-                              } else if (isCompany && founder.identifier) {
-                                const url = generateCompanyUrl(founder.name, founder.identifier);
-                                navigate(url);
+                              try {
+                                if (isPerson) {
+                                  const url = generatePersonUrl(founder.name, founder.identifier);
+                                  navigate(url);
+                                } else if (isCompany && founder.identifier) {
+                                  // Check if identifier looks like a valid CVR (8 digits)
+                                  const isCVR = founder.identifier.length === 8 && /^\d+$/.test(founder.identifier);
+                                  if (!isCVR) {
+                                    toast({
+                                      title: "Kan ikke vise virksomhed",
+                                      description: "Virksomhedsoplysninger er ikke tilgængelige for denne stifter.",
+                                      variant: "destructive"
+                                    });
+                                    return;
+                                  }
+                                  const url = generateCompanyUrl(founder.name, founder.identifier);
+                                  navigate(url);
+                                }
+                              } catch (error) {
+                                console.error('Navigation error:', error);
+                                toast({
+                                  title: "Fejl",
+                                  description: "Kunne ikke navigere til denne side.",
+                                  variant: "destructive"
+                                });
                               }
                             }}
                             className="font-medium hover:text-primary underline decoration-dotted underline-offset-2 text-left inline-flex items-center gap-1.5"
