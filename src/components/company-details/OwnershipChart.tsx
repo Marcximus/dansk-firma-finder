@@ -48,10 +48,10 @@ const OwnershipChart: React.FC<OwnershipChartProps> = ({ owners }) => {
 
   // Calculate dynamic height based on number of owners
   const calculateHeight = (numOwners: number): string => {
-    if (numOwners <= 1) return 'h-[200px] sm:h-[220px] md:h-[250px]';
-    if (numOwners === 2) return 'h-[250px] sm:h-[280px] md:h-[320px]';
-    if (numOwners === 3) return 'h-[280px] sm:h-[320px] md:h-[360px]';
-    return 'h-[320px] sm:h-[360px] md:h-[400px]'; // 4 or more
+    if (numOwners <= 1) return 'h-[180px] sm:h-[200px] md:h-[220px]';
+    if (numOwners === 2) return 'h-[200px] sm:h-[220px] md:h-[260px]';
+    if (numOwners === 3) return 'h-[220px] sm:h-[250px] md:h-[280px]';
+    return 'h-[240px] sm:h-[270px] md:h-[300px]'; // 4 or more
   };
 
   // Prepare data for ownership (outer ring)
