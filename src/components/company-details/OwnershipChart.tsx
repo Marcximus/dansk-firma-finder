@@ -20,6 +20,7 @@ interface ChartDataPoint {
   ownershipValue?: string;
   votingValue?: string;
   isCertain?: boolean;
+  ring?: 'ownership' | 'voting';
 }
 
 const COLORS = [
@@ -70,6 +71,7 @@ const OwnershipChart: React.FC<OwnershipChartProps> = ({ owners }) => {
         ownershipValue: owner.ejerandel || 'Ikke oplyst',
         votingValue: owner.stemmerettigheder || 'Ikke oplyst',
         isCertain: !range.isRange,
+        ring: 'ownership',
       });
     }
   });
@@ -89,6 +91,7 @@ const OwnershipChart: React.FC<OwnershipChartProps> = ({ owners }) => {
         ownershipValue: owner.ejerandel || 'Ikke oplyst',
         votingValue: owner.stemmerettigheder || 'Ikke oplyst',
         isCertain: !range.isRange,
+        ring: 'voting',
       });
     }
   });
@@ -100,60 +103,41 @@ const OwnershipChart: React.FC<OwnershipChartProps> = ({ owners }) => {
   const CustomTooltip = ({ active, payload }: any) => {
     if (active && payload && payload.length) {
       const data = payload[0].payload;
+      const isOwnershipRing = data.ring === 'ownership';
       
-      // Parse ownership range
-      const ownershipRange = parsePercentageRange(data.ownershipValue);
-      const votingRange = parsePercentageRange(data.votingValue);
+      // Parse the relevant range based on which ring is being hovered
+      const range = parsePercentageRange(isOwnershipRing ? data.ownershipValue : data.votingValue);
+      const label = isOwnershipRing ? 'Ejerandel' : 'Stemmerettigheder';
+      const value = isOwnershipRing ? data.ownershipValue : data.votingValue;
       
       return (
-        <div className="bg-background border border-border rounded-lg shadow-lg p-4 min-w-[240px]">
+        <div className="bg-background border border-border rounded-lg shadow-lg p-4 min-w-[220px]">
           <p className="font-semibold text-sm mb-3 border-b border-border pb-2">{data.name}</p>
           
-          <div className="space-y-3">
-            <div>
-              <div className="flex justify-between items-center gap-4 mb-1">
-                <span className="text-xs font-medium text-foreground">Ejerandel:</span>
-                <span className="text-xs font-semibold text-foreground">{data.ownershipValue}</span>
-              </div>
-              {ownershipRange.isRange && (
-                <div className="ml-2 space-y-0.5">
-                  <div className="flex justify-between items-center gap-4">
-                    <span className="text-xs text-muted-foreground">• Minimum:</span>
-                    <span className="text-xs text-muted-foreground">{ownershipRange.min}%</span>
-                  </div>
-                  <div className="flex justify-between items-center gap-4">
-                    <span className="text-xs text-muted-foreground">• Maksimum:</span>
-                    <span className="text-xs text-muted-foreground">{ownershipRange.max}%</span>
-                  </div>
-                </div>
-              )}
+          <div>
+            <div className="flex justify-between items-center gap-4 mb-1">
+              <span className="text-xs font-medium text-foreground">{label}:</span>
+              <span className="text-xs font-semibold text-foreground">{value}</span>
             </div>
-            
-            <div>
-              <div className="flex justify-between items-center gap-4 mb-1">
-                <span className="text-xs font-medium text-foreground">Stemmerettigheder:</span>
-                <span className="text-xs font-semibold text-foreground">{data.votingValue}</span>
-              </div>
-              {votingRange.isRange && (
-                <div className="ml-2 space-y-0.5">
-                  <div className="flex justify-between items-center gap-4">
-                    <span className="text-xs text-muted-foreground">• Minimum:</span>
-                    <span className="text-xs text-muted-foreground">{votingRange.min}%</span>
-                  </div>
-                  <div className="flex justify-between items-center gap-4">
-                    <span className="text-xs text-muted-foreground">• Maksimum:</span>
-                    <span className="text-xs text-muted-foreground">{votingRange.max}%</span>
-                  </div>
+            {range.isRange && (
+              <div className="ml-2 space-y-0.5">
+                <div className="flex justify-between items-center gap-4">
+                  <span className="text-xs text-muted-foreground">• Minimum:</span>
+                  <span className="text-xs text-muted-foreground">{range.min}%</span>
                 </div>
-              )}
-            </div>
+                <div className="flex justify-between items-center gap-4">
+                  <span className="text-xs text-muted-foreground">• Maksimum:</span>
+                  <span className="text-xs text-muted-foreground">{range.max}%</span>
+                </div>
+              </div>
+            )}
           </div>
           
-          {(ownershipRange.isRange || votingRange.isRange) && (
+          {range.isRange && (
             <div className="mt-3 pt-3 border-t border-border">
               <p className="text-xs text-muted-foreground flex items-start gap-1.5">
                 <span className="text-sm">💡</span>
-                <span>Ejerandelen er et estimat baseret på intervaller</span>
+                <span>{label} er et estimat baseret på intervaller</span>
               </p>
             </div>
           )}
