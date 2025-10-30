@@ -108,7 +108,43 @@ const BasicInfoAccordion: React.FC<BasicInfoAccordionProps> = ({ company, cvrDat
     };
   };
 
+  const getCEO = () => {
+    const vrvirksomhed = cvrData?.Vrvirksomhed || cvrData;
+    if (!vrvirksomhed?.deltagerRelation) return null;
+    
+    for (const relation of vrvirksomhed.deltagerRelation) {
+      const personName = relation.deltager?.navne?.find((n: any) => n.periode?.gyldigTil === null)?.navn ||
+                        relation.deltager?.navne?.[relation.deltager.navne.length - 1]?.navn;
+      
+      if (relation.organisationer) {
+        for (const org of relation.organisationer) {
+          if (org.hovedtype === 'DIREKTION') {
+            return personName;
+          }
+          
+          if (org.medlemsData) {
+            for (const medlem of org.medlemsData) {
+              if (medlem.attributter) {
+                for (const attr of medlem.attributter) {
+                  if (attr.type === 'FUNKTION' && attr.vaerdier) {
+                    for (const vaerdi of attr.vaerdier) {
+                      if (vaerdi.vaerdi === 'DIREKTØR' || vaerdi.vaerdi?.includes('DIREKTØR')) {
+                        return personName;
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+    return null;
+  };
+
   const address = getAddress();
+  const ceo = getCEO();
   const extendedInfo = extractExtendedInfo(cvrData);
 
   return (
@@ -138,6 +174,14 @@ const BasicInfoAccordion: React.FC<BasicInfoAccordionProps> = ({ company, cvrDat
             label="Adresse" 
             value={`${address.street}, ${address.postal} ${address.city}`} 
           />
+          
+          {ceo && (
+            <InfoRow 
+              icon={User} 
+              label="Direktør" 
+              value={ceo} 
+            />
+          )}
           
           <InfoRow 
             icon={Briefcase} 
