@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { Users, Calendar, TrendingUp, ChevronDown, ChevronUp } from 'lucide-react';
+import { Users, Calendar, TrendingUp, ChevronDown, ChevronUp, Info } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface EmploymentDataCardProps {
   monthlyEmployment?: any[];
@@ -98,21 +99,68 @@ const EmploymentDataCard: React.FC<EmploymentDataCardProps> = ({
           <table className="w-full text-sm">
             <thead className="border-b-2 border-border bg-muted/50">
               <tr>
-                <th className="text-left py-3 px-4 font-semibold">Periode</th>
+                <th className="text-left py-3 px-4 font-semibold">
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger className="inline-flex items-center gap-1 cursor-help">
+                        Periode <Info className="h-3 w-3" />
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Den periode som medarbejderdataen dækker over</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </th>
                 <th className="text-right py-3 px-4 font-semibold">
-                  Ansatte
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger className="inline-flex items-center gap-1 cursor-help">
+                        Ansatte <Info className="h-3 w-3" />
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Det samlede antal ansatte (hovedtal) i perioden.<br />Dette er antal personer ansat, uanset timetal.</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
                   <div className="text-xs text-muted-foreground font-normal">(Total)</div>
                 </th>
                 <th className="text-right py-3 px-4 font-semibold">
-                  Ændring
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger className="inline-flex items-center gap-1 cursor-help">
+                        Ændring <Info className="h-3 w-3" />
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Ændring i antal ansatte siden forrige periode.<br />Grøn = vækst, Rød = fald</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
                   <div className="text-xs text-muted-foreground font-normal">(Fra forrige)</div>
                 </th>
                 <th className="text-right py-3 px-4 font-semibold">
-                  Fuldtid
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger className="inline-flex items-center gap-1 cursor-help">
+                        Fuldtid <Info className="h-3 w-3" />
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Årsværk (FTE - Full Time Equivalent).<br />Arbejdskapacitet målt i fuldtidsækvivalenter.<br />F.eks. 1.47 = 1 fuldtid + 1 person på 47% tid</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
                   <div className="text-xs text-muted-foreground font-normal">(Årsværk)</div>
                 </th>
                 <th className="text-right py-3 px-4 font-semibold">
-                  Deltid
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger className="inline-flex items-center gap-1 cursor-help">
+                        Deltid <Info className="h-3 w-3" />
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Estimeret forskel mellem antal ansatte og årsværk.<br />Dette indikerer omfanget af deltidsansatte.<br />Bemærk: Dette er ikke præcist antal deltidsansatte,<br />men et estimat baseret på forskellen.</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
                   <div className="text-xs text-muted-foreground font-normal">(Forskel)</div>
                 </th>
               </tr>
