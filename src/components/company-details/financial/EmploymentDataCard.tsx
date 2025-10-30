@@ -3,21 +3,19 @@ import { Users, Calendar, TrendingUp, ChevronDown, ChevronUp, Info } from 'lucid
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-
 interface EmploymentDataCardProps {
   monthlyEmployment?: any[];
   yearlyEmployment: any[];
   quarterlyEmployment: any[];
 }
-
-const EmploymentDataCard: React.FC<EmploymentDataCardProps> = ({ 
-  monthlyEmployment, 
-  yearlyEmployment, 
-  quarterlyEmployment 
+const EmploymentDataCard: React.FC<EmploymentDataCardProps> = ({
+  monthlyEmployment,
+  yearlyEmployment,
+  quarterlyEmployment
 }) => {
   const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'Maj', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dec'];
   const [isExpanded, setIsExpanded] = useState(false);
-  
+
   // Helper to format period
   const formatPeriod = (item: any) => {
     if (item.maaned !== undefined && item.maaned !== null && item.aar) {
@@ -37,61 +35,53 @@ const EmploymentDataCard: React.FC<EmploymentDataCardProps> = ({
 
   // Determine which data to display (priority: monthly > quarterly > yearly)
   // For monthly: show 36 months (3 years)
-  const displayData = monthlyEmployment && monthlyEmployment.length > 0 
-    ? { data: monthlyEmployment.slice(0, 36), type: 'Månedsdata', icon: Calendar, collapsible: true, defaultShow: 8 }
-    : quarterlyEmployment && quarterlyEmployment.length > 0
-    ? { data: quarterlyEmployment.slice(0, 12), type: 'Kvartalsdata', icon: TrendingUp, collapsible: false, defaultShow: 12 }
-    : yearlyEmployment && yearlyEmployment.length > 0
-    ? { data: yearlyEmployment.slice(0, 10), type: 'Årsdata', icon: Users, collapsible: false, defaultShow: 10 }
-    : null;
-
+  const displayData = monthlyEmployment && monthlyEmployment.length > 0 ? {
+    data: monthlyEmployment.slice(0, 36),
+    type: 'Månedsdata',
+    icon: Calendar,
+    collapsible: true,
+    defaultShow: 8
+  } : quarterlyEmployment && quarterlyEmployment.length > 0 ? {
+    data: quarterlyEmployment.slice(0, 12),
+    type: 'Kvartalsdata',
+    icon: TrendingUp,
+    collapsible: false,
+    defaultShow: 12
+  } : yearlyEmployment && yearlyEmployment.length > 0 ? {
+    data: yearlyEmployment.slice(0, 10),
+    type: 'Årsdata',
+    icon: Users,
+    collapsible: false,
+    defaultShow: 10
+  } : null;
   if (!displayData) {
-    return (
-      <Card>
+    return <Card>
         <CardContent className="py-8">
           <p className="text-sm text-muted-foreground text-center">
             Ingen medarbejderdata tilgængelig
           </p>
         </CardContent>
-      </Card>
-    );
+      </Card>;
   }
-
   const Icon = displayData.icon;
-  
-  // Determine how many rows to show
-  const visibleData = displayData.collapsible && !isExpanded 
-    ? displayData.data.slice(0, displayData.defaultShow)
-    : displayData.data;
-  
-  const hasMoreData = displayData.collapsible && displayData.data.length > displayData.defaultShow;
 
-  return (
-    <Card>
+  // Determine how many rows to show
+  const visibleData = displayData.collapsible && !isExpanded ? displayData.data.slice(0, displayData.defaultShow) : displayData.data;
+  const hasMoreData = displayData.collapsible && displayData.data.length > displayData.defaultShow;
+  return <Card>
       <CardHeader>
         <CardTitle className="flex items-center justify-between">
           <div className="flex items-center gap-2 text-lg">
             <Icon className="h-5 w-5" />
             Medarbejderhistorik - {displayData.type}
           </div>
-          {hasMoreData && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setIsExpanded(!isExpanded)}
-              className="gap-2"
-            >
-              {isExpanded ? (
-                <>
+          {hasMoreData && <Button variant="ghost" size="sm" onClick={() => setIsExpanded(!isExpanded)} className="gap-2">
+              {isExpanded ? <>
                   Vis mindre <ChevronUp className="h-4 w-4" />
-                </>
-              ) : (
-                <>
+                </> : <>
                   Vis alle ({displayData.data.length}) <ChevronDown className="h-4 w-4" />
-                </>
-              )}
-            </Button>
-          )}
+                </>}
+            </Button>}
         </CardTitle>
       </CardHeader>
       <CardContent className="px-0 sm:px-6">
@@ -161,28 +151,21 @@ const EmploymentDataCard: React.FC<EmploymentDataCardProps> = ({
                       </TooltipContent>
                     </Tooltip>
                   </TooltipProvider>
-                  <div className="text-xs text-muted-foreground font-normal">(Forskel)</div>
+                  <div className="text-xs text-muted-foreground font-normal">(Anslået)</div>
                 </th>
               </tr>
             </thead>
             <tbody>
               {visibleData.map((item: any, index: number) => {
-                const ansatte = item.antalAnsatte || 0;
-                const aarsvaerk = item.antalAarsvaerk || 0;
-                const deltid = ansatte - aarsvaerk;
-                
-                // Calculate change from previous period (next item in array since data is newest first)
-                const previousItem = visibleData[index + 1];
-                const previousAnsatte = previousItem?.antalAnsatte || 0;
-                const change = index < visibleData.length - 1 ? ansatte - previousAnsatte : null;
-                
-                return (
-                  <tr 
-                    key={index} 
-                    className={`border-b border-border hover:bg-muted/30 transition-colors ${
-                      index % 2 === 0 ? 'bg-background' : 'bg-muted/20'
-                    }`}
-                  >
+              const ansatte = item.antalAnsatte || 0;
+              const aarsvaerk = item.antalAarsvaerk || 0;
+              const deltid = ansatte - aarsvaerk;
+
+              // Calculate change from previous period (next item in array since data is newest first)
+              const previousItem = visibleData[index + 1];
+              const previousAnsatte = previousItem?.antalAnsatte || 0;
+              const change = index < visibleData.length - 1 ? ansatte - previousAnsatte : null;
+              return <tr key={index} className={`border-b border-border hover:bg-muted/30 transition-colors ${index % 2 === 0 ? 'bg-background' : 'bg-muted/20'}`}>
                     <td className="py-3 px-4 font-medium">
                       {formatPeriod(item)}
                     </td>
@@ -190,51 +173,35 @@ const EmploymentDataCard: React.FC<EmploymentDataCardProps> = ({
                       {ansatte}
                     </td>
                     <td className="text-right py-3 px-4 tabular-nums">
-                      {change !== null ? (
-                        <span className={change > 0 ? 'text-green-600' : change < 0 ? 'text-red-600' : 'text-muted-foreground'}>
+                      {change !== null ? <span className={change > 0 ? 'text-green-600' : change < 0 ? 'text-red-600' : 'text-muted-foreground'}>
                           {change > 0 ? '+' : ''}{change}
-                        </span>
-                      ) : (
-                        <span className="text-muted-foreground">-</span>
-                      )}
+                        </span> : <span className="text-muted-foreground">-</span>}
                     </td>
                     <td className="text-right py-3 px-4 tabular-nums">
                       {aarsvaerk.toFixed(1)}
                     </td>
-                    <td className="text-right py-3 px-4 tabular-nums">
-                      {deltid.toFixed(1)}
+                    <td className="text-right py-3 px-4 tabular-nums text-muted-foreground">
+                      {deltid > 0 ? `+${deltid.toFixed(1)}` : deltid.toFixed(1)}
                     </td>
-                  </tr>
-                );
-              })}
+                  </tr>;
+            })}
             </tbody>
           </table>
         </div>
         
         {/* Show expand button at bottom if collapsed */}
-        {hasMoreData && !isExpanded && (
-          <div className="mt-4 text-center">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setIsExpanded(true)}
-              className="gap-2"
-            >
+        {hasMoreData && !isExpanded && <div className="mt-4 text-center">
+            <Button variant="outline" size="sm" onClick={() => setIsExpanded(true)} className="gap-2">
               Vis yderligere {displayData.data.length - displayData.defaultShow} måneder
               <ChevronDown className="h-4 w-4" />
             </Button>
-          </div>
-        )}
+          </div>}
         
         {/* Additional info if we have it */}
-        {displayData.data.some((item: any) => item.antalInklusivEjere) && (
-          <div className="mt-4 px-4 py-3 bg-muted/30 rounded-md text-xs text-muted-foreground">
+        {displayData.data.some((item: any) => item.antalInklusivEjere) && <div className="mt-4 px-4 py-3 bg-muted/30 rounded-md text-xs text-muted-foreground">
             <strong>Note:</strong> Nogle perioder inkluderer antal ansatte inkl. ejere
-          </div>
-        )}
+          </div>}
       </CardContent>
-    </Card>
-  );
+    </Card>;
 };
-
 export default EmploymentDataCard;
