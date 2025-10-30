@@ -380,8 +380,7 @@ const SalaryInformationCard: React.FC<SalaryInformationCardProps> = ({ historica
                     }}
                     formatter={(value: any) => [formatCurrency(value), 'Gennemsnitlig løn']}
                   />
-                  <Legend wrapperStyle={{ fontSize: '12px' }} />
-                  <Line 
+                  <Line
                     type="monotone"
                     dataKey="avgSalary" 
                     stroke="hsl(var(--chart-1))" 
