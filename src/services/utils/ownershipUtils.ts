@@ -39,12 +39,8 @@ const parseOwnershipRange = (rangeStr: string): { min: number; max: number; midp
 
 // Extract ticker symbol from CVR data
 const extractTickerSymbol = (vrvirksomhed: any): string | undefined => {
-  console.log('🔍 extractTickerSymbol called with:', {
-    vrvirksomhed: vrvirksomhed,
-    cvrNummer: vrvirksomhed?.cvrNummer,
-    hasAttributter: !!vrvirksomhed?.attributter,
-    attributterLength: vrvirksomhed?.attributter?.length
-  });
+  console.log('=== EXTRACT TICKER SYMBOL ===');
+  console.log('CVR number:', vrvirksomhed?.cvrNummer);
   
   // Look for ticker in various places in the CVR data
   const attributter = vrvirksomhed?.attributter || [];
@@ -73,34 +69,21 @@ const extractTickerSymbol = (vrvirksomhed: any): string | undefined => {
   };
   
   const cvrNummer = vrvirksomhed?.cvrNummer?.toString();
-  console.log('🔍 Checking hardcoded mapping:', {
-    cvrNummer,
-    foundInMapping: !!cvrToTicker[cvrNummer],
-    ticker: cvrToTicker[cvrNummer]
-  });
+  console.log('Checking mapping for CVR:', cvrNummer, 'Found:', cvrToTicker[cvrNummer]);
   
   const result = cvrToTicker[cvrNummer];
-  console.log('🎯 extractTickerSymbol returning:', result);
+  console.log('Returning ticker:', result);
   return result;
 };
 
 export const extractOwnershipData = (cvrData: any) => {
-  console.log('🏢 extractOwnershipData called with cvrData:', {
-    hasCvrData: !!cvrData,
-    hasVrvirksomhedNested: !!cvrData?.Vrvirksomhed,
-    hasVrvirksomhedDirect: !!cvrData?.vrvirksomhed,
-    cvrDataKeys: cvrData ? Object.keys(cvrData).slice(0, 10) : []
-  });
+  console.log('=== EXTRACT OWNERSHIP DATA CALLED ===');
+  console.log('cvrData keys:', cvrData ? Object.keys(cvrData) : 'null');
   
   // Handle both wrapped and unwrapped Vrvirksomhed data structures
   const vrvirksomhed = cvrData?.Vrvirksomhed || cvrData?.vrvirksomhed || cvrData;
   
-  console.log('🏢 vrvirksomhed extracted:', {
-    hasVrvirksomhed: !!vrvirksomhed,
-    cvrNummer: vrvirksomhed?.cvrNummer,
-    hasAttributter: !!vrvirksomhed?.attributter,
-    attributterCount: vrvirksomhed?.attributter?.length
-  });
+  console.log('vrvirksomhed extracted, CVR:', vrvirksomhed?.cvrNummer);
   
   // Check if the company is publicly traded (børsnoteret)
   const checkIfListed = (): boolean => {
