@@ -199,11 +199,29 @@ const ExtendedInfoAccordion: React.FC<ExtendedInfoAccordionProps> = ({ company, 
             value={getStartDate()} 
           />
           
-          {company.founders && (
+          {company.founders && company.founders.length > 0 && (
             <InfoRow 
               icon={User} 
               label="Stiftet af" 
-              value={company.founders} 
+              value={
+                <div className="flex flex-wrap gap-1">
+                  {company.founders.map((founder, index) => (
+                    <span key={index}>
+                      {founder.cvr ? (
+                        <a
+                          href={`/company/${founder.cvr}`}
+                          className="text-primary hover:underline"
+                        >
+                          {founder.name}
+                        </a>
+                      ) : (
+                        <span>{founder.name}</span>
+                      )}
+                      {index < company.founders!.length - 1 && ', '}
+                    </span>
+                  ))}
+                </div>
+              }
             />
           )}
 

@@ -16,7 +16,7 @@ export interface CompanyTransformationResult {
   email: string | null;
   legalForm: string;
   status: string;
-  founders: string | null;
+  founders: Array<{ name: string; cvr?: string }> | null;
   realCvrData: any;
   foundPersons?: string[]; // Track found persons in search
 }
@@ -114,7 +114,7 @@ export const transformCompanyData = (hit: any, determineLegalForm: (vrvirksomhed
   const website = currentWebsite?.kontaktoplysning || vrvirksomhed.hjemmeside?.[vrvirksomhed.hjemmeside.length - 1]?.kontaktoplysning || null;
   
   // Get founders from deltagerRelation
-  let founders: string | null = null;
+  let founders: Array<{ name: string; cvr?: string }> | null = null;
   if (vrvirksomhed.deltagerRelation) {
     const founderRelations = vrvirksomhed.deltagerRelation.filter((relation: any) => {
       // Check enriched _medlemsData first
@@ -141,12 +141,19 @@ export const transformCompanyData = (hit: any, determineLegalForm: (vrvirksomhed
     });
     
     if (founderRelations.length > 0) {
-      const founderNames = founderRelations.map((relation: any) => {
+      founders = founderRelations.map((relation: any) => {
         const deltager = relation._enrichedDeltagerData || relation.deltager;
         const currentName = deltager?.navne?.find((n: any) => n.periode?.gyldigTil === null);
-        return currentName?.navn || deltager?.navne?.[deltager.navne.length - 1]?.navn || 'Ikke oplyst';
+        const name = currentName?.navn || deltager?.navne?.[deltager.navne.length - 1]?.navn || 'Ikke oplyst';
+        
+        // Extract CVR number if the founder is a company (virksomhed)
+        let cvr: string | undefined = undefined;
+        if (deltager?.enhedstype === 'VIRKSOMHED') {
+          cvr = deltager?.enhedsNummer?.toString();
+        }
+        
+        return { name, cvr };
       });
-      founders = founderNames.join(', ');
     }
   }
   
