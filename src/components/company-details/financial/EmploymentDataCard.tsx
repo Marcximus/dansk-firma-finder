@@ -201,8 +201,8 @@ const EmploymentDataCard: React.FC<EmploymentDataCardProps> = ({
                     <td className="text-right py-3 px-4 tabular-nums">
                       {aarsvaerk.toFixed(1)}
                     </td>
-                    <td className="text-right py-3 px-4 tabular-nums text-muted-foreground">
-                      {deltid > 0 ? `+${deltid.toFixed(1)}` : deltid.toFixed(1)}
+                    <td className="text-right py-3 px-4 tabular-nums">
+                      {deltid.toFixed(1)}
                     </td>
                   </tr>
                 );
