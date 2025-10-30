@@ -11,22 +11,23 @@ interface FinancialChartsSectionProps {
 
 const FinancialChartsSection: React.FC<FinancialChartsSectionProps> = ({ historicalData }) => {
   // Format data for charts - oldest to newest (left to right)
-  const chartData = historicalData.map(data => ({
-    year: data.year.toString(),
-    nettoomsaetning: Math.round(data.nettoomsaetning / 1000000), // Convert to millions
-    bruttofortjeneste: Math.round(data.bruttofortjeneste / 1000000),
-    aaretsResultat: Math.round(data.aaretsResultat / 1000000),
-    egenkapital: Math.round(data.egenkapital / 1000000)
-  })).slice().reverse();
+  const chartData = historicalData.map(data => {
+    const aaretsResultat = Math.round(data.aaretsResultat / 1000000);
+    const egenkapital = Math.round(data.egenkapital / 1000000);
+    
+    return {
+      year: data.year.toString(),
+      nettoomsaetning: Math.round(data.nettoomsaetning / 1000000), // Convert to millions
+      bruttofortjeneste: Math.round(data.bruttofortjeneste / 1000000),
+      aaretsResultat,
+      aaretsResultatPositive: aaretsResultat >= 0 ? aaretsResultat : null,
+      aaretsResultatNegative: aaretsResultat < 0 ? aaretsResultat : null,
+      egenkapital,
+      egenkapitalPositive: egenkapital >= 0 ? egenkapital : null,
+      egenkapitalNegative: egenkapital < 0 ? egenkapital : null,
+    };
+  }).slice().reverse();
 
-  // Determine if data is predominantly positive or negative
-  const hasNegativeResult = chartData.some(d => d.aaretsResultat < 0);
-  const hasPositiveResult = chartData.some(d => d.aaretsResultat > 0);
-  const allNegativeResult = hasNegativeResult && !hasPositiveResult;
-
-  const hasNegativeEquity = chartData.some(d => d.egenkapital < 0);
-  const hasPositiveEquity = chartData.some(d => d.egenkapital > 0);
-  const allNegativeEquity = hasNegativeEquity && !hasPositiveEquity;
 
   const formatCurrency = (value: number) => `${value} mio. DKK`;
 
@@ -43,7 +44,7 @@ const FinancialChartsSection: React.FC<FinancialChartsSectionProps> = ({ histori
     },
     aaretsResultat: {
       label: "Årets resultat",
-      color: allNegativeResult ? "hsl(0, 84%, 60%)" : "hsl(217, 91%, 60%)",
+      color: "hsl(217, 91%, 60%)",
     },
   } satisfies ChartConfig;
 
@@ -51,7 +52,7 @@ const FinancialChartsSection: React.FC<FinancialChartsSectionProps> = ({ histori
   const equityConfig = {
     egenkapital: {
       label: "Egenkapital",
-      color: allNegativeEquity ? "hsl(0, 84%, 60%)" : "hsl(217, 91%, 60%)",
+      color: "hsl(217, 91%, 60%)",
     },
   } satisfies ChartConfig;
 
@@ -126,12 +127,26 @@ const FinancialChartsSection: React.FC<FinancialChartsSectionProps> = ({ histori
                 dot={{ fill: "hsl(142, 76%, 36%)", strokeWidth: 2, r: 4 }}
                 activeDot={{ r: 6 }}
               />
+              {/* Negative portion of Årets resultat */}
               <Area 
                 type="monotone" 
-                dataKey="aaretsResultat" 
-                stroke={allNegativeResult ? "hsl(0, 70%, 55%)" : "hsl(217, 91%, 60%)"}
+                dataKey="aaretsResultatNegative"
+                stroke="hsl(0, 70%, 55%)"
                 strokeWidth={2.5}
-                fill={allNegativeResult ? "url(#colorResultNegative)" : "url(#colorResultPositive)"}
+                fill="url(#colorResultNegative)"
+                connectNulls={false}
+                dot={false}
+                activeDot={false}
+                isAnimationActive={false}
+              />
+              {/* Positive portion of Årets resultat */}
+              <Area 
+                type="monotone" 
+                dataKey="aaretsResultatPositive" 
+                stroke="hsl(217, 91%, 60%)"
+                strokeWidth={2.5}
+                fill="url(#colorResultPositive)"
+                connectNulls={false}
                 dot={(props: any) => {
                   const { cx, cy, payload } = props;
                   const value = payload.aaretsResultat;
@@ -198,12 +213,26 @@ const FinancialChartsSection: React.FC<FinancialChartsSectionProps> = ({ histori
                 }
               />
               <ReferenceLine y={0} stroke="hsl(var(--muted-foreground))" strokeDasharray="3 3" strokeOpacity={0.5} />
+              {/* Negative portion of Egenkapital */}
               <Area 
                 type="monotone" 
-                dataKey="egenkapital" 
-                stroke={allNegativeEquity ? "hsl(0, 70%, 55%)" : "hsl(217, 91%, 60%)"} 
+                dataKey="egenkapitalNegative"
+                stroke="hsl(0, 70%, 55%)"
                 strokeWidth={2.5}
-                fill={allNegativeEquity ? "url(#colorEquityNegative)" : "url(#colorEquityPositive)"}
+                fill="url(#colorEquityNegative)"
+                connectNulls={false}
+                dot={false}
+                activeDot={false}
+                isAnimationActive={false}
+              />
+              {/* Positive portion of Egenkapital */}
+              <Area 
+                type="monotone" 
+                dataKey="egenkapitalPositive" 
+                stroke="hsl(217, 91%, 60%)" 
+                strokeWidth={2.5}
+                fill="url(#colorEquityPositive)"
+                connectNulls={false}
                 dot={(props: any) => {
                   const { cx, cy, payload } = props;
                   const value = payload.egenkapital;
