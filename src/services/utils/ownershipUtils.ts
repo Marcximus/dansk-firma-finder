@@ -39,6 +39,13 @@ const parseOwnershipRange = (rangeStr: string): { min: number; max: number; midp
 
 // Extract ticker symbol from CVR data
 const extractTickerSymbol = (vrvirksomhed: any): string | undefined => {
+  console.log('🔍 extractTickerSymbol called with:', {
+    vrvirksomhed: vrvirksomhed,
+    cvrNummer: vrvirksomhed?.cvrNummer,
+    hasAttributter: !!vrvirksomhed?.attributter,
+    attributterLength: vrvirksomhed?.attributter?.length
+  });
+  
   // Look for ticker in various places in the CVR data
   const attributter = vrvirksomhed?.attributter || [];
   
@@ -51,7 +58,10 @@ const extractTickerSymbol = (vrvirksomhed: any): string | undefined => {
   if (tickerAttr?.vaerdier) {
     const currentValue = tickerAttr.vaerdier.find((v: any) => !v.periode?.gyldigTil);
     const value = currentValue || tickerAttr.vaerdier[tickerAttr.vaerdier.length - 1];
-    if (value?.vaerdi) return value.vaerdi;
+    if (value?.vaerdi) {
+      console.log('✅ Found ticker in attributes:', value.vaerdi);
+      return value.vaerdi;
+    }
   }
   
   // Hardcoded mapping for known Danish companies
@@ -62,8 +72,16 @@ const extractTickerSymbol = (vrvirksomhed: any): string | undefined => {
     '36213728': 'DANSKE.CO', // Danske Bank
   };
   
-  const cvrNummer = vrvirksomhed.cvrNummer?.toString();
-  return cvrToTicker[cvrNummer];
+  const cvrNummer = vrvirksomhed?.cvrNummer?.toString();
+  console.log('🔍 Checking hardcoded mapping:', {
+    cvrNummer,
+    foundInMapping: !!cvrToTicker[cvrNummer],
+    ticker: cvrToTicker[cvrNummer]
+  });
+  
+  const result = cvrToTicker[cvrNummer];
+  console.log('🎯 extractTickerSymbol returning:', result);
+  return result;
 };
 
 export const extractOwnershipData = (cvrData: any) => {
@@ -102,7 +120,9 @@ export const extractOwnershipData = (cvrData: any) => {
     
     // If company is listed but no ownership data, return special entry
     if (isListed) {
+      console.log('📊 Company is listed, extracting ticker (early return)...');
       const tickerSymbol = extractTickerSymbol(vrvirksomhed);
+      console.log('📊 Ticker extracted (early return):', tickerSymbol);
       
       return {
         currentOwners: [{
@@ -530,7 +550,9 @@ export const extractOwnershipData = (cvrData: any) => {
 
   // If company is listed and no specific owners found, return special entry
   if (isListed && ownershipFromRelations.length === 0) {
+    console.log('📊 Company is listed, extracting ticker (main return)...');
     const tickerSymbol = extractTickerSymbol(vrvirksomhed);
+    console.log('📊 Ticker extracted (main return):', tickerSymbol);
     
     return {
       currentOwners: [{
