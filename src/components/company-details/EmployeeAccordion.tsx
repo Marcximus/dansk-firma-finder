@@ -192,20 +192,27 @@ const EmployeeAccordion: React.FC<EmployeeAccordionProps> = ({ cvr, cvrData }) =
                       domain={[0, 'auto']}
                     />
                     <Tooltip 
-                      formatter={(value: number) => [value, '']}
-                      labelFormatter={(label) => label}
+                      contentStyle={{ 
+                        backgroundColor: 'hsl(var(--popover))', 
+                        border: '1px solid hsl(var(--border))',
+                        borderRadius: '6px'
+                      }}
+                    />
+                    <Bar 
+                      dataKey="total" 
+                      fill="hsl(217, 91%, 60%)" 
+                      name="Total ansatte"
+                      radius={[4, 4, 0, 0]}
                     />
                     <Bar 
                       dataKey="fuldtid" 
-                      fill="hsl(var(--primary))" 
-                      stackId="a"
+                      fill="hsl(142, 76%, 36%)" 
                       name="Fuldtid (Årsværk)"
-                      radius={[0, 0, 0, 0]}
+                      radius={[4, 4, 0, 0]}
                     />
                     <Bar 
                       dataKey="deltid" 
-                      fill="hsl(var(--chart-2))" 
-                      stackId="a"
+                      fill="hsl(25, 95%, 53%)" 
                       name="Deltid"
                       radius={[4, 4, 0, 0]}
                     />
