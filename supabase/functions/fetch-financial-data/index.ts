@@ -154,6 +154,57 @@ const parseXBRL = (xmlContent: string, period: string) => {
   try {
     console.log(`[XBRL Parser] Processing ${xmlContent.length} bytes for period ${period}`);
     
+    // Cache unit scales per XML document to avoid re-parsing
+    const unitScaleCache = new Map<string, number>();
+    
+    /**
+     * Detect the unit scale from XBRL unit definition
+     * Returns the multiplier to convert to DKK
+     * Example: scale="-3" or decimals="-3" means values are in thousands, return 1000
+     */
+    const detectUnitScale = (unitRef: string): number => {
+      // Check cache first
+      if (unitScaleCache.has(unitRef)) {
+        return unitScaleCache.get(unitRef)!;
+      }
+      
+      // Try to find the unit definition
+      const unitPattern = new RegExp(
+        `<unit[^>]+id="${unitRef}"[^>]*>([\\s\\S]*?)</unit>`,
+        'i'
+      );
+      const unitMatch = xmlContent.match(unitPattern);
+      
+      if (!unitMatch) {
+        console.log(`[UNIT] No unit definition found for ${unitRef}, assuming scale=0 (DKK)`);
+        unitScaleCache.set(unitRef, 1);
+        return 1; // Default: no scaling
+      }
+      
+      const unitBlock = unitMatch[1];
+      
+      // Look for scale attribute (most common)
+      const scaleMatch = unitBlock.match(/<scale>(-?\d+)<\/scale>/i);
+      if (scaleMatch) {
+        const scale = parseInt(scaleMatch[1]);
+        const multiplier = Math.pow(10, -scale);
+        console.log(`[UNIT] Found scale=${scale} for ${unitRef} → multiplier=${multiplier}`);
+        unitScaleCache.set(unitRef, multiplier);
+        return multiplier;
+      }
+      
+      // Check if unit ID itself contains scale info (e.g., "DKK_1000", "EUR_thousands")
+      if (unitRef.match(/1000|thousand/i)) {
+        console.log(`[UNIT] Unit ID contains 'thousand': ${unitRef} → multiplier=1000`);
+        unitScaleCache.set(unitRef, 1000);
+        return 1000;
+      }
+      
+      console.log(`[UNIT] No scale found for ${unitRef}, assuming scale=0 (DKK)`);
+      unitScaleCache.set(unitRef, 1);
+      return 1; // Default: no scaling
+    };
+    
     // Extract the year from period string (e.g., "2024-01-01 - 2024-12-31" -> "2024")
     const year = period.split(' - ')[0].substring(0, 4);
 
@@ -383,14 +434,43 @@ const parseXBRL = (xmlContent: string, period: string) => {
         }
           
           if (matches.length > 0) {
-            const contextInfo = matches[0][0].match(/contextRef="([^"]+)"/)?.[1] || 'unknown';
-            const value = parseNumericValue(matches[0][1]);
+            const fullTag = matches[0][0];
+            const contextInfo = fullTag.match(/contextRef="([^"]+)"/)?.[1] || 'unknown';
+            const unitRef = fullTag.match(/unitRef="([^"]+)"/)?.[1];
+            const decimals = fullTag.match(/decimals="([^"]+)"/)?.[1];
+            
+            let value = parseNumericValue(matches[0][1]);
+            
+            if (value !== null) {
+              // Apply unit scaling if unitRef is present
+              if (unitRef) {
+                const scale = detectUnitScale(unitRef);
+                const originalValue = value;
+                value = value * scale;
+                
+                if (scale !== 1 && logField) {
+                  console.log(`[UNIT CONVERSION] ${logField}: ${originalValue} × ${scale} = ${value} DKK (unit: ${unitRef})`);
+                }
+              }
+              
+              // Apply decimals scaling if present
+              if (decimals) {
+                const decimalScale = parseInt(decimals);
+                if (decimalScale < 0) {
+                  const originalValue = value;
+                  value = value * Math.pow(10, -decimalScale);
+                  if (logField) {
+                    console.log(`[DECIMAL CONVERSION] ${logField}: ${originalValue} × ${Math.pow(10, -decimalScale)} = ${value} DKK (decimals: ${decimals})`);
+                  }
+                }
+              }
+              
+              if (logField) console.log(`✅ [EXTRACTED] ${logField}: ${value} DKK from tag ${tagName} (NOV:, context: ${contextInfo})`);
+              return value;
+            }
+            
             if (value === null && logField) {
               console.log(`⚠️ [NULL VALUE] ${logField}: Found tag ${tagName} using NOV: in context ${contextInfo} but value is null/unparseable: "${matches[0][1]}"`);
-            }
-            if (value !== null) {
-              if (logField) console.log(`✅ [EXTRACTED] ${logField}: ${value} from tag ${tagName} (NOV:, context: ${contextInfo})`);
-              return value;
             }
           }
 
@@ -415,14 +495,43 @@ const parseXBRL = (xmlContent: string, period: string) => {
         }
 
         if (matches.length > 0) {
-          const contextInfo = matches[0][0].match(/contextRef="([^"]+)"/)?.[1] || 'unknown';
-          const value = parseNumericValue(matches[0][1]);
+          const fullTag = matches[0][0];
+          const contextInfo = fullTag.match(/contextRef="([^"]+)"/)?.[1] || 'unknown';
+          const unitRef = fullTag.match(/unitRef="([^"]+)"/)?.[1];
+          const decimals = fullTag.match(/decimals="([^"]+)"/)?.[1];
+          
+          let value = parseNumericValue(matches[0][1]);
+          
+          if (value !== null) {
+            // Apply unit scaling if unitRef is present
+            if (unitRef) {
+              const scale = detectUnitScale(unitRef);
+              const originalValue = value;
+              value = value * scale;
+              
+              if (scale !== 1 && logField) {
+                console.log(`[UNIT CONVERSION] ${logField}: ${originalValue} × ${scale} = ${value} DKK (unit: ${unitRef})`);
+              }
+            }
+            
+            // Apply decimals scaling if present
+            if (decimals) {
+              const decimalScale = parseInt(decimals);
+              if (decimalScale < 0) {
+                const originalValue = value;
+                value = value * Math.pow(10, -decimalScale);
+                if (logField) {
+                  console.log(`[DECIMAL CONVERSION] ${logField}: ${originalValue} × ${Math.pow(10, -decimalScale)} = ${value} DKK (decimals: ${decimals})`);
+                }
+              }
+            }
+            
+            if (logField) console.log(`✅ [EXTRACTED] ${logField}: ${value} DKK from tag ${tagName} (ifrs-full:, context: ${contextInfo})`);
+            return value;
+          }
+          
           if (value === null && logField) {
             console.log(`⚠️ [NULL VALUE] ${logField}: Found tag ${tagName} using ifrs-full: in context ${contextInfo} but value is null/unparseable: "${matches[0][1]}"`);
-          }
-          if (value !== null) {
-            if (logField) console.log(`✅ [EXTRACTED] ${logField}: ${value} from tag ${tagName} (ifrs-full:, context: ${contextInfo})`);
-            return value;
           }
         }
 
@@ -447,14 +556,43 @@ const parseXBRL = (xmlContent: string, period: string) => {
           }
           
           if (matches.length > 0) {
-            const contextInfo = matches[0][0].match(/contextRef="([^"]+)"/)?.[1] || 'unknown';
-            const value = parseNumericValue(matches[0][1]);
+            const fullTag = matches[0][0];
+            const contextInfo = fullTag.match(/contextRef="([^"]+)"/)?.[1] || 'unknown';
+            const unitRef = fullTag.match(/unitRef="([^"]+)"/)?.[1];
+            const decimals = fullTag.match(/decimals="([^"]+)"/)?.[1];
+            
+            let value = parseNumericValue(matches[0][1]);
+            
+            if (value !== null) {
+              // Apply unit scaling if unitRef is present
+              if (unitRef) {
+                const scale = detectUnitScale(unitRef);
+                const originalValue = value;
+                value = value * scale;
+                
+                if (scale !== 1 && logField) {
+                  console.log(`[UNIT CONVERSION] ${logField}: ${originalValue} × ${scale} = ${value} DKK (unit: ${unitRef})`);
+                }
+              }
+              
+              // Apply decimals scaling if present
+              if (decimals) {
+                const decimalScale = parseInt(decimals);
+                if (decimalScale < 0) {
+                  const originalValue = value;
+                  value = value * Math.pow(10, -decimalScale);
+                  if (logField) {
+                    console.log(`[DECIMAL CONVERSION] ${logField}: ${originalValue} × ${Math.pow(10, -decimalScale)} = ${value} DKK (decimals: ${decimals})`);
+                  }
+                }
+              }
+              
+              if (logField) console.log(`✅ [EXTRACTED] ${logField}: ${value} DKK from tag ${tagName} (iXBRL, context: ${contextInfo})`);
+              return value;
+            }
+            
             if (value === null && logField) {
               console.log(`⚠️ [NULL VALUE] ${logField}: Found tag ${tagName} using iXBRL in context ${contextInfo} but value is null/unparseable: "${matches[0][1]}"`);
-            }
-            if (value !== null) {
-              if (logField) console.log(`✅ [EXTRACTED] ${logField}: ${value} from tag ${tagName} (iXBRL, context: ${contextInfo})`);
-              return value;
             }
           }
 
@@ -479,14 +617,43 @@ const parseXBRL = (xmlContent: string, period: string) => {
           }
           
           if (matches.length > 0) {
-            const contextInfo = matches[0][0].match(/contextRef="([^"]+)"/)?.[1] || 'unknown';
-            const value = parseNumericValue(matches[0][1]);
+            const fullTag = matches[0][0];
+            const contextInfo = fullTag.match(/contextRef="([^"]+)"/)?.[1] || 'unknown';
+            const unitRef = fullTag.match(/unitRef="([^"]+)"/)?.[1];
+            const decimals = fullTag.match(/decimals="([^"]+)"/)?.[1];
+            
+            let value = parseNumericValue(matches[0][1]);
+            
+            if (value !== null) {
+              // Apply unit scaling if unitRef is present
+              if (unitRef) {
+                const scale = detectUnitScale(unitRef);
+                const originalValue = value;
+                value = value * scale;
+                
+                if (scale !== 1 && logField) {
+                  console.log(`[UNIT CONVERSION] ${logField}: ${originalValue} × ${scale} = ${value} DKK (unit: ${unitRef})`);
+                }
+              }
+              
+              // Apply decimals scaling if present
+              if (decimals) {
+                const decimalScale = parseInt(decimals);
+                if (decimalScale < 0) {
+                  const originalValue = value;
+                  value = value * Math.pow(10, -decimalScale);
+                  if (logField) {
+                    console.log(`[DECIMAL CONVERSION] ${logField}: ${originalValue} × ${Math.pow(10, -decimalScale)} = ${value} DKK (decimals: ${decimals})`);
+                  }
+                }
+              }
+              
+              if (logField) console.log(`✅ [EXTRACTED] ${logField}: ${value} DKK from tag ${tagName} (fsa:, context: ${contextInfo})`);
+              return value;
+            }
+            
             if (value === null && logField) {
               console.log(`⚠️ [NULL VALUE] ${logField}: Found tag ${tagName} using fsa: in context ${contextInfo} but value is null/unparseable: "${matches[0][1]}"`);
-            }
-            if (value !== null) {
-              if (logField) console.log(`✅ [EXTRACTED] ${logField}: ${value} from tag ${tagName} (fsa:, context: ${contextInfo})`);
-              return value;
             }
           }
 
@@ -511,14 +678,43 @@ const parseXBRL = (xmlContent: string, period: string) => {
           }
           
           if (matches.length > 0) {
-            const contextInfo = matches[0][0].match(/contextRef="([^"]+)"/)?.[1] || 'unknown';
-            const value = parseNumericValue(matches[0][1]);
+            const fullTag = matches[0][0];
+            const contextInfo = fullTag.match(/contextRef="([^"]+)"/)?.[1] || 'unknown';
+            const unitRef = fullTag.match(/unitRef="([^"]+)"/)?.[1];
+            const decimals = fullTag.match(/decimals="([^"]+)"/)?.[1];
+            
+            let value = parseNumericValue(matches[0][1]);
+            
+            if (value !== null) {
+              // Apply unit scaling if unitRef is present
+              if (unitRef) {
+                const scale = detectUnitScale(unitRef);
+                const originalValue = value;
+                value = value * scale;
+                
+                if (scale !== 1 && logField) {
+                  console.log(`[UNIT CONVERSION] ${logField}: ${originalValue} × ${scale} = ${value} DKK (unit: ${unitRef})`);
+                }
+              }
+              
+              // Apply decimals scaling if present
+              if (decimals) {
+                const decimalScale = parseInt(decimals);
+                if (decimalScale < 0) {
+                  const originalValue = value;
+                  value = value * Math.pow(10, -decimalScale);
+                  if (logField) {
+                    console.log(`[DECIMAL CONVERSION] ${logField}: ${originalValue} × ${Math.pow(10, -decimalScale)} = ${value} DKK (decimals: ${decimals})`);
+                  }
+                }
+              }
+              
+              if (logField) console.log(`✅ [EXTRACTED] ${logField}: ${value} DKK from tag ${tagName} (wildcard, context: ${contextInfo})`);
+              return value;
+            }
+            
             if (value === null && logField) {
               console.log(`⚠️ [NULL VALUE] ${logField}: Found tag ${tagName} using wildcard in context ${contextInfo} but value is null/unparseable: "${matches[0][1]}"`);
-            }
-            if (value !== null) {
-              if (logField) console.log(`✅ [EXTRACTED] ${logField}: ${value} from tag ${tagName} (wildcard, context: ${contextInfo})`);
-              return value;
             }
           }
 
@@ -543,14 +739,43 @@ const parseXBRL = (xmlContent: string, period: string) => {
           }
           
           if (matches.length > 0) {
-            const contextInfo = matches[0][0].match(/contextRef="([^"]+)"/)?.[1] || 'unknown';
-            const value = parseNumericValue(matches[0][1]);
+            const fullTag = matches[0][0];
+            const contextInfo = fullTag.match(/contextRef="([^"]+)"/)?.[1] || 'unknown';
+            const unitRef = fullTag.match(/unitRef="([^"]+)"/)?.[1];
+            const decimals = fullTag.match(/decimals="([^"]+)"/)?.[1];
+            
+            let value = parseNumericValue(matches[0][1]);
+            
+            if (value !== null) {
+              // Apply unit scaling if unitRef is present
+              if (unitRef) {
+                const scale = detectUnitScale(unitRef);
+                const originalValue = value;
+                value = value * scale;
+                
+                if (scale !== 1 && logField) {
+                  console.log(`[UNIT CONVERSION] ${logField}: ${originalValue} × ${scale} = ${value} DKK (unit: ${unitRef})`);
+                }
+              }
+              
+              // Apply decimals scaling if present
+              if (decimals) {
+                const decimalScale = parseInt(decimals);
+                if (decimalScale < 0) {
+                  const originalValue = value;
+                  value = value * Math.pow(10, -decimalScale);
+                  if (logField) {
+                    console.log(`[DECIMAL CONVERSION] ${logField}: ${originalValue} × ${Math.pow(10, -decimalScale)} = ${value} DKK (decimals: ${decimals})`);
+                  }
+                }
+              }
+              
+              if (logField) console.log(`✅ [EXTRACTED] ${logField}: ${value} DKK from tag ${tagName} (no namespace, context: ${contextInfo})`);
+              return value;
+            }
+            
             if (value === null && logField) {
               console.log(`⚠️ [NULL VALUE] ${logField}: Found tag ${tagName} without namespace in context ${contextInfo} but value is null/unparseable: "${matches[0][1]}"`);
-            }
-            if (value !== null) {
-              if (logField) console.log(`✅ [EXTRACTED] ${logField}: ${value} from tag ${tagName} (no namespace, context: ${contextInfo})`);
-              return value;
             }
           }
         }
