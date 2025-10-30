@@ -108,11 +108,26 @@ const ExtendedInfoAccordion: React.FC<ExtendedInfoAccordionProps> = ({ company, 
       (emp: any) => emp.periode?.gyldigTil === null
     );
     
-    // Priority 2: Use the most recent entry (index 0 = newest in CVR API)
-    const latestEmployment = currentEmployment || vrvirksomhed.aarsbeskaeftigelse[0];
+    if (currentEmployment) {
+      const count = currentEmployment.antalAnsatte || currentEmployment.antalAarsvaerk || 0;
+      return count || company.employeeCount;
+    }
     
-    // Extract employee count from the latest/current employment data
+    // Priority 2: Find the latest employment data by sorting by gyldigFra date
+    const sortedEmployment = [...vrvirksomhed.aarsbeskaeftigelse].sort((a: any, b: any) => {
+      const dateA = a.periode?.gyldigFra ? new Date(a.periode.gyldigFra).getTime() : 0;
+      const dateB = b.periode?.gyldigFra ? new Date(b.periode.gyldigFra).getTime() : 0;
+      return dateB - dateA; // Sort descending (newest first)
+    });
+    
+    const latestEmployment = sortedEmployment[0];
     const employeeCount = latestEmployment?.antalAnsatte || latestEmployment?.antalAarsvaerk || 0;
+    
+    console.log('[ExtendedInfo] Employee Count:', {
+      found: employeeCount,
+      periode: latestEmployment?.periode,
+      totalEntries: vrvirksomhed.aarsbeskaeftigelse.length
+    });
     
     return employeeCount || company.employeeCount;
   };
