@@ -1441,7 +1441,7 @@ serve(async (req) => {
     ];
 
     console.log(`[STEP 1] Progressive query fallback with ${queryStrategies.length} strategies`);
-    console.log('[VERSION] v3.0 - 50 results per query, 30 reports processing');
+    console.log('[VERSION] v3.1-OPTIMIZED - 50 results per query, 15 reports processing (CPU optimized)');
     console.log('[STEP 1] Will try each strategy with 20s timeout until one succeeds');
 
     // Try each strategy until one works
@@ -1608,7 +1608,8 @@ serve(async (req) => {
     console.log(`[YEAR DISCOVERY] Years found in API response: ${Array.from(yearsSeen).sort().reverse().join(', ')}`);
     
     // Process up to 15 reports to ensure we get 5 yearly ones (accounting for quarterly/half-year reports)
-    const reportsToProcess = Math.min(allHits.length, 30);
+    // Reduced from 30 to 15 to avoid CPU timeout in edge functions
+    const reportsToProcess = Math.min(allHits.length, 15);
     console.log(`[YEAR DISCOVERY] Will process ${reportsToProcess} reports to find 5 yearly reports\n`);
 
     let processedCount = 0; // Track reports we've examined
@@ -1705,7 +1706,8 @@ serve(async (req) => {
         console.log(`[TESTING ${docIdx + 1}/${aarsrapportXMLs.length}] Trying: ${candidateUrl.slice(0, 80)}...`);
         
         try {
-          const TIMEOUT_MS = 8000;
+          // Reduced timeout from 8s to 5s to avoid CPU limit in edge functions
+          const TIMEOUT_MS = 5000;
           const controller = new AbortController();
           const timeoutId = setTimeout(() => controller.abort(), TIMEOUT_MS);
           
