@@ -118,22 +118,20 @@ export const transformCompanyData = (hit: any, determineLegalForm: (vrvirksomhed
   if (vrvirksomhed.deltagerRelation) {
     const founderRelations = vrvirksomhed.deltagerRelation.filter((relation: any) => {
       // Check enriched _medlemsData first
-      if (relation._medlemsData?.attributter?.some((attr: any) => attr.type === 'STIFTER')) {
-        return true;
+      const medlemsData = relation._medlemsData;
+      if (medlemsData) {
+        return medlemsData.some((medlem: any) => {
+          const attributes = medlem.attributter || [];
+          return attributes.some((attr: any) => attr.type === 'STIFTER');
+        });
       }
       
-      // Fallback: Check original organisationer structure
-      if (relation.organisationer) {
-        return relation.organisationer.some((org: any) => {
-          if (org.medlemsData) {
-            return org.medlemsData.some((medlem: any) => {
-              return medlem.attributter?.some((attr: any) => 
-                attr.type === 'FUNKTION' && 
-                attr.vaerdier?.some((v: any) => v.vaerdi === 'STIFTERE')
-              );
-            });
-          }
-          return false;
+      // Fallback to direct medlemsData check
+      const directMembersData = relation.medlemsData;
+      if (directMembersData) {
+        return directMembersData.some((medlem: any) => {
+          const attributes = medlem.attributter || [];
+          return attributes.some((attr: any) => attr.type === 'STIFTER');
         });
       }
       
@@ -141,8 +139,18 @@ export const transformCompanyData = (hit: any, determineLegalForm: (vrvirksomhed
     });
     
     if (founderRelations.length > 0) {
-      founders = founderRelations.map((relation: any) => {
+      console.log('=== FOUNDER EXTRACTION DEBUG ===');
+      console.log('Found founder relations:', founderRelations.length);
+      
+      founders = founderRelations.map((relation: any, index: number) => {
         const deltager = relation._enrichedDeltagerData || relation.deltager;
+        console.log(`\nFounder ${index + 1}:`, {
+          hasEnrichedData: !!relation._enrichedDeltagerData,
+          enhedstype: deltager?.enhedstype,
+          enhedsNummer: deltager?.enhedsNummer,
+          fullDeltager: JSON.stringify(deltager, null, 2).substring(0, 500)
+        });
+        
         const currentName = deltager?.navne?.find((n: any) => n.periode?.gyldigTil === null);
         const name = currentName?.navn || deltager?.navne?.[deltager.navne.length - 1]?.navn || 'Ikke oplyst';
         
@@ -153,8 +161,13 @@ export const transformCompanyData = (hit: any, determineLegalForm: (vrvirksomhed
           cvr = deltager?.enhedsNummer?.toString();
         }
         
+        console.log(`Extracted:`, { name, cvr, enhedstype });
+        
         return { name, cvr, enhedstype };
       });
+      
+      console.log('\nFinal founders array:', founders);
+      console.log('=== END FOUNDER DEBUG ===\n');
     }
   }
   
