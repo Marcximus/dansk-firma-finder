@@ -26,17 +26,22 @@ const EmploymentDataCard: React.FC<EmploymentDataCardProps> = ({ monthlyEmployme
                 <tr className="border-b">
                   <th className="text-left py-2">Periode</th>
                   <th className="text-right py-2">Ansatte</th>
-                  <th className="text-right py-2">Årsværk</th>
+                  <th className="text-right py-2">Fuldtid</th>
+                  <th className="text-right py-2">Deltid</th>
                 </tr>
               </thead>
               <tbody>
-                {monthlyEmployment.slice(-6).reverse().map((item: any, index: number) => {
+                {monthlyEmployment.slice(-12).reverse().map((item: any, index: number) => {
                   const periode = item.maaned && item.aar ? `${monthNames[item.maaned - 1]} ${item.aar}` : item.aar;
+                  const ansatte = item.antalAnsatte || 0;
+                  const fuldtid = item.antalAarsvaerk || 0;
+                  const deltid = ansatte - fuldtid;
                   return (
                     <tr key={index} className="border-b">
                       <td className="py-2">{periode}</td>
-                      <td className="text-right">{item.antalAnsatte || 0} medarbejdere</td>
-                      <td className="text-right">{item.antalAarsvaerk || 0} årsværk</td>
+                      <td className="text-right">{ansatte}</td>
+                      <td className="text-right">{fuldtid}</td>
+                      <td className="text-right">{deltid}</td>
                     </tr>
                   );
                 })}
