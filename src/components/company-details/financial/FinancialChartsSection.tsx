@@ -11,13 +11,22 @@ interface FinancialChartsSectionProps {
 
 const FinancialChartsSection: React.FC<FinancialChartsSectionProps> = ({ historicalData }) => {
   // Format data for charts - oldest to newest (left to right)
-  const chartData = historicalData.map(data => ({
-    year: data.year.toString(),
-    nettoomsaetning: Math.round(data.nettoomsaetning / 1000000), // Convert to millions
-    bruttofortjeneste: Math.round(data.bruttofortjeneste / 1000000),
-    aaretsResultat: Math.round(data.aaretsResultat / 1000000),
-    egenkapital: Math.round(data.egenkapital / 1000000)
-  })).slice().reverse();
+  const chartData = historicalData.map(data => {
+    const aaretsResultat = Math.round(data.aaretsResultat / 1000000);
+    const egenkapital = Math.round(data.egenkapital / 1000000);
+    
+    return {
+      year: data.year.toString(),
+      nettoomsaetning: Math.round(data.nettoomsaetning / 1000000), // Convert to millions
+      bruttofortjeneste: Math.round(data.bruttofortjeneste / 1000000),
+      aaretsResultat: aaretsResultat,
+      aaretsResultatPositive: aaretsResultat >= 0 ? aaretsResultat : 0,
+      aaretsResultatNegative: aaretsResultat < 0 ? aaretsResultat : 0,
+      egenkapital: egenkapital,
+      egenkapitalPositive: egenkapital >= 0 ? egenkapital : 0,
+      egenkapitalNegative: egenkapital < 0 ? egenkapital : 0,
+    };
+  }).slice().reverse();
 
   // Determine if data is predominantly positive or negative
   const hasNegativeResult = chartData.some(d => d.aaretsResultat < 0);
@@ -111,6 +120,22 @@ const FinancialChartsSection: React.FC<FinancialChartsSectionProps> = ({ histori
                 dot={{ fill: `var(--color-${revenueKey})`, strokeWidth: 2, r: 5 }}
                 activeDot={{ r: 7 }}
               />
+              <Area 
+                type="monotone" 
+                dataKey="aaretsResultatPositive" 
+                stroke="var(--color-aaretsResultat)"
+                strokeWidth={0}
+                fill="hsl(217, 91%, 60%)"
+                fillOpacity={0.1}
+              />
+              <Area 
+                type="monotone" 
+                dataKey="aaretsResultatNegative" 
+                stroke="var(--color-aaretsResultat)"
+                strokeWidth={0}
+                fill="hsl(0, 84%, 60%)"
+                fillOpacity={0.15}
+              />
               <Line 
                 type="monotone" 
                 dataKey="aaretsResultat" 
@@ -135,31 +160,6 @@ const FinancialChartsSection: React.FC<FinancialChartsSectionProps> = ({ histori
         <CardContent>
           <ChartContainer config={equityConfig} className="h-[300px] w-full">
             <AreaChart data={chartData} margin={{ top: 5, right: 20, left: 10, bottom: 10 }}>
-              <defs>
-                <linearGradient id="colorEquityGradient" x1="0" y1="0" x2="0" y2="1">
-                  {allNegativeEquity ? (
-                    // All negative: Red at top (negative values), fading down towards zero
-                    <>
-                      <stop offset="0%" stopColor="hsl(0, 84%, 60%)" stopOpacity={0.6}/>
-                      <stop offset="100%" stopColor="hsl(0, 84%, 60%)" stopOpacity={0.1}/>
-                    </>
-                  ) : hasNegativeEquity && hasPositiveEquity ? (
-                    // Mixed: Blue top (positive), red bottom (negative)
-                    <>
-                      <stop offset="0%" stopColor="hsl(217, 91%, 60%)" stopOpacity={0.6}/>
-                      <stop offset="50%" stopColor="hsl(217, 91%, 60%)" stopOpacity={0.1}/>
-                      <stop offset="50%" stopColor="hsl(0, 84%, 60%)" stopOpacity={0.1}/>
-                      <stop offset="100%" stopColor="hsl(0, 84%, 60%)" stopOpacity={0.6}/>
-                    </>
-                  ) : (
-                    // All positive: Blue at top, fading down
-                    <>
-                      <stop offset="0%" stopColor="hsl(217, 91%, 60%)" stopOpacity={0.6}/>
-                      <stop offset="100%" stopColor="hsl(217, 91%, 60%)" stopOpacity={0.1}/>
-                    </>
-                  )}
-                </linearGradient>
-              </defs>
               <CartesianGrid 
                 strokeDasharray="3 3" 
                 stroke="hsl(var(--muted-foreground))"
@@ -189,11 +189,22 @@ const FinancialChartsSection: React.FC<FinancialChartsSectionProps> = ({ histori
               <ReferenceLine y={0} stroke="hsl(var(--muted-foreground))" strokeDasharray="3 3" strokeOpacity={0.5} />
               <Area 
                 type="monotone" 
-                dataKey="egenkapital" 
-                stroke={allNegativeEquity ? "hsl(0, 84%, 60%)" : "hsl(217, 91%, 60%)"} 
+                dataKey="egenkapitalPositive" 
+                stroke="hsl(217, 91%, 60%)"
                 strokeWidth={2.5}
-                fill="url(#colorEquityGradient)"
-                dot={{ fill: allNegativeEquity ? "hsl(0, 84%, 60%)" : "hsl(217, 91%, 60%)", strokeWidth: 2, r: 5 }}
+                fill="hsl(217, 91%, 60%)"
+                fillOpacity={0.3}
+                dot={{ fill: "hsl(217, 91%, 60%)", strokeWidth: 2, r: 5 }}
+                activeDot={{ r: 7 }}
+              />
+              <Area 
+                type="monotone" 
+                dataKey="egenkapitalNegative" 
+                stroke="hsl(0, 84%, 60%)"
+                strokeWidth={2.5}
+                fill="hsl(0, 84%, 60%)"
+                fillOpacity={0.15}
+                dot={{ fill: "hsl(0, 84%, 60%)", strokeWidth: 2, r: 5 }}
                 activeDot={{ r: 7 }}
               />
             </AreaChart>
