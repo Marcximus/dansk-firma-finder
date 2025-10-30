@@ -1607,15 +1607,15 @@ serve(async (req) => {
     });
     console.log(`[YEAR DISCOVERY] Years found in API response: ${Array.from(yearsSeen).sort().reverse().join(', ')}`);
     
-    // Process up to 15 reports to ensure we get 5 yearly ones (accounting for quarterly/half-year reports)
-    // Reduced from 30 to 15 to avoid CPU timeout in edge functions
-    const reportsToProcess = Math.min(allHits.length, 15);
-    console.log(`[YEAR DISCOVERY] Will process ${reportsToProcess} reports to find 5 yearly reports\n`);
+    // Process up to 20 reports to ensure we get 7 yearly ones (accounting for quarterly/half-year reports)
+    // Increased from 15 to 20 to accommodate 7 years of data
+    const reportsToProcess = Math.min(allHits.length, 20);
+    console.log(`[YEAR DISCOVERY] Will process ${reportsToProcess} reports to find 7 yearly reports\n`);
 
     let processedCount = 0; // Track reports we've examined
     let yearlyReportsFound = 0; // Track actual yearly reports found
 
-    for (let i = 0; i < reportsToProcess && yearlyReportsFound < 5; i++) {
+    for (let i = 0; i < reportsToProcess && yearlyReportsFound < 7; i++) {
       const hit = allHits[i];
       const source = hit._source;
       const period = source.regnskabsperiode || source.periode || 'N/A';
@@ -1836,10 +1836,10 @@ serve(async (req) => {
           console.log(`[YEAR TRACKING] Years processed so far: ${Array.from(yearsProcessed).sort().reverse().join(', ')}`);
         }
         
-        console.log(`✅ Found yearly report ${yearlyReportsFound}/5`);
+        console.log(`✅ Found yearly report ${yearlyReportsFound}/7`);
         
-        if (yearlyReportsFound >= 5) {
-          console.log(`✅ Successfully found 5 yearly reports - stopping`);
+        if (yearlyReportsFound >= 7) {
+          console.log(`✅ Successfully found 7 yearly reports - stopping`);
           break;
         }
         
