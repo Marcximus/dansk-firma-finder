@@ -49,8 +49,19 @@ export const transformCompanyData = (hit: any, determineLegalForm: (vrvirksomhed
   
   // Get employee count from current employment data (where gyldigTil is null) or the most recent
   const currentEmployment = vrvirksomhed.aarsbeskaeftigelse?.find((emp: any) => emp.periode?.gyldigTil === null);
-  const latestEmployment = currentEmployment || vrvirksomhed.aarsbeskaeftigelse?.[vrvirksomhed.aarsbeskaeftigelse.length - 1];
+  const latestEmployment = currentEmployment || vrvirksomhed.aarsbeskaeftigelse?.[0]; // Index 0 = newest in CVR API
   const employeeCount = latestEmployment?.antalAnsatte || latestEmployment?.antalAarsvaerk || 0;
+  
+  // Debug logging
+  if (vrvirksomhed.aarsbeskaeftigelse && vrvirksomhed.aarsbeskaeftigelse.length > 0) {
+    console.log('[EMPLOYEE COUNT]', {
+      cvrNummer: vrvirksomhed.cvrNummer,
+      totalEntries: vrvirksomhed.aarsbeskaeftigelse.length,
+      foundCurrent: !!currentEmployment,
+      employeeCount: employeeCount,
+      latestPeriod: latestEmployment?.periode
+    });
+  }
   
   // Build address string
   let addressString = 'N/A';
