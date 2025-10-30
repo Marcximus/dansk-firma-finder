@@ -65,7 +65,7 @@ const OwnershipChart: React.FC<OwnershipChartProps> = ({ owners }) => {
   owners.forEach((owner, index) => {
     const range = parsePercentageRange(owner.ejerandel);
     const isListedEntry = (owner as any)._isListedCompany;
-    const color = isListedEntry ? 'hsl(210, 100%, 60%)' : COLORS[index % COLORS.length];
+    const color = isListedEntry ? 'hsl(120, 100%, 50%)' : COLORS[index % COLORS.length];
     
     if (range.midpoint > 0) {
       ownershipData.push({
@@ -86,7 +86,7 @@ const OwnershipChart: React.FC<OwnershipChartProps> = ({ owners }) => {
   owners.forEach((owner, index) => {
     const range = parsePercentageRange(owner.stemmerettigheder);
     const isListedEntry = (owner as any)._isListedCompany;
-    const color = isListedEntry ? 'hsl(210, 100%, 60%)' : COLORS[index % COLORS.length];
+    const color = isListedEntry ? 'hsl(120, 100%, 50%)' : COLORS[index % COLORS.length];
     
     if (range.midpoint > 0) {
       votingData.push({
