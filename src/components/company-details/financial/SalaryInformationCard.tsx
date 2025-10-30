@@ -126,7 +126,7 @@ const SalaryInformationCard: React.FC<SalaryInformationCardProps> = ({ historica
 
     return historicalData
       .filter(d => d.personaleomkostninger > 0)
-      .slice(0, 5) // Last 5 years
+      .slice(0, 8) // Last 8 years
       .map(d => {
         const employment = yearlyAvgEmployment.get(d.year) || { antalAnsatte: 0, antalAarsvaerk: 0 };
         if (employment.antalAnsatte === 0) return null;
