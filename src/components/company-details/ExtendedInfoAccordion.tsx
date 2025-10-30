@@ -254,7 +254,20 @@ const ExtendedInfoAccordion: React.FC<ExtendedInfoAccordionProps> = ({ company, 
             icon={Users} 
             label="Antal Ansatte" 
             value={employeeData.current > 0 ? (
-              <span className="flex items-center gap-2">
+              <button
+                onClick={() => {
+                  const employeeSection = document.querySelector('[data-accordion-item="employees"]');
+                  if (employeeSection) {
+                    employeeSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    // Ensure accordion is open
+                    const trigger = employeeSection.querySelector('[data-state="closed"]');
+                    if (trigger instanceof HTMLElement) {
+                      trigger.click();
+                    }
+                  }
+                }}
+                className="flex items-center gap-2 hover:text-primary transition-colors cursor-pointer underline decoration-dotted underline-offset-2"
+              >
                 {employeeData.current.toLocaleString('da-DK')}
                 {employeeData.change !== null && employeeData.change !== 0 && (
                   <span className={`flex items-center gap-1 text-xs ${employeeData.change > 0 ? 'text-green-600' : 'text-red-600'}`}>
@@ -266,7 +279,7 @@ const ExtendedInfoAccordion: React.FC<ExtendedInfoAccordionProps> = ({ company, 
                     {Math.abs(employeeData.change).toLocaleString('da-DK')}
                   </span>
                 )}
-              </span>
+              </button>
             ) : undefined} 
           />
           

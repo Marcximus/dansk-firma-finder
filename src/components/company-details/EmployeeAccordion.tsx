@@ -147,7 +147,7 @@ const EmployeeAccordion: React.FC<EmployeeAccordionProps> = ({ cvr, cvrData }) =
   const formatEmployees = (value: number) => value.toString();
 
   return (
-    <AccordionItem value="employees" className="border rounded-lg">
+    <AccordionItem value="employees" className="border rounded-lg" data-accordion-item="employees">
       <AccordionTrigger className="px-2 sm:px-4 md:px-6 py-2 sm:py-3 md:py-4 hover:no-underline">
         <div className="flex items-center gap-1.5 sm:gap-2">
           <Users className="h-4 w-4 sm:h-4.5 sm:w-4.5 md:h-5 md:w-5" />
