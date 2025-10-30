@@ -137,7 +137,7 @@ export const extractFinancialData = (cvrData: any, parsedFinancialData?: any) =>
     console.log('extractFinancialData - All revenue zero:', allRevenueZero);
     
     // Transform and enrich XBRL data to match FinancialYearData interface
-    const enrichedData = parsedFinancialData.financialData.map((periodData: any, index: number) => {
+    const enrichedData = parsedFinancialData.financialData.map((periodData: any) => {
       // Extract year from periode - handle multiple formats
       let year = new Date().getFullYear();
       if (periodData.periode) {
@@ -156,15 +156,10 @@ export const extractFinancialData = (cvrData: any, parsedFinancialData?: any) =>
       
       const ratios = calculateFinancialRatios(periodData, allRevenueZero);
       
-      // Find matching PDF URL from financialReports metadata
-      const reportMetadata = parsedFinancialData.financialReports?.[index];
-      const pdfUrl = reportMetadata?.pdfUrl || null;
-      
       // Transform XBRL data structure to match FinancialYearData interface
       return {
         year, // Add year field
         periode: periodData.periode,
-        pdfUrl, // Add PDF URL from report metadata
         
         // Income Statement (Resultatopgørelse)
         nettoomsaetning: periodData.nettoomsaetning || 0,

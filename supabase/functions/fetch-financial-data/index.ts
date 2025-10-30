@@ -1629,15 +1629,13 @@ serve(async (req) => {
         approvalDate: source.indlaesningsTidspunkt ? 
           new Date(source.indlaesningsTidspunkt).toLocaleDateString('da-DK') : 'N/A',
         documentUrl: null,
-        pdfUrl: null,
         documentGuid: null,
         documentType: source.dokumenttype || 'Årsrapport',
         companyName: source.navne?.[0] || source.virksomhedsnavn || 'N/A'
       };
 
-      // Try to find XBRL document URL/GUID and PDF URL
+      // Try to find XBRL document URL/GUID
       let documentUrl = null;
-      let pdfUrl = null;
       
       // Log all available documents for debugging
       console.log(`\n[REPORT ${processedCount}/${reportsToProcess}] Period: ${period}`);
@@ -1650,25 +1648,6 @@ serve(async (req) => {
         console.log(`      MIME: ${mimeType}`);
         console.log(`      URL: ${url.toString().slice(0, 100)}${url.toString().length > 100 ? '...' : ''}`);
       });
-      
-      // Find PDF document for user viewing
-      const allDocs = source.dokumenter || [];
-      const pdfDoc = allDocs.find((doc: any) => {
-        const docType = (doc.dokumentType || '').toUpperCase();
-        const mimeType = (doc.dokumentMimeType || '').toLowerCase();
-        return (docType === 'AARSRAPPORT' || docType === 'AARSRAPPORT_FINANSIEL') && 
-               mimeType === 'application/pdf';
-      });
-      
-      if (pdfDoc) {
-        if (pdfDoc.dokumentUrl) {
-          pdfUrl = pdfDoc.dokumentUrl;
-        } else if (pdfDoc.dokumentGuid || pdfDoc.guid) {
-          const guid = pdfDoc.dokumentGuid || pdfDoc.guid;
-          pdfUrl = `http://distribution.virk.dk/dokumenter/${guid}/download`;
-        }
-        console.log(`[PDF] Found annual report PDF: ${pdfUrl?.slice(0, 80)}...`);
-      }
       
       // Log available documents for debugging
       console.log(`[DOCUMENT ANALYSIS] Analyzing ${source.dokumenter?.length || 0} documents...`);
@@ -1839,7 +1818,6 @@ serve(async (req) => {
         console.log(`   Extracted year from: ${bestParsedData.periode || bestPeriod}`);
         
         reportMetadata.documentUrl = bestDocumentUrl;
-        reportMetadata.pdfUrl = pdfUrl;
         financialReports.push(reportMetadata);
         
         console.log(`[DEBUG] ✅ Successfully parsed data with ${bestScore} key fields`);
