@@ -118,18 +118,35 @@ const BasicInfoAccordion: React.FC<BasicInfoAccordionProps> = ({ company, cvrDat
   };
 
   const getFounders = () => {
-    if (!cvrData?.deltagerRelation) return null;
+    // Handle both wrapped and unwrapped data structures
+    const vrvirksomhed = cvrData?.Vrvirksomhed || cvrData;
     
-    const founders = cvrData.deltagerRelation.filter((relation: any) => {
-      const roles = relation.organisationer?.[0]?.attributter || [];
-      return roles.some((attr: any) => attr.type === 'STIFTER');
+    if (!vrvirksomhed?.deltagerRelation) return null;
+    
+    const founders = vrvirksomhed.deltagerRelation.filter((relation: any) => {
+      // Check if any organization has STIFTER attribute
+      return relation.organisationer?.some((org: any) => {
+        const medlemsData = org.medlemsData || [];
+        return medlemsData.some((medlem: any) => {
+          const attributter = medlem.attributter || [];
+          return attributter.some((attr: any) => attr.type === 'STIFTER');
+        });
+      });
     });
     
     if (founders.length === 0) return null;
     
     return founders.map((founder: any) => {
-      const org = founder.organisationer?.[0];
-      return org?.navn?.[0]?.navn || 'Ikke oplyst';
+      // Get name from deltager
+      const deltager = founder.deltager || founder._enrichedDeltagerData;
+      if (deltager) {
+        const navne = deltager.navne || [];
+        const currentName = navne.find((n: any) => !n.periode?.gyldigTil) || navne[0];
+        if (currentName?.navn) {
+          return currentName.navn;
+        }
+      }
+      return 'Ikke oplyst';
     }).join(', ');
   };
 
