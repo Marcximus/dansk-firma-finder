@@ -16,7 +16,7 @@ export interface Company {
   email?: string;
   legalForm?: string;
   status?: string;
-  founders?: Array<{ name: string; cvr?: string }>; // Array of company founders with optional CVR numbers
+  founders?: Array<{ name: string; cvr?: string; enhedstype?: string }>; // Array of company founders with optional CVR numbers and entity type
   // Additional CVR data
   realCvrData?: any; // Store the full CVR response for detailed view
   productionUnits?: any[]; // Production units from produktionsenhed endpoint

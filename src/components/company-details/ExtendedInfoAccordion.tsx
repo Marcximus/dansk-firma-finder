@@ -7,6 +7,8 @@ import { Info, Phone, MapPin, Briefcase, TrendingUp, DollarSign, Calendar, FileT
 import { formatPhoneNumber } from '@/services/utils/formatUtils';
 import { format } from 'date-fns';
 import { da } from 'date-fns/locale';
+import { Link } from 'react-router-dom';
+import { generateCompanyUrl, generatePersonUrl } from '@/lib/urlUtils';
 
 interface ExtendedInfoAccordionProps {
   company: Company;
@@ -205,21 +207,31 @@ const ExtendedInfoAccordion: React.FC<ExtendedInfoAccordionProps> = ({ company, 
               label="Stiftet af" 
               value={
                 <div className="flex flex-wrap gap-1">
-                  {company.founders.map((founder, index) => (
-                    <span key={index}>
-                      {founder.cvr ? (
-                        <a
-                          href={`/company/${founder.cvr}`}
-                          className="text-primary hover:underline"
-                        >
-                          {founder.name}
-                        </a>
-                      ) : (
-                        <span>{founder.name}</span>
-                      )}
-                      {index < company.founders!.length - 1 && ', '}
-                    </span>
-                  ))}
+                  {company.founders.map((founder, index) => {
+                    let founderUrl: string | null = null;
+                    
+                    if (founder.enhedstype === 'VIRKSOMHED' && founder.cvr) {
+                      founderUrl = generateCompanyUrl(founder.name, founder.cvr);
+                    } else if (founder.enhedstype === 'PERSON') {
+                      founderUrl = generatePersonUrl(founder.name);
+                    }
+                    
+                    return (
+                      <span key={index}>
+                        {founderUrl ? (
+                          <Link
+                            to={founderUrl}
+                            className="text-primary hover:underline"
+                          >
+                            {founder.name}
+                          </Link>
+                        ) : (
+                          <span>{founder.name}</span>
+                        )}
+                        {index < company.founders!.length - 1 && ', '}
+                      </span>
+                    );
+                  })}
                 </div>
               }
             />
