@@ -198,7 +198,6 @@ const FinancialChartsSection: React.FC<FinancialChartsSectionProps> = ({ histori
                   );
                 }}
               />
-              <ChartLegend content={<ChartLegendContent />} />
               <ReferenceLine y={0} stroke="hsl(var(--muted-foreground))" strokeDasharray="3 3" strokeOpacity={0.5} />
               <Line 
                 type="monotone" 
