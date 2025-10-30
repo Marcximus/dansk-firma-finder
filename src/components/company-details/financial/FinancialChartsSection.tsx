@@ -34,11 +34,11 @@ const FinancialChartsSection: React.FC<FinancialChartsSectionProps> = ({ histori
   const revenueAndResultConfig = {
     nettoomsaetning: {
       label: "Nettoomsætning",
-      color: "hsl(var(--chart-1))",
+      color: "hsl(142, 76%, 36%)",
     },
     aaretsResultat: {
       label: "Årets resultat",
-      color: allNegativeResult ? "hsl(var(--destructive))" : "hsl(var(--chart-2))",
+      color: allNegativeResult ? "hsl(0, 84%, 60%)" : "hsl(217, 91%, 60%)",
     },
   } satisfies ChartConfig;
 
@@ -46,7 +46,7 @@ const FinancialChartsSection: React.FC<FinancialChartsSectionProps> = ({ histori
   const equityConfig = {
     egenkapital: {
       label: "Egenkapital",
-      color: allNegativeEquity ? "hsl(var(--destructive))" : "hsl(var(--chart-2))",
+      color: allNegativeEquity ? "hsl(0, 84%, 60%)" : "hsl(217, 91%, 60%)",
     },
   } satisfies ChartConfig;
 
@@ -66,19 +66,16 @@ const FinancialChartsSection: React.FC<FinancialChartsSectionProps> = ({ histori
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <ChartContainer config={revenueAndResultConfig} className="min-h-[300px] w-full">
+          <ChartContainer config={revenueAndResultConfig} className="h-[300px] w-full">
             <LineChart data={chartData} margin={{ top: 5, right: 20, left: 10, bottom: 10 }}>
-              <CartesianGrid strokeDasharray="3 3" />
+              <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
               <XAxis 
                 dataKey="year" 
-                tickLine={false}
-                axisLine={false}
-                tickMargin={8}
+                tick={{ fontSize: 13 }}
+                interval="preserveStartEnd"
               />
               <YAxis 
-                tickLine={false}
-                axisLine={false}
-                tickMargin={8}
+                className="text-sm"
                 tickFormatter={formatCurrency}
                 width={80}
               />
@@ -94,8 +91,8 @@ const FinancialChartsSection: React.FC<FinancialChartsSectionProps> = ({ histori
                 }
               />
               <ChartLegend content={<ChartLegendContent />} />
-              <ReferenceLine y={0} strokeDasharray="3 3" />
-              <Line
+              <ReferenceLine y={0} stroke="hsl(var(--muted-foreground))" strokeDasharray="3 3" strokeOpacity={0.5} />
+              <Line 
                 type="monotone" 
                 dataKey="nettoomsaetning" 
                 stroke="var(--color-nettoomsaetning)"
@@ -125,44 +122,41 @@ const FinancialChartsSection: React.FC<FinancialChartsSectionProps> = ({ histori
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <ChartContainer config={equityConfig} className="min-h-[300px] w-full">
+          <ChartContainer config={equityConfig} className="h-[300px] w-full">
             <AreaChart data={chartData} margin={{ top: 5, right: 20, left: 10, bottom: 10 }}>
               <defs>
                 <linearGradient id="colorEquityGradient" x1="0" y1="0" x2="0" y2="1">
                   {allNegativeEquity ? (
                     // All negative: Red at top (negative values), fading down towards zero
                     <>
-                      <stop offset="0%" stopColor="hsl(var(--destructive))" stopOpacity={0.6}/>
-                      <stop offset="100%" stopColor="hsl(var(--destructive))" stopOpacity={0.1}/>
+                      <stop offset="0%" stopColor="hsl(0, 84%, 60%)" stopOpacity={0.6}/>
+                      <stop offset="100%" stopColor="hsl(0, 84%, 60%)" stopOpacity={0.1}/>
                     </>
                   ) : hasNegativeEquity && hasPositiveEquity ? (
                     // Mixed: Blue top (positive), red bottom (negative)
                     <>
-                      <stop offset="0%" stopColor="hsl(var(--chart-2))" stopOpacity={0.6}/>
-                      <stop offset="50%" stopColor="hsl(var(--chart-2))" stopOpacity={0.1}/>
-                      <stop offset="50%" stopColor="hsl(var(--destructive))" stopOpacity={0.1}/>
-                      <stop offset="100%" stopColor="hsl(var(--destructive))" stopOpacity={0.6}/>
+                      <stop offset="0%" stopColor="hsl(217, 91%, 60%)" stopOpacity={0.6}/>
+                      <stop offset="50%" stopColor="hsl(217, 91%, 60%)" stopOpacity={0.1}/>
+                      <stop offset="50%" stopColor="hsl(0, 84%, 60%)" stopOpacity={0.1}/>
+                      <stop offset="100%" stopColor="hsl(0, 84%, 60%)" stopOpacity={0.6}/>
                     </>
                   ) : (
                     // All positive: Blue at top, fading down
                     <>
-                      <stop offset="0%" stopColor="hsl(var(--chart-2))" stopOpacity={0.6}/>
-                      <stop offset="100%" stopColor="hsl(var(--chart-2))" stopOpacity={0.1}/>
+                      <stop offset="0%" stopColor="hsl(217, 91%, 60%)" stopOpacity={0.6}/>
+                      <stop offset="100%" stopColor="hsl(217, 91%, 60%)" stopOpacity={0.1}/>
                     </>
                   )}
                 </linearGradient>
               </defs>
-              <CartesianGrid strokeDasharray="3 3" />
+              <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
               <XAxis 
                 dataKey="year" 
-                tickLine={false}
-                axisLine={false}
-                tickMargin={8}
+                tick={{ fontSize: 13 }}
+                interval="preserveStartEnd"
               />
               <YAxis 
-                tickLine={false}
-                axisLine={false}
-                tickMargin={8}
+                className="text-sm"
                 tickFormatter={formatCurrency}
                 domain={[(dataMin: number) => Math.floor(dataMin * 0.9), (dataMax: number) => Math.ceil(dataMax * 1.1)]}
                 width={80}
@@ -175,14 +169,14 @@ const FinancialChartsSection: React.FC<FinancialChartsSectionProps> = ({ histori
                   />
                 }
               />
-              <ReferenceLine y={0} strokeDasharray="3 3" />
+              <ReferenceLine y={0} stroke="hsl(var(--muted-foreground))" strokeDasharray="3 3" strokeOpacity={0.5} />
               <Area 
                 type="monotone" 
                 dataKey="egenkapital" 
-                stroke="var(--color-egenkapital)"
+                stroke={allNegativeEquity ? "hsl(0, 84%, 60%)" : "hsl(217, 91%, 60%)"} 
                 strokeWidth={2.5}
                 fill="url(#colorEquityGradient)"
-                dot={{ fill: "var(--color-egenkapital)", strokeWidth: 2, r: 5 }}
+                dot={{ fill: allNegativeEquity ? "hsl(0, 84%, 60%)" : "hsl(217, 91%, 60%)", strokeWidth: 2, r: 5 }}
                 activeDot={{ r: 7 }}
               />
             </AreaChart>
