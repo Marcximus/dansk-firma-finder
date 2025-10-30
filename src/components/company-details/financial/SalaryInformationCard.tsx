@@ -132,13 +132,10 @@ const SalaryInformationCard: React.FC<SalaryInformationCardProps> = ({ historica
         if (employment.antalAnsatte === 0) return null;
         
         const avgSalary = ((d.personaleomkostninger * 0.75) / employment.antalAnsatte / 12);
-        const ceoSalaryMid = ((d.personaleomkostninger * 0.225) / 12);
-        const ratio = avgSalary > 0 ? ceoSalaryMid / avgSalary : 0;
         
         return {
           periode: d.periode,
-          avgSalary: Math.round(avgSalary),
-          ceoRatio: parseFloat(ratio.toFixed(1))
+          avgSalary: Math.round(avgSalary)
         };
       })
       .filter((d): d is NonNullable<typeof d> => d !== null)
@@ -370,15 +367,8 @@ const SalaryInformationCard: React.FC<SalaryInformationCardProps> = ({ historica
                     tick={{ fontSize: 11 }}
                   />
                   <YAxis 
-                    yAxisId="left"
                     tick={{ fontSize: 11 }}
                     tickFormatter={(value) => `${(value / 1000).toFixed(0)}k`}
-                  />
-                  <YAxis 
-                    yAxisId="right"
-                    orientation="right"
-                    tick={{ fontSize: 11 }}
-                    tickFormatter={(value) => `${value}x`}
                   />
                   <RechartsTooltip 
                     contentStyle={{ 
@@ -387,31 +377,15 @@ const SalaryInformationCard: React.FC<SalaryInformationCardProps> = ({ historica
                       borderRadius: '6px',
                       fontSize: '12px'
                     }}
-                    formatter={(value: any, name: string) => {
-                      if (name === 'Gennemsnitlig løn') {
-                        return [formatCurrency(value), name];
-                      }
-                      return [`${value}x`, name];
-                    }}
+                    formatter={(value: any) => [formatCurrency(value), 'Gennemsnitlig løn']}
                   />
                   <Legend wrapperStyle={{ fontSize: '12px' }} />
                   <Line 
-                    yAxisId="left"
                     type="monotone"
                     dataKey="avgSalary" 
                     stroke="hsl(var(--chart-1))" 
                     strokeWidth={2}
                     name="Gennemsnitlig løn"
-                    dot={{ r: 3 }}
-                    activeDot={{ r: 5 }}
-                  />
-                  <Line 
-                    yAxisId="right"
-                    type="monotone"
-                    dataKey="ceoRatio" 
-                    stroke="hsl(var(--chart-2))" 
-                    strokeWidth={2}
-                    name="CEO ratio"
                     dot={{ r: 3 }}
                     activeDot={{ r: 5 }}
                   />
