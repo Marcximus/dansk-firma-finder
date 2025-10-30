@@ -225,7 +225,6 @@ const FinancialSpreadsheet: React.FC<FinancialSpreadsheetProps> = ({ historicalD
             {displayYears.length > 0 && (
               <p className="text-xs text-muted-foreground mt-1">
                 Viser regnskabsdata for {displayYears.length === 1 ? 'seneste år' : `de seneste ${displayYears.length} år`}: {displayYears.join(', ')}
-                {displayYears.length < 7 && ` • Kun ${displayYears.length} års data tilgængelig`}
               </p>
             )}
           </div>
