@@ -36,78 +36,23 @@ const EmployeeAccordion: React.FC<EmployeeAccordionProps> = ({ cvr, cvrData }) =
   // Extract and process financial data
   const financialData = extractFinancialData(cvrData, parsedFinancialData);
 
-  // Process employment data for chart - prefer monthly over quarterly
+  // Process employment data for chart - show quarterly data for last 12 quarters
   const processEmploymentData = () => {
     const employmentData: Array<{
       periode: string;
-      total: number;
-      fuldtid: number;
-      deltid: number;
+      ansatte: number;
     }> = [];
 
-    // Priority 1: Try monthly data (already sorted newest first)
-    if (financialData?.monthlyEmployment && financialData.monthlyEmployment.length > 0) {
-      const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'Maj', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dec'];
-      
-      // Take last 24 months for better trend visualization
-      financialData.monthlyEmployment
-        .slice(0, 24)
-        .forEach((item: any) => {
-          const total = item.antalAnsatte || 0;
-          const fuldtid = Math.round((item.antalAarsvaerk || 0) * 100) / 100;
-          const deltid = Math.max(0, total - fuldtid);
-          
-          if (item.aar) {
-            let periode: string;
-            
-            if (item.maaned !== undefined && item.maaned !== null && 
-                item.maaned >= 1 && item.maaned <= 12) {
-              periode = `${monthNames[item.maaned - 1]} ${item.aar}`;
-            } else {
-              periode = `${item.aar}`;
-            }
-            
-            employmentData.push({ periode, total, fuldtid, deltid });
-          }
-        });
-    }
-    
-    // Priority 2: Fallback to quarterly data if no monthly data
-    if (employmentData.length === 0 && financialData?.quarterlyEmployment && financialData.quarterlyEmployment.length > 0) {
+    // Use quarterly data only
+    if (financialData?.quarterlyEmployment && financialData.quarterlyEmployment.length > 0) {
       financialData.quarterlyEmployment
-        .slice(0, 16)
+        .slice(0, 12) // Last 12 quarters
         .forEach((item: any) => {
-          const total = item.antalAnsatte || 0;
-          const fuldtid = item.antalAarsvaerk || 0;
-          const deltid = Math.max(0, total - fuldtid);
+          const ansatte = item.antalAnsatte || 0;
           
-          if (item.aar) {
-            let periode: string;
-            
-            if (item.kvartal !== undefined && item.kvartal !== null && 
-                item.kvartal >= 1 && item.kvartal <= 4) {
-              periode = `${item.kvartal}. kvt ${item.aar}`;
-            } else {
-              periode = `${item.aar}`;
-            }
-            
-            employmentData.push({ periode, total, fuldtid, deltid });
-          }
-        });
-    }
-    
-    // Priority 3: Last resort - use yearly data
-    if (employmentData.length === 0 && financialData?.yearlyEmployment && financialData.yearlyEmployment.length > 0) {
-      financialData.yearlyEmployment
-        .slice(0, 10)
-        .forEach((item: any) => {
-          const total = item.antalAnsatte || 0;
-          const fuldtid = item.antalAarsvaerk || 0;
-          const deltid = Math.max(0, total - fuldtid);
-          
-          if (item.aar) {
-            const periode = item.aar.toString();
-            employmentData.push({ periode, total, fuldtid, deltid });
+          if (item.aar && item.kvartal !== undefined && item.kvartal !== null) {
+            const periode = `Q${item.kvartal} ${item.aar}`;
+            employmentData.push({ periode, ansatte });
           }
         });
     }
@@ -183,21 +128,9 @@ const EmployeeAccordion: React.FC<EmployeeAccordionProps> = ({ cvr, cvrData }) =
                       }}
                     />
                     <Bar 
-                      dataKey="total" 
-                      fill="hsl(217, 91%, 60%)" 
-                      name="Total ansatte"
-                      radius={[4, 4, 0, 0]}
-                    />
-                    <Bar 
-                      dataKey="fuldtid" 
-                      fill="hsl(142, 76%, 36%)" 
-                      name="Fuldtid (Årsværk)"
-                      radius={[4, 4, 0, 0]}
-                    />
-                    <Bar 
-                      dataKey="deltid" 
-                      fill="hsl(25, 95%, 53%)" 
-                      name="Deltid"
+                      dataKey="ansatte" 
+                      fill="hsl(var(--primary))" 
+                      name="Ansatte"
                       radius={[4, 4, 0, 0]}
                     />
                   </BarChart>
