@@ -30,17 +30,18 @@ const COLORS = [
   'hsl(var(--chart-5))',
 ];
 
-const parsePercentageRange = (percentageStr: string | undefined): { min: number; max: number; isRange: boolean } => {
-  if (!percentageStr || percentageStr === 'Ikke oplyst') return { min: 0, max: 0, isRange: false };
+const parsePercentageRange = (percentageStr: string | undefined): { min: number; max: number; midpoint: number; isRange: boolean } => {
+  if (!percentageStr || percentageStr === 'Ikke oplyst') return { min: 0, max: 0, midpoint: 0, isRange: false };
   
   // Handle ranges like "10-15%" or "67-90%"
   const match = percentageStr.match(/(\d+)(?:-(\d+))?%?/);
-  if (!match) return { min: 0, max: 0, isRange: false };
+  if (!match) return { min: 0, max: 0, midpoint: 0, isRange: false };
   
   const min = parseInt(match[1]);
   const max = match[2] ? parseInt(match[2]) : min;
+  const midpoint = (min + max) / 2;
   
-  return { min, max, isRange: min !== max };
+  return { min, max, midpoint, isRange: min !== max };
 };
 
 const OwnershipChart: React.FC<OwnershipChartProps> = ({ owners }) => {
@@ -54,69 +55,41 @@ const OwnershipChart: React.FC<OwnershipChartProps> = ({ owners }) => {
     return 'h-[240px] sm:h-[270px] md:h-[300px]'; // 4 or more
   };
 
-  // Prepare data for ownership (outer ring) with uncertainty ranges
+  // Prepare data for ownership (outer ring) - use midpoint for segment size
   const ownershipData: ChartDataPoint[] = [];
   owners.forEach((owner, index) => {
     const range = parsePercentageRange(owner.ejerandel);
     const color = COLORS[index % COLORS.length];
     
-    if (range.min > 0) {
-      // Add certain minimum
+    if (range.midpoint > 0) {
       ownershipData.push({
         name: owner.navn,
-        value: range.min,
+        value: range.midpoint,
         displayValue: owner.ejerandel || 'Ikke oplyst',
         color,
         ownershipValue: owner.ejerandel || 'Ikke oplyst',
         votingValue: owner.stemmerettigheder || 'Ikke oplyst',
-        isCertain: true,
+        isCertain: !range.isRange,
       });
-      
-      // Add uncertainty range if it exists
-      if (range.isRange && range.max > range.min) {
-        ownershipData.push({
-          name: `${owner.navn} (usikkerhed)`,
-          value: range.max - range.min,
-          displayValue: owner.ejerandel || 'Ikke oplyst',
-          color,
-          ownershipValue: owner.ejerandel || 'Ikke oplyst',
-          votingValue: owner.stemmerettigheder || 'Ikke oplyst',
-          isCertain: false,
-        });
-      }
     }
   });
 
-  // Prepare data for voting rights (inner ring) with uncertainty ranges
+  // Prepare data for voting rights (inner ring) - use midpoint for segment size
   const votingData: ChartDataPoint[] = [];
   owners.forEach((owner, index) => {
     const range = parsePercentageRange(owner.stemmerettigheder);
     const color = COLORS[index % COLORS.length];
     
-    if (range.min > 0) {
-      // Add certain minimum
+    if (range.midpoint > 0) {
       votingData.push({
         name: owner.navn,
-        value: range.min,
+        value: range.midpoint,
         displayValue: owner.stemmerettigheder || 'Ikke oplyst',
         color,
         ownershipValue: owner.ejerandel || 'Ikke oplyst',
         votingValue: owner.stemmerettigheder || 'Ikke oplyst',
-        isCertain: true,
+        isCertain: !range.isRange,
       });
-      
-      // Add uncertainty range if it exists
-      if (range.isRange && range.max > range.min) {
-        votingData.push({
-          name: `${owner.navn} (usikkerhed)`,
-          value: range.max - range.min,
-          displayValue: owner.stemmerettigheder || 'Ikke oplyst',
-          color,
-          ownershipValue: owner.ejerandel || 'Ikke oplyst',
-          votingValue: owner.stemmerettigheder || 'Ikke oplyst',
-          isCertain: false,
-        });
-      }
     }
   });
 
@@ -127,25 +100,63 @@ const OwnershipChart: React.FC<OwnershipChartProps> = ({ owners }) => {
   const CustomTooltip = ({ active, payload }: any) => {
     if (active && payload && payload.length) {
       const data = payload[0].payload;
-      const displayName = data.name.replace(' (usikkerhed)', '');
-      const isUncertain = data.isCertain === false;
+      
+      // Parse ownership range
+      const ownershipRange = parsePercentageRange(data.ownershipValue);
+      const votingRange = parsePercentageRange(data.votingValue);
       
       return (
-        <div className="bg-background border border-border rounded-lg shadow-lg p-4 min-w-[200px]">
-          <p className="font-semibold text-sm mb-2 border-b border-border pb-2">{displayName}</p>
-          {isUncertain && (
-            <p className="text-xs text-muted-foreground italic mb-2">Usikkerhedsområde i ejerandelen</p>
-          )}
-          <div className="space-y-1.5">
-            <div className="flex justify-between items-center gap-4">
-              <span className="text-xs text-muted-foreground">Ejerandel:</span>
-              <span className="text-xs font-medium">{data.ownershipValue}</span>
+        <div className="bg-background border border-border rounded-lg shadow-lg p-4 min-w-[240px]">
+          <p className="font-semibold text-sm mb-3 border-b border-border pb-2">{data.name}</p>
+          
+          <div className="space-y-3">
+            <div>
+              <div className="flex justify-between items-center gap-4 mb-1">
+                <span className="text-xs font-medium text-foreground">Ejerandel:</span>
+                <span className="text-xs font-semibold text-foreground">{data.ownershipValue}</span>
+              </div>
+              {ownershipRange.isRange && (
+                <div className="ml-2 space-y-0.5">
+                  <div className="flex justify-between items-center gap-4">
+                    <span className="text-xs text-muted-foreground">• Minimum:</span>
+                    <span className="text-xs text-muted-foreground">{ownershipRange.min}%</span>
+                  </div>
+                  <div className="flex justify-between items-center gap-4">
+                    <span className="text-xs text-muted-foreground">• Maksimum:</span>
+                    <span className="text-xs text-muted-foreground">{ownershipRange.max}%</span>
+                  </div>
+                </div>
+              )}
             </div>
-            <div className="flex justify-between items-center gap-4">
-              <span className="text-xs text-muted-foreground">Stemmerettigheder:</span>
-              <span className="text-xs font-medium">{data.votingValue}</span>
+            
+            <div>
+              <div className="flex justify-between items-center gap-4 mb-1">
+                <span className="text-xs font-medium text-foreground">Stemmerettigheder:</span>
+                <span className="text-xs font-semibold text-foreground">{data.votingValue}</span>
+              </div>
+              {votingRange.isRange && (
+                <div className="ml-2 space-y-0.5">
+                  <div className="flex justify-between items-center gap-4">
+                    <span className="text-xs text-muted-foreground">• Minimum:</span>
+                    <span className="text-xs text-muted-foreground">{votingRange.min}%</span>
+                  </div>
+                  <div className="flex justify-between items-center gap-4">
+                    <span className="text-xs text-muted-foreground">• Maksimum:</span>
+                    <span className="text-xs text-muted-foreground">{votingRange.max}%</span>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
+          
+          {(ownershipRange.isRange || votingRange.isRange) && (
+            <div className="mt-3 pt-3 border-t border-border">
+              <p className="text-xs text-muted-foreground flex items-start gap-1.5">
+                <span className="text-sm">💡</span>
+                <span>Ejerandelen er et estimat baseret på intervaller</span>
+              </p>
+            </div>
+          )}
         </div>
       );
     }
@@ -156,6 +167,29 @@ const OwnershipChart: React.FC<OwnershipChartProps> = ({ owners }) => {
     <div className={`w-full ${heightClass}`}>
       <ResponsiveContainer width="100%" height="100%">
         <PieChart>
+          <defs>
+            {ownershipData.map((entry, index) => {
+              // Extract HSL values from the color string
+              const colorMatch = entry.color.match(/hsl\(var\(--chart-(\d+)\)\)/);
+              const chartNum = colorMatch ? colorMatch[1] : '1';
+              
+              return (
+                <radialGradient
+                  key={`gradient-${index}`}
+                  id={`gradient-${index}`}
+                  cx="50%"
+                  cy="50%"
+                  r="50%"
+                  fx="50%"
+                  fy="50%"
+                >
+                  <stop offset="0%" stopColor={`hsl(var(--chart-${chartNum}))`} stopOpacity="1" />
+                  <stop offset="100%" stopColor={`hsl(var(--chart-${chartNum}))`} stopOpacity="0.4" />
+                </radialGradient>
+              );
+            })}
+          </defs>
+          
           {/* Outer ring - Ownership */}
           {ownershipData.length > 0 && (
             <Pie
@@ -164,19 +198,13 @@ const OwnershipChart: React.FC<OwnershipChartProps> = ({ owners }) => {
               cy="50%"
               innerRadius="60%"
               outerRadius="90%"
-              paddingAngle={1}
+              paddingAngle={2}
               dataKey="value"
-              label={(entry) => entry.isCertain !== false ? `${entry.name.replace(' (usikkerhed)', '')}: ${entry.displayValue}` : ''}
-              labelLine={{ stroke: 'hsl(var(--foreground))', strokeWidth: 1 }}
             >
               {ownershipData.map((entry, index) => (
                 <Cell 
                   key={`cell-${index}`} 
-                  fill={entry.color}
-                  fillOpacity={entry.isCertain === false ? 0.3 : 1}
-                  stroke={entry.isCertain === false ? entry.color : undefined}
-                  strokeWidth={entry.isCertain === false ? 2 : 0}
-                  strokeDasharray={entry.isCertain === false ? "4 4" : undefined}
+                  fill={`url(#gradient-${index})`}
                 />
               ))}
             </Pie>
@@ -190,17 +218,14 @@ const OwnershipChart: React.FC<OwnershipChartProps> = ({ owners }) => {
               cy="50%"
               innerRadius="30%"
               outerRadius="55%"
-              paddingAngle={1}
+              paddingAngle={2}
               dataKey="value"
             >
               {votingData.map((entry, index) => (
                 <Cell 
                   key={`cell-voting-${index}`} 
                   fill={entry.color}
-                  fillOpacity={entry.isCertain === false ? 0.2 : 0.7}
-                  stroke={entry.isCertain === false ? entry.color : undefined}
-                  strokeWidth={entry.isCertain === false ? 2 : 0}
-                  strokeDasharray={entry.isCertain === false ? "4 4" : undefined}
+                  fillOpacity={0.6}
                 />
               ))}
             </Pie>
