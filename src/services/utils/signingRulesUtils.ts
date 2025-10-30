@@ -54,7 +54,17 @@ export const extractSigningRulesData = (cvrData: any) => {
   console.log('Signing rules - Available field paths:', signingRulePaths);
 
   const getSigningRules = () => {
+    const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
     let signingRules: string[] = [];
+    
+    // Helper function to check if a period is currently active
+    const isActivePeriod = (periode: any) => {
+      if (!periode) return true; // If no period info, assume active
+      const gyldigTil = periode.gyldigTil;
+      return gyldigTil === null || gyldigTil === undefined || gyldigTil >= today;
+    };
+    
+    console.log('=== SIGNING RULES EXTRACTION - FILTERING BY ACTIVE PERIOD ===');
     
     // Try multiple possible field locations for signing rules
     const possibleRulePaths = [
@@ -73,8 +83,15 @@ export const extractSigningRulesData = (cvrData: any) => {
         if (value) {
           if (Array.isArray(value)) {
             value.forEach((item: any) => {
+              // Check if this item has an active period
+              if (item.periode && !isActivePeriod(item.periode)) {
+                console.log(`  ✗ SKIPPED expired rule from ${path}:`, item.regel || item.vaerdi);
+                return;
+              }
+              
               const rule = item.regel || item.beskrivelse || item.tekst || item.vaerdi || item;
               if (typeof rule === 'string' && rule.trim()) {
+                console.log(`  ✓ ACTIVE rule from ${path}:`, rule.trim());
                 signingRules.push(rule.trim());
               }
             });
@@ -85,7 +102,7 @@ export const extractSigningRulesData = (cvrData: any) => {
       }
     });
     
-    // Enhanced attribute scanning
+    // Enhanced attribute scanning with period validation
     const attributter = vrvirksomhed.attributter || [];
     const signingAttributes = attributter.filter((attr: any) => 
       attr.type?.includes('TEGNING') || 
@@ -95,26 +112,43 @@ export const extractSigningRulesData = (cvrData: any) => {
       attr.type?.includes('AUTHORITY')
     );
     
+    console.log(`Found ${signingAttributes.length} signing-related attributes, filtering by active period...`);
+    
     signingAttributes.forEach((attr: any) => {
       if (attr.vaerdier) {
         attr.vaerdier.forEach((value: any) => {
+          // Only include rules with active periods
+          if (!isActivePeriod(value.periode)) {
+            console.log(`  ✗ SKIPPED expired rule from attributter:`, value.vaerdi || value.regel, `(expired: ${value.periode?.gyldigTil})`);
+            return;
+          }
+          
           const rule = value.vaerdi || value.regel || value.tekst;
           if (rule && typeof rule === 'string' && rule.trim()) {
+            console.log(`  ✓ ACTIVE rule from attributter:`, rule.trim());
             signingRules.push(rule.trim());
           }
         });
       }
     });
     
-    // Check relations for signing rules
+    // Check relations for signing rules with period validation
     relations.forEach((relation: any) => {
+      const personName = relation.deltager?.navne?.[0]?.navn || 'Unknown';
       relation.organisationer?.forEach((org: any) => {
         org.medlemsData?.forEach((medlem: any) => {
           medlem.attributter?.forEach((attr: any) => {
             if (attr.type?.includes('TEGNING') || attr.type?.includes('SIGN')) {
               attr.vaerdier?.forEach((value: any) => {
+                // Only include rules with active periods
+                if (!isActivePeriod(value.periode)) {
+                  console.log(`  ✗ SKIPPED expired rule for ${personName}:`, value.vaerdi || value.regel, `(expired: ${value.periode?.gyldigTil})`);
+                  return;
+                }
+                
                 const rule = value.vaerdi || value.regel;
                 if (rule && typeof rule === 'string' && rule.trim()) {
+                  console.log(`  ✓ ACTIVE rule for ${personName}:`, rule.trim());
                   signingRules.push(rule.trim());
                 }
               });
@@ -127,7 +161,10 @@ export const extractSigningRulesData = (cvrData: any) => {
     // Remove duplicates and empty rules
     signingRules = [...new Set(signingRules.filter(rule => rule && rule.length > 0))];
     
-    console.log('Enhanced signing rules extraction:', signingRules);
+    console.log(`\n=== FINAL ACTIVE SIGNING RULES (${signingRules.length}) ===`);
+    signingRules.forEach(rule => console.log(`  - ${rule}`));
+    console.log('=== END SIGNING RULES EXTRACTION ===\n');
+    
     return signingRules;
   };
 
