@@ -104,43 +104,13 @@ const OwnershipChart: React.FC<OwnershipChartProps> = ({ owners }) => {
     if (active && payload && payload.length) {
       const data = payload[0].payload;
       const isOwnershipRing = data.ring === 'ownership';
-      
-      // Parse the relevant range based on which ring is being hovered
-      const range = parsePercentageRange(isOwnershipRing ? data.ownershipValue : data.votingValue);
-      const label = isOwnershipRing ? 'Ejerandel' : 'Stemmerettigheder';
       const value = isOwnershipRing ? data.ownershipValue : data.votingValue;
+      const label = isOwnershipRing ? 'Ejerandel' : 'Stemmerettigheder';
       
       return (
-        <div className="bg-background border border-border rounded-lg shadow-lg p-4 min-w-[220px]">
-          <p className="font-semibold text-sm mb-3 border-b border-border pb-2">{data.name}</p>
-          
-          <div>
-            <div className="flex justify-between items-center gap-4 mb-1">
-              <span className="text-xs font-medium text-foreground">{label}:</span>
-              <span className="text-xs font-semibold text-foreground">{value}</span>
-            </div>
-            {range.isRange && (
-              <div className="ml-2 space-y-0.5">
-                <div className="flex justify-between items-center gap-4">
-                  <span className="text-xs text-muted-foreground">• Minimum:</span>
-                  <span className="text-xs text-muted-foreground">{range.min}%</span>
-                </div>
-                <div className="flex justify-between items-center gap-4">
-                  <span className="text-xs text-muted-foreground">• Maksimum:</span>
-                  <span className="text-xs text-muted-foreground">{range.max}%</span>
-                </div>
-              </div>
-            )}
-          </div>
-          
-          {range.isRange && (
-            <div className="mt-3 pt-3 border-t border-border">
-              <p className="text-xs text-muted-foreground flex items-start gap-1.5">
-                <span className="text-sm">💡</span>
-                <span>{label} er et estimat baseret på intervaller</span>
-              </p>
-            </div>
-          )}
+        <div className="bg-background border border-border rounded-lg shadow-lg p-3">
+          <p className="font-semibold text-sm mb-1">{data.name}</p>
+          <p className="text-xs text-muted-foreground">{label}: <span className="font-medium text-foreground">{value}</span></p>
         </div>
       );
     }
