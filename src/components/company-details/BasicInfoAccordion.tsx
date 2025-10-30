@@ -117,39 +117,6 @@ const BasicInfoAccordion: React.FC<BasicInfoAccordionProps> = ({ company, cvrDat
     };
   };
 
-  const getFounders = () => {
-    // Handle both wrapped and unwrapped data structures
-    const vrvirksomhed = cvrData?.Vrvirksomhed || cvrData;
-    
-    if (!vrvirksomhed?.deltagerRelation) return null;
-    
-    const founders = vrvirksomhed.deltagerRelation.filter((relation: any) => {
-      // Check if any organization has STIFTER attribute
-      return relation.organisationer?.some((org: any) => {
-        const medlemsData = org.medlemsData || [];
-        return medlemsData.some((medlem: any) => {
-          const attributter = medlem.attributter || [];
-          return attributter.some((attr: any) => attr.type === 'STIFTER');
-        });
-      });
-    });
-    
-    if (founders.length === 0) return null;
-    
-    return founders.map((founder: any) => {
-      // Get name from deltager
-      const deltager = founder.deltager || founder._enrichedDeltagerData;
-      if (deltager) {
-        const navne = deltager.navne || [];
-        const currentName = navne.find((n: any) => !n.periode?.gyldigTil) || navne[0];
-        if (currentName?.navn) {
-          return currentName.navn;
-        }
-      }
-      return 'Ikke oplyst';
-    }).join(', ');
-  };
-
   const website = getWebsite();
   const address = getAddress();
   const extendedInfo = extractExtendedInfo(cvrData);
@@ -188,11 +155,11 @@ const BasicInfoAccordion: React.FC<BasicInfoAccordionProps> = ({ company, cvrDat
             value={getStartDate()} 
           />
           
-          {getFounders() && (
+          {company.founders && (
             <InfoRow 
               icon={User} 
               label="Stiftet af" 
-              value={getFounders()} 
+              value={company.founders} 
             />
           )}
           

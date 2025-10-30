@@ -16,6 +16,7 @@ export interface CompanyTransformationResult {
   email: string | null;
   legalForm: string;
   status: string;
+  founders: string | null;
   realCvrData: any;
   foundPersons?: string[]; // Track found persons in search
 }
@@ -112,6 +113,23 @@ export const transformCompanyData = (hit: any, determineLegalForm: (vrvirksomhed
   const currentWebsite = vrvirksomhed.hjemmeside?.find((site: any) => site.periode?.gyldigTil === null);
   const website = currentWebsite?.kontaktoplysning || vrvirksomhed.hjemmeside?.[vrvirksomhed.hjemmeside.length - 1]?.kontaktoplysning || null;
   
+  // Get founders from deltagerRelation
+  let founders: string | null = null;
+  if (vrvirksomhed.deltagerRelation) {
+    const founderRelations = vrvirksomhed.deltagerRelation.filter((relation: any) => {
+      return relation._medlemsData?.attributter?.some((attr: any) => attr.type === 'STIFTER');
+    });
+    
+    if (founderRelations.length > 0) {
+      const founderNames = founderRelations.map((relation: any) => {
+        const deltager = relation._enrichedDeltagerData || relation.deltager;
+        const currentName = deltager?.navne?.find((n: any) => n.periode?.gyldigTil === null);
+        return currentName?.navn || deltager?.navne?.[deltager.navne.length - 1]?.navn || 'Ikke oplyst';
+      });
+      founders = founderNames.join(', ');
+    }
+  }
+  
   return {
     id: vrvirksomhed.cvrNummer?.toString() || hit._id,
     name: primaryName,
@@ -129,6 +147,7 @@ export const transformCompanyData = (hit: any, determineLegalForm: (vrvirksomhed
     email: emailAddress,
     legalForm: legalForm,
     status: status,
+    founders: founders,
     foundPersons: foundPersons,
     // Store full CVR data for detailed view
     realCvrData: vrvirksomhed
