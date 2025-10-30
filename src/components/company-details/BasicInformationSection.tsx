@@ -134,7 +134,17 @@ const BasicInformationSection: React.FC<BasicInformationSectionProps> = ({ compa
           {ceo && (
             <div>
               <span className="text-sm font-medium text-muted-foreground">Direktør</span>
-              <div className="font-medium">{ceo}</div>
+              <button
+                onClick={() => {
+                  const section = document.getElementById('signing-rules-section');
+                  if (section) {
+                    section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                  }
+                }}
+                className="font-medium text-primary hover:underline cursor-pointer text-left"
+              >
+                {ceo}
+              </button>
             </div>
           )}
           
