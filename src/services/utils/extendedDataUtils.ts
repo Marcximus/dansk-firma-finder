@@ -249,6 +249,7 @@ export const extractExtendedInfo = (cvrData: any) => {
     // Fallback to manual mapping for major Danish publicly traded companies
     const cvrNumber = vrvirksomhed.cvrNummer?.toString();
     const tickerMappings: { [key: string]: string } = {
+      '10007127': 'NZYM-B',   // Novozymes
       '24256790': 'NOVO-B',  // Novo Nordisk
       '10103940': 'MAERSK-B', // A.P. Møller - Mærsk
       '36213728': 'DSV',      // DSV
