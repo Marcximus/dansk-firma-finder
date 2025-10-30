@@ -74,9 +74,9 @@ const FinancialChartsSection: React.FC<FinancialChartsSectionProps> = ({ histori
           <ChartContainer config={revenueAndResultConfig} className="h-[300px] w-full">
             <LineChart data={chartData} margin={{ top: 5, right: 20, left: 10, bottom: 10 }}>
               <CartesianGrid 
-                strokeDasharray="2 4" 
-                stroke="hsl(var(--border))"
-                strokeOpacity={0.5}
+                strokeDasharray="3 3" 
+                stroke="hsl(var(--muted-foreground))"
+                strokeOpacity={0.3}
                 horizontal={true}
                 vertical={false}
               />
@@ -161,9 +161,9 @@ const FinancialChartsSection: React.FC<FinancialChartsSectionProps> = ({ histori
                 </linearGradient>
               </defs>
               <CartesianGrid 
-                strokeDasharray="2 4" 
-                stroke="hsl(var(--border))"
-                strokeOpacity={0.5}
+                strokeDasharray="3 3" 
+                stroke="hsl(var(--muted-foreground))"
+                strokeOpacity={0.3}
                 horizontal={true}
                 vertical={false}
               />
