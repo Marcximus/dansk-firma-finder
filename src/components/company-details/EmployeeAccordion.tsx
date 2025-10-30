@@ -38,7 +38,6 @@ const EmployeeAccordion: React.FC<EmployeeAccordionProps> = ({ cvr, cvrData }) =
 
   // Process employment data for chart - prefer monthly over quarterly
   const processEmploymentData = () => {
-    const currentYear = new Date().getFullYear();
     const employmentData: Array<{
       periode: string;
       total: number;
@@ -50,9 +49,9 @@ const EmployeeAccordion: React.FC<EmployeeAccordionProps> = ({ cvr, cvrData }) =
     if (financialData?.monthlyEmployment && financialData.monthlyEmployment.length > 0) {
       const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'Maj', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dec'];
       
-      // Data is already sorted newest first, take first 12 entries
+      // Take last 24 months for better trend visualization
       financialData.monthlyEmployment
-        .slice(0, 12)
+        .slice(0, 24)
         .forEach((item: any) => {
           const total = item.antalAnsatte || 0;
           const fuldtid = Math.round((item.antalAarsvaerk || 0) * 100) / 100;
@@ -76,7 +75,7 @@ const EmployeeAccordion: React.FC<EmployeeAccordionProps> = ({ cvr, cvrData }) =
     // Priority 2: Fallback to quarterly data if no monthly data
     if (employmentData.length === 0 && financialData?.quarterlyEmployment && financialData.quarterlyEmployment.length > 0) {
       financialData.quarterlyEmployment
-        .slice(0, 12)
+        .slice(0, 16)
         .forEach((item: any) => {
           const total = item.antalAnsatte || 0;
           const fuldtid = item.antalAarsvaerk || 0;
@@ -113,7 +112,7 @@ const EmployeeAccordion: React.FC<EmployeeAccordionProps> = ({ cvr, cvrData }) =
         });
     }
     
-    // Reverse to show oldest → newest (left to right) in chart
+    // Data is newest first, reverse to show oldest → newest (left to right) in chart
     return employmentData.reverse();
   };
 
@@ -152,12 +151,12 @@ const EmployeeAccordion: React.FC<EmployeeAccordionProps> = ({ cvr, cvrData }) =
           {!isLoading && chartData.length > 0 && (
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Users className="h-4 w-4" />
-                  Medarbejderudvikling (seneste 2 år)
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  <Users className="h-5 w-5" />
+                  Medarbejderudvikling over tid
                   {isDataOld && (
                     <span className="text-xs text-muted-foreground font-normal ml-1">
-                      - Seneste tilgængelige data: {latestYear}
+                      (Seneste data: {latestYear})
                     </span>
                   )}
                 </CardTitle>

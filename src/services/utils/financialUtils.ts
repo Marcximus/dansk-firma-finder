@@ -37,22 +37,22 @@ export const calculateFinancialRatios = (data: any, useBruttofortjeneste: boolea
 
 // Helper function to extract employment data from company or production units
 const getEmploymentData = (cvrData: any, fieldName: string) => {
-  // Helper function to sort employment data consistently
+  // Helper function to sort employment data consistently (NEWEST FIRST)
   const sortEmploymentData = (data: any[]) => {
     return data.sort((a, b) => {
-      // Sort by year first (ascending - oldest to newest)
-      if (a.aar !== b.aar) return a.aar - b.aar;
+      // Sort by year first (descending - newest to oldest)
+      if (a.aar !== b.aar) return b.aar - a.aar;
       
       // Then by month if both have it (handles maaned=0 for January)
       if (a.maaned !== undefined && a.maaned !== null && 
           b.maaned !== undefined && b.maaned !== null) {
-        return a.maaned - b.maaned;
+        return b.maaned - a.maaned;
       }
       
       // Then by quarter if both have it
       if (a.kvartal !== undefined && a.kvartal !== null && 
           b.kvartal !== undefined && b.kvartal !== null) {
-        return a.kvartal - b.kvartal;
+        return b.kvartal - a.kvartal;
       }
       
       return 0;
@@ -108,17 +108,7 @@ const getEmploymentData = (cvrData: any, fieldName: string) => {
       }
     }
     
-    return Array.from(aggregated.values()).sort((a, b) => {
-      // Sort by year, then month/quarter
-      if (a.aar !== b.aar) return a.aar - b.aar;
-      if (a.maaned !== undefined && a.maaned !== null && b.maaned !== undefined && b.maaned !== null) {
-        return a.maaned - b.maaned;
-      }
-      if (a.kvartal !== undefined && a.kvartal !== null && b.kvartal !== undefined && b.kvartal !== null) {
-        return a.kvartal - b.kvartal;
-      }
-      return 0;
-    });
+    return sortEmploymentData(Array.from(aggregated.values()));
   }
   
   return [];
@@ -236,22 +226,22 @@ export const extractFinancialData = (cvrData: any, parsedFinancialData?: any) =>
         const regular = getEmploymentData(cvrData, 'maanedsbeskaeftigelse');
         const substitute = getEmploymentData(cvrData, 'erstMaanedsbeskaeftigelse');
         
-        // Merge both sources and sort by date
+        // Merge both sources - getEmploymentData already sorts newest first
         const combined = [...regular, ...substitute];
         
         if (combined.length === 0) return [];
         
-        // Sort by year and month (newest first)
+        // Re-sort merged data to ensure newest first
         return combined.sort((a, b) => {
-          if (a.aar !== b.aar) return b.aar - a.aar; // Newest year first
+          if (a.aar !== b.aar) return b.aar - a.aar;
           if (a.maaned !== undefined && b.maaned !== undefined) {
-            return b.maaned - a.maaned; // Newest month first
+            return b.maaned - a.maaned;
           }
           return 0;
         });
       })(),
-      yearlyEmployment: getEmploymentData(cvrData, 'aarsbeskaeftigelse'),
-      quarterlyEmployment: getEmploymentData(cvrData, 'kvartalsbeskaeftigelse'),
+      yearlyEmployment: getEmploymentData(cvrData, 'aarsbeskaeftigelse'), // Already sorted newest first
+      quarterlyEmployment: getEmploymentData(cvrData, 'kvartalsbeskaeftigelse'), // Already sorted newest first
       kapitalforhold: cvrData?.Vrvirksomhed?.kapitalforhold || [],
       regnskabsperiode: cvrData?.Vrvirksomhed?.regnskabsperiode || [],
       hasRealData: true,
@@ -334,22 +324,22 @@ export const extractFinancialData = (cvrData: any, parsedFinancialData?: any) =>
       const regular = getEmploymentData(cvrData, 'maanedsbeskaeftigelse');
       const substitute = getEmploymentData(cvrData, 'erstMaanedsbeskaeftigelse');
       
-      // Merge both sources and sort by date
+      // Merge both sources - getEmploymentData already sorts newest first
       const combined = [...regular, ...substitute];
       
       if (combined.length === 0) return [];
       
-      // Sort by year and month (newest first)
+      // Re-sort merged data to ensure newest first
       return combined.sort((a, b) => {
-        if (a.aar !== b.aar) return b.aar - a.aar; // Newest year first
+        if (a.aar !== b.aar) return b.aar - a.aar;
         if (a.maaned !== undefined && b.maaned !== undefined) {
-          return b.maaned - a.maaned; // Newest month first
+          return b.maaned - a.maaned;
         }
         return 0;
       });
     })(),
-    yearlyEmployment: getEmploymentData(cvrData, 'aarsbeskaeftigelse'),
-    quarterlyEmployment: getEmploymentData(cvrData, 'kvartalsbeskaeftigelse'),
+    yearlyEmployment: getEmploymentData(cvrData, 'aarsbeskaeftigelse'), // Already sorted newest first
+    quarterlyEmployment: getEmploymentData(cvrData, 'kvartalsbeskaeftigelse'), // Already sorted newest first
     kapitalforhold: vrvirksomhed.kapitalforhold || [],
     regnskabsperiode: vrvirksomhed.regnskabsperiode || [],
     hasRealData: false,

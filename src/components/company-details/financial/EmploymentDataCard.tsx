@@ -1,7 +1,6 @@
-
 import React from 'react';
-import { Users, Info } from 'lucide-react';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Users, Calendar, TrendingUp } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 interface EmploymentDataCardProps {
   monthlyEmployment?: any[];
@@ -9,135 +8,121 @@ interface EmploymentDataCardProps {
   quarterlyEmployment: any[];
 }
 
-const EmploymentDataCard: React.FC<EmploymentDataCardProps> = ({ monthlyEmployment, yearlyEmployment, quarterlyEmployment }) => {
+const EmploymentDataCard: React.FC<EmploymentDataCardProps> = ({ 
+  monthlyEmployment, 
+  yearlyEmployment, 
+  quarterlyEmployment 
+}) => {
   const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'Maj', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dec'];
   
-  return (
-    <>
-      {/* Monthly Employment Data */}
-      {monthlyEmployment && monthlyEmployment.length > 0 && (
-        <div>
-          <h4 className="font-semibold mb-3 flex items-center gap-2">
-            <Users className="h-4 w-4" />
-            Antal ansatte pr måned
-          </h4>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b">
-                  <th className="text-left py-2">Periode</th>
-                  <th className="text-right py-2">
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger className="inline-flex items-center gap-1">
-                          Ansatte <Info className="h-3 w-3" />
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          <p>Det samlede antal ansatte (hovedtal)</p>
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
-                  </th>
-                  <th className="text-right py-2">
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger className="inline-flex items-center gap-1">
-                          Fuldtid <Info className="h-3 w-3" />
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          <p>Årsværk (FTE) - arbejdskapacitet målt i fuldtidsækvivalenter.<br />F.eks. 1.47 = 1 fuldtid + 1 person på 47% tid</p>
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
-                  </th>
-                  <th className="text-right py-2">
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger className="inline-flex items-center gap-1">
-                          Deltid <Info className="h-3 w-3" />
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          <p>Beregnet forskel mellem ansatte og årsværk.<br />Ikke præcis antal deltidsansatte</p>
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {monthlyEmployment.slice(0, 12).map((item: any, index: number) => {
-                  const periode = item.maaned && item.aar ? `${monthNames[item.maaned - 1]} ${item.aar}` : item.aar;
-                  const ansatte = item.antalAnsatte || 0;
-                  const fuldtid = item.antalAarsvaerk || 0;
-                  const deltid = ansatte - fuldtid;
-                  return (
-                    <tr key={index} className="border-b">
-                      <td className="py-2">{periode}</td>
-                      <td className="text-right">{ansatte}</td>
-                      <td className="text-right">{fuldtid}</td>
-                      <td className="text-right">{deltid}</td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      )}
-      
-      {/* Yearly Employment Data */}
-      {yearlyEmployment && yearlyEmployment.length > 0 && (
-        <div>
-          <h4 className="font-semibold mb-3 flex items-center gap-2">
-            <Users className="h-4 w-4" />
-            Antal ansatte pr år
-          </h4>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {yearlyEmployment.slice(0, 6).map((employment: any, index: number) => (
-              <div key={index} className="border rounded p-3">
-                <div className="font-semibold text-center text-lg">{employment.aar}</div>
-                <div className="space-y-1 text-sm mt-2">
-                  {employment.antalAnsatte && (
-                    <div>Ansatte: <span className="font-medium">{employment.antalAnsatte}</span></div>
-                  )}
-                  {employment.antalAarsvaerk && (
-                    <div>Årsværk: <span className="font-medium">{employment.antalAarsvaerk}</span></div>
-                  )}
-                  {employment.antalInklusivEjere && (
-                    <div>Inkl. ejere: <span className="font-medium">{employment.antalInklusivEjere}</span></div>
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
+  // Helper to format period
+  const formatPeriod = (item: any) => {
+    if (item.maaned !== undefined && item.maaned !== null && item.aar) {
+      return `${monthNames[item.maaned - 1]} ${item.aar}`;
+    }
+    if (item.kvartal !== undefined && item.kvartal !== null && item.aar) {
+      return `Q${item.kvartal} ${item.aar}`;
+    }
+    return item.aar?.toString() || '-';
+  };
 
-      {/* Quarterly Employment Data */}
-      {quarterlyEmployment && quarterlyEmployment.length > 0 && (
-        <div>
-          <h4 className="font-semibold mb-3 flex items-center gap-2">
-            <Users className="h-4 w-4" />
-            Antal ansatte pr kvartal
-          </h4>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            {quarterlyEmployment.slice(0, 8).map((employment: any, index: number) => (
-              <div key={index} className="border rounded p-3 text-center">
-                <div className="font-medium">Q{employment.kvartal} {employment.aar}</div>
-                <div className="text-sm text-muted-foreground space-y-1 mt-2">
-                  {employment.antalAnsatte && (
-                    <div>Ansatte: {employment.antalAnsatte}</div>
-                  )}
-                  {employment.antalAarsvaerk && (
-                    <div>Årsværk: {employment.antalAarsvaerk}</div>
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
+  // Helper to calculate difference
+  const calculateDiff = (total: number, fte: number) => {
+    const diff = total - fte;
+    return diff > 0 ? `+${diff.toFixed(1)}` : diff.toFixed(1);
+  };
+
+  // Determine which data to display (priority: monthly > quarterly > yearly)
+  const displayData = monthlyEmployment && monthlyEmployment.length > 0 
+    ? { data: monthlyEmployment.slice(0, 24), type: 'Månedsdata', icon: Calendar }
+    : quarterlyEmployment && quarterlyEmployment.length > 0
+    ? { data: quarterlyEmployment.slice(0, 12), type: 'Kvartalsdata', icon: TrendingUp }
+    : yearlyEmployment && yearlyEmployment.length > 0
+    ? { data: yearlyEmployment.slice(0, 10), type: 'Årsdata', icon: Users }
+    : null;
+
+  if (!displayData) {
+    return (
+      <Card>
+        <CardContent className="py-8">
+          <p className="text-sm text-muted-foreground text-center">
+            Ingen medarbejderdata tilgængelig
+          </p>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  const Icon = displayData.icon;
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2 text-lg">
+          <Icon className="h-5 w-5" />
+          Medarbejderhistorik - {displayData.type}
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="px-0 sm:px-6">
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead className="border-b-2 border-border bg-muted/50">
+              <tr>
+                <th className="text-left py-3 px-4 font-semibold">Periode</th>
+                <th className="text-right py-3 px-4 font-semibold">
+                  Ansatte
+                  <div className="text-xs text-muted-foreground font-normal">(Hovedtal)</div>
+                </th>
+                <th className="text-right py-3 px-4 font-semibold">
+                  Årsværk
+                  <div className="text-xs text-muted-foreground font-normal">(FTE)</div>
+                </th>
+                <th className="text-right py-3 px-4 font-semibold">
+                  Forskel
+                  <div className="text-xs text-muted-foreground font-normal">(Deltid)</div>
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {displayData.data.map((item: any, index: number) => {
+                const ansatte = item.antalAnsatte || 0;
+                const aarsvaerk = item.antalAarsvaerk || 0;
+                const diff = ansatte - aarsvaerk;
+                
+                return (
+                  <tr 
+                    key={index} 
+                    className={`border-b border-border hover:bg-muted/30 transition-colors ${
+                      index % 2 === 0 ? 'bg-background' : 'bg-muted/20'
+                    }`}
+                  >
+                    <td className="py-3 px-4 font-medium">
+                      {formatPeriod(item)}
+                    </td>
+                    <td className="text-right py-3 px-4 tabular-nums font-semibold">
+                      {ansatte}
+                    </td>
+                    <td className="text-right py-3 px-4 tabular-nums">
+                      {aarsvaerk.toFixed(1)}
+                    </td>
+                    <td className="text-right py-3 px-4 tabular-nums text-muted-foreground">
+                      {diff > 0 ? `+${diff.toFixed(1)}` : diff.toFixed(1)}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
         </div>
-      )}
-    </>
+        
+        {/* Additional info if we have it */}
+        {displayData.data.some((item: any) => item.antalInklusivEjere) && (
+          <div className="mt-4 px-4 py-3 bg-muted/30 rounded-md text-xs text-muted-foreground">
+            <strong>Note:</strong> Nogle perioder inkluderer antal ansatte inkl. ejere
+          </div>
+        )}
+      </CardContent>
+    </Card>
   );
 };
 
