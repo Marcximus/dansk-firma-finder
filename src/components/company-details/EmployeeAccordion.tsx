@@ -45,8 +45,9 @@ const EmployeeAccordion: React.FC<EmployeeAccordionProps> = ({ cvr, cvrData }) =
 
     // Use quarterly data only
     if (financialData?.quarterlyEmployment && financialData.quarterlyEmployment.length > 0) {
+      console.log('Available quarterly employment data:', financialData.quarterlyEmployment.slice(0, 20));
       financialData.quarterlyEmployment
-        .slice(0, 12) // Last 12 quarters
+        .slice(0, 16) // Last 16 quarters
         .forEach((item: any) => {
           const ansatte = item.antalAnsatte || 0;
           
@@ -63,15 +64,30 @@ const EmployeeAccordion: React.FC<EmployeeAccordionProps> = ({ cvr, cvrData }) =
 
   const chartData = processEmploymentData();
   
-  // Calculate latest year for data availability message
-  const latestYear = chartData.length > 0 
-    ? Math.max(...chartData.map(d => {
-        const match = d.periode.match(/\d{4}/);
-        return match ? parseInt(match[0]) : 0;
-      }))
-    : 0;
-  const currentYear = new Date().getFullYear();
-  const isDataOld = latestYear > 0 && latestYear < currentYear - 1;
+  // Calculate latest quarter for data availability message
+  const getLatestQuarterInfo = () => {
+    if (chartData.length === 0) return { year: 0, quarter: 0, isOld: false };
+    
+    const latest = chartData[chartData.length - 1]; // Last item (newest after reverse)
+    const match = latest.periode.match(/Q(\d+)\s+(\d{4})/);
+    if (!match) return { year: 0, quarter: 0, isOld: false };
+    
+    const quarter = parseInt(match[1]);
+    const year = parseInt(match[2]);
+    
+    const now = new Date();
+    const currentYear = now.getFullYear();
+    const currentQuarter = Math.floor(now.getMonth() / 3) + 1;
+    
+    // Calculate quarters difference (consider data old if more than 2 quarters behind)
+    const quartersDiff = (currentYear - year) * 4 + (currentQuarter - quarter);
+    const isOld = quartersDiff > 2;
+    
+    return { year, quarter, isOld };
+  };
+  
+  const latestInfo = getLatestQuarterInfo();
+  const isDataOld = latestInfo.isOld;
 
   const formatEmployees = (value: number) => value.toString();
 
@@ -99,9 +115,9 @@ const EmployeeAccordion: React.FC<EmployeeAccordionProps> = ({ cvr, cvrData }) =
                 <CardTitle className="flex items-center gap-2 text-lg">
                   <Users className="h-5 w-5" />
                   Medarbejderudvikling over tid
-                  {isDataOld && (
+                  {isDataOld && latestInfo.year > 0 && (
                     <span className="text-xs text-muted-foreground font-normal ml-1">
-                      (Seneste data: {latestYear})
+                      (Seneste data: Q{latestInfo.quarter} {latestInfo.year})
                     </span>
                   )}
                 </CardTitle>
