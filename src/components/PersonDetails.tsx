@@ -10,6 +10,22 @@ import {
   Database, Clock, ShieldOff
 } from 'lucide-react';
 
+// Map ownership values to percentage ranges
+const mapOwnershipToRange = (value: number): string => {
+  const percentage = value;
+  
+  if (percentage < 5) return '0-5%';
+  if (percentage < 10) return '5-10%';
+  if (percentage < 15) return '10-15%';
+  if (percentage < 20) return '15-20%';
+  if (percentage < 25) return '20-25%';
+  if (percentage < 33.33) return '25-33%';
+  if (percentage < 50) return '33-50%';
+  if (percentage < 66.67) return '50-67%';
+  if (percentage < 90) return '67-90%';
+  return '90-100%';
+};
+
 interface PersonDetailsProps {
   personData: {
     personName: string;
@@ -225,7 +241,7 @@ const PersonDetails: React.FC<PersonDetailsProps> = ({ personData }) => {
               }}
               className="font-medium hover:text-primary hover:underline transition-colors text-left"
             >
-              {item.role.ownershipPercentage.toFixed(2)}%
+              {mapOwnershipToRange(item.role.ownershipPercentage)}
             </button>
           </div>
         )}

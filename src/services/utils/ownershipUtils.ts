@@ -4,6 +4,25 @@ import { formatAddress, formatPeriod } from './formatUtils';
 // Enhanced helper functions for extracting ownership data with intelligent field discovery
 import { extractDataIntelligently, scanDataStructure } from './dataDiscovery';
 
+// Map ownership interval codes to percentage ranges
+// Based on Danish Business Authority's ownership reporting intervals
+const mapOwnershipToRange = (value: number): string => {
+  // The value is typically between 0 and 1 (e.g., 0.15 = 15%)
+  const percentage = value * 100;
+  
+  // Map to the official CVR ownership intervals
+  if (percentage < 5) return '0-5%';
+  if (percentage < 10) return '5-10%';
+  if (percentage < 15) return '10-15%';
+  if (percentage < 20) return '15-20%';
+  if (percentage < 25) return '20-25%';
+  if (percentage < 33.33) return '25-33%';
+  if (percentage < 50) return '33-50%';
+  if (percentage < 66.67) return '50-67%';
+  if (percentage < 90) return '67-90%';
+  return '90-100%';
+};
+
 export const extractOwnershipData = (cvrData: any) => {
   // Handle both wrapped and unwrapped Vrvirksomhed data structures
   const vrvirksomhed = cvrData?.Vrvirksomhed || cvrData;
@@ -246,10 +265,10 @@ export const extractOwnershipData = (cvrData: any) => {
           navn: name,
           adresse: addressString,
           ejerandel: ownershipPercentage 
-            ? `${(ownershipPercentage * 100).toFixed(2)}%` 
+            ? mapOwnershipToRange(ownershipPercentage)
             : 'Ikke oplyst',
           stemmerettigheder: votingRights 
-            ? `${(votingRights * 100).toFixed(2)}%` 
+            ? mapOwnershipToRange(votingRights)
             : 'Ikke oplyst',
           periode: {
             gyldigFra: validFrom || rel.periode?.gyldigFra,
@@ -367,7 +386,7 @@ export const extractOwnershipData = (cvrData: any) => {
           adresse: addressString,
           status: status,
           ejerandel: ownershipPercentage 
-            ? `${(ownershipPercentage * 100).toFixed(2)}%` 
+            ? mapOwnershipToRange(ownershipPercentage)
             : 'Ikke oplyst',
           periode: {
             gyldigFra: rel.periode?.gyldigFra,
