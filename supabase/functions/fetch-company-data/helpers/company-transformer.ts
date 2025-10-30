@@ -47,21 +47,72 @@ export const transformCompanyData = (hit: any, determineLegalForm: (vrvirksomhed
   // Get current status using enhanced logic
   const status = determineStatus(vrvirksomhed);
   
-  // Get employee count from current employment data (where gyldigTil is null) or the most recent
-  const currentEmployment = vrvirksomhed.aarsbeskaeftigelse?.find((emp: any) => emp.periode?.gyldigTil === null);
-  const latestEmployment = currentEmployment || vrvirksomhed.aarsbeskaeftigelse?.[0]; // Index 0 = newest in CVR API
-  const employeeCount = latestEmployment?.antalAnsatte || latestEmployment?.antalAarsvaerk || 0;
+  // Get employee count from all available employment data sources
+  const getLatestEmployeeCount = () => {
+    const getEntryDate = (entry: any, type: 'monthly' | 'quarterly' | 'yearly') => {
+      if (type === 'monthly') {
+        return new Date(entry.aar, entry.maaned - 1);
+      } else if (type === 'quarterly') {
+        return new Date(entry.aar, (entry.kvartal - 1) * 3);
+      } else {
+        return new Date(entry.aar, 11);
+      }
+    };
+    
+    const sources = [
+      { data: vrvirksomhed.erstMaanedsbeskaeftigelse, type: 'monthly' as const, name: 'ERST Monthly' },
+      { data: vrvirksomhed.maanedsbeskaeftigelse, type: 'monthly' as const, name: 'Monthly' },
+      { data: vrvirksomhed.kvartalsbeskaeftigelse, type: 'quarterly' as const, name: 'Quarterly' },
+      { data: vrvirksomhed.aarsbeskaeftigelse, type: 'yearly' as const, name: 'Yearly' }
+    ];
+    
+    let latestEntry: any = null;
+    let latestDate: Date | null = null;
+    let latestSource = '';
+    
+    for (const source of sources) {
+      if (!source.data || source.data.length === 0) continue;
+      
+      const sorted = [...source.data].sort((a: any, b: any) => {
+        const dateA = getEntryDate(a, source.type);
+        const dateB = getEntryDate(b, source.type);
+        return dateB.getTime() - dateA.getTime();
+      });
+      
+      const candidate = sorted[0];
+      const candidateDate = getEntryDate(candidate, source.type);
+      
+      if (!latestDate || candidateDate > latestDate) {
+        latestEntry = candidate;
+        latestDate = candidateDate;
+        latestSource = source.name;
+      }
+    }
+    
+    return {
+      count: latestEntry?.antalAnsatte || latestEntry?.antalAarsvaerk || 0,
+      source: latestSource,
+      entry: latestEntry
+    };
+  };
+
+  const employeeData = getLatestEmployeeCount();
+  const employeeCount = employeeData.count;
   
-  // Debug logging
-  if (vrvirksomhed.aarsbeskaeftigelse && vrvirksomhed.aarsbeskaeftigelse.length > 0) {
-    console.log('[EMPLOYEE COUNT]', {
-      cvrNummer: vrvirksomhed.cvrNummer,
-      totalEntries: vrvirksomhed.aarsbeskaeftigelse.length,
-      foundCurrent: !!currentEmployment,
-      employeeCount: employeeCount,
-      latestPeriod: latestEmployment?.periode
-    });
-  }
+  console.log('[EMPLOYEE COUNT]', {
+    cvrNummer: vrvirksomhed.cvrNummer,
+    employeeCount: employeeCount,
+    source: employeeData.source,
+    year: employeeData.entry?.aar,
+    month: employeeData.entry?.maaned,
+    quarter: employeeData.entry?.kvartal,
+    sources: {
+      erstMaaneds: vrvirksomhed.erstMaanedsbeskaeftigelse?.length || 0,
+      maaneds: vrvirksomhed.maanedsbeskaeftigelse?.length || 0,
+      kvartals: vrvirksomhed.kvartalsbeskaeftigelse?.length || 0,
+      aars: vrvirksomhed.aarsbeskaeftigelse?.length || 0
+    }
+  });
   
   // Build address string
   let addressString = 'N/A';

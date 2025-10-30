@@ -98,35 +98,62 @@ const ExtendedInfoAccordion: React.FC<ExtendedInfoAccordionProps> = ({ company, 
   };
 
   const getEmployeeCount = () => {
-    // Extract the actual Vrvirksomhed data
     const vrvirksomhed = cvrData?.Vrvirksomhed || cvrData;
     
-    if (!vrvirksomhed?.aarsbeskaeftigelse) return company.employeeCount;
+    if (!vrvirksomhed) return company.employeeCount;
     
-    // Priority 1: Find current employment data (where gyldigTil is null)
-    const currentEmployment = vrvirksomhed.aarsbeskaeftigelse.find(
-      (emp: any) => emp.periode?.gyldigTil === null
-    );
+    // Helper to extract year/month/quarter from employment entry
+    const getEntryDate = (entry: any, type: 'monthly' | 'quarterly' | 'yearly') => {
+      if (type === 'monthly') {
+        return new Date(entry.aar, entry.maaned - 1); // month is 0-indexed
+      } else if (type === 'quarterly') {
+        return new Date(entry.aar, (entry.kvartal - 1) * 3); // approximate month from quarter
+      } else {
+        return new Date(entry.aar, 11); // Use December for yearly data
+      }
+    };
     
-    if (currentEmployment) {
-      const count = currentEmployment.antalAnsatte || currentEmployment.antalAarsvaerk || 0;
-      return count || company.employeeCount;
+    // Check all four employment data sources
+    const sources = [
+      { data: vrvirksomhed.erstMaanedsbeskaeftigelse, type: 'monthly' as const, name: 'ERST Monthly' },
+      { data: vrvirksomhed.maanedsbeskaeftigelse, type: 'monthly' as const, name: 'Monthly' },
+      { data: vrvirksomhed.kvartalsbeskaeftigelse, type: 'quarterly' as const, name: 'Quarterly' },
+      { data: vrvirksomhed.aarsbeskaeftigelse, type: 'yearly' as const, name: 'Yearly' }
+    ];
+    
+    let latestEntry: any = null;
+    let latestDate: Date | null = null;
+    let latestSource = '';
+    
+    for (const source of sources) {
+      if (!source.data || source.data.length === 0) continue;
+      
+      // Sort by date (newest first)
+      const sorted = [...source.data].sort((a: any, b: any) => {
+        const dateA = getEntryDate(a, source.type);
+        const dateB = getEntryDate(b, source.type);
+        return dateB.getTime() - dateA.getTime();
+      });
+      
+      const candidate = sorted[0];
+      const candidateDate = getEntryDate(candidate, source.type);
+      
+      if (!latestDate || candidateDate > latestDate) {
+        latestEntry = candidate;
+        latestDate = candidateDate;
+        latestSource = source.name;
+      }
     }
     
-    // Priority 2: Find the latest employment data by sorting by gyldigFra date
-    const sortedEmployment = [...vrvirksomhed.aarsbeskaeftigelse].sort((a: any, b: any) => {
-      const dateA = a.periode?.gyldigFra ? new Date(a.periode.gyldigFra).getTime() : 0;
-      const dateB = b.periode?.gyldigFra ? new Date(b.periode.gyldigFra).getTime() : 0;
-      return dateB - dateA; // Sort descending (newest first)
-    });
-    
-    const latestEmployment = sortedEmployment[0];
-    const employeeCount = latestEmployment?.antalAnsatte || latestEmployment?.antalAarsvaerk || 0;
+    const employeeCount = latestEntry?.antalAnsatte || latestEntry?.antalAarsvaerk || 0;
     
     console.log('[ExtendedInfo] Employee Count:', {
       found: employeeCount,
-      periode: latestEmployment?.periode,
-      totalEntries: vrvirksomhed.aarsbeskaeftigelse.length
+      source: latestSource,
+      year: latestEntry?.aar,
+      month: latestEntry?.maaned,
+      quarter: latestEntry?.kvartal,
+      date: latestDate?.toISOString(),
     });
     
     return employeeCount || company.employeeCount;
