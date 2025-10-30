@@ -85,8 +85,22 @@ const extractTickerSymbol = (vrvirksomhed: any): string | undefined => {
 };
 
 export const extractOwnershipData = (cvrData: any) => {
+  console.log('🏢 extractOwnershipData called with cvrData:', {
+    hasCvrData: !!cvrData,
+    hasVrvirksomhedNested: !!cvrData?.Vrvirksomhed,
+    hasVrvirksomhedDirect: !!cvrData?.vrvirksomhed,
+    cvrDataKeys: cvrData ? Object.keys(cvrData).slice(0, 10) : []
+  });
+  
   // Handle both wrapped and unwrapped Vrvirksomhed data structures
-  const vrvirksomhed = cvrData?.Vrvirksomhed || cvrData;
+  const vrvirksomhed = cvrData?.Vrvirksomhed || cvrData?.vrvirksomhed || cvrData;
+  
+  console.log('🏢 vrvirksomhed extracted:', {
+    hasVrvirksomhed: !!vrvirksomhed,
+    cvrNummer: vrvirksomhed?.cvrNummer,
+    hasAttributter: !!vrvirksomhed?.attributter,
+    attributterCount: vrvirksomhed?.attributter?.length
+  });
   
   // Check if the company is publicly traded (børsnoteret)
   const checkIfListed = (): boolean => {

@@ -19,8 +19,17 @@ const OwnershipAccordion: React.FC<OwnershipAccordionProps> = ({
   subsidiaries
 }) => {
   const navigate = useNavigate();
+  console.log('🎨 OwnershipAccordion - Received cvrData:', {
+    hasCvrData: !!cvrData,
+    hasVrvirksomhed: !!cvrData?.vrvirksomhed,
+    cvrNummer: cvrData?.vrvirksomhed?.cvrNummer,
+    hasAttributter: !!cvrData?.vrvirksomhed?.attributter,
+    attributterCount: cvrData?.vrvirksomhed?.attributter?.length
+  });
+  
   const ownershipData = extractOwnershipData(cvrData);
-  console.log('OwnershipAccordion - Extracted Data:', ownershipData);
+  console.log('🎨 OwnershipAccordion - Extracted ownership data:', ownershipData);
+  console.log('🎨 OwnershipAccordion - Current owners:', ownershipData?.currentOwners);
 
   return (
     <AccordionItem value="ownership" className="border rounded-lg">
