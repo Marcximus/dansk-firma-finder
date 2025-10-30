@@ -3,7 +3,7 @@ import React from 'react';
 import { AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Company } from '@/services/companyAPI';
 import { extractExtendedInfo } from '@/services/cvrUtils';
-import { Info, Phone, MapPin, Briefcase, TrendingUp, DollarSign, Calendar, FileText, Mail, Activity, User, Building2, Globe, Users } from 'lucide-react';
+import { Info, Phone, MapPin, Briefcase, TrendingUp, TrendingDown, DollarSign, Calendar, FileText, Mail, Activity, User, Building2, Globe, Users } from 'lucide-react';
 import { formatPhoneNumber } from '@/services/utils/formatUtils';
 import { format } from 'date-fns';
 import { da } from 'date-fns/locale';
@@ -100,7 +100,7 @@ const ExtendedInfoAccordion: React.FC<ExtendedInfoAccordionProps> = ({ company, 
   const getEmployeeCount = () => {
     const vrvirksomhed = cvrData?.Vrvirksomhed || cvrData;
     
-    if (!vrvirksomhed) return company.employeeCount;
+    if (!vrvirksomhed) return { current: company.employeeCount, previous: null, change: null };
     
     // Helper to extract year/month/quarter from employment entry
     const getEntryDate = (entry: any, type: 'monthly' | 'quarterly' | 'yearly') => {
@@ -121,47 +121,53 @@ const ExtendedInfoAccordion: React.FC<ExtendedInfoAccordionProps> = ({ company, 
       { data: vrvirksomhed.aarsbeskaeftigelse, type: 'yearly' as const, name: 'Yearly' }
     ];
     
-    let latestEntry: any = null;
-    let latestDate: Date | null = null;
-    let latestSource = '';
+    // Collect all entries from all sources with dates
+    const allEntries: Array<{ entry: any, date: Date, source: string }> = [];
     
     for (const source of sources) {
       if (!source.data || source.data.length === 0) continue;
       
-      // Sort by date (newest first)
-      const sorted = [...source.data].sort((a: any, b: any) => {
-        const dateA = getEntryDate(a, source.type);
-        const dateB = getEntryDate(b, source.type);
-        return dateB.getTime() - dateA.getTime();
-      });
-      
-      const candidate = sorted[0];
-      const candidateDate = getEntryDate(candidate, source.type);
-      
-      if (!latestDate || candidateDate > latestDate) {
-        latestEntry = candidate;
-        latestDate = candidateDate;
-        latestSource = source.name;
+      for (const entry of source.data) {
+        const entryDate = getEntryDate(entry, source.type);
+        allEntries.push({ entry, date: entryDate, source: source.name });
       }
     }
     
-    const employeeCount = latestEntry?.antalAnsatte || latestEntry?.antalAarsvaerk || 0;
+    // Sort all entries by date (newest first)
+    allEntries.sort((a, b) => b.date.getTime() - a.date.getTime());
+    
+    const latestEntry = allEntries[0];
+    const previousEntry = allEntries[1]; // Second latest
+    
+    const currentCount = latestEntry?.entry?.antalAnsatte || latestEntry?.entry?.antalAarsvaerk || 0;
+    const previousCount = previousEntry?.entry?.antalAnsatte || previousEntry?.entry?.antalAarsvaerk || null;
+    
+    let change = null;
+    if (previousCount !== null && currentCount > 0) {
+      change = currentCount - previousCount;
+    }
     
     console.log('[ExtendedInfo] Employee Count:', {
-      found: employeeCount,
-      source: latestSource,
-      year: latestEntry?.aar,
-      month: latestEntry?.maaned,
-      quarter: latestEntry?.kvartal,
-      date: latestDate?.toISOString(),
+      current: currentCount,
+      previous: previousCount,
+      change: change,
+      source: latestEntry?.source,
+      year: latestEntry?.entry?.aar,
+      month: latestEntry?.entry?.maaned,
+      quarter: latestEntry?.entry?.kvartal,
+      date: latestEntry?.date?.toISOString(),
     });
     
-    return employeeCount || company.employeeCount;
+    return { 
+      current: currentCount || company.employeeCount,
+      previous: previousCount,
+      change: change
+    };
   };
 
   const contactInfo = getContactInfo();
   const website = getWebsite();
-  const employeeCount = getEmployeeCount();
+  const employeeData = getEmployeeCount();
 
   const InfoRow = ({ icon: Icon, label, value, className = "" }: { 
     icon: any, 
@@ -247,7 +253,21 @@ const ExtendedInfoAccordion: React.FC<ExtendedInfoAccordionProps> = ({ company, 
           <InfoRow 
             icon={Users} 
             label="Antal Ansatte" 
-            value={employeeCount > 0 ? employeeCount.toLocaleString('da-DK') : undefined} 
+            value={employeeData.current > 0 ? (
+              <span className="flex items-center gap-2">
+                {employeeData.current.toLocaleString('da-DK')}
+                {employeeData.change !== null && employeeData.change !== 0 && (
+                  <span className={`flex items-center gap-1 text-xs ${employeeData.change > 0 ? 'text-green-600' : 'text-red-600'}`}>
+                    {employeeData.change > 0 ? (
+                      <TrendingUp className="h-3 w-3" />
+                    ) : (
+                      <TrendingDown className="h-3 w-3" />
+                    )}
+                    {Math.abs(employeeData.change).toLocaleString('da-DK')}
+                  </span>
+                )}
+              </span>
+            ) : undefined} 
           />
           
           <InfoRow 
