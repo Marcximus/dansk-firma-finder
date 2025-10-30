@@ -19,25 +19,41 @@ const BasicInformationSection: React.FC<BasicInformationSectionProps> = ({ compa
   const getCEO = () => {
     if (!cvrData?.Vrvirksomhed?.deltagerRelation) return null;
     
+    const today = new Date().toISOString().split('T')[0];
+    
     for (const relation of cvrData.Vrvirksomhed.deltagerRelation) {
       const personName = relation.deltager?.navne?.find((n: any) => n.periode?.gyldigTil === null)?.navn ||
                         relation.deltager?.navne?.[relation.deltager.navne.length - 1]?.navn;
       
       if (relation.organisationer) {
         for (const org of relation.organisationer) {
-          // Check if this is a director role
+          // Only consider DIREKTION if it's currently active
           if (org.hovedtype === 'DIREKTION') {
-            return personName;
+            // Check if the organization membership is currently active
+            const hasActiveMembership = org.medlemsData?.some((medlem: any) => {
+              const gyldigTil = medlem.periode?.gyldigTil;
+              return gyldigTil === null || gyldigTil === undefined || gyldigTil >= today;
+            });
+            
+            if (hasActiveMembership || !org.medlemsData) {
+              return personName;
+            }
           }
           
-          // Also check medlemsData for director role
+          // Check for DIREKTØR function in active membership data
           if (org.medlemsData) {
             for (const medlem of org.medlemsData) {
-              if (medlem.attributter) {
+              const gyldigTil = medlem.periode?.gyldigTil;
+              const isMembershipActive = gyldigTil === null || gyldigTil === undefined || gyldigTil >= today;
+              
+              if (isMembershipActive && medlem.attributter) {
                 for (const attr of medlem.attributter) {
                   if (attr.type === 'FUNKTION' && attr.vaerdier) {
                     for (const vaerdi of attr.vaerdier) {
-                      if (vaerdi.vaerdi === 'DIREKTØR' || vaerdi.vaerdi?.includes('DIREKTØR')) {
+                      const funkGyldigTil = vaerdi.periode?.gyldigTil;
+                      const isFunkActive = funkGyldigTil === null || funkGyldigTil === undefined || funkGyldigTil >= today;
+                      
+                      if (isFunkActive && (vaerdi.vaerdi === 'DIREKTØR' || vaerdi.vaerdi?.includes('DIREKTØR'))) {
                         return personName;
                       }
                     }
