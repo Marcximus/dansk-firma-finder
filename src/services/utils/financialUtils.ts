@@ -1,6 +1,6 @@
 
 // Helper function to calculate financial ratios
-export const calculateFinancialRatios = (data: any) => {
+export const calculateFinancialRatios = (data: any, useBruttofortjeneste: boolean = false) => {
   const ratios: any = {};
   
   // Soliditetsgrad (Equity Ratio): Egenkapital / Aktiver * 100
@@ -19,8 +19,17 @@ export const calculateFinancialRatios = (data: any) => {
   }
   
   // Overskudsgrad (Profit Margin): Årets resultat / Omsætning * 100
-  if (data.aaretsResultat && data.nettoomsaetning && data.nettoomsaetning !== 0) {
-    ratios.overskudsgrad = (data.aaretsResultat / data.nettoomsaetning) * 100;
+  // If Nettoomsætning has been 0 for last 5 years, use Bruttofortjeneste instead
+  if (data.aaretsResultat) {
+    if (useBruttofortjeneste) {
+      // Use bruttofortjeneste (or bruttotab if negative)
+      const bruttoValue = data.bruttofortjeneste || data.bruttotab || 0;
+      if (bruttoValue !== 0) {
+        ratios.overskudsgrad = (data.aaretsResultat / bruttoValue) * 100;
+      }
+    } else if (data.nettoomsaetning && data.nettoomsaetning !== 0) {
+      ratios.overskudsgrad = (data.aaretsResultat / data.nettoomsaetning) * 100;
+    }
   }
   
   return ratios;
@@ -123,6 +132,10 @@ export const extractFinancialData = (cvrData: any, parsedFinancialData?: any) =>
   if (parsedFinancialData?.financialData && parsedFinancialData.financialData.length > 0) {
     console.log('extractFinancialData - Using parsed XBRL data');
     
+    // Check if Nettoomsætning has been 0 for all periods (last 5 years)
+    const allRevenueZero = parsedFinancialData.financialData.every((pd: any) => !pd.nettoomsaetning || pd.nettoomsaetning === 0);
+    console.log('extractFinancialData - All revenue zero:', allRevenueZero);
+    
     // Transform and enrich XBRL data to match FinancialYearData interface
     const enrichedData = parsedFinancialData.financialData.map((periodData: any) => {
       // Extract year from periode - handle multiple formats
@@ -141,7 +154,7 @@ export const extractFinancialData = (cvrData: any, parsedFinancialData?: any) =>
         }
       }
       
-      const ratios = calculateFinancialRatios(periodData);
+      const ratios = calculateFinancialRatios(periodData, allRevenueZero);
       
       // Transform XBRL data structure to match FinancialYearData interface
       return {
