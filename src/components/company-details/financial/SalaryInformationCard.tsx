@@ -135,7 +135,9 @@ const SalaryInformationCard: React.FC<SalaryInformationCardProps> = ({ historica
         
         return {
           periode: d.periode,
-          avgSalary: Math.round(avgSalary)
+          avgSalary: Math.round(avgSalary),
+          personnelCosts: d.personaleomkostninger,
+          employeeCount: employment.antalAnsatte
         };
       })
       .filter((d): d is NonNullable<typeof d> => d !== null)
@@ -376,9 +378,62 @@ const SalaryInformationCard: React.FC<SalaryInformationCardProps> = ({ historica
                       backgroundColor: 'hsl(var(--popover))', 
                       border: '1px solid hsl(var(--border))',
                       borderRadius: '6px',
-                      fontSize: '12px'
+                      fontSize: '12px',
+                      padding: '12px'
                     }}
-                    formatter={(value: any) => [formatCurrency(value), 'Gennemsnitlig løn']}
+                    content={({ active, payload }) => {
+                      if (!active || !payload || !payload.length) return null;
+                      
+                      const data = payload[0].payload;
+                      const currentIndex = trendData.findIndex(d => d.periode === data.periode);
+                      const previousData = currentIndex > 0 ? trendData[currentIndex - 1] : null;
+                      
+                      let percentChange = null;
+                      if (previousData) {
+                        const change = ((data.avgSalary - previousData.avgSalary) / previousData.avgSalary) * 100;
+                        percentChange = {
+                          value: Math.abs(change),
+                          isPositive: change > 0
+                        };
+                      }
+                      
+                      return (
+                        <div className="bg-popover border border-border rounded-md p-3 shadow-lg">
+                          <div className="space-y-2">
+                            <div className="font-semibold text-sm border-b pb-1">
+                              {data.periode}
+                            </div>
+                            <div className="space-y-1 text-xs">
+                              <div className="flex justify-between gap-4">
+                                <span className="text-muted-foreground">Personaleomkostninger:</span>
+                                <span className="font-medium">{formatCurrency(data.personnelCosts)}</span>
+                              </div>
+                              <div className="flex justify-between gap-4">
+                                <span className="text-muted-foreground">Antal ansatte:</span>
+                                <span className="font-medium">{data.employeeCount}</span>
+                              </div>
+                              <div className="flex justify-between gap-4">
+                                <span className="text-muted-foreground">Gennemsnitsløn:</span>
+                                <span className="font-medium">{formatCurrency(data.avgSalary)}/md</span>
+                              </div>
+                              {percentChange && (
+                                <div className="flex justify-between gap-4 pt-1 border-t">
+                                  <span className="text-muted-foreground">Ændring:</span>
+                                  <span className={`font-medium flex items-center gap-1 ${percentChange.isPositive ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+                                    {percentChange.isPositive ? '+' : '-'}{percentChange.value.toFixed(1)}%
+                                    {percentChange.isPositive ? (
+                                      <TrendingUp className="h-3 w-3" />
+                                    ) : (
+                                      <TrendingDown className="h-3 w-3" />
+                                    )}
+                                  </span>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    }}
                   />
                   <Line
                     type="monotone"
