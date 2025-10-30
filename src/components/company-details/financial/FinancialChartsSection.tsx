@@ -39,11 +39,11 @@ const FinancialChartsSection: React.FC<FinancialChartsSectionProps> = ({ histori
   const revenueAndResultConfig = {
     [revenueKey]: {
       label: revenueLabel,
-      color: "hsl(142, 76%, 36%)",
+      color: "hsl(217, 91%, 60%)",
     },
     aaretsResultat: {
       label: "Årets resultat",
-      color: allNegativeResult ? "hsl(0, 84%, 60%)" : "hsl(217, 91%, 60%)",
+      color: allNegativeResult ? "hsl(0, 84%, 60%)" : "hsl(142, 76%, 36%)",
     },
   } satisfies ChartConfig;
 
