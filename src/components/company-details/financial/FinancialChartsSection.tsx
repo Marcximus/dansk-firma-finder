@@ -9,42 +9,6 @@ interface FinancialChartsSectionProps {
   historicalData: FinancialYearData[];
 }
 
-// Custom dot component that colors negative values red
-const CustomDot = (props: any) => {
-  const { cx, cy, payload, dataKey } = props;
-  const value = payload[dataKey];
-  const isNegative = value < 0;
-  
-  return (
-    <circle
-      cx={cx}
-      cy={cy}
-      r={5}
-      fill={isNegative ? "hsl(0, 70%, 55%)" : props.fill}
-      stroke={isNegative ? "hsl(0, 70%, 55%)" : props.stroke}
-      strokeWidth={2}
-    />
-  );
-};
-
-// Custom active dot for hover state
-const CustomActiveDot = (props: any) => {
-  const { cx, cy, payload, dataKey } = props;
-  const value = payload[dataKey];
-  const isNegative = value < 0;
-  
-  return (
-    <circle
-      cx={cx}
-      cy={cy}
-      r={7}
-      fill={isNegative ? "hsl(0, 70%, 55%)" : props.fill}
-      stroke={isNegative ? "hsl(0, 70%, 55%)" : props.stroke}
-      strokeWidth={2}
-    />
-  );
-};
-
 const FinancialChartsSection: React.FC<FinancialChartsSectionProps> = ({ historicalData }) => {
   // Format data for charts - oldest to newest (left to right)
   const chartData = historicalData.map(data => ({
@@ -152,8 +116,8 @@ const FinancialChartsSection: React.FC<FinancialChartsSectionProps> = ({ histori
                 dataKey="aaretsResultat" 
                 stroke="var(--color-aaretsResultat)"
                 strokeWidth={3}
-                dot={<CustomDot dataKey="aaretsResultat" fill="var(--color-aaretsResultat)" stroke="var(--color-aaretsResultat)" />}
-                activeDot={<CustomActiveDot dataKey="aaretsResultat" fill="var(--color-aaretsResultat)" stroke="var(--color-aaretsResultat)" />}
+                dot={{ fill: "var(--color-aaretsResultat)", strokeWidth: 2, r: 5 }}
+                activeDot={{ r: 7 }}
               />
             </LineChart>
           </ChartContainer>
@@ -229,8 +193,8 @@ const FinancialChartsSection: React.FC<FinancialChartsSectionProps> = ({ histori
                 stroke={allNegativeEquity ? "hsl(0, 84%, 60%)" : "hsl(217, 91%, 60%)"} 
                 strokeWidth={2.5}
                 fill="url(#colorEquityGradient)"
-                dot={<CustomDot dataKey="egenkapital" fill={allNegativeEquity ? "hsl(0, 84%, 60%)" : "hsl(217, 91%, 60%)"} stroke={allNegativeEquity ? "hsl(0, 84%, 60%)" : "hsl(217, 91%, 60%)"} />}
-                activeDot={<CustomActiveDot dataKey="egenkapital" fill={allNegativeEquity ? "hsl(0, 84%, 60%)" : "hsl(217, 91%, 60%)"} stroke={allNegativeEquity ? "hsl(0, 84%, 60%)" : "hsl(217, 91%, 60%)"} />}
+                dot={{ fill: allNegativeEquity ? "hsl(0, 84%, 60%)" : "hsl(217, 91%, 60%)", strokeWidth: 2, r: 5 }}
+                activeDot={{ r: 7 }}
               />
             </AreaChart>
           </ChartContainer>
