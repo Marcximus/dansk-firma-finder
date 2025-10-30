@@ -3,7 +3,7 @@ import React from 'react';
 import { AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Company } from '@/services/companyAPI';
 import { extractExtendedInfo } from '@/services/cvrUtils';
-import { Info, Phone, MapPin, Briefcase, TrendingUp, DollarSign, Calendar, FileText, Mail, Activity, User, Building2 } from 'lucide-react';
+import { Info, Phone, MapPin, Briefcase, TrendingUp, DollarSign, Calendar, FileText, Mail, Activity, User, Building2, Globe, Users } from 'lucide-react';
 import { formatPhoneNumber } from '@/services/utils/formatUtils';
 import { format } from 'date-fns';
 import { da } from 'date-fns/locale';
@@ -88,7 +88,17 @@ const ExtendedInfoAccordion: React.FC<ExtendedInfoAccordionProps> = ({ company, 
     return 'Ikke oplyst';
   };
 
+  const getWebsite = () => {
+    if (!cvrData) return company.website;
+    
+    const currentWebsite = cvrData.hjemmeside?.find((site: any) => site.periode?.gyldigTil === null);
+    return currentWebsite?.kontaktoplysning || 
+           cvrData.hjemmeside?.[cvrData.hjemmeside.length - 1]?.kontaktoplysning || 
+           company.website || null;
+  };
+
   const contactInfo = getContactInfo();
+  const website = getWebsite();
 
   const InfoRow = ({ icon: Icon, label, value, className = "" }: { 
     icon: any, 
@@ -139,6 +149,21 @@ const ExtendedInfoAccordion: React.FC<ExtendedInfoAccordionProps> = ({ company, 
           />
           
           <InfoRow 
+            icon={Globe} 
+            label="Hjemmeside" 
+            value={website ? (
+              <a 
+                href={website.startsWith('http') ? website : `https://${website}`} 
+                target="_blank" 
+                rel="noopener noreferrer" 
+                className="text-primary hover:underline"
+              >
+                {website}
+              </a>
+            ) : undefined}
+          />
+          
+          <InfoRow 
             icon={Activity} 
             label="Status" 
             value={getStatus()} 
@@ -157,9 +182,9 @@ const ExtendedInfoAccordion: React.FC<ExtendedInfoAccordionProps> = ({ company, 
 
           {/* Basic Information */}
           <InfoRow 
-            icon={MapPin} 
-            label="Kommune" 
-            value={extendedInfo?.municipality?.kommuneNavn || extendedInfo?.municipality} 
+            icon={Users} 
+            label="Antal Ansatte" 
+            value={company.employeeCount > 0 ? company.employeeCount.toLocaleString('da-DK') : undefined} 
           />
           
           <InfoRow 
