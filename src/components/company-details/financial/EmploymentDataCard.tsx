@@ -1,6 +1,7 @@
-import React from 'react';
-import { Users, Calendar, TrendingUp } from 'lucide-react';
+import React, { useState } from 'react';
+import { Users, Calendar, TrendingUp, ChevronDown, ChevronUp } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 
 interface EmploymentDataCardProps {
   monthlyEmployment?: any[];
@@ -14,6 +15,7 @@ const EmploymentDataCard: React.FC<EmploymentDataCardProps> = ({
   quarterlyEmployment 
 }) => {
   const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'Maj', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dec'];
+  const [isExpanded, setIsExpanded] = useState(false);
   
   // Helper to format period
   const formatPeriod = (item: any) => {
@@ -33,12 +35,13 @@ const EmploymentDataCard: React.FC<EmploymentDataCardProps> = ({
   };
 
   // Determine which data to display (priority: monthly > quarterly > yearly)
+  // For monthly: show 36 months (3 years)
   const displayData = monthlyEmployment && monthlyEmployment.length > 0 
-    ? { data: monthlyEmployment.slice(0, 24), type: 'Månedsdata', icon: Calendar }
+    ? { data: monthlyEmployment.slice(0, 36), type: 'Månedsdata', icon: Calendar, collapsible: true, defaultShow: 8 }
     : quarterlyEmployment && quarterlyEmployment.length > 0
-    ? { data: quarterlyEmployment.slice(0, 12), type: 'Kvartalsdata', icon: TrendingUp }
+    ? { data: quarterlyEmployment.slice(0, 12), type: 'Kvartalsdata', icon: TrendingUp, collapsible: false, defaultShow: 12 }
     : yearlyEmployment && yearlyEmployment.length > 0
-    ? { data: yearlyEmployment.slice(0, 10), type: 'Årsdata', icon: Users }
+    ? { data: yearlyEmployment.slice(0, 10), type: 'Årsdata', icon: Users, collapsible: false, defaultShow: 10 }
     : null;
 
   if (!displayData) {
@@ -54,13 +57,40 @@ const EmploymentDataCard: React.FC<EmploymentDataCardProps> = ({
   }
 
   const Icon = displayData.icon;
+  
+  // Determine how many rows to show
+  const visibleData = displayData.collapsible && !isExpanded 
+    ? displayData.data.slice(0, displayData.defaultShow)
+    : displayData.data;
+  
+  const hasMoreData = displayData.collapsible && displayData.data.length > displayData.defaultShow;
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="flex items-center gap-2 text-lg">
-          <Icon className="h-5 w-5" />
-          Medarbejderhistorik - {displayData.type}
+        <CardTitle className="flex items-center justify-between">
+          <div className="flex items-center gap-2 text-lg">
+            <Icon className="h-5 w-5" />
+            Medarbejderhistorik - {displayData.type}
+          </div>
+          {hasMoreData && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setIsExpanded(!isExpanded)}
+              className="gap-2"
+            >
+              {isExpanded ? (
+                <>
+                  Vis mindre <ChevronUp className="h-4 w-4" />
+                </>
+              ) : (
+                <>
+                  Vis alle ({displayData.data.length}) <ChevronDown className="h-4 w-4" />
+                </>
+              )}
+            </Button>
+          )}
         </CardTitle>
       </CardHeader>
       <CardContent className="px-0 sm:px-6">
@@ -84,7 +114,7 @@ const EmploymentDataCard: React.FC<EmploymentDataCardProps> = ({
               </tr>
             </thead>
             <tbody>
-              {displayData.data.map((item: any, index: number) => {
+              {visibleData.map((item: any, index: number) => {
                 const ansatte = item.antalAnsatte || 0;
                 const aarsvaerk = item.antalAarsvaerk || 0;
                 const diff = ansatte - aarsvaerk;
@@ -114,6 +144,21 @@ const EmploymentDataCard: React.FC<EmploymentDataCardProps> = ({
             </tbody>
           </table>
         </div>
+        
+        {/* Show expand button at bottom if collapsed */}
+        {hasMoreData && !isExpanded && (
+          <div className="mt-4 text-center">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setIsExpanded(true)}
+              className="gap-2"
+            >
+              Vis yderligere {displayData.data.length - displayData.defaultShow} måneder
+              <ChevronDown className="h-4 w-4" />
+            </Button>
+          </div>
+        )}
         
         {/* Additional info if we have it */}
         {displayData.data.some((item: any) => item.antalInklusivEjere) && (
