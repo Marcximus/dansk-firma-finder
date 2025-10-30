@@ -102,6 +102,8 @@ export const extractOwnershipData = (cvrData: any) => {
     
     // If company is listed but no ownership data, return special entry
     if (isListed) {
+      const tickerSymbol = extractTickerSymbol(vrvirksomhed);
+      
       return {
         currentOwners: [{
           navn: 'Børsnoteret - offentligt handlet',
@@ -113,7 +115,9 @@ export const extractOwnershipData = (cvrData: any) => {
           identifier: '',
           cvr: undefined,
           _hasEnrichedData: false,
-          _isListedCompany: true
+          _isListedCompany: true,
+          _tickerSymbol: tickerSymbol,
+          _yahooFinanceUrl: tickerSymbol ? `https://finance.yahoo.com/quote/${tickerSymbol}` : undefined
         }],
         subsidiaries: []
       };
@@ -526,6 +530,8 @@ export const extractOwnershipData = (cvrData: any) => {
 
   // If company is listed and no specific owners found, return special entry
   if (isListed && ownershipFromRelations.length === 0) {
+    const tickerSymbol = extractTickerSymbol(vrvirksomhed);
+    
     return {
       currentOwners: [{
         navn: 'Børsnoteret - offentligt handlet',
@@ -537,7 +543,9 @@ export const extractOwnershipData = (cvrData: any) => {
         identifier: '',
         cvr: undefined,
         _hasEnrichedData: false,
-        _isListedCompany: true
+        _isListedCompany: true,
+        _tickerSymbol: tickerSymbol,
+        _yahooFinanceUrl: tickerSymbol ? `https://finance.yahoo.com/quote/${tickerSymbol}` : undefined
       }],
       subsidiaries: subsidiariesFromRelations
     };
