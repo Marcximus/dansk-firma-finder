@@ -2,7 +2,7 @@
 import React from 'react';
 import { AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Company } from '@/services/companyAPI';
-import { FileText, Building2, Hash, MapPin, Calendar, Briefcase, Globe, DollarSign, ScrollText } from 'lucide-react';
+import { FileText, Building2, Hash, MapPin, Calendar, Briefcase, Globe, DollarSign, ScrollText, User } from 'lucide-react';
 import { format } from 'date-fns';
 import { da } from 'date-fns/locale';
 import { extractExtendedInfo } from '@/services/cvrUtils';
@@ -117,6 +117,22 @@ const BasicInfoAccordion: React.FC<BasicInfoAccordionProps> = ({ company, cvrDat
     };
   };
 
+  const getFounders = () => {
+    if (!cvrData?.deltagerRelation) return null;
+    
+    const founders = cvrData.deltagerRelation.filter((relation: any) => {
+      const roles = relation.organisationer?.[0]?.attributter || [];
+      return roles.some((attr: any) => attr.type === 'STIFTER');
+    });
+    
+    if (founders.length === 0) return null;
+    
+    return founders.map((founder: any) => {
+      const org = founder.organisationer?.[0];
+      return org?.navn?.[0]?.navn || 'Ikke oplyst';
+    }).join(', ');
+  };
+
   const website = getWebsite();
   const address = getAddress();
   const extendedInfo = extractExtendedInfo(cvrData);
@@ -154,6 +170,14 @@ const BasicInfoAccordion: React.FC<BasicInfoAccordionProps> = ({ company, cvrDat
             label="Startdato" 
             value={getStartDate()} 
           />
+          
+          {getFounders() && (
+            <InfoRow 
+              icon={User} 
+              label="Stiftet af" 
+              value={getFounders()} 
+            />
+          )}
           
           <InfoRow 
             icon={Briefcase} 
