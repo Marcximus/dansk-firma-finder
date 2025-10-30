@@ -46,6 +46,14 @@ const parsePercentage = (percentageStr: string | undefined): number => {
 const OwnershipChart: React.FC<OwnershipChartProps> = ({ owners }) => {
   if (!owners || owners.length === 0) return null;
 
+  // Calculate dynamic height based on number of owners
+  const calculateHeight = (numOwners: number): string => {
+    if (numOwners <= 1) return 'h-[200px] sm:h-[220px] md:h-[250px]';
+    if (numOwners === 2) return 'h-[250px] sm:h-[280px] md:h-[320px]';
+    if (numOwners === 3) return 'h-[280px] sm:h-[320px] md:h-[360px]';
+    return 'h-[320px] sm:h-[360px] md:h-[400px]'; // 4 or more
+  };
+
   // Prepare data for ownership (outer ring)
   const ownershipData = owners.map((owner, index) => ({
     name: owner.navn,
@@ -67,6 +75,8 @@ const OwnershipChart: React.FC<OwnershipChartProps> = ({ owners }) => {
   })).filter(d => d.value > 0);
 
   if (ownershipData.length === 0 && votingData.length === 0) return null;
+
+  const heightClass = calculateHeight(owners.length);
 
   const CustomTooltip = ({ active, payload }: any) => {
     if (active && payload && payload.length) {
@@ -91,7 +101,7 @@ const OwnershipChart: React.FC<OwnershipChartProps> = ({ owners }) => {
   };
 
   return (
-    <div className="w-full h-[300px] sm:h-[350px] md:h-[400px]">
+    <div className={`w-full ${heightClass}`}>
       <ResponsiveContainer width="100%" height="100%">
         <PieChart>
           {/* Outer ring - Ownership */}
