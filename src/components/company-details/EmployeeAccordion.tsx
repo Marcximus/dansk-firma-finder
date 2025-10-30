@@ -6,6 +6,7 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Responsi
 import { extractFinancialData } from '@/services/utils/financialUtils';
 import { getFinancialData } from '@/services/companyAPI';
 import EmploymentDataCard from './financial/EmploymentDataCard';
+import SalaryInformationCard from './financial/SalaryInformationCard';
 
 interface EmployeeAccordionProps {
   cvr: string;
@@ -179,6 +180,11 @@ const EmployeeAccordion: React.FC<EmployeeAccordionProps> = ({ cvr, cvrData }) =
                 </ResponsiveContainer>
               </CardContent>
             </Card>
+          )}
+
+          {/* Salary Information */}
+          {financialData?.historicalData && financialData.historicalData.length > 0 && (
+            <SalaryInformationCard historicalData={financialData.historicalData} />
           )}
 
           {/* Employment Data Cards */}
