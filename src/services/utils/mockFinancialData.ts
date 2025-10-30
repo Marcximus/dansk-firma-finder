@@ -1,6 +1,8 @@
 // Mock financial data generator for companies
 export interface FinancialYearData {
   year: number;
+  periode?: string;
+  pdfUrl?: string | null;
   nettoomsaetning: number;
   bruttofortjeneste: number;
   aaretsResultat: number;

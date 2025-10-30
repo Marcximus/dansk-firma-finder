@@ -255,7 +255,12 @@ const FinancialSpreadsheet: React.FC<FinancialSpreadsheetProps> = ({ historicalD
                 <TableRow className="border-b">
                   <TableHead className="sticky left-0 bg-background w-[200px] h-8 text-xs font-medium">Post</TableHead>
                   {periods.map((period, idx) => (
-                    <TableHead key={idx} className="text-right h-8 text-xs font-medium w-[120px]">
+                    <TableHead 
+                      key={idx} 
+                      className={`text-right h-8 text-xs font-medium w-[120px] ${period.pdfUrl ? 'cursor-pointer hover:text-primary hover:underline' : ''}`}
+                      onClick={() => period.pdfUrl && window.open(period.pdfUrl, '_blank')}
+                      title={period.pdfUrl ? 'Klik for at åbne årsrapporten' : undefined}
+                    >
                       {period.year || getYearLabel(period.periode)}
                     </TableHead>
                   ))}
@@ -420,7 +425,12 @@ const FinancialSpreadsheet: React.FC<FinancialSpreadsheetProps> = ({ historicalD
                 <TableRow className="border-b">
                   <TableHead className="sticky left-0 bg-background w-[200px] h-8 text-xs font-medium">Post</TableHead>
                   {periods.map((period, idx) => (
-                    <TableHead key={idx} className="text-right h-8 text-xs font-medium w-[120px]">
+                    <TableHead 
+                      key={idx} 
+                      className={`text-right h-8 text-xs font-medium w-[120px] ${period.pdfUrl ? 'cursor-pointer hover:text-primary hover:underline' : ''}`}
+                      onClick={() => period.pdfUrl && window.open(period.pdfUrl, '_blank')}
+                      title={period.pdfUrl ? 'Klik for at åbne årsrapporten' : undefined}
+                    >
                       {getYearLabel(period.periode)}
                     </TableHead>
                   ))}
@@ -777,7 +787,12 @@ const FinancialSpreadsheet: React.FC<FinancialSpreadsheetProps> = ({ historicalD
                   <TableRow className="border-b">
                     <TableHead className="sticky left-0 bg-background w-[200px] h-8 text-xs font-medium">Nøgletal</TableHead>
                     {periods.map((period, idx) => (
-                      <TableHead key={idx} className="text-right h-8 text-xs font-medium w-[120px]">
+                      <TableHead 
+                        key={idx} 
+                        className={`text-right h-8 text-xs font-medium w-[120px] ${period.pdfUrl ? 'cursor-pointer hover:text-primary hover:underline' : ''}`}
+                        onClick={() => period.pdfUrl && window.open(period.pdfUrl, '_blank')}
+                        title={period.pdfUrl ? 'Klik for at åbne årsrapporten' : undefined}
+                      >
                         {getYearLabel(period.periode)}
                       </TableHead>
                     ))}
