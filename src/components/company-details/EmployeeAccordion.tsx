@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Users } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { extractFinancialData } from '@/services/utils/financialUtils';
 import { getFinancialData } from '@/services/companyAPI';
 import EmploymentDataCard from './financial/EmploymentDataCard';
@@ -36,24 +36,28 @@ const EmployeeAccordion: React.FC<EmployeeAccordionProps> = ({ cvr, cvrData }) =
   // Extract and process financial data
   const financialData = extractFinancialData(cvrData, parsedFinancialData);
 
-  // Process employment data for chart - show quarterly data for last 12 quarters
+  // Process employment data for chart - show quarterly data for last 24 quarters
   const processEmploymentData = () => {
     const employmentData: Array<{
       periode: string;
-      ansatte: number;
+      total: number;
+      fuldtid: number;
+      deltid: number;
     }> = [];
 
     // Use quarterly data only
     if (financialData?.quarterlyEmployment && financialData.quarterlyEmployment.length > 0) {
-      console.log('Available quarterly employment data:', financialData.quarterlyEmployment.slice(0, 20));
+      console.log('Available quarterly employment data:', financialData.quarterlyEmployment.slice(0, 24));
       financialData.quarterlyEmployment
-        .slice(0, 16) // Last 16 quarters
+        .slice(0, 24) // Last 24 quarters
         .forEach((item: any) => {
-          const ansatte = item.antalAnsatte || 0;
+          const total = item.antalAnsatte || 0;
+          const fuldtid = item.antalAarsvaerk || 0;
+          const deltid = Math.max(0, total - fuldtid); // Part-time = Total - Full-time equivalent
           
           if (item.aar && item.kvartal !== undefined && item.kvartal !== null) {
             const periode = `Q${item.kvartal} ${item.aar}`;
-            employmentData.push({ periode, ansatte });
+            employmentData.push({ periode, total, fuldtid, deltid });
           }
         });
     }
@@ -123,8 +127,8 @@ const EmployeeAccordion: React.FC<EmployeeAccordionProps> = ({ cvr, cvrData }) =
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <ResponsiveContainer width="100%" height={300}>
-                  <BarChart data={chartData} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
+                <ResponsiveContainer width="100%" height={350}>
+                  <LineChart data={chartData} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
                     <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
                     <XAxis 
                       dataKey="periode" 
@@ -143,13 +147,35 @@ const EmployeeAccordion: React.FC<EmployeeAccordionProps> = ({ cvr, cvrData }) =
                         borderRadius: '6px'
                       }}
                     />
-                    <Bar 
-                      dataKey="ansatte" 
-                      fill="hsl(var(--primary))" 
-                      name="Ansatte"
-                      radius={[4, 4, 0, 0]}
+                    <Legend />
+                    <Line 
+                      type="monotone"
+                      dataKey="total" 
+                      stroke="hsl(var(--primary))" 
+                      strokeWidth={2}
+                      name="Total"
+                      dot={{ r: 3 }}
+                      activeDot={{ r: 5 }}
                     />
-                  </BarChart>
+                    <Line 
+                      type="monotone"
+                      dataKey="fuldtid" 
+                      stroke="hsl(var(--chart-2))" 
+                      strokeWidth={2}
+                      name="Fuldtid (Årsværk)"
+                      dot={{ r: 3 }}
+                      activeDot={{ r: 5 }}
+                    />
+                    <Line 
+                      type="monotone"
+                      dataKey="deltid" 
+                      stroke="hsl(var(--chart-3))" 
+                      strokeWidth={2}
+                      name="Deltid"
+                      dot={{ r: 3 }}
+                      activeDot={{ r: 5 }}
+                    />
+                  </LineChart>
                 </ResponsiveContainer>
               </CardContent>
             </Card>
