@@ -101,15 +101,19 @@ const EmploymentDataCard: React.FC<EmploymentDataCardProps> = ({
                 <th className="text-left py-3 px-4 font-semibold">Periode</th>
                 <th className="text-right py-3 px-4 font-semibold">
                   Ansatte
-                  <div className="text-xs text-muted-foreground font-normal">(Hovedtal)</div>
+                  <div className="text-xs text-muted-foreground font-normal">(Total)</div>
                 </th>
                 <th className="text-right py-3 px-4 font-semibold">
-                  Årsværk
-                  <div className="text-xs text-muted-foreground font-normal">(FTE)</div>
+                  Ændring
+                  <div className="text-xs text-muted-foreground font-normal">(Fra forrige)</div>
                 </th>
                 <th className="text-right py-3 px-4 font-semibold">
-                  Forskel
-                  <div className="text-xs text-muted-foreground font-normal">(Deltid)</div>
+                  Fuldtid
+                  <div className="text-xs text-muted-foreground font-normal">(Årsværk)</div>
+                </th>
+                <th className="text-right py-3 px-4 font-semibold">
+                  Deltid
+                  <div className="text-xs text-muted-foreground font-normal">(Forskel)</div>
                 </th>
               </tr>
             </thead>
@@ -117,7 +121,12 @@ const EmploymentDataCard: React.FC<EmploymentDataCardProps> = ({
               {visibleData.map((item: any, index: number) => {
                 const ansatte = item.antalAnsatte || 0;
                 const aarsvaerk = item.antalAarsvaerk || 0;
-                const diff = ansatte - aarsvaerk;
+                const deltid = ansatte - aarsvaerk;
+                
+                // Calculate change from previous period (next item in array since data is newest first)
+                const previousItem = visibleData[index + 1];
+                const previousAnsatte = previousItem?.antalAnsatte || 0;
+                const change = index < visibleData.length - 1 ? ansatte - previousAnsatte : null;
                 
                 return (
                   <tr 
@@ -133,10 +142,19 @@ const EmploymentDataCard: React.FC<EmploymentDataCardProps> = ({
                       {ansatte}
                     </td>
                     <td className="text-right py-3 px-4 tabular-nums">
+                      {change !== null ? (
+                        <span className={change > 0 ? 'text-green-600' : change < 0 ? 'text-red-600' : 'text-muted-foreground'}>
+                          {change > 0 ? '+' : ''}{change}
+                        </span>
+                      ) : (
+                        <span className="text-muted-foreground">-</span>
+                      )}
+                    </td>
+                    <td className="text-right py-3 px-4 tabular-nums">
                       {aarsvaerk.toFixed(1)}
                     </td>
                     <td className="text-right py-3 px-4 tabular-nums text-muted-foreground">
-                      {diff > 0 ? `+${diff.toFixed(1)}` : diff.toFixed(1)}
+                      {deltid > 0 ? `+${deltid.toFixed(1)}` : deltid.toFixed(1)}
                     </td>
                   </tr>
                 );
