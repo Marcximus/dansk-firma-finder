@@ -254,22 +254,43 @@ export const extractFinancialData = (cvrData: any, parsedFinancialData?: any) =>
       };
     });
     
-    // Data is already sorted by edge function, no need to sort again
-    console.log('[financialUtils] Processing financial data:', {
-      periods: enrichedData.length,
-      years: enrichedData.map(d => d.year),
-      firstPeriod: enrichedData[0]?.periode,
-      lastPeriod: enrichedData[enrichedData.length - 1]?.periode
+    // Enrich financial data with employment statistics from CVR
+    const yearlyEmployment = getEmploymentData(cvrData, 'aarsbeskaeftigelse');
+    const employmentByYear = new Map();
+    yearlyEmployment.forEach(emp => {
+      employmentByYear.set(emp.aar, {
+        antalAnsatte: emp.antalAnsatte || 0,
+        antalAarsvaerk: emp.antalAarsvaerk || 0
+      });
     });
     
-    const latestData = enrichedData[0]; // Most recent report
+    const enrichedDataWithEmployment = enrichedData.map(period => {
+      const employment = employmentByYear.get(period.year) || { antalAnsatte: 0, antalAarsvaerk: 0 };
+      return {
+        ...period,
+        antalAnsatte: employment.antalAnsatte,
+        antalAarsvaerk: employment.antalAarsvaerk
+      };
+    });
+    
+    // Data is already sorted by edge function, no need to sort again
+    console.log('[financialUtils] Processing financial data:', {
+      periods: enrichedDataWithEmployment.length,
+      years: enrichedDataWithEmployment.map(d => d.year),
+      firstPeriod: enrichedDataWithEmployment[0]?.periode,
+      lastPeriod: enrichedDataWithEmployment[enrichedDataWithEmployment.length - 1]?.periode,
+      employmentYears: yearlyEmployment.length,
+      matchedYears: enrichedDataWithEmployment.filter(d => d.antalAnsatte > 0).length
+    });
+    
+    const latestData = enrichedDataWithEmployment[0]; // Most recent report
     
     return {
       financialKPIs: {
         ...latestData,
         periode: latestData.periode
       },
-      historicalData: enrichedData, // All parsed periods with ratios, properly structured
+      historicalData: enrichedDataWithEmployment, // All parsed periods with ratios and employment data
       monthlyEmployment: (() => {
         const regular = getEmploymentData(cvrData, 'maanedsbeskaeftigelse');
         const substitute = getEmploymentData(cvrData, 'erstMaanedsbeskaeftigelse');
