@@ -53,29 +53,6 @@ const OwnershipChart: React.FC<OwnershipChartProps> = ({ owners }) => {
     color: COLORS[index % COLORS.length],
   })).filter(d => d.value > 0);
 
-  // Calculate total to see if there are other owners
-  const totalOwnership = ownershipData.reduce((sum, d) => sum + d.value, 0);
-  const totalVoting = votingData.reduce((sum, d) => sum + d.value, 0);
-
-  // Add "Andre" (Others) if total is less than 100%
-  if (totalOwnership < 100 && totalOwnership > 0) {
-    ownershipData.push({
-      name: 'Andre',
-      value: 100 - totalOwnership,
-      displayValue: `${(100 - totalOwnership).toFixed(1)}%`,
-      color: 'hsl(var(--muted))',
-    });
-  }
-
-  if (totalVoting < 100 && totalVoting > 0) {
-    votingData.push({
-      name: 'Andre',
-      value: 100 - totalVoting,
-      displayValue: `${(100 - totalVoting).toFixed(1)}%`,
-      color: 'hsl(var(--muted))',
-    });
-  }
-
   if (ownershipData.length === 0 && votingData.length === 0) return null;
 
   const CustomTooltip = ({ active, payload }: any) => {
@@ -104,8 +81,8 @@ const OwnershipChart: React.FC<OwnershipChartProps> = ({ owners }) => {
               outerRadius="90%"
               paddingAngle={2}
               dataKey="value"
-              label={({ value, name }) => `${name}: ${value.toFixed(1)}%`}
-              labelLine={false}
+              label={({ name, displayValue }) => `${name}: ${displayValue}`}
+              labelLine={{ stroke: 'hsl(var(--foreground))', strokeWidth: 1 }}
             >
               {ownershipData.map((entry, index) => (
                 <Cell key={`cell-${index}`} fill={entry.color} />
