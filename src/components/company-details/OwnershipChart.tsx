@@ -100,8 +100,8 @@ const OwnershipChart: React.FC<OwnershipChartProps> = ({ owners }) => {
 
   const heightClass = calculateHeight(owners.length);
 
-  const CustomTooltip = ({ active, payload, coordinate }: any) => {
-    if (active && payload && payload.length && coordinate) {
+  const CustomTooltip = ({ active, payload }: any) => {
+    if (active && payload && payload.length) {
       const data = payload[0].payload;
       const isOwnershipRing = data.ring === 'ownership';
       
@@ -110,21 +110,8 @@ const OwnershipChart: React.FC<OwnershipChartProps> = ({ owners }) => {
       const label = isOwnershipRing ? 'Ejerandel' : 'Stemmerettigheder';
       const value = isOwnershipRing ? data.ownershipValue : data.votingValue;
       
-      // Smart positioning: place tooltip to left or right of cursor based on screen position
-      const isLeftHalf = coordinate.x < window.innerWidth / 2;
-      const horizontalOffset = 20; // px spacing from cursor
-      
-      const tooltipStyle: React.CSSProperties = {
-        position: 'fixed',
-        left: isLeftHalf ? coordinate.x + horizontalOffset : undefined,
-        right: isLeftHalf ? undefined : window.innerWidth - coordinate.x + horizontalOffset,
-        top: coordinate.y - 60, // Center vertically relative to cursor
-        zIndex: 1000,
-        pointerEvents: 'none',
-      };
-      
       return (
-        <div style={tooltipStyle} className="bg-background border border-border rounded-lg shadow-lg p-4 min-w-[220px]">
+        <div className="bg-background border border-border rounded-lg shadow-lg p-4 min-w-[220px]">
           <p className="font-semibold text-sm mb-3 border-b border-border pb-2">{data.name}</p>
           
           <div>
@@ -228,7 +215,11 @@ const OwnershipChart: React.FC<OwnershipChartProps> = ({ owners }) => {
             </Pie>
           )}
           
-          <Tooltip content={<CustomTooltip />} />
+          <Tooltip 
+            content={<CustomTooltip />}
+            offset={30}
+            wrapperStyle={{ pointerEvents: 'none' }}
+          />
         </PieChart>
       </ResponsiveContainer>
     </div>
