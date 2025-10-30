@@ -276,12 +276,79 @@ const FinancialChartsSection: React.FC<FinancialChartsSectionProps> = ({ histori
                 width={80}
               />
               <ChartTooltip 
-                content={
-                  <ChartTooltipContent 
-                    formatter={(value: number) => [formatCurrency(value), 'Egenkapital']}
-                    labelFormatter={(label) => `År ${label}`}
-                  />
-                }
+                content={({ active, payload }) => {
+                  if (!active || !payload || !payload.length) return null;
+                  
+                  const data = payload[0].payload;
+                  const currentIndex = chartData.findIndex(d => d.year === data.year);
+                  const previousData = currentIndex > 0 ? chartData[currentIndex - 1] : null;
+                  
+                  const equityValue = data.egenkapital;
+                  
+                  let equityChange = null;
+                  
+                  if (previousData) {
+                    const prevEquity = previousData.egenkapital;
+                    
+                    if (prevEquity !== 0) {
+                      const change = ((equityValue - prevEquity) / Math.abs(prevEquity)) * 100;
+                      equityChange = {
+                        value: Math.abs(change),
+                        isPositive: change > 0,
+                        absolute: equityValue - prevEquity
+                      };
+                    }
+                  }
+                  
+                  return (
+                    <div className="bg-popover border border-border rounded-lg p-3 shadow-lg">
+                      <div className="space-y-3">
+                        <div className="font-semibold text-sm border-b pb-2">
+                          År {data.year}
+                        </div>
+                        
+                        {/* Equity Value */}
+                        <div className="space-y-1">
+                          <div className="flex justify-between items-center gap-6">
+                            <span className="text-xs text-muted-foreground">Egenkapital:</span>
+                            <span className={`font-semibold text-sm ${equityValue < 0 ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400'}`}>
+                              {formatCurrency(equityValue)}
+                            </span>
+                          </div>
+                          {equityChange && (
+                            <div className="flex items-center gap-2 text-xs">
+                              {equityChange.isPositive ? (
+                                <ArrowUp className="h-3 w-3 text-green-600 dark:text-green-400" />
+                              ) : (
+                                <ArrowDown className="h-3 w-3 text-red-600 dark:text-red-400" />
+                              )}
+                              <span className={equityChange.isPositive ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}>
+                                {equityChange.isPositive ? '+' : '-'}{equityChange.value.toFixed(1)}%
+                              </span>
+                              <span className="text-muted-foreground">
+                                ({equityChange.isPositive ? '+' : ''}{formatCurrency(equityChange.absolute)})
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                        
+                        {/* Financial Health Indicator */}
+                        <div className="pt-2 border-t">
+                          <div className="flex items-center gap-2 text-xs">
+                            <span className="text-muted-foreground">Status:</span>
+                            {equityValue > 0 ? (
+                              <span className="font-medium text-green-600 dark:text-green-400">Positiv egenkapital</span>
+                            ) : equityValue === 0 ? (
+                              <span className="font-medium text-amber-600 dark:text-amber-400">Neutral</span>
+                            ) : (
+                              <span className="font-medium text-red-600 dark:text-red-400">Negativ egenkapital</span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                }}
               />
               <ReferenceLine y={0} stroke="hsl(var(--muted-foreground))" strokeDasharray="3 3" strokeOpacity={0.5} />
               <Area 
