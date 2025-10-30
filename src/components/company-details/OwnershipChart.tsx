@@ -148,21 +148,29 @@ const OwnershipChart: React.FC<OwnershipChartProps> = ({ owners }) => {
               const isHardcoded = entry.color.startsWith('hsl(') && !colorMatch;
               
               if (isHardcoded) {
-                // Handle hardcoded colors (like the "Børsnoteret" blue)
-                return (
-                  <radialGradient
-                    key={`gradient-${index}`}
-                    id={`gradient-${index}`}
-                    cx="50%"
-                    cy="50%"
-                    r="50%"
-                    fx="50%"
-                    fy="50%"
-                  >
-                    <stop offset="0%" stopColor={entry.color} stopOpacity="1" />
-                    <stop offset="100%" stopColor={entry.color} stopOpacity="0.7" />
-                  </radialGradient>
-                );
+                // Handle hardcoded colors (like the "Børsnoteret" neon green)
+                // Extract HSL values for gradient variation
+                const hslMatch = entry.color.match(/hsl\((\d+),\s*(\d+)%,\s*(\d+)%\)/);
+                if (hslMatch) {
+                  const [, h, s, l] = hslMatch;
+                  const lighterL = Math.min(parseInt(l) + 15, 70);
+                  const darkerL = Math.max(parseInt(l) - 15, 25);
+                  
+                  return (
+                    <radialGradient
+                      key={`gradient-${index}`}
+                      id={`gradient-${index}`}
+                      cx="50%"
+                      cy="50%"
+                      r="50%"
+                      fx="50%"
+                      fy="50%"
+                    >
+                      <stop offset="0%" stopColor={`hsl(${h}, ${s}%, ${lighterL}%)`} stopOpacity="1" />
+                      <stop offset="100%" stopColor={`hsl(${h}, ${s}%, ${darkerL}%)`} stopOpacity="0.9" />
+                    </radialGradient>
+                  );
+                }
               }
               
               // Handle CSS variable colors
