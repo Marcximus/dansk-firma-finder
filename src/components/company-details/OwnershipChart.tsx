@@ -143,10 +143,30 @@ const OwnershipChart: React.FC<OwnershipChartProps> = ({ owners }) => {
         <PieChart>
           <defs>
             {ownershipData.map((entry, index) => {
-              // Extract HSL values from the color string
+              // Check if this is a hardcoded color or CSS variable
               const colorMatch = entry.color.match(/hsl\(var\(--chart-(\d+)\)\)/);
-              const chartNum = colorMatch ? colorMatch[1] : '1';
+              const isHardcoded = entry.color.startsWith('hsl(') && !colorMatch;
               
+              if (isHardcoded) {
+                // Handle hardcoded colors (like the "Børsnoteret" blue)
+                return (
+                  <radialGradient
+                    key={`gradient-${index}`}
+                    id={`gradient-${index}`}
+                    cx="50%"
+                    cy="50%"
+                    r="50%"
+                    fx="50%"
+                    fy="50%"
+                  >
+                    <stop offset="0%" stopColor={entry.color} stopOpacity="1" />
+                    <stop offset="100%" stopColor={entry.color} stopOpacity="0.7" />
+                  </radialGradient>
+                );
+              }
+              
+              // Handle CSS variable colors
+              const chartNum = colorMatch ? colorMatch[1] : '1';
               return (
                 <radialGradient
                   key={`gradient-${index}`}
@@ -158,7 +178,7 @@ const OwnershipChart: React.FC<OwnershipChartProps> = ({ owners }) => {
                   fy="50%"
                 >
                   <stop offset="0%" stopColor={`hsl(var(--chart-${chartNum}))`} stopOpacity="1" />
-                  <stop offset="100%" stopColor={`hsl(var(--chart-${chartNum}))`} stopOpacity="0.4" />
+                  <stop offset="100%" stopColor={`hsl(var(--chart-${chartNum}))`} stopOpacity="0.7" />
                 </radialGradient>
               );
             })}
