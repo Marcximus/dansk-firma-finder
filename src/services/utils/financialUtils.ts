@@ -19,7 +19,7 @@ export const calculateFinancialRatios = (data: any, useBruttofortjeneste: boolea
   }
   
   // Overskudsgrad (Profit Margin): Årets resultat / Omsætning * 100
-  // If Nettoomsætning has been 0 for last 5 years, use Bruttofortjeneste instead
+  // If Nettoomsætning has been 0 for last 7 years, use Bruttofortjeneste instead
   if (data.aaretsResultat) {
     if (useBruttofortjeneste) {
       // Use bruttofortjeneste (or bruttotab if negative)
@@ -132,7 +132,7 @@ export const extractFinancialData = (cvrData: any, parsedFinancialData?: any) =>
   if (parsedFinancialData?.financialData && parsedFinancialData.financialData.length > 0) {
     console.log('extractFinancialData - Using parsed XBRL data');
     
-    // Check if Nettoomsætning has been 0 for all periods (last 5 years)
+    // Check if Nettoomsætning has been 0 for all periods (last 7 years)
     const allRevenueZero = parsedFinancialData.financialData.every((pd: any) => !pd.nettoomsaetning || pd.nettoomsaetning === 0);
     console.log('extractFinancialData - All revenue zero:', allRevenueZero);
     

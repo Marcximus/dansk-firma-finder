@@ -156,8 +156,8 @@ const FinancialSpreadsheet: React.FC<FinancialSpreadsheetProps> = ({ historicalD
     hasData: !!d.nettoomsaetning || !!d.egenkapital
   })));
   
-  // Data is already sorted by edge function and financialUtils - just take first 5
-  const periods = historicalData.slice(0, 5);
+  // Data is already sorted by edge function and financialUtils - just take first 7
+  const periods = historicalData.slice(0, 7);
   
   // Extract display years for the quality indicator
   const displayYears = periods.map(p => p.year).filter(y => y);
@@ -225,7 +225,7 @@ const FinancialSpreadsheet: React.FC<FinancialSpreadsheetProps> = ({ historicalD
             {displayYears.length > 0 && (
               <p className="text-xs text-muted-foreground mt-1">
                 Viser regnskabsdata for {displayYears.length === 1 ? 'seneste år' : `de seneste ${displayYears.length} år`}: {displayYears.join(', ')}
-                {displayYears.length < 5 && ` • Kun ${displayYears.length} års data tilgængelig`}
+                {displayYears.length < 7 && ` • Kun ${displayYears.length} års data tilgængelig`}
               </p>
             )}
           </div>
