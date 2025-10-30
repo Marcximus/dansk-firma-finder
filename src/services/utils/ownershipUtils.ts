@@ -23,6 +23,49 @@ const mapOwnershipToRange = (value: number): string => {
   return '90-100%';
 };
 
+// Parse ownership percentage range to get min, max, and midpoint
+const parseOwnershipRange = (rangeStr: string): { min: number; max: number; midpoint: number } => {
+  if (!rangeStr || rangeStr === 'Ikke oplyst') return { min: 0, max: 0, midpoint: 0 };
+  
+  const match = rangeStr.match(/(\d+)(?:-(\d+))?%?/);
+  if (!match) return { min: 0, max: 0, midpoint: 0 };
+  
+  const min = parseInt(match[1]);
+  const max = match[2] ? parseInt(match[2]) : min;
+  const midpoint = (min + max) / 2;
+  
+  return { min, max, midpoint };
+};
+
+// Extract ticker symbol from CVR data
+const extractTickerSymbol = (vrvirksomhed: any): string | undefined => {
+  // Look for ticker in various places in the CVR data
+  const attributter = vrvirksomhed?.attributter || [];
+  
+  const tickerAttr = attributter.find((attr: any) => 
+    attr.type?.toUpperCase().includes('TICKER') ||
+    attr.type?.toUpperCase().includes('SYMBOL') ||
+    attr.type?.toUpperCase().includes('BØRSKODE')
+  );
+  
+  if (tickerAttr?.vaerdier) {
+    const currentValue = tickerAttr.vaerdier.find((v: any) => !v.periode?.gyldigTil);
+    const value = currentValue || tickerAttr.vaerdier[tickerAttr.vaerdier.length - 1];
+    if (value?.vaerdi) return value.vaerdi;
+  }
+  
+  // Hardcoded mapping for known Danish companies
+  const cvrToTicker: Record<string, string> = {
+    '10007127': 'NZYM-B.CO', // Novozymes
+    '24257630': 'NOVO-B.CO', // Novo Nordisk
+    '26736426': 'MAERSK-B.CO', // A.P. Møller-Mærsk
+    '36213728': 'DANSKE.CO', // Danske Bank
+  };
+  
+  const cvrNummer = vrvirksomhed.cvrNummer?.toString();
+  return cvrToTicker[cvrNummer];
+};
+
 export const extractOwnershipData = (cvrData: any) => {
   // Handle both wrapped and unwrapped Vrvirksomhed data structures
   const vrvirksomhed = cvrData?.Vrvirksomhed || cvrData;
@@ -439,8 +482,47 @@ export const extractOwnershipData = (cvrData: any) => {
       });
   };
 
-  const ownershipFromRelations = getOwnershipFromRelations();
+  let ownershipFromRelations = getOwnershipFromRelations();
   const subsidiariesFromRelations = getSubsidiariesFromRelations();
+
+  // If company is listed AND has some legal owners, add public ownership entry
+  if (isListed && ownershipFromRelations.length > 0) {
+    // Calculate total declared ownership
+    let totalOwnership = 0;
+    let totalVoting = 0;
+    
+    ownershipFromRelations.forEach(owner => {
+      const ownershipRange = parseOwnershipRange(owner.ejerandel);
+      const votingRange = parseOwnershipRange(owner.stemmerettigheder);
+      
+      totalOwnership += ownershipRange.midpoint || 0;
+      totalVoting += votingRange.midpoint || 0;
+    });
+    
+    // Calculate remaining percentage for public shareholders
+    const remainingOwnership = 100 - totalOwnership;
+    const remainingVoting = 100 - totalVoting;
+    
+    // Only add if there's significant remaining ownership (>5%)
+    if (remainingOwnership > 5) {
+      const tickerSymbol = extractTickerSymbol(vrvirksomhed);
+      
+      ownershipFromRelations.push({
+        navn: 'Børsnoteret - offentligt handlet',
+        adresse: '',
+        ejerandel: `${Math.round(remainingOwnership)}%`,
+        stemmerettigheder: `${Math.round(remainingVoting)}%`,
+        periode: { gyldigFra: '', gyldigTil: '' },
+        type: 'LISTED' as const,
+        identifier: '',
+        cvr: undefined,
+        _hasEnrichedData: false,
+        _isListedCompany: true,
+        _tickerSymbol: tickerSymbol,
+        _yahooFinanceUrl: tickerSymbol ? `https://finance.yahoo.com/quote/${tickerSymbol}` : undefined
+      });
+    }
+  }
 
   // If company is listed and no specific owners found, return special entry
   if (isListed && ownershipFromRelations.length === 0) {

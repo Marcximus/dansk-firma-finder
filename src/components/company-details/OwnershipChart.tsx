@@ -49,8 +49,8 @@ const parsePercentageRange = (percentageStr: string | undefined): { min: number;
 const OwnershipChart: React.FC<OwnershipChartProps> = ({ owners }) => {
   if (!owners || owners.length === 0) return null;
   
-  // Check if this is a listed company (single owner with type LISTED)
-  const isListedCompany = owners.length === 1 && (owners[0] as any)._isListedCompany;
+  // Check if this is ONLY a listed company (single owner with type LISTED, no other owners)
+  const hasOnlyListedOwner = owners.length === 1 && (owners[0] as any)._isListedCompany;
 
   // Calculate dynamic height based on number of owners
   const calculateHeight = (numOwners: number): string => {
@@ -64,7 +64,8 @@ const OwnershipChart: React.FC<OwnershipChartProps> = ({ owners }) => {
   const ownershipData: ChartDataPoint[] = [];
   owners.forEach((owner, index) => {
     const range = parsePercentageRange(owner.ejerandel);
-    const color = COLORS[index % COLORS.length];
+    const isListedEntry = (owner as any)._isListedCompany;
+    const color = isListedEntry ? 'hsl(210, 100%, 60%)' : COLORS[index % COLORS.length];
     
     if (range.midpoint > 0) {
       ownershipData.push({
@@ -84,7 +85,8 @@ const OwnershipChart: React.FC<OwnershipChartProps> = ({ owners }) => {
   const votingData: ChartDataPoint[] = [];
   owners.forEach((owner, index) => {
     const range = parsePercentageRange(owner.stemmerettigheder);
-    const color = COLORS[index % COLORS.length];
+    const isListedEntry = (owner as any)._isListedCompany;
+    const color = isListedEntry ? 'hsl(210, 100%, 60%)' : COLORS[index % COLORS.length];
     
     if (range.midpoint > 0) {
       votingData.push({
@@ -121,8 +123,8 @@ const OwnershipChart: React.FC<OwnershipChartProps> = ({ owners }) => {
     return null;
   };
 
-  // Don't show chart for listed companies
-  if (isListedCompany) {
+  // Only show message if there are NO other owners at all
+  if (hasOnlyListedOwner) {
     return (
       <div className="flex items-center justify-center p-8 text-center">
         <div className="space-y-2">

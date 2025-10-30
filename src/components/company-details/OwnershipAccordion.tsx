@@ -2,7 +2,7 @@
 import React from 'react';
 import { AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { extractOwnershipData } from '@/services/cvrUtils';
-import { Building2, MapPin, Calendar, Percent, Users, Network, User, TrendingUp } from 'lucide-react';
+import { Building2, MapPin, Calendar, Percent, Users, Network, User, TrendingUp, ExternalLink } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { generateCompanyUrl, generatePersonUrl } from '@/lib/urlUtils';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
@@ -54,9 +54,23 @@ const OwnershipAccordion: React.FC<OwnershipAccordionProps> = ({
                       <div key={index} className={`border-l-2 sm:border-l-4 ${borderColor} pl-3 sm:pl-4 py-2`}>
                         <div className="flex items-center gap-2 flex-wrap">
                           {isListed ? (
-                            <div className="font-semibold text-sm sm:text-base flex items-center gap-1.5">
-                              <TrendingUp className="h-4 w-4 text-blue-600 flex-shrink-0" />
-                              {ejer.navn}
+                            <div>
+                              <div className="font-semibold text-sm sm:text-base flex items-center gap-1.5">
+                                <TrendingUp className="h-4 w-4 text-blue-600 flex-shrink-0" />
+                                {ejer.navn}
+                              </div>
+                              {(ejer as any)._yahooFinanceUrl && (
+                                <a 
+                                  href={(ejer as any)._yahooFinanceUrl}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-xs text-blue-600 hover:underline flex items-center gap-1 mt-1"
+                                  onClick={(e) => e.stopPropagation()}
+                                >
+                                  <ExternalLink className="h-3 w-3" />
+                                  Se på Yahoo Finance
+                                </a>
+                              )}
                             </div>
                           ) : (
                             <TooltipProvider>
@@ -117,7 +131,7 @@ const OwnershipAccordion: React.FC<OwnershipAccordionProps> = ({
                         )}
                         {isListed && (
                           <div className="text-xs sm:text-sm text-muted-foreground mt-1">
-                            Ejerskabet er fordelt blandt offentlige aktionærer
+                            Estimeret resterende ejerskab fordelt blandt offentlige aktionærer
                           </div>
                         )}
                         {!isListed && (
