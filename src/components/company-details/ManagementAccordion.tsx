@@ -204,61 +204,60 @@ const ManagementAccordion: React.FC<ManagementAccordionProps> = ({ cvrData }) =>
             const personName = getPersonName(relation.deltager);
             const personAddress = getPersonAddress(relation.deltager);
             const enhedsNummer = relation.deltager?.enhedsNummer;
-            
-            // Check if this person is an employee representative
-            const today = new Date().toISOString().split('T')[0];
-            const isEmployeeRep = relation.organisationer?.some((org: any) => 
-              org.medlemsData?.some((medlem: any) => {
-                const valgformAttr = medlem.attributter?.find((attr: any) => attr.type === 'VALGFORM');
-                return valgformAttr?.vaerdier?.some((v: any) => {
-                  const gyldigTil = v.periode?.gyldigTil;
-                  const isActive = gyldigTil === null || gyldigTil === undefined || gyldigTil >= today;
-                  return isActive && (
-                    v.vaerdi?.includes('medarbejdere i selskabet') || 
-                    v.vaerdi?.includes('medarbejdere i koncernen')
-                  );
-                });
-              })
-            );
-            
-            const borderColor = isEmployeeRep ? 'border-green-200' : 'border-blue-200';
 
             return (
-              <div key={index} className={`border-l-2 sm:border-l-3 ${borderColor} pl-2 sm:pl-3 py-1.5 sm:py-2`}>
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <button
-                        onClick={() => handleNameClick(personName, enhedsNummer)}
-                        className={`font-semibold text-xs sm:text-sm md:text-base transition-colors flex items-center gap-1.5 cursor-pointer mb-1 ${
-                          isEmployeeRep 
-                            ? 'text-green-600 hover:text-green-700 hover:underline'
-                            : 'text-primary hover:text-primary/80 hover:underline'
-                        }`}
-                      >
-                        {personName}
-                        <Search className="h-3 w-3" />
-                      </button>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>Se personens profil og tilknytninger</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-                <div className="text-[10px] sm:text-xs md:text-sm text-muted-foreground mb-1.5 sm:mb-2">{personAddress}</div>
+              <div key={index} className="space-y-2">
+                <div className="text-xs sm:text-sm md:text-base font-semibold text-muted-foreground mb-2">
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <button
+                          onClick={() => handleNameClick(personName, enhedsNummer)}
+                          className="text-primary hover:text-primary/80 hover:underline transition-colors flex items-center gap-1.5 cursor-pointer"
+                        >
+                          {personName}
+                          <Search className="h-3 w-3" />
+                        </button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Se personens profil og tilknytninger</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                  <div className="text-[10px] sm:text-xs md:text-sm text-muted-foreground font-normal mt-1">{personAddress}</div>
+                </div>
                 
                 {relation.organisationer && relation.organisationer.length > 0 && (
                   <div className="space-y-1 sm:space-y-1.5">
-                    {relation.organisationer.map((org: any, orgIndex: number) => (
-                      <div key={orgIndex} className="flex items-start gap-1.5 sm:gap-2 p-1.5 sm:p-2 bg-gray-50 rounded">
-                        {getRoleIcon(org.hovedtype)}
-                        <div className="flex-1">
-                          {getRoleDisplayName(org.hovedtype, org.medlemsData?.[0]) && (
-                            <div className="font-medium text-[10px] sm:text-xs md:text-sm">
-                              {getRoleDisplayName(org.hovedtype, org.medlemsData?.[0])}
-                            </div>
-                          )}
-                          {org.medlemsData && org.medlemsData.map((medlem: any, medlemIndex: number) => {
+                    {relation.organisationer.map((org: any, orgIndex: number) => {
+                      // Check if THIS SPECIFIC organisation has employee election
+                      const today = new Date().toISOString().split('T')[0];
+                      const isEmployeeElectedInThisOrg = org.medlemsData?.some((medlem: any) => {
+                        const valgformAttr = medlem.attributter?.find((attr: any) => attr.type === 'VALGFORM');
+                        return valgformAttr?.vaerdier?.some((v: any) => {
+                          const gyldigTil = v.periode?.gyldigTil;
+                          const isActive = gyldigTil === null || gyldigTil === undefined || gyldigTil >= today;
+                          return isActive && (
+                            v.vaerdi?.includes('medarbejdere i selskabet') || 
+                            v.vaerdi?.includes('medarbejdere i koncernen')
+                          );
+                        });
+                      });
+                      
+                      const borderColor = isEmployeeElectedInThisOrg ? 'border-green-200' : 'border-blue-200';
+                      const textColor = isEmployeeElectedInThisOrg ? 'text-green-600' : 'text-blue-600';
+                      
+                      return (
+                        <div key={orgIndex} className={`border-l-2 sm:border-l-3 ${borderColor} pl-2 sm:pl-3 py-1.5 sm:py-2`}>
+                          <div className="flex items-start gap-1.5 sm:gap-2 p-1.5 sm:p-2 bg-gray-50 rounded">
+                            {getRoleIcon(org.hovedtype)}
+                            <div className="flex-1">
+                              {getRoleDisplayName(org.hovedtype, org.medlemsData?.[0]) && (
+                                <div className={`font-medium text-[10px] sm:text-xs md:text-sm ${textColor}`}>
+                                  {getRoleDisplayName(org.hovedtype, org.medlemsData?.[0])}
+                                </div>
+                              )}
+                              {org.medlemsData && org.medlemsData.map((medlem: any, medlemIndex: number) => {
                             const funkAttr = medlem.attributter?.find((attr: any) => attr.type === 'FUNKTION');
                             const valgformAttr = medlem.attributter?.find((attr: any) => attr.type === 'VALGFORM');
                             const today = new Date().toISOString().split('T')[0];
@@ -304,7 +303,9 @@ const ManagementAccordion: React.FC<ManagementAccordionProps> = ({ cvrData }) =>
                           })}
                         </div>
                       </div>
-                    ))}
+                    </div>
+                  );
+                })}
                   </div>
                 )}
               </div>
