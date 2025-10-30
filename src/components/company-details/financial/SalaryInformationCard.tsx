@@ -1,9 +1,25 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Wallet } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Wallet, TrendingUp, TrendingDown, Users, Award, Calculator, Info } from 'lucide-react';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, Legend, ResponsiveContainer } from 'recharts';
 
 interface SalaryInformationCardProps {
   historicalData: any[];
+}
+
+interface SalaryMetrics {
+  avgEmployeeSalary: number;
+  avgPartTimeSalary: number;
+  estimatedCEOSalaryLow: number;
+  estimatedCEOSalaryHigh: number;
+  revenuePerEmployee: number;
+  salaryCostPercentage: number;
+  ceoRatioLow: number;
+  ceoRatioHigh: number;
+  partTimeCount: number;
+  hasRevenue: boolean;
 }
 
 const SalaryInformationCard: React.FC<SalaryInformationCardProps> = ({ historicalData }) => {
@@ -17,20 +33,85 @@ const SalaryInformationCard: React.FC<SalaryInformationCardProps> = ({ historica
   const personaleomkostninger = latestData.personaleomkostninger;
   const antalAnsatte = latestData.antalAnsatte || 0;
   const antalAarsvaerk = latestData.antalAarsvaerk || 0;
+  const nettoomsaetning = latestData.nettoomsaetning || 0;
 
-  // Calculate average salary per employee (annual)
-  const avgSalaryPerEmployee = antalAnsatte > 0 
-    ? personaleomkostninger / antalAnsatte 
-    : 0;
+  // Calculate salary metrics
+  const metrics = useMemo((): SalaryMetrics => {
+    const partTimeCount = Math.max(0, antalAnsatte - antalAarsvaerk);
+    
+    // Average employee salary (75% of personnel costs = direct wages)
+    const avgEmployeeSalary = antalAnsatte > 0 
+      ? (personaleomkostninger * 0.75) / antalAnsatte / 12
+      : 0;
 
-  // Calculate average salary per full-time equivalent (annual)
-  const avgSalaryPerFTE = antalAarsvaerk > 0 
-    ? personaleomkostninger / antalAarsvaerk 
-    : 0;
+    // Part-time employee average (7.5% of personnel costs)
+    const avgPartTimeSalary = partTimeCount > 0
+      ? (personaleomkostninger * 0.075) / partTimeCount / 12
+      : 0;
 
-  // Calculate monthly averages
-  const avgMonthlySalaryPerEmployee = avgSalaryPerEmployee / 12;
-  const avgMonthlySalaryPerFTE = avgSalaryPerFTE / 12;
+    // CEO salary estimates (15-30% of personnel costs)
+    const estimatedCEOSalaryLow = (personaleomkostninger * 0.15) / 12;
+    const estimatedCEOSalaryHigh = (personaleomkostninger * 0.30) / 12;
+
+    // Productivity metrics
+    const revenuePerEmployee = antalAnsatte > 0 && nettoomsaetning > 0
+      ? nettoomsaetning / antalAnsatte
+      : 0;
+
+    const salaryCostPercentage = nettoomsaetning > 0
+      ? (personaleomkostninger / nettoomsaetning) * 100
+      : 0;
+
+    // CEO ratio
+    const ceoRatioLow = avgEmployeeSalary > 0 ? estimatedCEOSalaryLow / avgEmployeeSalary : 0;
+    const ceoRatioHigh = avgEmployeeSalary > 0 ? estimatedCEOSalaryHigh / avgEmployeeSalary : 0;
+
+    return {
+      avgEmployeeSalary,
+      avgPartTimeSalary,
+      estimatedCEOSalaryLow,
+      estimatedCEOSalaryHigh,
+      revenuePerEmployee,
+      salaryCostPercentage,
+      ceoRatioLow,
+      ceoRatioHigh,
+      partTimeCount,
+      hasRevenue: nettoomsaetning > 0
+    };
+  }, [personaleomkostninger, antalAnsatte, antalAarsvaerk, nettoomsaetning]);
+
+  // Process historical data for trend chart
+  const trendData = useMemo(() => {
+    return historicalData
+      .filter(d => d.personaleomkostninger > 0 && d.antalAnsatte > 0)
+      .slice(0, 5) // Last 5 years
+      .map(d => {
+        const avgSalary = ((d.personaleomkostninger * 0.75) / d.antalAnsatte / 12);
+        const ceoSalaryMid = ((d.personaleomkostninger * 0.225) / 12);
+        const ratio = avgSalary > 0 ? ceoSalaryMid / avgSalary : 0;
+        
+        return {
+          periode: d.periode,
+          avgSalary: Math.round(avgSalary),
+          ceoRatio: parseFloat(ratio.toFixed(1))
+        };
+      })
+      .reverse(); // Oldest to newest
+  }, [historicalData]);
+
+  // Calculate year-over-year change
+  const yoyChange = useMemo(() => {
+    if (trendData.length < 2) return null;
+    
+    const current = trendData[trendData.length - 1].avgSalary;
+    const previous = trendData[trendData.length - 2].avgSalary;
+    const change = ((current - previous) / previous) * 100;
+    
+    return {
+      value: Math.abs(change),
+      isPositive: change > 0
+    };
+  }, [trendData]);
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('da-DK', {
@@ -40,75 +121,287 @@ const SalaryInformationCard: React.FC<SalaryInformationCardProps> = ({ historica
     }).format(value);
   };
 
+  const formatPercent = (value: number) => {
+    return `${value.toFixed(1)}%`;
+  };
+
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2 text-lg">
-          <Wallet className="h-5 w-5" />
-          Lønforhold
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        {/* Total Personnel Costs */}
-        <div className="pb-3 border-b">
-          <div className="text-sm text-muted-foreground mb-1">
-            Samlede personaleomkostninger ({latestData.periode})
+    <TooltipProvider>
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-lg">
+            <Wallet className="h-5 w-5" />
+            Lønforhold og Produktivitet
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          {/* Total Personnel Costs */}
+          <div className="pb-4 border-b">
+            <div className="text-sm text-muted-foreground mb-1">
+              Samlede personaleomkostninger ({latestData.periode})
+            </div>
+            <div className="text-2xl font-bold">
+              {formatCurrency(personaleomkostninger)}
+            </div>
+            {yoyChange && (
+              <div className="flex items-center gap-1 mt-1 text-xs">
+                {yoyChange.isPositive ? (
+                  <TrendingUp className="h-3 w-3 text-green-500" />
+                ) : (
+                  <TrendingDown className="h-3 w-3 text-red-500" />
+                )}
+                <span className={yoyChange.isPositive ? 'text-green-500' : 'text-red-500'}>
+                  {formatPercent(yoyChange.value)} vs. sidste år
+                </span>
+              </div>
+            )}
           </div>
-          <div className="text-2xl font-bold">
-            {formatCurrency(personaleomkostninger)}
-          </div>
-        </div>
 
-        {/* Average Salaries */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {/* Per Employee */}
-          {antalAnsatte > 0 && (
-            <div className="space-y-2">
-              <div className="text-sm font-medium">
-                Gennemsnitlig løn pr. medarbejder
-              </div>
-              <div>
-                <div className="text-lg font-semibold">
-                  {formatCurrency(avgMonthlySalaryPerEmployee)}/md
+          {/* Primary Metrics */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {/* Average Employee Salary */}
+            {antalAnsatte > 0 && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div className="space-y-2 p-4 rounded-lg border bg-card hover:bg-accent/5 transition-colors cursor-help">
+                    <div className="flex items-center gap-2 text-sm font-medium">
+                      <Users className="h-4 w-4" />
+                      Gennemsnitlig medarbejderløn
+                    </div>
+                    <div className="text-2xl font-bold">
+                      {formatCurrency(metrics.avgEmployeeSalary)}
+                      <span className="text-sm font-normal text-muted-foreground">/md</span>
+                    </div>
+                    <div className="text-xs text-muted-foreground">
+                      {formatCurrency(metrics.avgEmployeeSalary * 12)} årligt
+                    </div>
+                    <div className="text-xs text-muted-foreground">
+                      {antalAnsatte} medarbejder{antalAnsatte !== 1 ? 'e' : ''}
+                    </div>
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent side="top" className="max-w-xs">
+                  <p className="text-xs">
+                    Estimeret ud fra 75% af personaleomkostninger fordelt på alle medarbejdere.
+                    Inkluderer løn, pension og sociale bidrag.
+                  </p>
+                </TooltipContent>
+              </Tooltip>
+            )}
+
+            {/* Part-time Salary */}
+            {metrics.partTimeCount > 0 && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div className="space-y-2 p-4 rounded-lg border bg-card hover:bg-accent/5 transition-colors cursor-help">
+                    <div className="flex items-center gap-2 text-sm font-medium">
+                      <Users className="h-4 w-4" />
+                      Deltidsmedarbejderløn
+                    </div>
+                    <div className="text-2xl font-bold">
+                      {formatCurrency(metrics.avgPartTimeSalary)}
+                      <span className="text-sm font-normal text-muted-foreground">/md</span>
+                    </div>
+                    <div className="text-xs text-muted-foreground">
+                      {formatCurrency(metrics.avgPartTimeSalary * 12)} årligt
+                    </div>
+                    <div className="text-xs text-muted-foreground">
+                      ~{metrics.partTimeCount.toFixed(0)} deltidsansatte
+                    </div>
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent side="top" className="max-w-xs">
+                  <p className="text-xs">
+                    Estimeret ud fra 7,5% af personaleomkostninger fordelt på deltidsansatte.
+                    Antal deltidsansatte = Total ansatte - Årsværk.
+                  </p>
+                </TooltipContent>
+              </Tooltip>
+            )}
+
+            {/* CEO Salary Estimate */}
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div className="space-y-2 p-4 rounded-lg border bg-card hover:bg-accent/5 transition-colors cursor-help">
+                  <div className="flex items-center gap-2 text-sm font-medium">
+                    <Award className="h-4 w-4" />
+                    Estimeret CEO-løn
+                  </div>
+                  <div className="text-xl font-bold">
+                    {formatCurrency(metrics.estimatedCEOSalaryLow)} - {formatCurrency(metrics.estimatedCEOSalaryHigh)}
+                    <span className="text-sm font-normal text-muted-foreground">/md</span>
+                  </div>
+                  <div className="text-xs text-muted-foreground">
+                    {formatCurrency(metrics.estimatedCEOSalaryLow * 12)} - {formatCurrency(metrics.estimatedCEOSalaryHigh * 12)} årligt
+                  </div>
+                  <div className="text-xs text-muted-foreground">
+                    Baseret på branchegennemsnit
+                  </div>
                 </div>
-                <div className="text-xs text-muted-foreground">
-                  {formatCurrency(avgSalaryPerEmployee)} årligt
-                </div>
+              </TooltipTrigger>
+              <TooltipContent side="top" className="max-w-xs">
+                <p className="text-xs">
+                  Typisk ledelsesvederlag udgør 15-30% af samlede personaleomkostninger
+                  i danske virksomheder. Dette er et estimat baseret på branchemønstre.
+                </p>
+              </TooltipContent>
+            </Tooltip>
+          </div>
+
+          {/* Productivity Metrics */}
+          {metrics.hasRevenue && (
+            <div className="space-y-3 pt-4 border-t">
+              <div className="flex items-center gap-2 text-sm font-medium">
+                <Calculator className="h-4 w-4" />
+                Produktivitetsmetrikker
               </div>
-              <div className="text-xs text-muted-foreground">
-                Baseret på {antalAnsatte} medarbejder{antalAnsatte !== 1 ? 'e' : ''}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {/* Revenue per Employee */}
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <div className="space-y-1 p-3 rounded-lg border bg-muted/30 cursor-help">
+                      <div className="text-xs text-muted-foreground">
+                        Omsætning pr. medarbejder
+                      </div>
+                      <div className="text-lg font-semibold">
+                        {formatCurrency(metrics.revenuePerEmployee)}
+                      </div>
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p className="text-xs">Nettoomsætning ÷ Antal medarbejdere</p>
+                  </TooltipContent>
+                </Tooltip>
+
+                {/* Salary Cost Percentage */}
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <div className="space-y-1 p-3 rounded-lg border bg-muted/30 cursor-help">
+                      <div className="text-xs text-muted-foreground">
+                        Lønomkostninger af omsætning
+                      </div>
+                      <div className="text-lg font-semibold">
+                        {formatPercent(metrics.salaryCostPercentage)}
+                      </div>
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p className="text-xs">(Personaleomkostninger ÷ Nettoomsætning) × 100</p>
+                  </TooltipContent>
+                </Tooltip>
+
+                {/* CEO Ratio */}
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <div className="space-y-1 p-3 rounded-lg border bg-muted/30 cursor-help">
+                      <div className="text-xs text-muted-foreground">
+                        CEO-løn ratio
+                      </div>
+                      <div className="text-lg font-semibold">
+                        {metrics.ceoRatioLow.toFixed(1)}x - {metrics.ceoRatioHigh.toFixed(1)}x
+                      </div>
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p className="text-xs">CEO-løn ÷ Gennemsnitlig medarbejderløn</p>
+                  </TooltipContent>
+                </Tooltip>
               </div>
             </div>
           )}
 
-          {/* Per Full-Time Equivalent */}
-          {antalAarsvaerk > 0 && (
-            <div className="space-y-2">
-              <div className="text-sm font-medium">
-                Gennemsnitlig løn pr. årsværk
+          {/* Historical Trend Chart */}
+          {trendData.length >= 2 && (
+            <div className="pt-4 border-t">
+              <div className="text-sm font-medium mb-3">
+                Lønudvikling over tid
               </div>
-              <div>
-                <div className="text-lg font-semibold">
-                  {formatCurrency(avgMonthlySalaryPerFTE)}/md
-                </div>
-                <div className="text-xs text-muted-foreground">
-                  {formatCurrency(avgSalaryPerFTE)} årligt
-                </div>
-              </div>
-              <div className="text-xs text-muted-foreground">
-                Baseret på {antalAarsvaerk.toFixed(1)} årsværk
-              </div>
+              <ResponsiveContainer width="100%" height={250}>
+                <LineChart data={trendData} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
+                  <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
+                  <XAxis 
+                    dataKey="periode" 
+                    tick={{ fontSize: 11 }}
+                  />
+                  <YAxis 
+                    yAxisId="left"
+                    tick={{ fontSize: 11 }}
+                    tickFormatter={(value) => `${(value / 1000).toFixed(0)}k`}
+                  />
+                  <YAxis 
+                    yAxisId="right"
+                    orientation="right"
+                    tick={{ fontSize: 11 }}
+                    tickFormatter={(value) => `${value}x`}
+                  />
+                  <RechartsTooltip 
+                    contentStyle={{ 
+                      backgroundColor: 'hsl(var(--popover))', 
+                      border: '1px solid hsl(var(--border))',
+                      borderRadius: '6px',
+                      fontSize: '12px'
+                    }}
+                    formatter={(value: any, name: string) => {
+                      if (name === 'Gennemsnitlig løn') {
+                        return [formatCurrency(value), name];
+                      }
+                      return [`${value}x`, name];
+                    }}
+                  />
+                  <Legend wrapperStyle={{ fontSize: '12px' }} />
+                  <Line 
+                    yAxisId="left"
+                    type="monotone"
+                    dataKey="avgSalary" 
+                    stroke="hsl(var(--chart-1))" 
+                    strokeWidth={2}
+                    name="Gennemsnitlig løn"
+                    dot={{ r: 3 }}
+                    activeDot={{ r: 5 }}
+                  />
+                  <Line 
+                    yAxisId="right"
+                    type="monotone"
+                    dataKey="ceoRatio" 
+                    stroke="hsl(var(--chart-2))" 
+                    strokeWidth={2}
+                    name="CEO ratio"
+                    dot={{ r: 3 }}
+                    activeDot={{ r: 5 }}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
             </div>
           )}
-        </div>
 
-        {/* Info Note */}
-        <div className="text-xs text-muted-foreground pt-3 border-t">
-          <strong>Note:</strong> Gennemsnitslønnen er beregnet ud fra de samlede personaleomkostninger, 
-          som inkluderer løn, pension, sociale bidrag og andre medarbejderrelaterede omkostninger.
-        </div>
-      </CardContent>
-    </Card>
+          {/* Disclaimer */}
+          <Alert className="border-amber-200 bg-amber-50 dark:bg-amber-950/20">
+            <Info className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+            <AlertDescription className="text-xs text-foreground/80 space-y-2">
+              <p className="font-semibold">Vigtig information om beregninger:</p>
+              <div className="space-y-1">
+                <p><strong>Personaleomkostninger inkluderer:</strong></p>
+                <ul className="list-disc list-inside ml-2 space-y-0.5">
+                  <li>Løn og honorarer</li>
+                  <li>Pensionsbidrag (typisk 10-15%)</li>
+                  <li>Sociale omkostninger (AER, barsel, sygdom)</li>
+                  <li>Andre personaleydelser</li>
+                </ul>
+              </div>
+              <div className="space-y-1">
+                <p><strong>Estimerede lønniveauer:</strong></p>
+                <ul className="list-disc list-inside ml-2 space-y-0.5">
+                  <li>Baseret på typiske fordelinger i danske virksomheder</li>
+                  <li>Faktiske individuelle lønninger kan variere betydeligt</li>
+                  <li>CEO-løn estimeret fra branchegennemsnit (15-30% af personaleomkostninger)</li>
+                </ul>
+              </div>
+              <p className="italic">Disse tal er estimater og bør behandles som vejledende.</p>
+            </AlertDescription>
+          </Alert>
+        </CardContent>
+      </Card>
+    </TooltipProvider>
   );
 };
 
