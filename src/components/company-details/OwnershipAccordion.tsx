@@ -40,7 +40,7 @@ const OwnershipAccordion: React.FC<OwnershipAccordionProps> = ({
             </h4>
             
             {/* Grid layout: list on left, chart on right */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4">
               {/* Owner list */}
               <div className="space-y-2 sm:space-y-3">
                 {ownershipData?.currentOwners && ownershipData.currentOwners.length > 0 ? (
