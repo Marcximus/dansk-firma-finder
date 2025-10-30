@@ -369,6 +369,7 @@ const SalaryInformationCard: React.FC<SalaryInformationCardProps> = ({ historica
                   <YAxis 
                     tick={{ fontSize: 11 }}
                     tickFormatter={(value) => `${(value / 1000).toFixed(0)}k`}
+                    domain={['auto', 'auto']}
                   />
                   <RechartsTooltip 
                     contentStyle={{ 
