@@ -47,13 +47,23 @@ const CustomActiveDot = (props: any) => {
 
 const FinancialChartsSection: React.FC<FinancialChartsSectionProps> = ({ historicalData }) => {
   // Format data for charts - oldest to newest (left to right)
-  const chartData = historicalData.map(data => ({
-    year: data.year.toString(),
-    nettoomsaetning: Math.round(data.nettoomsaetning / 1000000), // Convert to millions
-    bruttofortjeneste: Math.round(data.bruttofortjeneste / 1000000),
-    aaretsResultat: Math.round(data.aaretsResultat / 1000000),
-    egenkapital: Math.round(data.egenkapital / 1000000)
-  })).slice().reverse();
+  const chartData = historicalData.map(data => {
+    const aaretsResultat = Math.round(data.aaretsResultat / 1000000);
+    const egenkapital = Math.round(data.egenkapital / 1000000);
+    
+    return {
+      year: data.year.toString(),
+      nettoomsaetning: Math.round(data.nettoomsaetning / 1000000), // Convert to millions
+      bruttofortjeneste: Math.round(data.bruttofortjeneste / 1000000),
+      aaretsResultat,
+      egenkapital,
+      // Split positive and negative for area rendering
+      aaretsResultatPositive: aaretsResultat >= 0 ? aaretsResultat : 0,
+      aaretsResultatNegative: aaretsResultat < 0 ? aaretsResultat : 0,
+      egenkapitalPositive: egenkapital >= 0 ? egenkapital : 0,
+      egenkapitalNegative: egenkapital < 0 ? egenkapital : 0,
+    };
+  }).slice().reverse();
 
   // Determine if data is predominantly positive or negative
   const hasNegativeResult = chartData.some(d => d.aaretsResultat < 0);
@@ -108,7 +118,7 @@ const FinancialChartsSection: React.FC<FinancialChartsSectionProps> = ({ histori
         </CardHeader>
         <CardContent>
           <ChartContainer config={revenueAndResultConfig} className="h-[300px] w-full">
-            <LineChart data={chartData} margin={{ top: 5, right: 20, left: 10, bottom: 10 }}>
+            <AreaChart data={chartData} margin={{ top: 5, right: 20, left: 10, bottom: 10 }}>
               <CartesianGrid 
                 strokeDasharray="3 3" 
                 stroke="hsl(var(--muted-foreground))"
@@ -139,6 +149,8 @@ const FinancialChartsSection: React.FC<FinancialChartsSectionProps> = ({ histori
               />
               <ChartLegend content={<ChartLegendContent />} />
               <ReferenceLine y={0} stroke="hsl(var(--muted-foreground))" strokeDasharray="3 3" strokeOpacity={0.5} />
+              
+              {/* Revenue line (always positive) */}
               <Line 
                 type="monotone" 
                 dataKey={revenueKey}
@@ -147,15 +159,33 @@ const FinancialChartsSection: React.FC<FinancialChartsSectionProps> = ({ histori
                 dot={{ fill: `var(--color-${revenueKey})`, strokeWidth: 2, r: 5 }}
                 activeDot={{ r: 7 }}
               />
-              <Line 
-                type="monotone" 
-                dataKey="aaretsResultat" 
-                stroke="var(--color-aaretsResultat)"
-                strokeWidth={3}
-                dot={<CustomDot dataKey="aaretsResultat" fill="var(--color-aaretsResultat)" stroke="var(--color-aaretsResultat)" />}
-                activeDot={<CustomActiveDot dataKey="aaretsResultat" fill="var(--color-aaretsResultat)" stroke="var(--color-aaretsResultat)" />}
+              
+              {/* Negative area for Årets resultat (subtle red below zero) */}
+              <Area
+                type="monotone"
+                dataKey="aaretsResultatNegative"
+                stroke="hsl(0, 84%, 60%)"
+                strokeWidth={2.5}
+                fill="hsl(0, 84%, 60%)"
+                fillOpacity={0.15}
+                connectNulls={false}
+                dot={<CustomDot dataKey="aaretsResultatNegative" fill="hsl(0, 84%, 60%)" stroke="hsl(0, 84%, 60%)" />}
+                activeDot={<CustomActiveDot dataKey="aaretsResultatNegative" fill="hsl(0, 84%, 60%)" stroke="hsl(0, 84%, 60%)" />}
               />
-            </LineChart>
+              
+              {/* Positive area for Årets resultat (blue above zero) */}
+              <Area
+                type="monotone"
+                dataKey="aaretsResultatPositive"
+                stroke="hsl(217, 91%, 60%)"
+                strokeWidth={2.5}
+                fill="hsl(217, 91%, 60%)"
+                fillOpacity={0.2}
+                connectNulls={false}
+                dot={<CustomDot dataKey="aaretsResultatPositive" fill="hsl(217, 91%, 60%)" stroke="hsl(217, 91%, 60%)" />}
+                activeDot={<CustomActiveDot dataKey="aaretsResultatPositive" fill="hsl(217, 91%, 60%)" stroke="hsl(217, 91%, 60%)" />}
+              />
+            </AreaChart>
           </ChartContainer>
         </CardContent>
       </Card>
@@ -171,31 +201,6 @@ const FinancialChartsSection: React.FC<FinancialChartsSectionProps> = ({ histori
         <CardContent>
           <ChartContainer config={equityConfig} className="h-[300px] w-full">
             <AreaChart data={chartData} margin={{ top: 5, right: 20, left: 10, bottom: 10 }}>
-              <defs>
-                <linearGradient id="colorEquityGradient" x1="0" y1="0" x2="0" y2="1">
-                  {allNegativeEquity ? (
-                    // All negative: Red at top (negative values), fading down towards zero
-                    <>
-                      <stop offset="0%" stopColor="hsl(0, 84%, 60%)" stopOpacity={0.6}/>
-                      <stop offset="100%" stopColor="hsl(0, 84%, 60%)" stopOpacity={0.1}/>
-                    </>
-                  ) : hasNegativeEquity && hasPositiveEquity ? (
-                    // Mixed: Blue top (positive), red bottom (negative)
-                    <>
-                      <stop offset="0%" stopColor="hsl(217, 91%, 60%)" stopOpacity={0.6}/>
-                      <stop offset="50%" stopColor="hsl(217, 91%, 60%)" stopOpacity={0.1}/>
-                      <stop offset="50%" stopColor="hsl(0, 84%, 60%)" stopOpacity={0.1}/>
-                      <stop offset="100%" stopColor="hsl(0, 84%, 60%)" stopOpacity={0.6}/>
-                    </>
-                  ) : (
-                    // All positive: Blue at top, fading down
-                    <>
-                      <stop offset="0%" stopColor="hsl(217, 91%, 60%)" stopOpacity={0.6}/>
-                      <stop offset="100%" stopColor="hsl(217, 91%, 60%)" stopOpacity={0.1}/>
-                    </>
-                  )}
-                </linearGradient>
-              </defs>
               <CartesianGrid 
                 strokeDasharray="3 3" 
                 stroke="hsl(var(--muted-foreground))"
@@ -223,14 +228,31 @@ const FinancialChartsSection: React.FC<FinancialChartsSectionProps> = ({ histori
                 }
               />
               <ReferenceLine y={0} stroke="hsl(var(--muted-foreground))" strokeDasharray="3 3" strokeOpacity={0.5} />
-              <Area 
-                type="monotone" 
-                dataKey="egenkapital" 
-                stroke={allNegativeEquity ? "hsl(0, 84%, 60%)" : "hsl(217, 91%, 60%)"} 
+              
+              {/* Negative area for Egenkapital (subtle red below zero) */}
+              <Area
+                type="monotone"
+                dataKey="egenkapitalNegative"
+                stroke="hsl(0, 84%, 60%)"
                 strokeWidth={2.5}
-                fill="url(#colorEquityGradient)"
-                dot={<CustomDot dataKey="egenkapital" fill={allNegativeEquity ? "hsl(0, 84%, 60%)" : "hsl(217, 91%, 60%)"} stroke={allNegativeEquity ? "hsl(0, 84%, 60%)" : "hsl(217, 91%, 60%)"} />}
-                activeDot={<CustomActiveDot dataKey="egenkapital" fill={allNegativeEquity ? "hsl(0, 84%, 60%)" : "hsl(217, 91%, 60%)"} stroke={allNegativeEquity ? "hsl(0, 84%, 60%)" : "hsl(217, 91%, 60%)"} />}
+                fill="hsl(0, 84%, 60%)"
+                fillOpacity={0.15}
+                connectNulls={false}
+                dot={<CustomDot dataKey="egenkapitalNegative" fill="hsl(0, 84%, 60%)" stroke="hsl(0, 84%, 60%)" />}
+                activeDot={<CustomActiveDot dataKey="egenkapitalNegative" fill="hsl(0, 84%, 60%)" stroke="hsl(0, 84%, 60%)" />}
+              />
+              
+              {/* Positive area for Egenkapital (blue above zero) */}
+              <Area
+                type="monotone"
+                dataKey="egenkapitalPositive"
+                stroke="hsl(217, 91%, 60%)"
+                strokeWidth={2.5}
+                fill="hsl(217, 91%, 60%)"
+                fillOpacity={0.2}
+                connectNulls={false}
+                dot={<CustomDot dataKey="egenkapitalPositive" fill="hsl(217, 91%, 60%)" stroke="hsl(217, 91%, 60%)" />}
+                activeDot={<CustomActiveDot dataKey="egenkapitalPositive" fill="hsl(217, 91%, 60%)" stroke="hsl(217, 91%, 60%)" />}
               />
             </AreaChart>
           </ChartContainer>
