@@ -100,8 +100,8 @@ const OwnershipChart: React.FC<OwnershipChartProps> = ({ owners }) => {
 
   const heightClass = calculateHeight(owners.length);
 
-  const CustomTooltip = ({ active, payload }: any) => {
-    if (active && payload && payload.length) {
+  const CustomTooltip = ({ active, payload, coordinate }: any) => {
+    if (active && payload && payload.length && coordinate) {
       const data = payload[0].payload;
       const isOwnershipRing = data.ring === 'ownership';
       
@@ -215,12 +215,7 @@ const OwnershipChart: React.FC<OwnershipChartProps> = ({ owners }) => {
             </Pie>
           )}
           
-          <Tooltip 
-            content={<CustomTooltip />} 
-            cursor={false}
-            offset={80}
-            allowEscapeViewBox={{ x: true, y: true }}
-          />
+          <Tooltip content={<CustomTooltip />} />
         </PieChart>
       </ResponsiveContainer>
     </div>
