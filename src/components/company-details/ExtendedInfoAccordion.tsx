@@ -97,8 +97,29 @@ const ExtendedInfoAccordion: React.FC<ExtendedInfoAccordionProps> = ({ company, 
            company.website || null;
   };
 
+  const getEmployeeCount = () => {
+    // Extract the actual Vrvirksomhed data
+    const vrvirksomhed = cvrData?.Vrvirksomhed || cvrData;
+    
+    if (!vrvirksomhed?.aarsbeskaeftigelse) return company.employeeCount;
+    
+    // Priority 1: Find current employment data (where gyldigTil is null)
+    const currentEmployment = vrvirksomhed.aarsbeskaeftigelse.find(
+      (emp: any) => emp.periode?.gyldigTil === null
+    );
+    
+    // Priority 2: Use the most recent entry (index 0 = newest in CVR API)
+    const latestEmployment = currentEmployment || vrvirksomhed.aarsbeskaeftigelse[0];
+    
+    // Extract employee count from the latest/current employment data
+    const employeeCount = latestEmployment?.antalAnsatte || latestEmployment?.antalAarsvaerk || 0;
+    
+    return employeeCount || company.employeeCount;
+  };
+
   const contactInfo = getContactInfo();
   const website = getWebsite();
+  const employeeCount = getEmployeeCount();
 
   const InfoRow = ({ icon: Icon, label, value, className = "" }: { 
     icon: any, 
@@ -184,7 +205,7 @@ const ExtendedInfoAccordion: React.FC<ExtendedInfoAccordionProps> = ({ company, 
           <InfoRow 
             icon={Users} 
             label="Antal Ansatte" 
-            value={company.employeeCount > 0 ? company.employeeCount.toLocaleString('da-DK') : undefined} 
+            value={employeeCount > 0 ? employeeCount.toLocaleString('da-DK') : undefined} 
           />
           
           <InfoRow 
