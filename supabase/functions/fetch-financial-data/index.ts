@@ -149,114 +149,9 @@ const scoreFinancialData = (data: any): number => {
   return score;
 };
 
-// Lightweight ESEF parser for large publicly listed companies
-// Extracts only 8 critical fields with 2-second hard timeout
-const parseESEF_Lightweight = (xmlContent: string, period: string) => {
-  try {
-    const startTime = Date.now();
-    const MAX_PARSE_TIME = 2000; // 2 seconds absolute limit
-    
-    console.log(`[ESEF LIGHTWEIGHT] Processing ${(xmlContent.length / 1_000_000).toFixed(1)}MB for period ${period}`);
-    
-    const year = period.split(' - ')[0].substring(0, 4);
-    
-    // Build minimal context map (max 10 contexts to reduce CPU)
-    const contextMap = new Map<string, string>();
-    // Updated pattern to match iXBRL contexts (ix:context or xbrli:context)
-    const contextPattern = /<(?:ix:)?(?:xbrli:)?context[^>]+id="([^"]+)"[^>]*>([\s\S]*?)<\/(?:ix:)?(?:xbrli:)?context>/gi;
-    let contextMatch;
-    let contextCount = 0;
-    
-    while ((contextMatch = contextPattern.exec(xmlContent)) !== null && contextCount < 10) {
-      const contextId = contextMatch[1];
-      const contextContent = contextMatch[2];
-      
-      if (contextContent.includes(year)) {
-        contextMap.set(contextId, contextContent);
-        contextCount++;
-      }
-      
-      if (Date.now() - startTime > MAX_PARSE_TIME) break;
-    }
-    
-    console.log(`[ESEF LIGHTWEIGHT] Found ${contextMap.size} relevant contexts`);
-    
-    // FALLBACK: If no year-specific contexts found, accept ANY context (max 10)
-    if (contextMap.size === 0) {
-      console.log('[ESEF LIGHTWEIGHT] No year-specific contexts, accepting all contexts');
-      contextPattern.lastIndex = 0;
-      contextCount = 0;
-      while ((contextMatch = contextPattern.exec(xmlContent)) !== null && contextCount < 10) {
-        contextMap.set(contextMatch[1], contextMatch[2]);
-        contextCount++;
-        if (Date.now() - startTime > MAX_PARSE_TIME) break;
-      }
-      console.log(`[ESEF LIGHTWEIGHT] Fallback found ${contextMap.size} contexts`);
-    }
-    
-    // Helper to extract a single value with timeout check
-    const extractQuick = (tags: string[]): number | null => {
-      if (Date.now() - startTime > MAX_PARSE_TIME) return null;
-      
-      for (const tag of tags) {
-        // Try multiple patterns for iXBRL and standard XBRL
-        const patterns = [
-          // iXBRL inline format (ix:nonFraction with name attribute)
-          new RegExp(`<ix:nonFraction[^>]*name="${tag.replace(':', '\\\\:')}"[^>]*contextRef="([^"]+)"[^>]*(?:decimals|scale)="(-?\\d+)"[^>]*>([^<]+)</ix:nonFraction>`, 'i'),
-          // iXBRL with unitRef (scale might be missing)
-          new RegExp(`<ix:nonFraction[^>]*name="${tag.replace(':', '\\\\:')}"[^>]*contextRef="([^"]+)"[^>]*>([^<]+)</ix:nonFraction>`, 'i'),
-          // Standard XBRL format
-          new RegExp(`<${tag.replace(':', '\\\\:')}[^>]*contextRef="([^"]+)"[^>]*decimals="(-?\\d+)"[^>]*>([^<]+)</${tag.replace(':', '\\\\:')}>`, 'i'),
-        ];
-        
-        for (const pattern of patterns) {
-          const match = xmlContent.match(pattern);
-          
-          if (match) {
-            const contextId = match[1];
-            const decimals = match.length === 4 ? parseInt(match[2]) : 0;
-            const rawValue = (match.length === 4 ? match[3] : match[2]).replace(/[^\d.-]/g, '');
-            
-            if (contextMap.has(contextId) || contextMap.size === 0) {
-              const value = parseFloat(rawValue);
-              const multiplier = Math.pow(10, -decimals);
-              return value * multiplier;
-            }
-          }
-        }
-      }
-      return null;
-    };
-    
-    // Extract only 8 critical fields in priority order with IFRS-full namespace
-    const data = {
-      nettoomsaetning: extractQuick(['ifrs-full:Revenue', 'Revenue', 'fsa:Nettoomsaetning']),
-      aaretsResultat: extractQuick(['ifrs-full:ProfitLoss', 'ProfitLoss', 'ifrs-full:ProfitLossAttributableToOwnersOfParent', 'fsa:AaretsResultat']),
-      statusBalance: extractQuick(['ifrs-full:Assets', 'Assets', 'fsa:AktiverIAlt']),
-      egenkapital: extractQuick(['ifrs-full:Equity', 'Equity', 'ifrs-full:EquityAttributableToOwnersOfParent', 'fsa:EgenkapitalIAlt']),
-      kortfristetGaeld: extractQuick(['ifrs-full:CurrentLiabilities', 'CurrentLiabilities', 'fsa:KortfristetGaeldIAlt']),
-      antalAnsatte: extractQuick(['ifrs-full:AverageNumberOfEmployees', 'AverageNumberOfEmployees', 'fsa:GennemsnitligtAntalMedarbejdere']),
-      driftsresultat: extractQuick(['ifrs-full:ProfitLossFromOperatingActivities', 'ProfitLossFromOperatingActivities', 'fsa:ResultatFoerFinansiering']),
-      likviderMidler: extractQuick(['ifrs-full:CashAndCashEquivalents', 'CashAndCashEquivalents', 'fsa:LikviderMidler']),
-      periode: period,
-      dataSource: 'ESEF_LIGHTWEIGHT'
-    };
-    
-    const parseTime = Date.now() - startTime;
-    console.log(`[ESEF LIGHTWEIGHT] Completed in ${parseTime}ms`);
-    
-    return data;
-  } catch (err) {
-    console.error('[ESEF LIGHTWEIGHT] Parse error:', err);
-    return null;
-  }
-};
-
 // Helper function to parse XBRL/XML and extract financial data using regex
 const parseXBRL = (xmlContent: string, period: string) => {
   try {
-    const startTime = Date.now();
-    const MAX_PARSE_TIME_MS = 3000; // 3 seconds max per document
     console.log(`[XBRL Parser] Processing ${xmlContent.length} bytes for period ${period}`);
     
     // Cache unit scales per XML document to avoid re-parsing
@@ -337,17 +232,13 @@ const parseXBRL = (xmlContent: string, period: string) => {
       'gis'
     );
 
-    // Try all patterns and combine results - limit to prevent excessive CPU usage
-    const MAX_CONTEXTS = 20; // Reasonable limit for most reports
+    // Try all patterns and combine results
     let periodMatches: RegExpMatchArray[] = [];
-    const xbrliMatches = Array.from(xmlContent.matchAll(xbrliPeriodPattern));
-    const fsaMatches = Array.from(xmlContent.matchAll(fsaPeriodPattern));
-    const altMatches = Array.from(xmlContent.matchAll(altPeriodPattern));
+    periodMatches.push(...Array.from(xmlContent.matchAll(xbrliPeriodPattern)));
+    periodMatches.push(...Array.from(xmlContent.matchAll(fsaPeriodPattern)));
+    periodMatches.push(...Array.from(xmlContent.matchAll(altPeriodPattern)));
     
-    // Combine and limit
-    periodMatches = [...xbrliMatches, ...fsaMatches, ...altMatches].slice(0, MAX_CONTEXTS);
-    
-    console.log(`[CONTEXT DEBUG] Found ${periodMatches.length} period contexts (limited to ${MAX_CONTEXTS})`);
+    console.log(`[CONTEXT DEBUG] Total period context matches found: ${periodMatches.length}`);
 
     // Filter for FULL YEAR contexts only (11+ months duration)
     // This excludes quarterly/monthly data that might pollute annual figures
@@ -443,27 +334,23 @@ const parseXBRL = (xmlContent: string, period: string) => {
     if (tradeTags.length > 0) console.log(`  Found Trade tags: ${tradeTags.join(', ')}`);
     
     // Sample ALL tags in the document to understand the actual structure
-    // Skip expensive tag sampling in production to save CPU time
-    const DEBUG_MODE = false; // Set to true only when debugging
+    console.log('[TAG SAMPLE] Extracting sample of ALL tags in document...');
+    const allTagPattern = /<([a-zA-Z0-9_-]+:[a-zA-Z0-9_-]+)(?:\s+[^>]*)?>/g;
+    const allTagMatches = xmlContent.matchAll(allTagPattern);
+    const allTags = new Set<string>();
     
-    if (DEBUG_MODE) {
-      console.log('[TAG SAMPLE] Extracting sample of ALL tags in document...');
-      const allTagPattern = /<([a-zA-Z0-9_-]+:[a-zA-Z0-9_-]+)(?:\s+[^>]*)?>/g;
-      const allTagMatches = xmlContent.matchAll(allTagPattern);
-      const allTags = new Set<string>();
-      
-      for (const match of allTagMatches) {
-        const fullTag = match[1];
-        allTags.add(fullTag);
-        if (allTags.size >= 200) break;
-      }
-      
-      const tagArray = Array.from(allTags);
-      console.log(`[TAG SAMPLE] Total unique tags found: ${allTags.size}`);
-      console.log(`[TAG SAMPLE] First 50 tags: ${tagArray.slice(0, 50).join(', ')}`);
-    } else {
-      console.log('[TAG SAMPLE] Skipped (production mode)');
+    for (const match of allTagMatches) {
+      const fullTag = match[1]; // e.g., "fsa:Assets" or "ifrs-full:EmployeeBenefitsExpense"
+      allTags.add(fullTag);
+      if (allTags.size >= 200) break; // Limit to first 200 unique tags
     }
+    
+    const tagArray = Array.from(allTags);
+    console.log(`[TAG SAMPLE] Total unique tags found: ${allTags.size}`);
+    console.log(`[TAG SAMPLE] First 50 tags: ${tagArray.slice(0, 50).join(', ')}`);
+    console.log(`[TAG SAMPLE] Tags 51-100: ${tagArray.slice(50, 100).join(', ')}`);
+    console.log(`[TAG SAMPLE] Tags 101-150: ${tagArray.slice(100, 150).join(', ')}`);
+    console.log(`[TAG SAMPLE] Tags 151-200: ${tagArray.slice(150, 200).join(', ')}`);
     
     // Targeted discovery for specific missing fields
     console.log('[FIELD DISCOVERY] Searching for specific missing fields...');
@@ -1447,9 +1334,6 @@ serve(async (req) => {
   }
 
   try {
-    const functionStartTime = Date.now();
-    const FUNCTION_TIMEOUT_MS = 8000; // 8 seconds overall function limit
-    
     const { cvr } = await req.json();
     
     if (!cvr) {
@@ -1723,8 +1607,7 @@ serve(async (req) => {
     });
     console.log(`[YEAR DISCOVERY] Years found in API response: ${Array.from(yearsSeen).sort().reverse().join(', ')}`);
     
-    // Process fewer reports for ESEF to avoid CPU timeouts on large documents
-    const MAX_REPORTS_TO_PROCESS = 20;
+    // Process up to 20 reports to ensure we get 7 yearly ones (accounting for quarterly/half-year reports)
     // Increased from 15 to 20 to accommodate 7 years of data
     const reportsToProcess = Math.min(allHits.length, 20);
     console.log(`[YEAR DISCOVERY] Will process ${reportsToProcess} reports to find 7 yearly reports\n`);
@@ -1733,12 +1616,6 @@ serve(async (req) => {
     let yearlyReportsFound = 0; // Track actual yearly reports found
 
     for (let i = 0; i < reportsToProcess && yearlyReportsFound < 7; i++) {
-      // Check if we're approaching timeout
-      if (Date.now() - functionStartTime > FUNCTION_TIMEOUT_MS) {
-        console.log('[TIMEOUT] Function approaching time limit, stopping report processing');
-        break;
-      }
-      
       const hit = allHits[i];
       const source = hit._source;
       const period = source.regnskabsperiode || source.periode || 'N/A';
@@ -1775,7 +1652,7 @@ serve(async (req) => {
       // Log available documents for debugging
       console.log(`[DOCUMENT ANALYSIS] Analyzing ${source.dokumenter?.length || 0} documents...`);
       
-      const rejectedTypes = ['HALVÅRSRAPPORT', 'DELÅRSRAPPORT', 'DELAARSRAPPORT_ESEF', 'HALVAARSRAPPORT_ESEF'];
+      const rejectedTypes = ['HALVÅRSRAPPORT', 'DELÅRSRAPPORT', 'AARSRAPPORT_ESEF'];
       let rejectedCount = 0;
       
       source.dokumenter?.forEach((doc: any, idx: number) => {
@@ -1797,9 +1674,8 @@ serve(async (req) => {
       
       // STRICT PRIORITY SYSTEM:
       // Priority 1: AARSRAPPORT_FINANSIEL (full financial annual report)
-      // Priority 2: AARSRAPPORT_ESEF (ESEF annual report - for listed companies)
-      // Priority 3: AARSRAPPORT (standard annual report)
-      // NEVER: HALVÅRSRAPPORT, DELÅRSRAPPORT, DELAARSRAPPORT_ESEF, HALVAARSRAPPORT_ESEF
+      // Priority 2: AARSRAPPORT (standard annual report)
+      // NEVER: HALVÅRSRAPPORT, DELÅRSRAPPORT, AARSRAPPORT_ESEF, iXBRL
       
       const allDocs = source.dokumenter || [];
       
@@ -1813,27 +1689,15 @@ serve(async (req) => {
       if (selectedDocument) {
         console.log(`[DOC SELECT] ✅ Priority 1: Found AARSRAPPORT_FINANSIEL (finansiel XBRL)`);
       } else {
-        // Priority 2: Look for ESEF annual report (listed companies)
+        // Priority 2: Fall back to standard "Årsrapport XBRL"
         selectedDocument = allDocs.find((doc: any) => {
           const docType = (doc.dokumentType || '').toUpperCase();
           const mimeType = (doc.dokumentMimeType || '').toLowerCase();
-          return docType === 'AARSRAPPORT_ESEF' && 
-                 (mimeType === 'application/xhtml+xml' || mimeType === 'application/xml');
+          return docType === 'AARSRAPPORT' && mimeType === 'application/xml';
         });
         
         if (selectedDocument) {
-          console.log(`[DOC SELECT] ✅ Priority 2: Found AARSRAPPORT_ESEF (ESEF annual report for listed companies)`);
-        } else {
-          // Priority 3: Fall back to standard "Årsrapport XBRL"
-          selectedDocument = allDocs.find((doc: any) => {
-            const docType = (doc.dokumentType || '').toUpperCase();
-            const mimeType = (doc.dokumentMimeType || '').toLowerCase();
-            return docType === 'AARSRAPPORT' && mimeType === 'application/xml';
-          });
-          
-          if (selectedDocument) {
-            console.log(`[DOC SELECT] ⚠️ Priority 3: Found AARSRAPPORT (standard XBRL)`);
-          }
+          console.log(`[DOC SELECT] ⚠️ Priority 2: Found AARSRAPPORT (standard XBRL, finansiel not available)`);
         }
       }
       
@@ -1855,12 +1719,6 @@ serve(async (req) => {
       let bestPeriod = period;
       
       for (let docIdx = 0; docIdx < aarsrapportXMLs.length; docIdx++) {
-        // Check timeout before processing each document
-        if (Date.now() - functionStartTime > FUNCTION_TIMEOUT_MS) {
-          console.log('[TIMEOUT] Function approaching time limit, stopping document processing');
-          break;
-        }
-        
         const candidateDoc = aarsrapportXMLs[docIdx];
         
         let candidateUrl = '';
@@ -1911,22 +1769,8 @@ serve(async (req) => {
             continue;
           }
           
-          // Check file size - skip if too large (>100MB)
-          if (xbrlContent.length > 100_000_000) {
-            console.log(`[TESTING ${docIdx + 1}/${aarsrapportXMLs.length}] ⚠️ File too large (${(xbrlContent.length / 1_000_000).toFixed(1)}MB), skipping`);
-            continue;
-          }
-          
-          // Choose parser based on document type
-          const isESEF = selectedDocument.dokumentType === 'AARSRAPPORT_ESEF';
-          
-          let parsedData;
-          if (isESEF) {
-            console.log(`[TESTING ${docIdx + 1}/${aarsrapportXMLs.length}] Using lightweight ESEF parser (${(xbrlContent.length / 1_000_000).toFixed(1)}MB file)`);
-            parsedData = parseESEF_Lightweight(xbrlContent, actualPeriod);
-          } else {
-            parsedData = parseXBRL(xbrlContent, actualPeriod);
-          }
+          // Parse the XBRL
+          const parsedData = parseXBRL(xbrlContent, actualPeriod);
           const score = scoreFinancialData(parsedData);
           
           console.log(`[TESTING ${docIdx + 1}/${aarsrapportXMLs.length}] Score: ${score}/8 fields with data`);
