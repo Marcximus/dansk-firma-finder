@@ -162,7 +162,8 @@ const parseESEF_Lightweight = (xmlContent: string, period: string) => {
     
     // Build minimal context map (max 10 contexts to reduce CPU)
     const contextMap = new Map<string, string>();
-    const contextPattern = /<context[^>]+id="([^"]+)"[^>]*>([\s\S]*?)<\/context>/gi;
+    // Updated pattern to match iXBRL contexts (ix:context or xbrli:context)
+    const contextPattern = /<(?:ix:)?(?:xbrli:)?context[^>]+id="([^"]+)"[^>]*>([\s\S]*?)<\/(?:ix:)?(?:xbrli:)?context>/gi;
     let contextMatch;
     let contextCount = 0;
     
@@ -180,40 +181,63 @@ const parseESEF_Lightweight = (xmlContent: string, period: string) => {
     
     console.log(`[ESEF LIGHTWEIGHT] Found ${contextMap.size} relevant contexts`);
     
+    // FALLBACK: If no year-specific contexts found, accept ANY context (max 10)
+    if (contextMap.size === 0) {
+      console.log('[ESEF LIGHTWEIGHT] No year-specific contexts, accepting all contexts');
+      contextPattern.lastIndex = 0;
+      contextCount = 0;
+      while ((contextMatch = contextPattern.exec(xmlContent)) !== null && contextCount < 10) {
+        contextMap.set(contextMatch[1], contextMatch[2]);
+        contextCount++;
+        if (Date.now() - startTime > MAX_PARSE_TIME) break;
+      }
+      console.log(`[ESEF LIGHTWEIGHT] Fallback found ${contextMap.size} contexts`);
+    }
+    
     // Helper to extract a single value with timeout check
     const extractQuick = (tags: string[]): number | null => {
       if (Date.now() - startTime > MAX_PARSE_TIME) return null;
       
       for (const tag of tags) {
-        // IFRS-specific pattern (most common in ESEF)
-        const pattern = new RegExp(`<${tag}[^>]*contextRef="([^"]+)"[^>]*decimals="(-?\\d+)"[^>]*>([^<]+)</${tag}>`, 'i');
-        const match = xmlContent.match(pattern);
+        // Try multiple patterns for iXBRL and standard XBRL
+        const patterns = [
+          // iXBRL inline format (ix:nonFraction with name attribute)
+          new RegExp(`<ix:nonFraction[^>]*name="${tag.replace(':', '\\\\:')}"[^>]*contextRef="([^"]+)"[^>]*(?:decimals|scale)="(-?\\d+)"[^>]*>([^<]+)</ix:nonFraction>`, 'i'),
+          // iXBRL with unitRef (scale might be missing)
+          new RegExp(`<ix:nonFraction[^>]*name="${tag.replace(':', '\\\\:')}"[^>]*contextRef="([^"]+)"[^>]*>([^<]+)</ix:nonFraction>`, 'i'),
+          // Standard XBRL format
+          new RegExp(`<${tag.replace(':', '\\\\:')}[^>]*contextRef="([^"]+)"[^>]*decimals="(-?\\d+)"[^>]*>([^<]+)</${tag.replace(':', '\\\\:')}>`, 'i'),
+        ];
         
-        if (match) {
-          const contextId = match[1];
-          const decimals = parseInt(match[2]);
-          const rawValue = match[3].replace(/[^\d.-]/g, '');
+        for (const pattern of patterns) {
+          const match = xmlContent.match(pattern);
           
-          if (contextMap.has(contextId)) {
-            const value = parseFloat(rawValue);
-            const multiplier = Math.pow(10, -decimals);
-            return value * multiplier;
+          if (match) {
+            const contextId = match[1];
+            const decimals = match.length === 4 ? parseInt(match[2]) : 0;
+            const rawValue = (match.length === 4 ? match[3] : match[2]).replace(/[^\d.-]/g, '');
+            
+            if (contextMap.has(contextId) || contextMap.size === 0) {
+              const value = parseFloat(rawValue);
+              const multiplier = Math.pow(10, -decimals);
+              return value * multiplier;
+            }
           }
         }
       }
       return null;
     };
     
-    // Extract only 8 critical fields in priority order
+    // Extract only 8 critical fields in priority order with IFRS-full namespace
     const data = {
-      nettoomsaetning: extractQuick(['ifrs-full:Revenue', 'fsa:Nettoomsaetning']),
-      aaretsResultat: extractQuick(['ifrs-full:ProfitLoss', 'fsa:AaretsResultat']),
-      statusBalance: extractQuick(['ifrs-full:Assets', 'fsa:AktiverIAlt']),
-      egenkapital: extractQuick(['ifrs-full:Equity', 'fsa:EgenkapitalIAlt']),
-      kortfristetGaeld: extractQuick(['ifrs-full:CurrentLiabilities', 'fsa:KortfristetGaeldIAlt']),
-      antalAnsatte: extractQuick(['ifrs-full:AverageNumberOfEmployees', 'fsa:GennemsnitligtAntalMedarbejdere']),
-      driftsresultat: extractQuick(['ifrs-full:ProfitLossFromOperatingActivities', 'fsa:ResultatFoerFinansiering']),
-      likviderMidler: extractQuick(['ifrs-full:CashAndCashEquivalents', 'fsa:LikviderMidler']),
+      nettoomsaetning: extractQuick(['ifrs-full:Revenue', 'Revenue', 'fsa:Nettoomsaetning']),
+      aaretsResultat: extractQuick(['ifrs-full:ProfitLoss', 'ProfitLoss', 'ifrs-full:ProfitLossAttributableToOwnersOfParent', 'fsa:AaretsResultat']),
+      statusBalance: extractQuick(['ifrs-full:Assets', 'Assets', 'fsa:AktiverIAlt']),
+      egenkapital: extractQuick(['ifrs-full:Equity', 'Equity', 'ifrs-full:EquityAttributableToOwnersOfParent', 'fsa:EgenkapitalIAlt']),
+      kortfristetGaeld: extractQuick(['ifrs-full:CurrentLiabilities', 'CurrentLiabilities', 'fsa:KortfristetGaeldIAlt']),
+      antalAnsatte: extractQuick(['ifrs-full:AverageNumberOfEmployees', 'AverageNumberOfEmployees', 'fsa:GennemsnitligtAntalMedarbejdere']),
+      driftsresultat: extractQuick(['ifrs-full:ProfitLossFromOperatingActivities', 'ProfitLossFromOperatingActivities', 'fsa:ResultatFoerFinansiering']),
+      likviderMidler: extractQuick(['ifrs-full:CashAndCashEquivalents', 'CashAndCashEquivalents', 'fsa:LikviderMidler']),
       periode: period,
       dataSource: 'ESEF_LIGHTWEIGHT'
     };
