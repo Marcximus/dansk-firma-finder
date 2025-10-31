@@ -1652,7 +1652,7 @@ serve(async (req) => {
       // Log available documents for debugging
       console.log(`[DOCUMENT ANALYSIS] Analyzing ${source.dokumenter?.length || 0} documents...`);
       
-      const rejectedTypes = ['HALVÅRSRAPPORT', 'DELÅRSRAPPORT', 'AARSRAPPORT_ESEF'];
+      const rejectedTypes = ['HALVÅRSRAPPORT', 'DELÅRSRAPPORT'];
       let rejectedCount = 0;
       
       source.dokumenter?.forEach((doc: any, idx: number) => {
@@ -1675,7 +1675,8 @@ serve(async (req) => {
       // STRICT PRIORITY SYSTEM:
       // Priority 1: AARSRAPPORT_FINANSIEL (full financial annual report)
       // Priority 2: AARSRAPPORT (standard annual report)
-      // NEVER: HALVÅRSRAPPORT, DELÅRSRAPPORT, AARSRAPPORT_ESEF, iXBRL
+      // Priority 3: AARSRAPPORT_ESEF (ESEF format for listed companies, with truncation)
+      // NEVER: HALVÅRSRAPPORT, DELÅRSRAPPORT (interim reports)
       
       const allDocs = source.dokumenter || [];
       
@@ -1702,7 +1703,20 @@ serve(async (req) => {
       }
       
       if (!selectedDocument) {
-        console.log(`[DOC SELECT] ❌ No valid annual report found (neither AARSRAPPORT_FINANSIEL nor AARSRAPPORT) - skipping`);
+        // Priority 3: Fall back to AARSRAPPORT_ESEF for listed companies
+        selectedDocument = allDocs.find((doc: any) => {
+          const docType = (doc.dokumentType || '').toUpperCase();
+          const mimeType = (doc.dokumentMimeType || '').toLowerCase();
+          return docType === 'AARSRAPPORT_ESEF' && mimeType === 'application/xml';
+        });
+        
+        if (selectedDocument) {
+          console.log(`[DOC SELECT] ⚠️ Priority 3: Found AARSRAPPORT_ESEF (ESEF format, will truncate to 300 lines)`);
+        }
+      }
+      
+      if (!selectedDocument) {
+        console.log(`[DOC SELECT] ❌ No valid annual report found (no AARSRAPPORT_FINANSIEL, AARSRAPPORT, or AARSRAPPORT_ESEF) - skipping`);
         continue;
       }
       
@@ -1760,9 +1774,9 @@ serve(async (req) => {
           const xbrlContent = await xbrlResponse.text();
           console.log(`[TESTING ${docIdx + 1}/${aarsrapportXMLs.length}] Downloaded ${xbrlContent.length} bytes`);
           
-          // For AARSRAPPORT_FINANSIEL, truncate to first 300 lines (key data is at the start)
+          // For AARSRAPPORT_FINANSIEL and AARSRAPPORT_ESEF, truncate to first 300 lines (key data is at the start)
           let processedContent = xbrlContent;
-          if (candidateDoc.dokumentType === 'AARSRAPPORT_FINANSIEL') {
+          if (candidateDoc.dokumentType === 'AARSRAPPORT_FINANSIEL' || candidateDoc.dokumentType === 'AARSRAPPORT_ESEF') {
             const lines = xbrlContent.split('\n');
             if (lines.length > 300) {
               processedContent = lines.slice(0, 300).join('\n');
