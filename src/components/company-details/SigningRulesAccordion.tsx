@@ -91,7 +91,7 @@ const SigningRulesAccordion: React.FC<SigningRulesAccordionProps> = ({ cvrData }
           const gyldigTil = v.periode?.gyldigTil;
           return gyldigTil === null || gyldigTil === undefined || gyldigTil >= today;
         });
-        const isEmployeeElected = activeValgform?.vaerdi?.includes('medarbejdere i selskabet');
+        const isEmployeeElected = activeValgform?.vaerdi?.includes('medarbejdere i selskabet') || activeValgform?.vaerdi?.includes('medarbejdere i koncernen');
         
         // Format specific roles for better display
         const roleMap: Record<string, string> = {
@@ -149,7 +149,7 @@ const SigningRulesAccordion: React.FC<SigningRulesAccordionProps> = ({ cvrData }
               const gyldigTil = v.periode?.gyldigTil;
               return gyldigTil === null || gyldigTil === undefined || gyldigTil >= today;
             });
-            const isEmployeeElectedOrg = activeOrgValgform?.vaerdi?.includes('medarbejdere i selskabet');
+            const isEmployeeElectedOrg = activeOrgValgform?.vaerdi?.includes('medarbejdere i selskabet') || activeOrgValgform?.vaerdi?.includes('medarbejdere i koncernen');
             
             const roleMap: Record<string, string> = {
               'BESTYRELSESFORMAND': 'Bestyrelsesformand',
