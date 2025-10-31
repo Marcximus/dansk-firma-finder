@@ -152,6 +152,8 @@ const scoreFinancialData = (data: any): number => {
 // Helper function to parse XBRL/XML and extract financial data using regex
 const parseXBRL = (xmlContent: string, period: string) => {
   try {
+    const startTime = Date.now();
+    const MAX_PARSE_TIME_MS = 3000; // 3 seconds max per document
     console.log(`[XBRL Parser] Processing ${xmlContent.length} bytes for period ${period}`);
     
     // Cache unit scales per XML document to avoid re-parsing
@@ -232,13 +234,17 @@ const parseXBRL = (xmlContent: string, period: string) => {
       'gis'
     );
 
-    // Try all patterns and combine results
+    // Try all patterns and combine results - limit to prevent excessive CPU usage
+    const MAX_CONTEXTS = 20; // Reasonable limit for most reports
     let periodMatches: RegExpMatchArray[] = [];
-    periodMatches.push(...Array.from(xmlContent.matchAll(xbrliPeriodPattern)));
-    periodMatches.push(...Array.from(xmlContent.matchAll(fsaPeriodPattern)));
-    periodMatches.push(...Array.from(xmlContent.matchAll(altPeriodPattern)));
+    const xbrliMatches = Array.from(xmlContent.matchAll(xbrliPeriodPattern));
+    const fsaMatches = Array.from(xmlContent.matchAll(fsaPeriodPattern));
+    const altMatches = Array.from(xmlContent.matchAll(altPeriodPattern));
     
-    console.log(`[CONTEXT DEBUG] Total period context matches found: ${periodMatches.length}`);
+    // Combine and limit
+    periodMatches = [...xbrliMatches, ...fsaMatches, ...altMatches].slice(0, MAX_CONTEXTS);
+    
+    console.log(`[CONTEXT DEBUG] Found ${periodMatches.length} period contexts (limited to ${MAX_CONTEXTS})`);
 
     // Filter for FULL YEAR contexts only (11+ months duration)
     // This excludes quarterly/monthly data that might pollute annual figures
@@ -334,23 +340,27 @@ const parseXBRL = (xmlContent: string, period: string) => {
     if (tradeTags.length > 0) console.log(`  Found Trade tags: ${tradeTags.join(', ')}`);
     
     // Sample ALL tags in the document to understand the actual structure
-    console.log('[TAG SAMPLE] Extracting sample of ALL tags in document...');
-    const allTagPattern = /<([a-zA-Z0-9_-]+:[a-zA-Z0-9_-]+)(?:\s+[^>]*)?>/g;
-    const allTagMatches = xmlContent.matchAll(allTagPattern);
-    const allTags = new Set<string>();
+    // Skip expensive tag sampling in production to save CPU time
+    const DEBUG_MODE = false; // Set to true only when debugging
     
-    for (const match of allTagMatches) {
-      const fullTag = match[1]; // e.g., "fsa:Assets" or "ifrs-full:EmployeeBenefitsExpense"
-      allTags.add(fullTag);
-      if (allTags.size >= 200) break; // Limit to first 200 unique tags
+    if (DEBUG_MODE) {
+      console.log('[TAG SAMPLE] Extracting sample of ALL tags in document...');
+      const allTagPattern = /<([a-zA-Z0-9_-]+:[a-zA-Z0-9_-]+)(?:\s+[^>]*)?>/g;
+      const allTagMatches = xmlContent.matchAll(allTagPattern);
+      const allTags = new Set<string>();
+      
+      for (const match of allTagMatches) {
+        const fullTag = match[1];
+        allTags.add(fullTag);
+        if (allTags.size >= 200) break;
+      }
+      
+      const tagArray = Array.from(allTags);
+      console.log(`[TAG SAMPLE] Total unique tags found: ${allTags.size}`);
+      console.log(`[TAG SAMPLE] First 50 tags: ${tagArray.slice(0, 50).join(', ')}`);
+    } else {
+      console.log('[TAG SAMPLE] Skipped (production mode)');
     }
-    
-    const tagArray = Array.from(allTags);
-    console.log(`[TAG SAMPLE] Total unique tags found: ${allTags.size}`);
-    console.log(`[TAG SAMPLE] First 50 tags: ${tagArray.slice(0, 50).join(', ')}`);
-    console.log(`[TAG SAMPLE] Tags 51-100: ${tagArray.slice(50, 100).join(', ')}`);
-    console.log(`[TAG SAMPLE] Tags 101-150: ${tagArray.slice(100, 150).join(', ')}`);
-    console.log(`[TAG SAMPLE] Tags 151-200: ${tagArray.slice(150, 200).join(', ')}`);
     
     // Targeted discovery for specific missing fields
     console.log('[FIELD DISCOVERY] Searching for specific missing fields...');
@@ -1334,6 +1344,9 @@ serve(async (req) => {
   }
 
   try {
+    const functionStartTime = Date.now();
+    const FUNCTION_TIMEOUT_MS = 8000; // 8 seconds overall function limit
+    
     const { cvr } = await req.json();
     
     if (!cvr) {
@@ -1607,7 +1620,8 @@ serve(async (req) => {
     });
     console.log(`[YEAR DISCOVERY] Years found in API response: ${Array.from(yearsSeen).sort().reverse().join(', ')}`);
     
-    // Process up to 20 reports to ensure we get 7 yearly ones (accounting for quarterly/half-year reports)
+    // Process fewer reports for ESEF to avoid CPU timeouts on large documents
+    const MAX_REPORTS_TO_PROCESS = 20;
     // Increased from 15 to 20 to accommodate 7 years of data
     const reportsToProcess = Math.min(allHits.length, 20);
     console.log(`[YEAR DISCOVERY] Will process ${reportsToProcess} reports to find 7 yearly reports\n`);
@@ -1616,6 +1630,12 @@ serve(async (req) => {
     let yearlyReportsFound = 0; // Track actual yearly reports found
 
     for (let i = 0; i < reportsToProcess && yearlyReportsFound < 7; i++) {
+      // Check if we're approaching timeout
+      if (Date.now() - functionStartTime > FUNCTION_TIMEOUT_MS) {
+        console.log('[TIMEOUT] Function approaching time limit, stopping report processing');
+        break;
+      }
+      
       const hit = allHits[i];
       const source = hit._source;
       const period = source.regnskabsperiode || source.periode || 'N/A';
@@ -1732,6 +1752,12 @@ serve(async (req) => {
       let bestPeriod = period;
       
       for (let docIdx = 0; docIdx < aarsrapportXMLs.length; docIdx++) {
+        // Check timeout before processing each document
+        if (Date.now() - functionStartTime > FUNCTION_TIMEOUT_MS) {
+          console.log('[TIMEOUT] Function approaching time limit, stopping document processing');
+          break;
+        }
+        
         const candidateDoc = aarsrapportXMLs[docIdx];
         
         let candidateUrl = '';
