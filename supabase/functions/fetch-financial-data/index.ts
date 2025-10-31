@@ -149,6 +149,85 @@ const scoreFinancialData = (data: any): number => {
   return score;
 };
 
+// Lightweight ESEF parser for large publicly listed companies
+// Extracts only 8 critical fields with 2-second hard timeout
+const parseESEF_Lightweight = (xmlContent: string, period: string) => {
+  try {
+    const startTime = Date.now();
+    const MAX_PARSE_TIME = 2000; // 2 seconds absolute limit
+    
+    console.log(`[ESEF LIGHTWEIGHT] Processing ${(xmlContent.length / 1_000_000).toFixed(1)}MB for period ${period}`);
+    
+    const year = period.split(' - ')[0].substring(0, 4);
+    
+    // Build minimal context map (max 10 contexts to reduce CPU)
+    const contextMap = new Map<string, string>();
+    const contextPattern = /<context[^>]+id="([^"]+)"[^>]*>([\s\S]*?)<\/context>/gi;
+    let contextMatch;
+    let contextCount = 0;
+    
+    while ((contextMatch = contextPattern.exec(xmlContent)) !== null && contextCount < 10) {
+      const contextId = contextMatch[1];
+      const contextContent = contextMatch[2];
+      
+      if (contextContent.includes(year)) {
+        contextMap.set(contextId, contextContent);
+        contextCount++;
+      }
+      
+      if (Date.now() - startTime > MAX_PARSE_TIME) break;
+    }
+    
+    console.log(`[ESEF LIGHTWEIGHT] Found ${contextMap.size} relevant contexts`);
+    
+    // Helper to extract a single value with timeout check
+    const extractQuick = (tags: string[]): number | null => {
+      if (Date.now() - startTime > MAX_PARSE_TIME) return null;
+      
+      for (const tag of tags) {
+        // IFRS-specific pattern (most common in ESEF)
+        const pattern = new RegExp(`<${tag}[^>]*contextRef="([^"]+)"[^>]*decimals="(-?\\d+)"[^>]*>([^<]+)</${tag}>`, 'i');
+        const match = xmlContent.match(pattern);
+        
+        if (match) {
+          const contextId = match[1];
+          const decimals = parseInt(match[2]);
+          const rawValue = match[3].replace(/[^\d.-]/g, '');
+          
+          if (contextMap.has(contextId)) {
+            const value = parseFloat(rawValue);
+            const multiplier = Math.pow(10, -decimals);
+            return value * multiplier;
+          }
+        }
+      }
+      return null;
+    };
+    
+    // Extract only 8 critical fields in priority order
+    const data = {
+      nettoomsaetning: extractQuick(['ifrs-full:Revenue', 'fsa:Nettoomsaetning']),
+      aaretsResultat: extractQuick(['ifrs-full:ProfitLoss', 'fsa:AaretsResultat']),
+      statusBalance: extractQuick(['ifrs-full:Assets', 'fsa:AktiverIAlt']),
+      egenkapital: extractQuick(['ifrs-full:Equity', 'fsa:EgenkapitalIAlt']),
+      kortfristetGaeld: extractQuick(['ifrs-full:CurrentLiabilities', 'fsa:KortfristetGaeldIAlt']),
+      antalAnsatte: extractQuick(['ifrs-full:AverageNumberOfEmployees', 'fsa:GennemsnitligtAntalMedarbejdere']),
+      driftsresultat: extractQuick(['ifrs-full:ProfitLossFromOperatingActivities', 'fsa:ResultatFoerFinansiering']),
+      likviderMidler: extractQuick(['ifrs-full:CashAndCashEquivalents', 'fsa:LikviderMidler']),
+      periode: period,
+      dataSource: 'ESEF_LIGHTWEIGHT'
+    };
+    
+    const parseTime = Date.now() - startTime;
+    console.log(`[ESEF LIGHTWEIGHT] Completed in ${parseTime}ms`);
+    
+    return data;
+  } catch (err) {
+    console.error('[ESEF LIGHTWEIGHT] Parse error:', err);
+    return null;
+  }
+};
+
 // Helper function to parse XBRL/XML and extract financial data using regex
 const parseXBRL = (xmlContent: string, period: string) => {
   try {
@@ -1808,8 +1887,23 @@ serve(async (req) => {
             continue;
           }
           
-          // Parse the XBRL
-          const parsedData = parseXBRL(xbrlContent, actualPeriod);
+          // Check file size - skip if too large (>100MB)
+          if (xbrlContent.length > 100_000_000) {
+            console.log(`[TESTING ${docIdx + 1}/${aarsrapportXMLs.length}] ⚠️ File too large (${(xbrlContent.length / 1_000_000).toFixed(1)}MB), skipping`);
+            continue;
+          }
+          
+          // Choose parser based on document type and size
+          const isESEF = selectedDocument.dokumentType === 'AARSRAPPORT_ESEF';
+          const isLarge = xbrlContent.length > 10_000_000; // 10MB+
+          
+          let parsedData;
+          if (isESEF && isLarge) {
+            console.log(`[TESTING ${docIdx + 1}/${aarsrapportXMLs.length}] Using lightweight ESEF parser`);
+            parsedData = parseESEF_Lightweight(xbrlContent, actualPeriod);
+          } else {
+            parsedData = parseXBRL(xbrlContent, actualPeriod);
+          }
           const score = scoreFinancialData(parsedData);
           
           console.log(`[TESTING ${docIdx + 1}/${aarsrapportXMLs.length}] Score: ${score}/8 fields with data`);
