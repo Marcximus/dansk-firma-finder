@@ -1652,7 +1652,7 @@ serve(async (req) => {
       // Log available documents for debugging
       console.log(`[DOCUMENT ANALYSIS] Analyzing ${source.dokumenter?.length || 0} documents...`);
       
-      const rejectedTypes = ['HALVÅRSRAPPORT', 'DELÅRSRAPPORT', 'AARSRAPPORT_ESEF'];
+      const rejectedTypes = ['HALVÅRSRAPPORT', 'DELÅRSRAPPORT', 'DELAARSRAPPORT_ESEF', 'HALVAARSRAPPORT_ESEF'];
       let rejectedCount = 0;
       
       source.dokumenter?.forEach((doc: any, idx: number) => {
@@ -1674,8 +1674,9 @@ serve(async (req) => {
       
       // STRICT PRIORITY SYSTEM:
       // Priority 1: AARSRAPPORT_FINANSIEL (full financial annual report)
-      // Priority 2: AARSRAPPORT (standard annual report)
-      // NEVER: HALVÅRSRAPPORT, DELÅRSRAPPORT, AARSRAPPORT_ESEF, iXBRL
+      // Priority 2: AARSRAPPORT_ESEF (ESEF annual report - for listed companies)
+      // Priority 3: AARSRAPPORT (standard annual report)
+      // NEVER: HALVÅRSRAPPORT, DELÅRSRAPPORT, DELAARSRAPPORT_ESEF, HALVAARSRAPPORT_ESEF
       
       const allDocs = source.dokumenter || [];
       
@@ -1689,15 +1690,27 @@ serve(async (req) => {
       if (selectedDocument) {
         console.log(`[DOC SELECT] ✅ Priority 1: Found AARSRAPPORT_FINANSIEL (finansiel XBRL)`);
       } else {
-        // Priority 2: Fall back to standard "Årsrapport XBRL"
+        // Priority 2: Look for ESEF annual report (listed companies)
         selectedDocument = allDocs.find((doc: any) => {
           const docType = (doc.dokumentType || '').toUpperCase();
           const mimeType = (doc.dokumentMimeType || '').toLowerCase();
-          return docType === 'AARSRAPPORT' && mimeType === 'application/xml';
+          return docType === 'AARSRAPPORT_ESEF' && 
+                 (mimeType === 'application/xhtml+xml' || mimeType === 'application/xml');
         });
         
         if (selectedDocument) {
-          console.log(`[DOC SELECT] ⚠️ Priority 2: Found AARSRAPPORT (standard XBRL, finansiel not available)`);
+          console.log(`[DOC SELECT] ✅ Priority 2: Found AARSRAPPORT_ESEF (ESEF annual report for listed companies)`);
+        } else {
+          // Priority 3: Fall back to standard "Årsrapport XBRL"
+          selectedDocument = allDocs.find((doc: any) => {
+            const docType = (doc.dokumentType || '').toUpperCase();
+            const mimeType = (doc.dokumentMimeType || '').toLowerCase();
+            return docType === 'AARSRAPPORT' && mimeType === 'application/xml';
+          });
+          
+          if (selectedDocument) {
+            console.log(`[DOC SELECT] ⚠️ Priority 3: Found AARSRAPPORT (standard XBRL)`);
+          }
         }
       }
       
