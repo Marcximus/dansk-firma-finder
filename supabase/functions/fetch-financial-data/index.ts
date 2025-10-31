@@ -1672,25 +1672,40 @@ serve(async (req) => {
         console.log(`[DOCUMENT FILTER] Rejected ${rejectedCount} interim/unwanted reports`);
       }
       
-      // STRICT PRIORITY SYSTEM:
-      // Priority 1: AARSRAPPORT_FINANSIEL (full financial annual report)
-      // Priority 2: AARSRAPPORT (standard annual report)
-      // Priority 3: AARSRAPPORT_ESEF (ESEF format for listed companies, with truncation)
+      // STRICT PRIORITY SYSTEM FOR LISTED COMPANIES (børsnoterede):
+      // Priority 1: AARSRAPPORT_ESEF (ESEF/IFRS format - truncated to 300 lines, FIRST CHOICE)
+      // Priority 2: AARSRAPPORT_FINANSIEL (traditional financial report for smaller companies)
+      // Priority 3: AARSRAPPORT (fallback standard report)
       // NEVER: HALVÅRSRAPPORT, DELÅRSRAPPORT (interim reports)
       
       const allDocs = source.dokumenter || [];
       
-      // Priority 1: Look for "Årsrapport (finansiel) XBRL"
+      // Priority 1: AARSRAPPORT_ESEF (BEST for listed companies)
       let selectedDocument = allDocs.find((doc: any) => {
         const docType = (doc.dokumentType || '').toUpperCase();
         const mimeType = (doc.dokumentMimeType || '').toLowerCase();
-        return docType === 'AARSRAPPORT_FINANSIEL' && mimeType === 'application/xml';
+        return docType === 'AARSRAPPORT_ESEF' && mimeType === 'application/xml';
       });
       
       if (selectedDocument) {
-        console.log(`[DOC SELECT] ✅ Priority 1: Found AARSRAPPORT_FINANSIEL (finansiel XBRL)`);
-      } else {
-        // Priority 2: Fall back to standard "Årsrapport XBRL"
+        console.log(`[DOC SELECT] ✅ Priority 1: Found AARSRAPPORT_ESEF (IFRS/ESEF format, will truncate to 300 lines)`);
+      }
+      
+      if (!selectedDocument) {
+        // Priority 2: AARSRAPPORT_FINANSIEL (for smaller companies)
+        selectedDocument = allDocs.find((doc: any) => {
+          const docType = (doc.dokumentType || '').toUpperCase();
+          const mimeType = (doc.dokumentMimeType || '').toLowerCase();
+          return docType === 'AARSRAPPORT_FINANSIEL' && mimeType === 'application/xml';
+        });
+        
+        if (selectedDocument) {
+          console.log(`[DOC SELECT] ✅ Priority 2: Found AARSRAPPORT_FINANSIEL (will truncate to 300 lines)`);
+        }
+      }
+      
+      if (!selectedDocument) {
+        // Priority 3: AARSRAPPORT (fallback)
         selectedDocument = allDocs.find((doc: any) => {
           const docType = (doc.dokumentType || '').toUpperCase();
           const mimeType = (doc.dokumentMimeType || '').toLowerCase();
@@ -1698,25 +1713,12 @@ serve(async (req) => {
         });
         
         if (selectedDocument) {
-          console.log(`[DOC SELECT] ⚠️ Priority 2: Found AARSRAPPORT (standard XBRL, finansiel not available)`);
+          console.log(`[DOC SELECT] ⚠️ Priority 3: Found AARSRAPPORT (standard XBRL fallback)`);
         }
       }
       
       if (!selectedDocument) {
-        // Priority 3: Fall back to AARSRAPPORT_ESEF for listed companies
-        selectedDocument = allDocs.find((doc: any) => {
-          const docType = (doc.dokumentType || '').toUpperCase();
-          const mimeType = (doc.dokumentMimeType || '').toLowerCase();
-          return docType === 'AARSRAPPORT_ESEF' && mimeType === 'application/xml';
-        });
-        
-        if (selectedDocument) {
-          console.log(`[DOC SELECT] ⚠️ Priority 3: Found AARSRAPPORT_ESEF (ESEF format, will truncate to 300 lines)`);
-        }
-      }
-      
-      if (!selectedDocument) {
-        console.log(`[DOC SELECT] ❌ No valid annual report found (no AARSRAPPORT_FINANSIEL, AARSRAPPORT, or AARSRAPPORT_ESEF) - skipping`);
+        console.log(`[DOC SELECT] ❌ No valid annual report found - skipping`);
         continue;
       }
       
