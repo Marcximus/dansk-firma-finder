@@ -152,7 +152,7 @@ const ManagementAccordion: React.FC<ManagementAccordionProps> = ({ cvrData }) =>
           return gyldigTil === null || gyldigTil === undefined || gyldigTil >= today;
         });
         
-        const isEmployeeElected = activeValgform?.vaerdi?.includes('medarbejdere i selskabet');
+        const isEmployeeElected = activeValgform?.vaerdi?.toLowerCase().includes('medarbejdere');
         
         if (specificRole === 'BESTYRELSESMEDLEM' && isEmployeeElected) {
           return 'Medarbejdervalgt bestyrelsesmedlem';
