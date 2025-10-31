@@ -1893,13 +1893,12 @@ serve(async (req) => {
             continue;
           }
           
-          // Choose parser based on document type and size
+          // Choose parser based on document type
           const isESEF = selectedDocument.dokumentType === 'AARSRAPPORT_ESEF';
-          const isLarge = xbrlContent.length > 10_000_000; // 10MB+
           
           let parsedData;
-          if (isESEF && isLarge) {
-            console.log(`[TESTING ${docIdx + 1}/${aarsrapportXMLs.length}] Using lightweight ESEF parser`);
+          if (isESEF) {
+            console.log(`[TESTING ${docIdx + 1}/${aarsrapportXMLs.length}] Using lightweight ESEF parser (${(xbrlContent.length / 1_000_000).toFixed(1)}MB file)`);
             parsedData = parseESEF_Lightweight(xbrlContent, actualPeriod);
           } else {
             parsedData = parseXBRL(xbrlContent, actualPeriod);
