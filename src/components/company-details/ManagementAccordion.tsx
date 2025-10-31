@@ -252,11 +252,6 @@ const ManagementAccordion: React.FC<ManagementAccordionProps> = ({ cvrData }) =>
                           <div className="flex items-start gap-1.5 sm:gap-2 p-1.5 sm:p-2 bg-gray-50 rounded">
                             {getRoleIcon(org.hovedtype)}
                             <div className="flex-1">
-                              {getRoleDisplayName(org.hovedtype, org.medlemsData?.[0]) && (
-                                <div className={`font-medium text-[10px] sm:text-xs md:text-sm ${textColor}`}>
-                                  {getRoleDisplayName(org.hovedtype, org.medlemsData?.[0])}
-                                </div>
-                              )}
                               {org.medlemsData && org.medlemsData.map((medlem: any, medlemIndex: number) => {
                             const funkAttr = medlem.attributter?.find((attr: any) => attr.type === 'FUNKTION');
                             const valgformAttr = medlem.attributter?.find((attr: any) => attr.type === 'VALGFORM');
@@ -279,8 +274,18 @@ const ManagementAccordion: React.FC<ManagementAccordionProps> = ({ cvrData }) =>
                               return isActive && v.vaerdi?.includes('SUPPLEANT');
                             });
                             
+                            // Check if THIS member is employee-elected
+                            const isMemberEmployeeElected = activeValgform?.vaerdi?.toLowerCase().includes('medarbejdere');
+                            const memberRoleColor = isMemberEmployeeElected ? 'text-green-600' : 'text-blue-600';
+                            const roleDisplayName = getRoleDisplayName(org.hovedtype, medlem);
+                            
                             return (
                               <div key={medlemIndex} className="text-[9px] sm:text-[10px] md:text-xs text-muted-foreground mt-0.5 sm:mt-1">
+                                {roleDisplayName && (
+                                  <div className={`font-medium text-[10px] sm:text-xs md:text-sm ${memberRoleColor} mb-1`}>
+                                    {roleDisplayName}
+                                  </div>
+                                )}
                                 {isSuppleant && (
                                   <div className="text-xs font-medium mb-1 text-amber-600 dark:text-amber-500">
                                     Medarbejdervalgt suppleant
