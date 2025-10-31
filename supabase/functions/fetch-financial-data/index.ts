@@ -1673,7 +1673,7 @@ serve(async (req) => {
       }
       
       // STRICT PRIORITY SYSTEM FOR LISTED COMPANIES (børsnoterede):
-      // Priority 1: AARSRAPPORT_ESEF (ESEF/IFRS format - truncated to 600 lines, FIRST CHOICE)
+      // Priority 1: AARSRAPPORT_ESEF (ESEF/IFRS format - truncated to 1200 lines, FIRST CHOICE)
       // Priority 2: AARSRAPPORT_FINANSIEL (traditional financial report for smaller companies)
       // Priority 3: AARSRAPPORT (fallback standard report)
       // NEVER: HALVÅRSRAPPORT, DELÅRSRAPPORT (interim reports)
@@ -1688,7 +1688,7 @@ serve(async (req) => {
       });
       
       if (selectedDocument) {
-        console.log(`[DOC SELECT] ✅ Priority 1: Found AARSRAPPORT_ESEF (IFRS/ESEF format, will truncate to 600 lines)`);
+        console.log(`[DOC SELECT] ✅ Priority 1: Found AARSRAPPORT_ESEF (IFRS/ESEF format, will truncate to 1200 lines)`);
       }
       
       if (!selectedDocument) {
@@ -1700,7 +1700,7 @@ serve(async (req) => {
         });
         
         if (selectedDocument) {
-          console.log(`[DOC SELECT] ✅ Priority 2: Found AARSRAPPORT_FINANSIEL (will truncate to 600 lines)`);
+          console.log(`[DOC SELECT] ✅ Priority 2: Found AARSRAPPORT_FINANSIEL (will truncate to 1200 lines)`);
         }
       }
       
@@ -1776,13 +1776,14 @@ serve(async (req) => {
           const xbrlContent = await xbrlResponse.text();
           console.log(`[TESTING ${docIdx + 1}/${aarsrapportXMLs.length}] Downloaded ${xbrlContent.length} bytes`);
           
-          // For AARSRAPPORT_FINANSIEL and AARSRAPPORT_ESEF, truncate to first 600 lines (financial data starts after ~200 lines of XML metadata)
+          // For AARSRAPPORT_FINANSIEL and AARSRAPPORT_ESEF, truncate to first 1200 lines
+          // This captures both income statement (lines 250-600) and balance sheet data (lines 600-1200)
           let processedContent = xbrlContent;
           if (candidateDoc.dokumentType === 'AARSRAPPORT_FINANSIEL' || candidateDoc.dokumentType === 'AARSRAPPORT_ESEF') {
             const lines = xbrlContent.split('\n');
-            if (lines.length > 600) {
-              processedContent = lines.slice(0, 600).join('\n');
-              console.log(`[TRUNCATE] Reduced FINANSIEL XBRL from ${lines.length} lines to 600 lines`);
+            if (lines.length > 1200) {
+              processedContent = lines.slice(0, 1200).join('\n');
+              console.log(`[TRUNCATE] Reduced FINANSIEL XBRL from ${lines.length} lines to 1200 lines`);
               console.log(`[TRUNCATE] Size reduced from ${(xbrlContent.length / 1_000_000).toFixed(1)}MB to ${(processedContent.length / 1_000).toFixed(0)}KB`);
             }
           }
