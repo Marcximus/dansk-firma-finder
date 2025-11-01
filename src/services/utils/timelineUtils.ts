@@ -85,74 +85,40 @@ export const extractAllHistoricalEvents = (cvrData: any, financialData?: any): T
   let eventIndex = 0;
 
   // Normalize the data structure - handle both flat and nested formats
+  // Simplified normalization - data should already be the Vrvirksomhed object from realCvrData
   const normalizeData = (data: any) => {
     if (!data) {
       console.log('[Timeline] normalizeData: data is null/undefined');
       return null;
     }
     
-    console.log('[Timeline] normalizeData: Attempting normalization...');
-    console.log('[Timeline] normalizeData: Input keys:', Object.keys(data));
+    console.log('[Timeline] normalizeData: Input structure:', {
+      keys: Object.keys(data).slice(0, 10), // Show first 10 keys
+      hasNavne: !!data.navne,
+      hasDeltagerRelation: !!data.deltagerRelation,
+      hasBeliggenhedsadresse: !!data.beliggenhedsadresse,
+    });
     
-    // Strategy 1: Check if data already has the fields we need
-    if (data?.navne || data?.deltagerRelation || data?.beliggenhedsadresse) {
-      console.log('[Timeline] normalizeData: Found fields at top level');
-      return data;
-    }
-    
-    // Strategy 2: Try Vrvirksomhed.virksomhed path
-    if (data?.Vrvirksomhed?.virksomhed) {
-      console.log('[Timeline] normalizeData: Found at Vrvirksomhed.virksomhed');
-      return data.Vrvirksomhed.virksomhed;
-    }
-    
-    // Strategy 3: Try just virksomhed
-    if (data?.virksomhed) {
-      console.log('[Timeline] normalizeData: Found at virksomhed');
-      return data.virksomhed;
-    }
-    
-    // Strategy 4: Try Vrvirksomhed directly
-    if (data?.Vrvirksomhed) {
-      console.log('[Timeline] normalizeData: Trying Vrvirksomhed directly');
-      console.log('[Timeline] normalizeData: Vrvirksomhed keys:', Object.keys(data.Vrvirksomhed));
-      
-      // Check if Vrvirksomhed itself has the fields
-      if (data.Vrvirksomhed.navne || data.Vrvirksomhed.deltagerRelation) {
-        console.log('[Timeline] normalizeData: Found fields in Vrvirksomhed');
-        return data.Vrvirksomhed;
-      }
-    }
-    
-    // Strategy 5: Search all top-level objects for the fields we need
-    for (const key of Object.keys(data)) {
-      if (typeof data[key] === 'object' && data[key] !== null) {
-        if (data[key].navne || data[key].deltagerRelation || data[key].beliggenhedsadresse) {
-          console.log(`[Timeline] normalizeData: Found fields in data.${key}`);
-          return data[key];
-        }
-      }
-    }
-    
-    console.warn('[Timeline] normalizeData: Could not find expected fields, returning original data');
-    console.warn('[Timeline] normalizeData: Available keys:', Object.keys(data));
+    // Data should already be at the right level from realCvrData (Vrvirksomhed object)
     return data;
   };
 
   const normalizedData = normalizeData(cvrData);
   
-  console.log('[Timeline] After normalization:', {
+  // Comprehensive logging of all arrays with periode objects
+  console.log('[Timeline] Data structure after normalization:', {
     hasData: !!normalizedData,
-    keys: normalizedData ? Object.keys(normalizedData) : [],
-    hasNavne: !!normalizedData?.navne,
-    navne: normalizedData?.navne ? `Array(${normalizedData.navne.length})` : 'missing',
-    hasDeltagerRelation: !!normalizedData?.deltagerRelation,
-    deltagerRelation: normalizedData?.deltagerRelation ? `Array(${normalizedData.deltagerRelation.length})` : 'missing',
-    hasBeliggenhedsadresse: !!normalizedData?.beliggenhedsadresse,
-    beliggenhedsadresse: normalizedData?.beliggenhedsadresse ? `Array(${normalizedData.beliggenhedsadresse.length})` : 'missing',
-    hasVirksomhedsstatus: !!normalizedData?.virksomhedsstatus,
-    hasHovedbranche: !!normalizedData?.hovedbranche,
-    hasVirksomhedsform: !!normalizedData?.virksomhedsform,
+    totalKeys: normalizedData ? Object.keys(normalizedData).length : 0,
+    arrays: {
+      navne: normalizedData?.navne?.length || 0,
+      deltagerRelation: normalizedData?.deltagerRelation?.length || 0,
+      beliggenhedsadresse: normalizedData?.beliggenhedsadresse?.length || 0,
+      virksomhedsstatus: normalizedData?.virksomhedsstatus?.length || 0,
+      hovedbranche: normalizedData?.hovedbranche?.length || 0,
+      virksomhedsform: normalizedData?.virksomhedsform?.length || 0,
+      kapital: normalizedData?.kapital?.length || 0,
+      formaal: normalizedData?.formaal?.length || 0,
+    }
   });
 
   // Extract name history
