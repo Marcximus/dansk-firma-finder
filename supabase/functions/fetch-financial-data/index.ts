@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
+import { parseXBRLOptimized, formatFinancialData } from './xbrl-parser-optimized.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -1827,8 +1828,9 @@ serve(async (req) => {
             continue;
           }
           
-          // Parse the XBRL
-          const parsedData = parseXBRL(processedContent, actualPeriod);
+          // Parse the XBRL using optimized single-pass indexing
+          const parsedMetrics = parseXBRLOptimized(processedContent, actualPeriod);
+          const parsedData = formatFinancialData(parsedMetrics, actualPeriod);
           const score = scoreFinancialData(parsedData);
           
           console.log(`[TESTING ${docIdx + 1}/${aarsrapportXMLs.length}] Score: ${score}/8 fields with data`);
