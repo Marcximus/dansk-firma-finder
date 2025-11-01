@@ -148,19 +148,26 @@ function findTagValue(
           }
           
           // Fallback: check decimals attribute
-          // decimals="-3" means value is in thousands (round to nearest 1000)
-          // decimals="-6" means value is in millions (round to nearest 1000000)
+          // XBRL Standard: decimals="-N" means divide the raw value by 10^N
+          // decimals="-6" → value ÷ 1,000,000 (value is in millions)
+          // decimals="-3" → value ÷ 1,000 (value is in thousands)
+          // decimals="0" → no scaling (value is exact)
           if (valueInThousands === numValue && tag.decimals) {
             const decimals = parseInt(tag.decimals);
-            if (decimals === -6) {
-              // Value is in millions, convert to thousands
-              valueInThousands = numValue * 1000;
-              console.log(`[SCALE] ${normalizedTag}: ${numValue}M → ${valueInThousands}K (×1000 from decimals: -6)`);
-            } else if (decimals === -3) {
-              // Value is in thousands, already correct
-              console.log(`[SCALE] ${normalizedTag}: ${numValue}K (no scaling, decimals: -3)`);
+            
+            if (decimals < 0) {
+              // Negative decimals: scale down by 10^|decimals|, then convert to thousands
+              const scaleFactor = Math.pow(10, Math.abs(decimals));
+              const actualValue = numValue / scaleFactor;
+              
+              // Convert to thousands of DKK
+              valueInThousands = actualValue * 1000;
+              
+              console.log(`[DECIMALS] Applied scaling: ${numValue} ÷ ${scaleFactor} = ${actualValue} (decimals="${decimals}")`);
+              console.log(`[VALUE CONVERSION] Final: ${valueInThousands} thousands DKK`);
+              
             } else if (decimals >= 0) {
-              // Value is in actual units, convert to thousands
+              // Zero or positive decimals: value is in actual units, convert to thousands
               valueInThousands = numValue / 1000;
               console.log(`[SCALE] ${normalizedTag}: ${numValue} → ${valueInThousands}K (÷1000 from decimals: ${decimals})`);
             }
