@@ -70,42 +70,89 @@ const generateId = (category: string, date: Date, index: number): string => {
 };
 
 export const extractAllHistoricalEvents = (cvrData: any, financialData?: any): TimelineEvent[] => {
+  console.log('[Timeline] ========== EXTRACTING EVENTS START ==========');
+  console.log('[Timeline] Raw cvrData received:', cvrData);
+  console.log('[Timeline] cvrData type:', typeof cvrData);
+  console.log('[Timeline] cvrData is null?', cvrData === null);
+  console.log('[Timeline] cvrData is undefined?', cvrData === undefined);
+  
+  if (cvrData) {
+    console.log('[Timeline] Top-level keys:', Object.keys(cvrData));
+    console.log('[Timeline] Full structure sample:', JSON.stringify(cvrData, null, 2).substring(0, 2000));
+  }
+
   const events: TimelineEvent[] = [];
   let eventIndex = 0;
 
   // Normalize the data structure - handle both flat and nested formats
   const normalizeData = (data: any) => {
-    if (!data) return null;
+    if (!data) {
+      console.log('[Timeline] normalizeData: data is null/undefined');
+      return null;
+    }
     
-    // If data already has the fields we need at top level, use it
+    console.log('[Timeline] normalizeData: Attempting normalization...');
+    console.log('[Timeline] normalizeData: Input keys:', Object.keys(data));
+    
+    // Strategy 1: Check if data already has the fields we need
     if (data?.navne || data?.deltagerRelation || data?.beliggenhedsadresse) {
+      console.log('[Timeline] normalizeData: Found fields at top level');
       return data;
     }
     
-    // Try common nested paths
+    // Strategy 2: Try Vrvirksomhed.virksomhed path
     if (data?.Vrvirksomhed?.virksomhed) {
+      console.log('[Timeline] normalizeData: Found at Vrvirksomhed.virksomhed');
       return data.Vrvirksomhed.virksomhed;
     }
     
+    // Strategy 3: Try just virksomhed
     if (data?.virksomhed) {
+      console.log('[Timeline] normalizeData: Found at virksomhed');
       return data.virksomhed;
     }
     
+    // Strategy 4: Try Vrvirksomhed directly
+    if (data?.Vrvirksomhed) {
+      console.log('[Timeline] normalizeData: Trying Vrvirksomhed directly');
+      console.log('[Timeline] normalizeData: Vrvirksomhed keys:', Object.keys(data.Vrvirksomhed));
+      
+      // Check if Vrvirksomhed itself has the fields
+      if (data.Vrvirksomhed.navne || data.Vrvirksomhed.deltagerRelation) {
+        console.log('[Timeline] normalizeData: Found fields in Vrvirksomhed');
+        return data.Vrvirksomhed;
+      }
+    }
+    
+    // Strategy 5: Search all top-level objects for the fields we need
+    for (const key of Object.keys(data)) {
+      if (typeof data[key] === 'object' && data[key] !== null) {
+        if (data[key].navne || data[key].deltagerRelation || data[key].beliggenhedsadresse) {
+          console.log(`[Timeline] normalizeData: Found fields in data.${key}`);
+          return data[key];
+        }
+      }
+    }
+    
+    console.warn('[Timeline] normalizeData: Could not find expected fields, returning original data');
+    console.warn('[Timeline] normalizeData: Available keys:', Object.keys(data));
     return data;
   };
 
   const normalizedData = normalizeData(cvrData);
-
-  console.log('[Timeline] Data structure:', {
-    originalKeys: cvrData ? Object.keys(cvrData) : [],
-    hasVrvirksomhed: !!cvrData?.Vrvirksomhed,
-    normalizedKeys: normalizedData ? Object.keys(normalizedData) : [],
+  
+  console.log('[Timeline] After normalization:', {
+    hasData: !!normalizedData,
+    keys: normalizedData ? Object.keys(normalizedData) : [],
     hasNavne: !!normalizedData?.navne,
-    navneCount: normalizedData?.navne?.length || 0,
+    navne: normalizedData?.navne ? `Array(${normalizedData.navne.length})` : 'missing',
     hasDeltagerRelation: !!normalizedData?.deltagerRelation,
-    deltagerRelationCount: normalizedData?.deltagerRelation?.length || 0,
+    deltagerRelation: normalizedData?.deltagerRelation ? `Array(${normalizedData.deltagerRelation.length})` : 'missing',
     hasBeliggenhedsadresse: !!normalizedData?.beliggenhedsadresse,
-    beliggenhedsadresseCount: normalizedData?.beliggenhedsadresse?.length || 0,
+    beliggenhedsadresse: normalizedData?.beliggenhedsadresse ? `Array(${normalizedData.beliggenhedsadresse.length})` : 'missing',
+    hasVirksomhedsstatus: !!normalizedData?.virksomhedsstatus,
+    hasHovedbranche: !!normalizedData?.hovedbranche,
+    hasVirksomhedsform: !!normalizedData?.virksomhedsform,
   });
 
   // Extract name history

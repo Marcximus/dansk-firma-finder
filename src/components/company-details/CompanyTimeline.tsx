@@ -14,6 +14,7 @@ import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { InfoIcon } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 interface CompanyTimelineProps {
   cvrData: any;
@@ -25,12 +26,23 @@ export const CompanyTimeline: React.FC<CompanyTimelineProps> = ({ cvrData, finan
 
   // Extract all events
   const allEvents = useMemo(() => {
-    console.log('[CompanyTimeline] Received data:', {
-      hasCvrData: !!cvrData,
-      hasFinancialData: !!financialData,
-      cvrDataKeys: cvrData ? Object.keys(cvrData) : [],
-    });
-    return extractAllHistoricalEvents(cvrData, financialData);
+    console.log('[CompanyTimeline] ========== COMPONENT RENDER ==========');
+    console.log('[CompanyTimeline] Received cvrData:', !!cvrData);
+    console.log('[CompanyTimeline] Received financialData:', !!financialData);
+    
+    if (!cvrData) {
+      console.warn('[CompanyTimeline] No cvrData provided!');
+      return [];
+    }
+    
+    try {
+      const events = extractAllHistoricalEvents(cvrData, financialData);
+      console.log('[CompanyTimeline] Extracted events:', events.length);
+      return events;
+    } catch (error) {
+      console.error('[CompanyTimeline] Error extracting events:', error);
+      return [];
+    }
   }, [cvrData, financialData]);
 
   console.log('[CompanyTimeline] All events count:', allEvents.length);
@@ -60,11 +72,23 @@ export const CompanyTimeline: React.FC<CompanyTimelineProps> = ({ cvrData, finan
 
   return (
     <div className="space-y-4">
-      <TimelineFiltersComponent 
-        filters={filters} 
-        onFiltersChange={setFilters}
-        events={allEvents}
-      />
+      <div className="flex items-center justify-between gap-4">
+        <TimelineFiltersComponent 
+          filters={filters} 
+          onFiltersChange={setFilters}
+          events={allEvents}
+        />
+        <Button 
+          onClick={() => {
+            console.log('=== RAW CVR DATA DUMP ===');
+            console.log(JSON.stringify(cvrData, null, 2));
+          }}
+          variant="outline"
+          size="sm"
+        >
+          🐛 Debug Data
+        </Button>
+      </div>
 
       {filteredEvents.length === 0 ? (
         <Alert>
