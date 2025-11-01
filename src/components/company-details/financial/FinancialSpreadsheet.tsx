@@ -220,7 +220,7 @@ const FinancialSpreadsheet: React.FC<FinancialSpreadsheetProps> = ({ historicalD
     periods: periods.map(d => d.periode)
   });
   
-  // Format number (already in thousands from parser) with Danish locale
+  // Format number in thousands with Danish locale (parser returns values in thousands)
   const formatThousands = (value: number | null | undefined, isNegativeContext: boolean = false): string => {
     if (value === null || value === undefined) return '-';
     const thousands = Math.round(value);

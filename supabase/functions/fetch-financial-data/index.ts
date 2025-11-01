@@ -1833,9 +1833,13 @@ serve(async (req) => {
           const documentType = candidateDoc.dokumentType || '';
           
           // Check if content contains IFRS tags (listed company format)
-          const isIFRSFormat = processedContent.includes('ifrs-full:') || 
+          // Check BOTH original and processed content to handle truncation
+          const isIFRSFormat = xbrlContent.toLowerCase().includes('ifrs-full:') || 
+                               xbrlContent.toLowerCase().includes('xmlns:ifrs-full') ||
+                               processedContent.includes('ifrs-full:') || 
                                processedContent.includes('xmlns:ifrs-full') ||
-                               documentType === 'AARSRAPPORT_ESEF';
+                               documentType === 'AARSRAPPORT_ESEF' ||
+                               documentType === 'AARSRAPPORT_FINANSIEL';
           
           if (isIFRSFormat) {
             // Use optimized parser for listed companies (IFRS/ESEF format)
