@@ -73,27 +73,47 @@ export const extractAllHistoricalEvents = (cvrData: any, financialData?: any): T
   const events: TimelineEvent[] = [];
   let eventIndex = 0;
 
-  console.log('[Timeline] Extracting events from:', {
-    hasNavne: !!cvrData?.navne,
-    navneCount: cvrData?.navne?.length || 0,
-    hasDeltagerRelation: !!cvrData?.deltagerRelation,
-    deltagerRelationCount: cvrData?.deltagerRelation?.length || 0,
-    hasBeliggenhedsadresse: !!cvrData?.beliggenhedsadresse,
-    beliggenhedsadresseCount: cvrData?.beliggenhedsadresse?.length || 0,
-    hasVirksomhedsstatus: !!cvrData?.virksomhedsstatus,
-    hasHovedbranche: !!cvrData?.hovedbranche,
-    hasVirksomhedsform: !!cvrData?.virksomhedsform,
-    hasKapital: !!cvrData?.kapital,
-    hasFormaal: !!cvrData?.formaal,
-    cvrDataKeys: cvrData ? Object.keys(cvrData) : [],
+  // Normalize the data structure - handle both flat and nested formats
+  const normalizeData = (data: any) => {
+    if (!data) return null;
+    
+    // If data already has the fields we need at top level, use it
+    if (data?.navne || data?.deltagerRelation || data?.beliggenhedsadresse) {
+      return data;
+    }
+    
+    // Try common nested paths
+    if (data?.Vrvirksomhed?.virksomhed) {
+      return data.Vrvirksomhed.virksomhed;
+    }
+    
+    if (data?.virksomhed) {
+      return data.virksomhed;
+    }
+    
+    return data;
+  };
+
+  const normalizedData = normalizeData(cvrData);
+
+  console.log('[Timeline] Data structure:', {
+    originalKeys: cvrData ? Object.keys(cvrData) : [],
+    hasVrvirksomhed: !!cvrData?.Vrvirksomhed,
+    normalizedKeys: normalizedData ? Object.keys(normalizedData) : [],
+    hasNavne: !!normalizedData?.navne,
+    navneCount: normalizedData?.navne?.length || 0,
+    hasDeltagerRelation: !!normalizedData?.deltagerRelation,
+    deltagerRelationCount: normalizedData?.deltagerRelation?.length || 0,
+    hasBeliggenhedsadresse: !!normalizedData?.beliggenhedsadresse,
+    beliggenhedsadresseCount: normalizedData?.beliggenhedsadresse?.length || 0,
   });
 
   // Extract name history
-  if (cvrData?.navne) {
-    cvrData.navne.forEach((navnObj: any, idx: number) => {
+  if (normalizedData?.navne) {
+    normalizedData.navne.forEach((navnObj: any, idx: number) => {
       const startDate = parseDate(navnObj.periode?.gyldigFra);
       if (startDate) {
-        const isFirst = idx === cvrData.navne.length - 1;
+        const isFirst = idx === normalizedData.navne.length - 1;
         events.push({
           id: generateId('name', startDate, eventIndex++),
           date: startDate,
@@ -101,7 +121,7 @@ export const extractAllHistoricalEvents = (cvrData: any, financialData?: any): T
           title: isFirst ? 'Virksomhed oprettet' : 'Navneændring',
           description: navnObj.navn,
           newValue: navnObj.navn,
-          oldValue: idx < cvrData.navne.length - 1 ? cvrData.navne[idx + 1]?.navn : undefined,
+          oldValue: idx < normalizedData.navne.length - 1 ? normalizedData.navne[idx + 1]?.navn : undefined,
           severity: isFirst ? 'high' : 'medium',
           metadata: navnObj,
         });
@@ -111,8 +131,8 @@ export const extractAllHistoricalEvents = (cvrData: any, financialData?: any): T
   console.log('[Timeline] Extracted name events:', events.filter(e => e.category === 'name').length);
 
   // Extract address history
-  if (cvrData?.beliggenhedsadresse) {
-    cvrData.beliggenhedsadresse.forEach((addr: any, idx: number) => {
+  if (normalizedData?.beliggenhedsadresse) {
+    normalizedData.beliggenhedsadresse.forEach((addr: any, idx: number) => {
       const startDate = parseDate(addr.periode?.gyldigFra);
       if (startDate) {
         const formatAddr = (a: any) => {
@@ -132,7 +152,7 @@ export const extractAllHistoricalEvents = (cvrData: any, financialData?: any): T
           title: 'Adresseændring',
           description: formatAddr(addr),
           newValue: formatAddr(addr),
-          oldValue: idx < cvrData.beliggenhedsadresse.length - 1 ? formatAddr(cvrData.beliggenhedsadresse[idx + 1]) : undefined,
+          oldValue: idx < normalizedData.beliggenhedsadresse.length - 1 ? formatAddr(normalizedData.beliggenhedsadresse[idx + 1]) : undefined,
           severity: 'low',
           metadata: addr,
         });
@@ -142,8 +162,8 @@ export const extractAllHistoricalEvents = (cvrData: any, financialData?: any): T
   console.log('[Timeline] Extracted address events:', events.filter(e => e.category === 'address').length);
 
   // Extract status history
-  if (cvrData?.virksomhedsstatus) {
-    cvrData.virksomhedsstatus.forEach((status: any, idx: number) => {
+  if (normalizedData?.virksomhedsstatus) {
+    normalizedData.virksomhedsstatus.forEach((status: any, idx: number) => {
       const startDate = parseDate(status.periode?.gyldigFra);
       if (startDate) {
         const statusMap: Record<string, string> = {
@@ -161,7 +181,7 @@ export const extractAllHistoricalEvents = (cvrData: any, financialData?: any): T
           title: 'Statusændring',
           description: statusMap[status.status] || status.status,
           newValue: status.status,
-          oldValue: idx < cvrData.virksomhedsstatus.length - 1 ? cvrData.virksomhedsstatus[idx + 1]?.status : undefined,
+          oldValue: idx < normalizedData.virksomhedsstatus.length - 1 ? normalizedData.virksomhedsstatus[idx + 1]?.status : undefined,
           severity: status.status === 'NORMAL' ? 'low' : 'high',
           metadata: status,
         });
@@ -170,8 +190,8 @@ export const extractAllHistoricalEvents = (cvrData: any, financialData?: any): T
   }
 
   // Extract industry history
-  if (cvrData?.hovedbranche) {
-    cvrData.hovedbranche.forEach((branche: any, idx: number) => {
+  if (normalizedData?.hovedbranche) {
+    normalizedData.hovedbranche.forEach((branche: any, idx: number) => {
       const startDate = parseDate(branche.periode?.gyldigFra);
       if (startDate) {
         events.push({
@@ -189,8 +209,8 @@ export const extractAllHistoricalEvents = (cvrData: any, financialData?: any): T
   }
 
   // Extract legal form history
-  if (cvrData?.virksomhedsform) {
-    cvrData.virksomhedsform.forEach((form: any, idx: number) => {
+  if (normalizedData?.virksomhedsform) {
+    normalizedData.virksomhedsform.forEach((form: any, idx: number) => {
       const startDate = parseDate(form.periode?.gyldigFra);
       if (startDate) {
         events.push({
@@ -208,8 +228,8 @@ export const extractAllHistoricalEvents = (cvrData: any, financialData?: any): T
   }
 
   // Extract capital history
-  if (cvrData?.kapital) {
-    cvrData.kapital.forEach((kapital: any, idx: number) => {
+  if (normalizedData?.kapital) {
+    normalizedData.kapital.forEach((kapital: any, idx: number) => {
       const startDate = parseDate(kapital.periode?.gyldigFra);
       if (startDate) {
         const amount = new Intl.NumberFormat('da-DK', { style: 'currency', currency: kapital.valuta || 'DKK' }).format(kapital.beloeb);
@@ -228,8 +248,8 @@ export const extractAllHistoricalEvents = (cvrData: any, financialData?: any): T
   }
 
   // Extract purpose history
-  if (cvrData?.formaal) {
-    cvrData.formaal.forEach((formaal: any, idx: number) => {
+  if (normalizedData?.formaal) {
+    normalizedData.formaal.forEach((formaal: any, idx: number) => {
       const startDate = parseDate(formaal.periode?.gyldigFra);
       if (startDate) {
         events.push({
@@ -249,8 +269,8 @@ export const extractAllHistoricalEvents = (cvrData: any, financialData?: any): T
     events.filter(e => ['management', 'board', 'ownership'].includes(e.category)).length);
 
   // Extract management, board, and ownership from deltagerRelation
-  if (cvrData?.deltagerRelation) {
-    cvrData.deltagerRelation.forEach((relation: any) => {
+  if (normalizedData?.deltagerRelation) {
+    normalizedData.deltagerRelation.forEach((relation: any) => {
       const personName = relation.deltager?.navne?.[0]?.navn || 'Ukendt person';
       
       relation.organisationer?.forEach((org: any) => {
