@@ -322,7 +322,6 @@ const EmployeeAccordion: React.FC<EmployeeAccordionProps> = ({ cvr, cvrData }) =
           {financialData?.historicalData && financialData.historicalData.length > 0 && (
             <SalaryInformationCard 
               historicalData={financialData.historicalData}
-              quarterlyEmployment={financialData.quarterlyEmployment || []}
             />
           )}
         </div>

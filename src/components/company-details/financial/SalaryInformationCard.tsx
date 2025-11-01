@@ -7,7 +7,6 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsToolti
 
 interface SalaryInformationCardProps {
   historicalData: any[];
-  quarterlyEmployment: any[];
 }
 
 interface SalaryMetrics {
@@ -25,7 +24,7 @@ interface SalaryMetrics {
   hasRevenue: boolean;
 }
 
-const SalaryInformationCard: React.FC<SalaryInformationCardProps> = ({ historicalData, quarterlyEmployment }) => {
+const SalaryInformationCard: React.FC<SalaryInformationCardProps> = ({ historicalData }) => {
   // Get the most recent period with personnel cost data
   const latestData = historicalData.find(d => d.personaleomkostninger && d.personaleomkostninger > 0);
   
@@ -100,49 +99,24 @@ const SalaryInformationCard: React.FC<SalaryInformationCardProps> = ({ historica
 
   // Process historical data for trend chart
   const trendData = useMemo(() => {
-    // Create year → employment map from quarterly data
-    const employmentByYear = new Map<number, { antalAnsatte: number; antalAarsvaerk: number }[]>();
-    quarterlyEmployment.forEach(q => {
-      const year = q.aar;
-      if (!employmentByYear.has(year)) {
-        employmentByYear.set(year, []);
-      }
-      employmentByYear.get(year)!.push({
-        antalAnsatte: q.antalAnsatte || 0,
-        antalAarsvaerk: q.antalAarsvaerk || 0
-      });
-    });
-
-    // Calculate yearly averages
-    const yearlyAvgEmployment = new Map<number, { antalAnsatte: number; antalAarsvaerk: number }>();
-    employmentByYear.forEach((quarters, year) => {
-      const avgAnsatte = quarters.reduce((sum, q) => sum + q.antalAnsatte, 0) / quarters.length;
-      const avgAarsvaerk = quarters.reduce((sum, q) => sum + q.antalAarsvaerk, 0) / quarters.length;
-      yearlyAvgEmployment.set(year, {
-        antalAnsatte: Math.round(avgAnsatte),
-        antalAarsvaerk: avgAarsvaerk
-      });
-    });
-
     return historicalData
-      .filter(d => d.personaleomkostninger > 0)
+      .filter(d => d.personaleomkostninger > 0 && d.antalAnsatte > 0)
       .slice(0, 8) // Last 8 years
       .map(d => {
-        const employment = yearlyAvgEmployment.get(d.year) || { antalAnsatte: 0, antalAarsvaerk: 0 };
-        if (employment.antalAnsatte === 0) return null;
-        
-        const avgSalary = ((d.personaleomkostninger * 0.75) / employment.antalAnsatte / 12);
+        // Use the enriched employment data from financialUtils
+        // This already contains yearly average from monthly/quarterly/yearly data
+        const avgSalary = (d.personaleomkostninger / d.antalAnsatte / 12);
         
         return {
           periode: d.periode,
           avgSalary: Math.round(avgSalary),
           personnelCosts: d.personaleomkostninger,
-          employeeCount: employment.antalAnsatte
+          employeeCount: d.antalAnsatte,
+          aarsvaerk: d.antalAarsvaerk
         };
       })
-      .filter((d): d is NonNullable<typeof d> => d !== null)
       .reverse(); // Oldest to newest
-  }, [historicalData, quarterlyEmployment]);
+  }, [historicalData]);
 
   // Calculate year-over-year change
   const yoyChange = useMemo(() => {
