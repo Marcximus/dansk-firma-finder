@@ -1,6 +1,9 @@
 // Optimized XBRL Parser with Single-Pass Tag Indexing
 // This approach eliminates the nested loop explosion by parsing once and using O(1) lookups
 
+// EUR/DKK exchange rate (Danish Krone is pegged to Euro at a stable rate)
+const EUR_TO_DKK = 7.46;
+
 interface XBRLTag {
   value: string;
   contextRef: string;
@@ -223,22 +226,37 @@ export function parseXBRLOptimized(xbrlContent: string, period: string) {
  * Convert extracted metrics to database format
  */
 export function formatFinancialData(metrics: ReturnType<typeof parseXBRLOptimized>, period: string) {
+  // Detect currency from the first available metric
+  const currency = metrics.revenue?.currency || metrics.profit?.currency || 'DKK';
+  
+  // Convert EUR values to DKK
+  const convertToDKK = (value: number | null, sourceCurrency: string): number | null => {
+    if (value === null) return null;
+    if (sourceCurrency === 'EUR') {
+      console.log(`[CURRENCY] Converting ${value} from EUR to DKK (rate: ${EUR_TO_DKK})`);
+      return Math.round(value * EUR_TO_DKK);
+    }
+    return value; // Already in DKK or unknown currency
+  };
+  
   return {
     periode: period,
     
-    // Map to field names expected by scoreFinancialData in index.ts
-    nettoomsaetning: metrics.revenue?.value || null,
-    aaretsResultat: metrics.profit?.value || null,
-    statusBalance: metrics.assets?.value || null,
-    egenkapital: metrics.equity?.value || null,
-    driftsresultat: metrics.ebitda?.value || null,
-    resultatFoerSkat: metrics.profit?.value || null,
-    anlaegsaktiverValue: metrics.noncurrentAssets?.value || null,
-    omsaetningsaktiver: metrics.currentAssets?.value || null,
+    // Map to field names and convert to DKK if needed
+    nettoomsaetning: convertToDKK(metrics.revenue?.value || null, currency),
+    aaretsResultat: convertToDKK(metrics.profit?.value || null, currency),
+    statusBalance: convertToDKK(metrics.assets?.value || null, currency),
+    egenkapital: convertToDKK(metrics.equity?.value || null, currency),
+    driftsresultat: convertToDKK(metrics.ebitda?.value || null, currency),
+    resultatFoerSkat: convertToDKK(metrics.profit?.value || null, currency),
+    anlaegsaktiverValue: convertToDKK(metrics.noncurrentAssets?.value || null, currency),
+    omsaetningsaktiver: convertToDKK(metrics.currentAssets?.value || null, currency),
     
     // Additional fields for comprehensive financial data
-    kortfristet_gaeld: metrics.currentLiabilities?.value || null,
-    langfristet_gaeld: metrics.noncurrentLiabilities?.value || null,
-    valuta: metrics.revenue?.currency || metrics.profit?.currency || 'DKK'
+    kortfristet_gaeld: convertToDKK(metrics.currentLiabilities?.value || null, currency),
+    langfristet_gaeld: convertToDKK(metrics.noncurrentLiabilities?.value || null, currency),
+    
+    // Always return DKK as the final currency
+    valuta: 'DKK'
   };
 }
