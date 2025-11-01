@@ -459,9 +459,9 @@ const parseXBRL = (xmlContent: string, period: string) => {
                 const decimalScale = parseInt(decimals);
                 if (decimalScale < 0) {
                   const originalValue = value;
-                  value = value / Math.pow(10, -decimalScale);
+                  value = value * Math.pow(10, -decimalScale);
                   if (logField) {
-                    console.log(`[DECIMAL CONVERSION] ${logField}: ${originalValue} ÷ ${Math.pow(10, -decimalScale)} = ${value} DKK (decimals: ${decimals})`);
+                    console.log(`[DECIMAL CONVERSION] ${logField}: ${originalValue} × ${Math.pow(10, -decimalScale)} = ${value} DKK (decimals: ${decimals})`);
                   }
                 }
               }
@@ -520,9 +520,9 @@ const parseXBRL = (xmlContent: string, period: string) => {
               const decimalScale = parseInt(decimals);
               if (decimalScale < 0) {
                 const originalValue = value;
-                value = value / Math.pow(10, -decimalScale);
+                value = value * Math.pow(10, -decimalScale);
                 if (logField) {
-                  console.log(`[DECIMAL CONVERSION] ${logField}: ${originalValue} ÷ ${Math.pow(10, -decimalScale)} = ${value} DKK (decimals: ${decimals})`);
+                  console.log(`[DECIMAL CONVERSION] ${logField}: ${originalValue} × ${Math.pow(10, -decimalScale)} = ${value} DKK (decimals: ${decimals})`);
                 }
               }
             }
@@ -581,9 +581,9 @@ const parseXBRL = (xmlContent: string, period: string) => {
                 const decimalScale = parseInt(decimals);
                 if (decimalScale < 0) {
                   const originalValue = value;
-                  value = value / Math.pow(10, -decimalScale);
+                  value = value * Math.pow(10, -decimalScale);
                   if (logField) {
-                    console.log(`[DECIMAL CONVERSION] ${logField}: ${originalValue} ÷ ${Math.pow(10, -decimalScale)} = ${value} DKK (decimals: ${decimals})`);
+                    console.log(`[DECIMAL CONVERSION] ${logField}: ${originalValue} × ${Math.pow(10, -decimalScale)} = ${value} DKK (decimals: ${decimals})`);
                   }
                 }
               }
@@ -642,9 +642,9 @@ const parseXBRL = (xmlContent: string, period: string) => {
                 const decimalScale = parseInt(decimals);
                 if (decimalScale < 0) {
                   const originalValue = value;
-                  value = value / Math.pow(10, -decimalScale);
+                  value = value * Math.pow(10, -decimalScale);
                   if (logField) {
-                    console.log(`[DECIMAL CONVERSION] ${logField}: ${originalValue} ÷ ${Math.pow(10, -decimalScale)} = ${value} DKK (decimals: ${decimals})`);
+                    console.log(`[DECIMAL CONVERSION] ${logField}: ${originalValue} × ${Math.pow(10, -decimalScale)} = ${value} DKK (decimals: ${decimals})`);
                   }
                 }
               }
@@ -703,9 +703,9 @@ const parseXBRL = (xmlContent: string, period: string) => {
                 const decimalScale = parseInt(decimals);
                 if (decimalScale < 0) {
                   const originalValue = value;
-                  value = value / Math.pow(10, -decimalScale);
+                  value = value * Math.pow(10, -decimalScale);
                   if (logField) {
-                    console.log(`[DECIMAL CONVERSION] ${logField}: ${originalValue} ÷ ${Math.pow(10, -decimalScale)} = ${value} DKK (decimals: ${decimals})`);
+                    console.log(`[DECIMAL CONVERSION] ${logField}: ${originalValue} × ${Math.pow(10, -decimalScale)} = ${value} DKK (decimals: ${decimals})`);
                   }
                 }
               }
@@ -764,9 +764,9 @@ const parseXBRL = (xmlContent: string, period: string) => {
                 const decimalScale = parseInt(decimals);
                 if (decimalScale < 0) {
                   const originalValue = value;
-                  value = value / Math.pow(10, -decimalScale);
+                  value = value * Math.pow(10, -decimalScale);
                   if (logField) {
-                    console.log(`[DECIMAL CONVERSION] ${logField}: ${originalValue} ÷ ${Math.pow(10, -decimalScale)} = ${value} DKK (decimals: ${decimals})`);
+                    console.log(`[DECIMAL CONVERSION] ${logField}: ${originalValue} × ${Math.pow(10, -decimalScale)} = ${value} DKK (decimals: ${decimals})`);
                   }
                 }
               }
@@ -1832,23 +1832,14 @@ serve(async (req) => {
           let parsedData;
           const documentType = candidateDoc.dokumentType || '';
           
-          // Check if content contains IFRS tags (listed company format)
-          // Check BOTH original and processed content to handle truncation
-          const isIFRSFormat = xbrlContent.toLowerCase().includes('ifrs-full:') || 
-                               xbrlContent.toLowerCase().includes('xmlns:ifrs-full') ||
-                               processedContent.includes('ifrs-full:') || 
-                               processedContent.includes('xmlns:ifrs-full') ||
-                               documentType === 'AARSRAPPORT_ESEF' ||
-                               documentType === 'AARSRAPPORT_FINANSIEL';
-          
-          if (isIFRSFormat) {
+          if (documentType === 'AARSRAPPORT_ESEF') {
             // Use optimized parser for listed companies (IFRS/ESEF format)
-            console.log(`[PARSER] Using optimized parser for IFRS/ESEF format (${documentType})`);
+            console.log(`[PARSER] Using optimized parser for AARSRAPPORT_ESEF (listed company)`);
             const parsedMetrics = parseXBRLOptimized(processedContent, actualPeriod);
             parsedData = formatFinancialData(parsedMetrics, actualPeriod);
           } else {
             // Use old comprehensive parser for regular companies (FSA format)
-            console.log(`[PARSER] Using comprehensive parser for FSA format (${documentType})`);
+            console.log(`[PARSER] Using comprehensive parser for regular company (${documentType})`);
             parsedData = parseXBRL(processedContent, actualPeriod);
           }
           const score = scoreFinancialData(parsedData);

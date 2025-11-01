@@ -15,101 +15,49 @@ interface FinancialSpreadsheetProps {
 }
 
 const FINANCIAL_EXPLANATIONS: Record<string, string> = {
-  // Income Statement - Detailed
+  // Income Statement
   'nettoomsaetning': 'Den samlede indtægt fra salg af varer og tjenester i perioden.',
-  'vareforbrug': 'Direkte omkostninger til indkøb og produktion af solgte varer.',
-  'ovrigeomkostninger': 'Andre driftsomkostninger der ikke kan kategoriseres andetsteds.',
   'bruttofortjeneste': 'Hvad virksomheden tjener på salget, før lønninger og andre driftsomkostninger er trukket fra.',
   'bruttotab': 'Når virksomhedens salg ikke kan dække de direkte omkostninger ved at producere varerne.',
   'personaleomkostninger': 'Samlet udgift til løn, pension og andre personaleydelser i perioden.',
   'afskrivninger': 'Værdifald på virksomhedens maskiner, computere og udstyr over tid.',
-  'kapacitetsomkostninger': 'Omkostninger til at vedligeholde virksomhedens produktionskapacitet.',
-  'primaertresultat': 'Resultat fra virksomhedens primære drift (EBIT).',
   'resultat_af_primaer_drift': 'Overskud eller underskud fra virksomhedens hovedaktivitet, før renter og skat.',
-  'finansielleindtaegter': 'Penge tjent på renter, investeringer og valutakursgevinster.',
-  'finansielleudgifter': 'Udgifter til renter på lån og andre finansieringsomkostninger.',
-  'andrefinansielleposter': 'Andre finansielle indtægter eller udgifter.',
-  'finansielleposterinetto': 'Samlet resultat af finansielle poster (indtægter minus udgifter).',
-  'ordinaertresultat': 'Ordinært resultat før ekstraordinære poster.',
-  'ekstraordinaereposter': 'Engangsindtægter eller -udgifter af ekstraordinær karakter.',
   'finansielle_indtaegter': 'Penge tjent på renter, investeringer og valutakursgevinster.',
   'finansielle_omkostninger': 'Udgifter til renter på lån og andre finansieringsomkostninger.',
-  'driftsresultat': 'Virksomhedens resultat fra drift før renter og skat er fratrukket (EBIT).',
+  'driftsresultat': 'Virksomhedens resultat fra drift før renter og skat er fratrukket.',
   'resultat_foer_skat': 'Virksomhedens samlede overskud eller underskud inden der betales selskabsskat.',
-  'resultatfoerskat': 'Virksomhedens samlede overskud eller underskud inden der betales selskabsskat.',
-  'skatafaaretsresultat': 'Den selskabsskat virksomheden skal betale af årets overskud.',
   'skat_af_aarets_resultat': 'Den selskabsskat virksomheden skal betale af årets overskud.',
   'aarets_resultat': 'Virksomhedens endelige overskud eller underskud efter alle omkostninger og skat.',
   
-  // Balance Sheet - Assets (Detailed)
+  // Balance Sheet - Assets
   'anlaegstiver': 'Virksomhedens langsigtede værdier som maskiner, bygninger og investeringer.',
-  'goodwill': 'Immateriel værdi ved opkøb af virksomheder, der overstiger selskabets bogførte værdi.',
-  'ovrigeimmaterielleanlaegsaktiver': 'Andre immaterielle anlægsaktiver som patenter, software og licenser.',
   'immaterielle_anlaegstiver': 'Værdier uden fysisk form som patenter, varemærker og goodwill.',
-  'immaterielleanlaegsaktiver': 'Samlede immaterielle anlægsaktiver.',
-  'grundeogbygninger': 'Værdien af virksomhedens grunde og bygninger.',
-  'andreanlaegogdriftsmidler': 'Maskiner, produktionsudstyr og andre driftsmidler.',
-  'ovrigematerielleanlaegsaktiver': 'Andre materielle anlægsaktiver.',
   'materielle_anlaegstiver': 'Fysiske ting virksomheden ejer som bygninger, maskiner og køretøjer.',
-  'materielleanlaegsaktiver': 'Samlede materielle anlægsaktiver.',
   'andre_anlaeg': 'Computere, møbler, værktøj og andet udstyr til daglig drift.',
-  'kapitalandele': 'Investeringer i andre virksomheder gennem aktie- eller andelsejerskap.',
-  'langfristetilgodehavender': 'Tilgodehavender der forfalder om mere end ét år.',
-  'andrefinansielleanlaegsaktiver': 'Andre langfristede finansielle aktiver.',
   'finansielle_anlaegstiver': 'Langsigtede investeringer i andre virksomheder og værdipapirer.',
-  'finansielleanlaegsaktiver': 'Samlede finansielle anlægsaktiver.',
-  'anlaegsaktiverValue': 'Samlet værdi af alle anlægsaktiver.',
   'deposita': 'Indskud eller depositum betalt som sikkerhed, fx for lejemål.',
   'omsaetningstiver': 'Virksomhedens kortsigtede værdier og penge, der kan omsættes hurtigt.',
   'varebeholdninger': 'Lagerbeholdning af varer klar til salg eller produktion.',
   'tilgodehavender': 'Penge virksomheden har tilgode fra kunder og andre.',
-  'tilgodehavenderfrasalg': 'Penge kunder skylder for leverede varer eller tjenester.',
   'tilgodehavender_fra_salg': 'Penge kunder skylder for leverede varer eller tjenester.',
-  'tilgodehavenderhosnaertstaende': 'Tilgodehavender hos nærtstående parter (fx moderselskab).',
-  'andretilgodehavender': 'Diverse andre beløb virksomheden har tilgode.',
   'andre_tilgodehavender': 'Diverse andre beløb virksomheden har tilgode.',
-  'vaerdipapirer': 'Kortfristede investeringer i værdipapirer.',
-  'likvidemidler': 'Kontanter og penge på bankkonti, der er tilgængelige med det samme.',
   'krav_paa_indbetaling': 'Manglende indbetaling af ejerkapital fra ejerne.',
   'periodeafgraensningsposter_aktiver': 'Forudbetalte omkostninger eller indtægter der vedrører fremtidige perioder.',
   'likvide_midler': 'Kontanter og penge på bankkonti, der er tilgængelige med det samme.',
-  'omsaetningsaktiver': 'Samlede omsætningsaktiver.',
-  'aktiverialt': 'Virksomhedens samlede aktiver (balance).',
   
-  // Balance Sheet - Equity & Liabilities (Detailed)
+  // Balance Sheet - Liabilities & Equity
   'egenkapital': 'Virksomhedens egenværdi - forskellen mellem alt den ejer og alt den skylder.',
-  'selskabskapital': 'Den indskudte startkapital fra ejerne ved virksomhedens oprettelse.',
   'virksomhedskapital': 'Den indskudte startkapital fra ejerne ved virksomhedens oprettelse.',
-  'overfoertresultat': 'Opsparet overskud eller akkumuleret underskud fra tidligere år.',
   'overfoert_resultat': 'Opsparet overskud eller akkumuleret underskud fra tidligere år.',
-  'udbytte': 'Foreslået udbytte til aktionærerne.',
-  'ovrigereserver': 'Andre reserver i egenkapitalen.',
-  'egenkapitalfoerminoritet': 'Egenkapital før minoritetsinteressers andel.',
-  'minoritetsinteresser': 'Minoritetsaktionærers andel af egenkapitalen.',
-  'egenkapitalialt': 'Samlet egenkapital inklusive minoritetsinteresser.',
-  'udskudtskat': 'Fremtidig skatteforpligtelse eller -fordel.',
-  'hensaettelser': 'Forventede fremtidige udgifter som virksomheden har sat penge til side til.',
   'hensatte_forpligtelser': 'Forventede fremtidige udgifter som virksomheden har sat penge til side til.',
-  'langfristetgaeldtilrealkreditinstitutter': 'Langfristet gæld til realkreditinstitutter.',
-  'langfristetgaeldtilbanker': 'Langfristet gæld til pengeinstitutter.',
-  'langfristetgaeldtilnaertstaende': 'Langfristet gæld til nærtstående parter.',
-  'andenlangfristetgaeld': 'Anden langfristet gæld.',
   'gaeldsforpligtelser': 'Samlet gæld til banker, leverandører og andre kreditorer.',
   'langfristet_gaeld': 'Lån og gæld der skal betales tilbage over mere end ét år.',
-  'kortfristetgaeldtilnaertstaende': 'Kortfristet gæld til nærtstående parter.',
-  'kortfristetgaeldtilrealkreditinstitutter': 'Kortfristet gæld til realkreditinstitutter.',
-  'kortfristetgaeldtilbanker': 'Kortfristet gæld til pengeinstitutter.',
-  'selskabsskat': 'Skyldigt selskabsskat for regnskabsåret.',
-  'varekreditorer': 'Ubetalt gæld til leverandører for modtagne varer og tjenester.',
   'leverandoerer': 'Ubetalt gæld til leverandører for modtagne varer og tjenester.',
-  'andengaeld': 'Diverse anden kortfristet gæld.',
   'gaeld_til_associerede': 'Penge skyldt til søsterselskaber eller moderselskab.',
   'anden_gaeld': 'Diverse anden kortfristet gæld som ikke passer i andre kategorier.',
-  'kortfristet_gaeld': 'Gæld der skal betales tilbage inden for ét år.',
   'skyldige_moms': 'Moms og afgifter virksomheden har indkrævet men endnu ikke betalt.',
   'feriepengeforpligtelser': 'Optjent ferieløn til medarbejdere der endnu ikke er udbetalt.',
   'periodeafgraensningsposter_passiver': 'Forudbetalte indtægter eller omkostninger der vedrører fremtidige perioder.',
-  'passiverialt': 'Virksomhedens samlede passiver (egenkapital + gæld).',
   
   // Key Ratios
   'soliditetsgrad': 'Viser hvor stor en del af virksomhedens aktiver der er finansieret med egenkapital. Høj soliditet betyder mindre gæld og bedre finansiel stabilitet.',
@@ -220,10 +168,10 @@ const FinancialSpreadsheet: React.FC<FinancialSpreadsheetProps> = ({ historicalD
     periods: periods.map(d => d.periode)
   });
   
-  // Format number in thousands with Danish locale (parser returns values in thousands)
+  // Format number in thousands with Danish locale
   const formatThousands = (value: number | null | undefined, isNegativeContext: boolean = false): string => {
     if (value === null || value === undefined) return '-';
-    const thousands = Math.round(value);
+    const thousands = Math.round(value / 1000);
     const formatted = thousands.toLocaleString('da-DK');
     
     // Color negative numbers or bruttotab red
@@ -325,35 +273,6 @@ const FinancialSpreadsheet: React.FC<FinancialSpreadsheetProps> = ({ historicalD
                     <TableCell key={idx} className={`text-right font-semibold text-sm py-2 w-[120px] ${getValueColor(period.nettoomsaetning)}`}>{formatThousands(period.nettoomsaetning)}</TableCell>
                   ))}
                 </TableRow>
-                
-                {/* Level 3: Cost of Sales */}
-                {isExpanded && (
-                  <TableRow className="hover:bg-muted/30">
-                    <FinancialRowWithTooltip
-                      label="Vareforbrug"
-                      tooltipKey="vareforbrug"
-                      className="sticky left-0 bg-background font-medium text-xs py-1.5 w-[200px] pl-4"
-                    />
-                    {periods.map((period, idx) => (
-                      <TableCell key={idx} className={`text-right text-xs py-1.5 w-[120px] ${getValueColor(period.vareforbrug)}`}>{formatThousands(period.vareforbrug)}</TableCell>
-                    ))}
-                  </TableRow>
-                )}
-                
-                {/* Level 3: Other Costs */}
-                {isExpanded && (
-                  <TableRow className="hover:bg-muted/30">
-                    <FinancialRowWithTooltip
-                      label="Øvrige omkostninger"
-                      tooltipKey="ovrigeomkostninger"
-                      className="sticky left-0 bg-background font-medium text-xs py-1.5 w-[200px] pl-4"
-                    />
-                    {periods.map((period, idx) => (
-                      <TableCell key={idx} className={`text-right text-xs py-1.5 w-[120px] ${getValueColor(period.ovrigeomkostninger)}`}>{formatThousands(period.ovrigeomkostninger)}</TableCell>
-                    ))}
-                  </TableRow>
-                )}
-                
                 {/* Level 2: Section Subtotal */}
                 <TableRow className="hover:bg-muted/30">
                   <FinancialRowWithTooltip
@@ -404,28 +323,15 @@ const FinancialSpreadsheet: React.FC<FinancialSpreadsheetProps> = ({ historicalD
                     ))}
                   </TableRow>
                 )}
-                {/* Level 3: Capacity Costs */}
-                {isExpanded && (
-                  <TableRow className="hover:bg-muted/30">
-                    <FinancialRowWithTooltip
-                      label="Kapacitetsomkostninger"
-                      tooltipKey="kapacitetsomkostninger"
-                      className="sticky left-0 bg-background font-medium text-xs py-1.5 w-[200px] pl-4"
-                    />
-                    {periods.map((period, idx) => (
-                      <TableCell key={idx} className={`text-right text-xs py-1.5 w-[120px] ${getValueColor(period.kapacitetsomkostninger)}`}>{formatThousands(period.kapacitetsomkostninger)}</TableCell>
-                    ))}
-                  </TableRow>
-                )}
-                {/* Level 2: Primary Result (EBIT) */}
+                {/* Level 2: Section Subtotal */}
                 <TableRow className="hover:bg-muted/30">
                   <FinancialRowWithTooltip
-                    label="Primært resultat (EBIT)"
-                    tooltipKey="primaertresultat"
+                    label="Resultat af primær drift"
+                    tooltipKey="resultat_af_primaer_drift"
                     className="sticky left-0 bg-background font-semibold text-xs py-1.5 w-[200px] border-t"
                   />
                   {periods.map((period, idx) => (
-                    <TableCell key={idx} className={`text-right font-medium text-xs py-1.5 w-[120px] border-t ${getValueColor(period.primaertresultat || period.driftsresultat)}`}>{formatThousands(period.primaertresultat || period.driftsresultat)}</TableCell>
+                    <TableCell key={idx} className={`text-right font-medium text-xs py-1.5 w-[120px] border-t ${getValueColor(period.resultatAfPrimaerDrift || period.driftsresultat)}`}>{formatThousands(period.resultatAfPrimaerDrift || period.driftsresultat)}</TableCell>
                   ))}
                 </TableRow>
                 {/* Level 4: Detail Item */}
