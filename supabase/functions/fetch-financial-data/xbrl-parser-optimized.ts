@@ -83,6 +83,10 @@ function buildTagIndex(xbrlContent: string): TagIndex {
   
   console.log(`[TAG INDEX] Built index with ${tags.size} unique tags and ${contexts.size} contexts`);
   
+  // Log all available tags for debugging (first 100 unique tags)
+  const allTags = Array.from(tags.keys()).sort();
+  console.log(`[ALL TAGS] Found ${allTags.length} unique tags. Sample (first 100):`, allTags.slice(0, 100).join(', '));
+  
   return { tags, contexts };
 }
 
@@ -186,19 +190,30 @@ export function parseXBRLOptimized(xbrlContent: string, period: string) {
     // Personnel costs (Personaleomkostninger)
     personnelCosts: findTagValue(tagIndex, [
       'ifrs-full:employeebenefitsexpense',
+      'ifrs-full:employeebenefitsexpenses', // plural variant
+      'nov:employeeexpenses',
+      'nov:employeecosts',
       'fsa:personaleomkostninger'
     ], targetYear),
     
     // Depreciation and amortization (Afskrivninger)
     depreciation: findTagValue(tagIndex, [
       'ifrs-full:depreciationandamortisationexpense',
+      'ifrs-full:depreciation',
+      'ifrs-full:amortisation',
+      'ifrs-full:depreciationamortisationandimpairmentlossreversalofimpairmentlossrecognisedinprofitorloss',
+      'nov:depreciationamortisationandimpairmentlosses',
       'fsa:afskrivninger'
     ], targetYear),
     
     // Capacity costs (Kapacitetsomkostninger)
     capacityCosts: findTagValue(tagIndex, [
       'fsa:kapacitetsomkostninger',
-      'ifrs-full:otheradministrativeexpense'
+      'ifrs-full:sellingexpenses',
+      'ifrs-full:administrativeexpenses',
+      'ifrs-full:otheradministrativeexpense',
+      'nov:salesandmarketingcosts',
+      'nov:salesanddistributioncosts'
     ], targetYear),
     
     // Operating profit / EBIT (Primært resultat)
@@ -219,6 +234,8 @@ export function parseXBRLOptimized(xbrlContent: string, period: string) {
     financialExpenses: findTagValue(tagIndex, [
       'ifrs-full:financeexpense',
       'ifrs-full:financecosts',
+      'ifrs-full:financecost',
+      'nov:netfinancialexpenses',
       'fsa:finansielleudgifter'
     ], targetYear),
     
@@ -553,6 +570,30 @@ export function formatFinancialData(metrics: ReturnType<typeof parseXBRLOptimize
     return value; // Already in DKK or unknown currency
   };
   
+  // ============= CALCULATED FIELDS =============
+  // Calculate fields that aren't directly available in XBRL but can be derived
+  
+  // Calculate capacity costs if not directly available
+  let capacityCosts = metrics.capacityCosts?.value || null;
+  if (!capacityCosts && metrics.ebit?.value && metrics.grossProfit?.value) {
+    const personnelCosts = metrics.personnelCosts?.value || 0;
+    const depreciation = metrics.depreciation?.value || 0;
+    
+    // Capacity costs = Gross Profit - EBIT - Personnel - Depreciation
+    const calculated = metrics.grossProfit.value - metrics.ebit.value - personnelCosts - depreciation;
+    if (calculated !== 0) {
+      capacityCosts = calculated;
+      console.log(`[CALCULATED] Capacity costs: ${capacityCosts} (from Gross Profit - EBIT - Personnel - Depreciation)`);
+    }
+  }
+  
+  // Calculate financial net if not directly available
+  let financialNet = metrics.financialNet?.value || null;
+  if (!financialNet && metrics.financialIncome?.value && metrics.financialExpenses?.value) {
+    financialNet = metrics.financialIncome.value + metrics.financialExpenses.value; // expenses are negative
+    console.log(`[CALCULATED] Financial net: ${financialNet} (from Financial Income + Financial Expenses)`);
+  }
+  
   return {
     periode: period,
     
@@ -572,12 +613,12 @@ export function formatFinancialData(metrics: ReturnType<typeof parseXBRLOptimize
     bruttofortjeneste: convertToDKK(metrics.grossProfit?.value || null, currency),
     personaleomkostninger: convertToDKK(metrics.personnelCosts?.value || null, currency),
     afskrivninger: convertToDKK(metrics.depreciation?.value || null, currency),
-    kapacitetsomkostninger: convertToDKK(metrics.capacityCosts?.value || null, currency),
+    kapacitetsomkostninger: convertToDKK(capacityCosts, currency), // Use calculated value
     primaertresultat: convertToDKK(metrics.ebit?.value || null, currency),
     finansielleindtaegter: convertToDKK(metrics.financialIncome?.value || null, currency),
     finansielleudgifter: convertToDKK(metrics.financialExpenses?.value || null, currency),
     andrefinansielleposter: convertToDKK(metrics.otherFinancialNet?.value || null, currency),
-    finansielleposterinetto: convertToDKK(metrics.financialNet?.value || null, currency),
+    finansielleposterinetto: convertToDKK(financialNet, currency), // Use calculated value
     ordinaertresultat: convertToDKK(metrics.ordinaryResult?.value || null, currency),
     ekstraordinaereposter: convertToDKK(metrics.extraordinaryItems?.value || null, currency),
     skatafaaretsresultat: convertToDKK(metrics.tax?.value || null, currency),
