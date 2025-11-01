@@ -81,11 +81,15 @@ function buildTagIndex(xbrlContent: string): TagIndex {
     tags.get(normalizedTagName)!.push(tagData);
   }
   
-  console.log(`[TAG INDEX] Built index with ${tags.size} unique tags and ${contexts.size} contexts`);
-  
-  // Log all available tags for debugging (first 100 unique tags)
   const allTags = Array.from(tags.keys()).sort();
-  console.log(`[ALL TAGS] Found ${allTags.length} unique tags. Sample (first 100):`, allTags.slice(0, 100).join(', '));
+  console.log(`\n${'='.repeat(80)}`);
+  console.log(`[TAG INDEX] Built index with ${tags.size} unique tags and ${contexts.size} contexts`);
+  console.log(`[TAG SAMPLE] First 100 tags found in document:`);
+  allTags.slice(0, 100).forEach((tag, i) => {
+    if (i % 3 === 0) console.log(''); // Add line break every 3 tags
+    console.log(`  ${i + 1}. ${tag}`);
+  });
+  console.log(`${'='.repeat(80)}\n`);
   
   return { tags, contexts };
 }
@@ -127,8 +131,8 @@ function findTagValue(
           // but the value 178990 already means 17,899,000 thousands DKK
           const scaledValue = numValue;
           
-          // Log the raw value for debugging
-          console.log(`[VALUE] ${normalizedTag}: ${numValue} (decimals=${tag.decimals || 'none'})`);
+      // Log the raw value for debugging
+      console.log(`[FOUND] ${normalizedTag} = ${numValue} (year: ${contextYear}, decimals: ${tag.decimals || 'none'}, unit: ${tag.unitRef || 'none'})`);
           
           return {
             value: scaledValue,
@@ -189,8 +193,11 @@ export function parseXBRLOptimized(xbrlContent: string, period: string) {
     
     // Personnel costs (Personaleomkostninger)
     personnelCosts: findTagValue(tagIndex, [
-      'ifrs-full:employeebenefitsexpense',
+      'ifrs-full:EmployeeBenefitsExpense',  // Standard IFRS camelCase
+      'ifrs-full:employeebenefitsexpense',  // lowercase
       'ifrs-full:employeebenefitsexpenses', // plural variant
+      'nov:EmployeeExpenses',
+      'nov:EmployeeCosts',
       'nov:employeeexpenses',
       'nov:employeecosts',
       'fsa:personaleomkostninger'
@@ -198,22 +205,32 @@ export function parseXBRLOptimized(xbrlContent: string, period: string) {
     
     // Depreciation and amortization (Afskrivninger)
     depreciation: findTagValue(tagIndex, [
-      'ifrs-full:depreciationandamortisationexpense',
+      'ifrs-full:DepreciationAndAmortisationExpense',  // Standard IFRS camelCase
+      'ifrs-full:DepreciationAmortisationAndImpairmentLossReversalOfImpairmentLossRecognisedInProfitOrLoss',
+      'ifrs-full:Depreciation',
+      'ifrs-full:Amortisation',
+      'nov:DepreciationAmortisationAndImpairmentLosses',
+      'nov:DepreciationAndAmortisation',
+      'ifrs-full:depreciationandamortisationexpense',  // lowercase fallbacks
       'ifrs-full:depreciation',
       'ifrs-full:amortisation',
-      'ifrs-full:depreciationamortisationandimpairmentlossreversalofimpairmentlossrecognisedinprofitorloss',
-      'nov:depreciationamortisationandimpairmentlosses',
       'fsa:afskrivninger'
     ], targetYear),
     
     // Capacity costs (Kapacitetsomkostninger)
     capacityCosts: findTagValue(tagIndex, [
-      'fsa:kapacitetsomkostninger',
-      'ifrs-full:sellingexpenses',
+      'ifrs-full:SellingExpenses',                    // Standard IFRS camelCase
+      'ifrs-full:DistributionCosts',
+      'ifrs-full:AdministrativeExpenses',
+      'ifrs-full:OtherAdministrativeExpense',
+      'ifrs-full:ResearchAndDevelopmentExpense',
+      'nov:SalesAndMarketingCosts',
+      'nov:SalesAndDistributionCosts',
+      'nov:ResearchAndDevelopmentCosts',
+      'ifrs-full:sellingexpenses',                    // lowercase fallbacks
       'ifrs-full:administrativeexpenses',
       'ifrs-full:otheradministrativeexpense',
-      'nov:salesandmarketingcosts',
-      'nov:salesanddistributioncosts'
+      'fsa:kapacitetsomkostninger'
     ], targetYear),
     
     // Operating profit / EBIT (Primært resultat)
@@ -232,10 +249,14 @@ export function parseXBRLOptimized(xbrlContent: string, period: string) {
     
     // Financial expenses (Finansielle udgifter)
     financialExpenses: findTagValue(tagIndex, [
-      'ifrs-full:financeexpense',
+      'ifrs-full:FinanceCosts',                       // Standard IFRS camelCase
+      'ifrs-full:FinanceExpense',
+      'ifrs-full:FinanceCost',
+      'nov:NetFinancialExpenses',
+      'nov:FinancialExpenses',
+      'ifrs-full:financeexpense',                     // lowercase fallbacks
       'ifrs-full:financecosts',
       'ifrs-full:financecost',
-      'nov:netfinancialexpenses',
       'fsa:finansielleudgifter'
     ], targetYear),
     
