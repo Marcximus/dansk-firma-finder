@@ -1828,9 +1828,20 @@ serve(async (req) => {
             continue;
           }
           
-          // Parse the XBRL using optimized single-pass indexing
-          const parsedMetrics = parseXBRLOptimized(processedContent, actualPeriod);
-          const parsedData = formatFinancialData(parsedMetrics, actualPeriod);
+          // Choose parser based on document type
+          let parsedData;
+          const documentType = candidateDoc.dokumentType || '';
+          
+          if (documentType === 'AARSRAPPORT_ESEF') {
+            // Use optimized parser for listed companies (IFRS/ESEF format)
+            console.log(`[PARSER] Using optimized parser for AARSRAPPORT_ESEF (listed company)`);
+            const parsedMetrics = parseXBRLOptimized(processedContent, actualPeriod);
+            parsedData = formatFinancialData(parsedMetrics, actualPeriod);
+          } else {
+            // Use old comprehensive parser for regular companies (FSA format)
+            console.log(`[PARSER] Using comprehensive parser for regular company (${documentType})`);
+            parsedData = parseXBRL(processedContent, actualPeriod);
+          }
           const score = scoreFinancialData(parsedData);
           
           console.log(`[TESTING ${docIdx + 1}/${aarsrapportXMLs.length}] Score: ${score}/8 fields with data`);
