@@ -125,18 +125,39 @@ function findTagValue(
         // Parse the value
         const numValue = parseFloat(tag.value);
         if (!isNaN(numValue)) {
-          // In XBRL, the numeric value is already the correct magnitude
-          // The decimals attribute indicates precision, not a scaling factor
-          // Example: decimals="-5" means "rounded to nearest 100,000" 
-          // but the value 178990 already means 17,899,000 thousands DKK
-          const scaledValue = numValue;
+          // Normalize value to actual DKK based on unitRef and decimals
+          let scaledValue = numValue;
           
-      // Log the raw value for debugging
-      console.log(`[FOUND] ${normalizedTag} = ${numValue} (year: ${contextYear}, decimals: ${tag.decimals || 'none'}, unit: ${tag.unitRef || 'none'})`);
+          // Check unitRef for scale information
+          const unitRef = tag.unitRef?.toUpperCase() || '';
+          if (unitRef.includes('THOUSAND') || unitRef.includes('1000')) {
+            scaledValue = numValue * 1000;
+            console.log(`[SCALE] ${normalizedTag}: ${numValue} → ${scaledValue} (×1000 from unitRef: ${tag.unitRef})`);
+          } else if (unitRef.includes('MILLION') || unitRef.includes('1000000')) {
+            scaledValue = numValue * 1000000;
+            console.log(`[SCALE] ${normalizedTag}: ${numValue} → ${scaledValue} (×1000000 from unitRef: ${tag.unitRef})`);
+          }
+          
+          // Fallback: check decimals attribute
+          // decimals="-3" means value is in thousands
+          // decimals="-6" means value is in millions
+          if (scaledValue === numValue && tag.decimals) {
+            const decimals = parseInt(tag.decimals);
+            if (decimals === -3) {
+              scaledValue = numValue * 1000;
+              console.log(`[SCALE] ${normalizedTag}: ${numValue} → ${scaledValue} (×1000 from decimals: -3)`);
+            } else if (decimals === -6) {
+              scaledValue = numValue * 1000000;
+              console.log(`[SCALE] ${normalizedTag}: ${numValue} → ${scaledValue} (×1000000 from decimals: -6)`);
+            }
+          }
+          
+          // Log the final value for debugging
+          console.log(`[FOUND] ${normalizedTag} = ${scaledValue} (year: ${contextYear}, decimals: ${tag.decimals || 'none'}, unit: ${tag.unitRef || 'none'})`);
           
           return {
             value: scaledValue,
-            currency: tag.unitRef?.toUpperCase() || 'EUR'
+            currency: 'DKK'  // Always DKK after normalization
           };
         }
       }
