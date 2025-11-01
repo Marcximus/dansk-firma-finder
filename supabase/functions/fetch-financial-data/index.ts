@@ -1791,16 +1791,16 @@ serve(async (req) => {
               // Look for XBRL tags (ifrs-full:, NOV:, fsa:, etc.) which contain the actual financial values
               const remainingLines = lines.slice(300);
               const financialDataLines = remainingLines.filter(line => {
-                // Keep lines that contain XBRL financial tags
+                // Keep ONLY lines that contain specific XBRL financial tag namespaces
+                // These namespaces contain the actual financial values we need
                 return line.includes('ifrs-full:') || 
                        line.includes('NOV:') || 
                        line.includes('fsa:') || 
                        line.includes('gsd:') ||
                        line.includes('cmn:') ||
-                       // Also keep closing tags and context references
-                       line.includes('</') ||
-                       line.includes('contextRef=') ||
-                       line.includes('unitRef=');
+                       // Also keep the root XBRL closing tag for valid XML
+                       line.includes('</xbrl>') ||
+                       line.includes('</XBRL>');
               });
               
               // Limit financial data lines to ~500 to keep total around 800 lines
