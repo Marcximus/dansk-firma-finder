@@ -1673,7 +1673,7 @@ serve(async (req) => {
       }
       
       // STRICT PRIORITY SYSTEM FOR LISTED COMPANIES (børsnoterede):
-      // Priority 1: AARSRAPPORT_ESEF (ESEF/IFRS format - truncated to 1200 lines, FIRST CHOICE)
+      // Priority 1: AARSRAPPORT_ESEF (ESEF/IFRS format - smart truncated to ~800 lines, FIRST CHOICE)
       // Priority 2: AARSRAPPORT_FINANSIEL (traditional financial report for smaller companies)
       // Priority 3: AARSRAPPORT (fallback standard report)
       // NEVER: HALVÅRSRAPPORT, DELÅRSRAPPORT (interim reports)
@@ -1688,7 +1688,7 @@ serve(async (req) => {
       });
       
       if (selectedDocument) {
-        console.log(`[DOC SELECT] ✅ Priority 1: Found AARSRAPPORT_ESEF (IFRS/ESEF format, will truncate to 1200 lines)`);
+        console.log(`[DOC SELECT] ✅ Priority 1: Found AARSRAPPORT_ESEF (IFRS/ESEF format, will use smart truncation to ~800 lines)`);
       }
       
       if (!selectedDocument) {
@@ -1700,7 +1700,7 @@ serve(async (req) => {
         });
         
         if (selectedDocument) {
-          console.log(`[DOC SELECT] ✅ Priority 2: Found AARSRAPPORT_FINANSIEL (will truncate to 1200 lines)`);
+          console.log(`[DOC SELECT] ✅ Priority 2: Found AARSRAPPORT_FINANSIEL (will use smart truncation to ~800 lines)`);
         }
       }
       
@@ -1776,15 +1776,45 @@ serve(async (req) => {
           const xbrlContent = await xbrlResponse.text();
           console.log(`[TESTING ${docIdx + 1}/${aarsrapportXMLs.length}] Downloaded ${xbrlContent.length} bytes`);
           
-          // For AARSRAPPORT_FINANSIEL and AARSRAPPORT_ESEF, truncate to first 1200 lines
-          // This captures both income statement (lines 250-600) and balance sheet data (lines 600-1200)
+          // For AARSRAPPORT_FINANSIEL and AARSRAPPORT_ESEF, use smart truncation
+          // Phase 1: Keep first 300 lines (contexts, namespaces, schema)
+          // Phase 2: Extract lines with financial data tags from remaining lines
+          // Result: ~800 lines total with BOTH income statement AND balance sheet data
           let processedContent = xbrlContent;
           if (candidateDoc.dokumentType === 'AARSRAPPORT_FINANSIEL' || candidateDoc.dokumentType === 'AARSRAPPORT_ESEF') {
             const lines = xbrlContent.split('\n');
-            if (lines.length > 1200) {
-              processedContent = lines.slice(0, 1200).join('\n');
-              console.log(`[TRUNCATE] Reduced FINANSIEL XBRL from ${lines.length} lines to 1200 lines`);
-              console.log(`[TRUNCATE] Size reduced from ${(xbrlContent.length / 1_000_000).toFixed(1)}MB to ${(processedContent.length / 1_000).toFixed(0)}KB`);
+            if (lines.length > 800) {
+              // Phase 1: Always keep first 300 lines (contexts, namespaces, schema definitions)
+              const structureLines = lines.slice(0, 300);
+              
+              // Phase 2: From remaining lines, extract only lines containing financial data tags
+              // Look for XBRL tags (ifrs-full:, NOV:, fsa:, etc.) which contain the actual financial values
+              const remainingLines = lines.slice(300);
+              const financialDataLines = remainingLines.filter(line => {
+                // Keep lines that contain XBRL financial tags
+                return line.includes('ifrs-full:') || 
+                       line.includes('NOV:') || 
+                       line.includes('fsa:') || 
+                       line.includes('gsd:') ||
+                       line.includes('cmn:') ||
+                       // Also keep closing tags and context references
+                       line.includes('</') ||
+                       line.includes('contextRef=') ||
+                       line.includes('unitRef=');
+              });
+              
+              // Limit financial data lines to ~500 to keep total around 800 lines
+              const limitedFinancialLines = financialDataLines.slice(0, 500);
+              
+              // Combine both phases
+              const smartTruncatedLines = [...structureLines, ...limitedFinancialLines];
+              processedContent = smartTruncatedLines.join('\n');
+              
+              console.log(`[SMART TRUNCATE] Original: ${lines.length} lines`);
+              console.log(`[SMART TRUNCATE] Phase 1 (structure): ${structureLines.length} lines`);
+              console.log(`[SMART TRUNCATE] Phase 2 (financial data): ${limitedFinancialLines.length} lines (from ${financialDataLines.length} candidates)`);
+              console.log(`[SMART TRUNCATE] Final: ${smartTruncatedLines.length} lines`);
+              console.log(`[SMART TRUNCATE] Size reduced from ${(xbrlContent.length / 1_000_000).toFixed(1)}MB to ${(processedContent.length / 1_000).toFixed(0)}KB`);
             }
           }
           
