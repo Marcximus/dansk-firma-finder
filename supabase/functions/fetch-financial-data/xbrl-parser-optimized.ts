@@ -125,39 +125,52 @@ function findTagValue(
         // Parse the value
         const numValue = parseFloat(tag.value);
         if (!isNaN(numValue)) {
-          // Normalize value to actual DKK based on unitRef and decimals
-          let scaledValue = numValue;
+          // Normalize value to THOUSANDS of DKK (because display expects this)
+          let valueInThousands = numValue;
           
           // Check unitRef for scale information
           const unitRef = tag.unitRef?.toUpperCase() || '';
-          if (unitRef.includes('THOUSAND') || unitRef.includes('1000')) {
-            scaledValue = numValue * 1000;
-            console.log(`[SCALE] ${normalizedTag}: ${numValue} → ${scaledValue} (×1000 from unitRef: ${tag.unitRef})`);
-          } else if (unitRef.includes('MILLION') || unitRef.includes('1000000')) {
-            scaledValue = numValue * 1000000;
-            console.log(`[SCALE] ${normalizedTag}: ${numValue} → ${scaledValue} (×1000000 from unitRef: ${tag.unitRef})`);
+          
+          if (unitRef.includes('MILLION') || unitRef.includes('1000000')) {
+            // Value is in millions, convert to thousands: multiply by 1000
+            valueInThousands = numValue * 1000;
+            console.log(`[SCALE] ${normalizedTag}: ${numValue}M → ${valueInThousands}K (×1000 from unitRef: ${tag.unitRef})`);
+            
+          } else if (unitRef.includes('THOUSAND') || unitRef.includes('1000')) {
+            // Value is already in thousands - perfect, no scaling needed
+            valueInThousands = numValue;
+            console.log(`[SCALE] ${normalizedTag}: ${numValue}K → ${valueInThousands}K (no scaling, unitRef: ${tag.unitRef})`);
+            
+          } else if (unitRef === 'DKK' || unitRef === 'EUR' || !unitRef) {
+            // Value is in actual currency units, convert to thousands: divide by 1000
+            valueInThousands = numValue / 1000;
+            console.log(`[SCALE] ${normalizedTag}: ${numValue} → ${valueInThousands}K (÷1000 from unitRef: ${tag.unitRef || 'none'})`);
           }
           
           // Fallback: check decimals attribute
-          // decimals="-3" means value is in thousands
-          // decimals="-6" means value is in millions
-          if (scaledValue === numValue && tag.decimals) {
+          // decimals="-3" means value is in thousands (round to nearest 1000)
+          // decimals="-6" means value is in millions (round to nearest 1000000)
+          if (valueInThousands === numValue && tag.decimals) {
             const decimals = parseInt(tag.decimals);
-            if (decimals === -3) {
-              scaledValue = numValue * 1000;
-              console.log(`[SCALE] ${normalizedTag}: ${numValue} → ${scaledValue} (×1000 from decimals: -3)`);
-            } else if (decimals === -6) {
-              scaledValue = numValue * 1000000;
-              console.log(`[SCALE] ${normalizedTag}: ${numValue} → ${scaledValue} (×1000000 from decimals: -6)`);
+            if (decimals === -6) {
+              // Value is in millions, convert to thousands
+              valueInThousands = numValue * 1000;
+              console.log(`[SCALE] ${normalizedTag}: ${numValue}M → ${valueInThousands}K (×1000 from decimals: -6)`);
+            } else if (decimals === -3) {
+              // Value is in thousands, already correct
+              console.log(`[SCALE] ${normalizedTag}: ${numValue}K (no scaling, decimals: -3)`);
+            } else if (decimals >= 0) {
+              // Value is in actual units, convert to thousands
+              valueInThousands = numValue / 1000;
+              console.log(`[SCALE] ${normalizedTag}: ${numValue} → ${valueInThousands}K (÷1000 from decimals: ${decimals})`);
             }
           }
           
-          // Log the final value for debugging
-          console.log(`[FOUND] ${normalizedTag} = ${scaledValue} (year: ${contextYear}, decimals: ${tag.decimals || 'none'}, unit: ${tag.unitRef || 'none'})`);
+          console.log(`[FOUND] ${normalizedTag} = ${valueInThousands}K (year: ${contextYear}, unitRef: "${tag.unitRef || 'none'}", decimals: "${tag.decimals || 'none'}")`);
           
           return {
-            value: scaledValue,
-            currency: 'DKK'  // Always DKK after normalization
+            value: valueInThousands,  // Now in thousands of DKK
+            currency: 'DKK'
           };
         }
       }
