@@ -256,14 +256,89 @@ export const extractFinancialData = (cvrData: any, parsedFinancialData?: any) =>
     
     // Enrich financial data with employment statistics from CVR
     const yearlyEmployment = getEmploymentData(cvrData, 'aarsbeskaeftigelse');
+    const monthlyEmployment = getEmploymentData(cvrData, 'erstMaanedsbeskaeftigelse');
+    const quarterlyEmployment = getEmploymentData(cvrData, 'kvartalsbeskaeftigelse');
+
+    // Build employment map: first try yearly, then calculate from monthly/quarterly
     const employmentByYear = new Map();
+
+    // Add yearly data
     yearlyEmployment.forEach(emp => {
       employmentByYear.set(emp.aar, {
+        antalAnsatte: emp.antalAnsatte || 0,
+        antalAarsvaerk: emp.antalAarsvaerk || 0,
+        source: 'yearly'
+      });
+    });
+
+    // Calculate yearly averages from monthly data where yearly data is missing
+    const monthlyByYear = new Map();
+    monthlyEmployment.forEach(emp => {
+      const year = emp.aar;
+      if (!monthlyByYear.has(year)) {
+        monthlyByYear.set(year, []);
+      }
+      monthlyByYear.get(year).push({
         antalAnsatte: emp.antalAnsatte || 0,
         antalAarsvaerk: emp.antalAarsvaerk || 0
       });
     });
-    
+
+    // Fill in missing years with monthly averages
+    monthlyByYear.forEach((months, year) => {
+      if (!employmentByYear.has(year)) {
+        const avgAnsatte = Math.round(
+          months.reduce((sum, m) => sum + m.antalAnsatte, 0) / months.length
+        );
+        const avgAarsvaerk = Math.round(
+          months.reduce((sum, m) => sum + m.antalAarsvaerk, 0) / months.length
+        );
+        employmentByYear.set(year, {
+          antalAnsatte: avgAnsatte,
+          antalAarsvaerk: avgAarsvaerk,
+          source: 'monthly-avg'
+        });
+      }
+    });
+
+    // Calculate yearly averages from quarterly data where other data is missing
+    const quarterlyByYear = new Map();
+    quarterlyEmployment.forEach(emp => {
+      const year = emp.aar;
+      if (!quarterlyByYear.has(year)) {
+        quarterlyByYear.set(year, []);
+      }
+      quarterlyByYear.get(year).push({
+        antalAnsatte: emp.antalAnsatte || 0,
+        antalAarsvaerk: emp.antalAarsvaerk || 0
+      });
+    });
+
+    quarterlyByYear.forEach((quarters, year) => {
+      if (!employmentByYear.has(year)) {
+        const avgAnsatte = Math.round(
+          quarters.reduce((sum, q) => sum + q.antalAnsatte, 0) / quarters.length
+        );
+        const avgAarsvaerk = Math.round(
+          quarters.reduce((sum, q) => sum + q.antalAarsvaerk, 0) / quarters.length
+        );
+        employmentByYear.set(year, {
+          antalAnsatte: avgAnsatte,
+          antalAarsvaerk: avgAarsvaerk,
+          source: 'quarterly-avg'
+        });
+      }
+    });
+
+    console.log('[financialUtils] Employment data by year:', 
+      Array.from(employmentByYear.entries()).map(([year, data]) => ({
+        year,
+        antalAnsatte: data.antalAnsatte,
+        antalAarsvaerk: data.antalAarsvaerk,
+        source: data.source
+      }))
+    );
+
     const enrichedDataWithEmployment = enrichedData.map(period => {
       const employment = employmentByYear.get(period.year) || { antalAnsatte: 0, antalAarsvaerk: 0 };
       return {
