@@ -114,16 +114,14 @@ function findTagValue(
         // Parse the value
         const numValue = parseFloat(tag.value);
         if (!isNaN(numValue)) {
-          // Apply decimal scaling if present
-          // In XBRL: decimals="-5" means value is in units of 10^5 (already scaled)
-          // So we multiply by 10^decimals (negative decimals will divide)
-          const decimals = tag.decimals ? parseInt(tag.decimals) : 0;
-          const scaledValue = numValue * Math.pow(10, decimals);
+          // In XBRL, the numeric value is already the correct magnitude
+          // The decimals attribute indicates precision, not a scaling factor
+          // Example: decimals="-5" means "rounded to nearest 100,000" 
+          // but the value 178990 already means 17,899,000 thousands DKK
+          const scaledValue = numValue;
           
-          // Log scaling for debugging
-          if (decimals !== 0) {
-            console.log(`[SCALE] ${normalizedTag}: ${numValue} × 10^${decimals} = ${scaledValue}`);
-          }
+          // Log the raw value for debugging
+          console.log(`[VALUE] ${normalizedTag}: ${numValue} (decimals=${tag.decimals || 'none'})`);
           
           return {
             value: scaledValue,
