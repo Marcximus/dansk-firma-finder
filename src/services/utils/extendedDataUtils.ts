@@ -243,7 +243,8 @@ export const extractExtendedInfo = (cvrData: any) => {
       const currentValue = tickerAttr.vaerdier.find((v: any) => v.periode?.gyldigTil === null);
       const value = currentValue || tickerAttr.vaerdier[tickerAttr.vaerdier.length - 1];
       console.log('Ticker extraction - found attribute:', tickerAttr, 'value:', value?.vaerdi);
-      if (value?.vaerdi) return value.vaerdi;
+      const tickerValue = value?.vaerdi?.trim();
+      if (tickerValue) return tickerValue;
     }
     
     // Fallback to manual mapping for major Danish publicly traded companies
@@ -253,8 +254,8 @@ export const extractExtendedInfo = (cvrData: any) => {
       '24256790': 'NOVO-B',  // Novo Nordisk
       '10103940': 'MAERSK-B', // A.P. Møller - Mærsk
       '36213728': 'DSV',      // DSV
-      '61056416': 'ORSTED',   // Ørsted
-      '30799101': 'CARLB',    // Carlsberg
+      '30799101': 'ORSTED',   // Ørsted
+      '61056416': 'CARLB',    // Carlsberg
       '10529638': 'DEMANT',   // Demant
       '56828119': 'COLO-B',   // Coloplast
       '69749917': 'TRYG',     // Tryg
@@ -264,7 +265,7 @@ export const extractExtendedInfo = (cvrData: any) => {
     
     const ticker = tickerMappings[cvrNumber || ''];
     console.log('Ticker extraction - CVR mapping result:', cvrNumber, '->', ticker);
-    return ticker || null;
+    return (ticker && ticker.trim()) || null;
   };
 
   const result = {
