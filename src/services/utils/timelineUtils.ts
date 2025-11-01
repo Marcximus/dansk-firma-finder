@@ -44,10 +44,23 @@ export const defaultFilters: TimelineFilters = {
 };
 
 const parseDate = (dateString: string | null | undefined): Date | null => {
-  if (!dateString) return null;
+  if (!dateString) {
+    console.log('[Timeline] Empty date string');
+    return null;
+  }
+  
   try {
-    return parseISO(dateString);
-  } catch {
+    const cleaned = dateString.trim();
+    const parsed = parseISO(cleaned);
+    
+    if (isNaN(parsed.getTime())) {
+      console.warn('[Timeline] Invalid date parsed:', dateString);
+      return null;
+    }
+    
+    return parsed;
+  } catch (error) {
+    console.error('[Timeline] Date parsing error:', dateString, error);
     return null;
   }
 };
@@ -59,6 +72,21 @@ const generateId = (category: string, date: Date, index: number): string => {
 export const extractAllHistoricalEvents = (cvrData: any, financialData?: any): TimelineEvent[] => {
   const events: TimelineEvent[] = [];
   let eventIndex = 0;
+
+  console.log('[Timeline] Extracting events from:', {
+    hasNavne: !!cvrData?.navne,
+    navneCount: cvrData?.navne?.length || 0,
+    hasDeltagerRelation: !!cvrData?.deltagerRelation,
+    deltagerRelationCount: cvrData?.deltagerRelation?.length || 0,
+    hasBeliggenhedsadresse: !!cvrData?.beliggenhedsadresse,
+    beliggenhedsadresseCount: cvrData?.beliggenhedsadresse?.length || 0,
+    hasVirksomhedsstatus: !!cvrData?.virksomhedsstatus,
+    hasHovedbranche: !!cvrData?.hovedbranche,
+    hasVirksomhedsform: !!cvrData?.virksomhedsform,
+    hasKapital: !!cvrData?.kapital,
+    hasFormaal: !!cvrData?.formaal,
+    cvrDataKeys: cvrData ? Object.keys(cvrData) : [],
+  });
 
   // Extract name history
   if (cvrData?.navne) {
@@ -80,6 +108,7 @@ export const extractAllHistoricalEvents = (cvrData: any, financialData?: any): T
       }
     });
   }
+  console.log('[Timeline] Extracted name events:', events.filter(e => e.category === 'name').length);
 
   // Extract address history
   if (cvrData?.beliggenhedsadresse) {
@@ -110,6 +139,7 @@ export const extractAllHistoricalEvents = (cvrData: any, financialData?: any): T
       }
     });
   }
+  console.log('[Timeline] Extracted address events:', events.filter(e => e.category === 'address').length);
 
   // Extract status history
   if (cvrData?.virksomhedsstatus) {
@@ -215,6 +245,8 @@ export const extractAllHistoricalEvents = (cvrData: any, financialData?: any): T
       }
     });
   }
+  console.log('[Timeline] Extracted management/board/ownership events:', 
+    events.filter(e => ['management', 'board', 'ownership'].includes(e.category)).length);
 
   // Extract management, board, and ownership from deltagerRelation
   if (cvrData?.deltagerRelation) {
@@ -276,6 +308,21 @@ export const extractAllHistoricalEvents = (cvrData: any, financialData?: any): T
       });
     });
   }
+
+  console.log('[Timeline] Total events extracted:', events.length, {
+    byCategory: {
+      name: events.filter(e => e.category === 'name').length,
+      address: events.filter(e => e.category === 'address').length,
+      status: events.filter(e => e.category === 'status').length,
+      industry: events.filter(e => e.category === 'industry').length,
+      legal: events.filter(e => e.category === 'legal').length,
+      capital: events.filter(e => e.category === 'capital').length,
+      purpose: events.filter(e => e.category === 'purpose').length,
+      management: events.filter(e => e.category === 'management').length,
+      board: events.filter(e => e.category === 'board').length,
+      ownership: events.filter(e => e.category === 'ownership').length,
+    }
+  });
 
   // Sort by date (newest first)
   events.sort((a, b) => b.date.getTime() - a.date.getTime());

@@ -25,8 +25,15 @@ export const CompanyTimeline: React.FC<CompanyTimelineProps> = ({ cvrData, finan
 
   // Extract all events
   const allEvents = useMemo(() => {
+    console.log('[CompanyTimeline] Received data:', {
+      hasCvrData: !!cvrData,
+      hasFinancialData: !!financialData,
+      cvrDataKeys: cvrData ? Object.keys(cvrData) : [],
+    });
     return extractAllHistoricalEvents(cvrData, financialData);
   }, [cvrData, financialData]);
+
+  console.log('[CompanyTimeline] All events count:', allEvents.length);
 
   // Apply filters
   const filteredEvents = useMemo(() => {
