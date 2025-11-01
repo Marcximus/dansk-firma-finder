@@ -1832,14 +1832,19 @@ serve(async (req) => {
           let parsedData;
           const documentType = candidateDoc.dokumentType || '';
           
-          if (documentType === 'AARSRAPPORT_ESEF') {
+          // Check if content contains IFRS tags (listed company format)
+          const isIFRSFormat = processedContent.includes('ifrs-full:') || 
+                               processedContent.includes('xmlns:ifrs-full') ||
+                               documentType === 'AARSRAPPORT_ESEF';
+          
+          if (isIFRSFormat) {
             // Use optimized parser for listed companies (IFRS/ESEF format)
-            console.log(`[PARSER] Using optimized parser for AARSRAPPORT_ESEF (listed company)`);
+            console.log(`[PARSER] Using optimized parser for IFRS/ESEF format (${documentType})`);
             const parsedMetrics = parseXBRLOptimized(processedContent, actualPeriod);
             parsedData = formatFinancialData(parsedMetrics, actualPeriod);
           } else {
             // Use old comprehensive parser for regular companies (FSA format)
-            console.log(`[PARSER] Using comprehensive parser for regular company (${documentType})`);
+            console.log(`[PARSER] Using comprehensive parser for FSA format (${documentType})`);
             parsedData = parseXBRL(processedContent, actualPeriod);
           }
           const score = scoreFinancialData(parsedData);
