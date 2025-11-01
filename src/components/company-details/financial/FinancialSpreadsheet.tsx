@@ -220,10 +220,10 @@ const FinancialSpreadsheet: React.FC<FinancialSpreadsheetProps> = ({ historicalD
     periods: periods.map(d => d.periode)
   });
   
-  // Format number in thousands with Danish locale
+  // Format number (already in thousands from parser) with Danish locale
   const formatThousands = (value: number | null | undefined, isNegativeContext: boolean = false): string => {
     if (value === null || value === undefined) return '-';
-    const thousands = Math.round(value / 1000);
+    const thousands = Math.round(value);
     const formatted = thousands.toLocaleString('da-DK');
     
     // Color negative numbers or bruttotab red
