@@ -33,10 +33,10 @@ const SalaryInformationCard: React.FC<SalaryInformationCardProps> = ({ historica
     return null;
   }
 
-  // Get the most recent quarterly employment data
-  const latestQuarterly = quarterlyEmployment?.[0]; // Already sorted newest first
-  const antalAnsatte = latestQuarterly?.antalAnsatte || 0;
-  const antalAarsvaerk = latestQuarterly?.antalAarsvaerk || 0;
+  // Use employment data from the same period as the financial data
+  // This data is already enriched in financialUtils.ts to match the financial year
+  const antalAnsatte = latestData.antalAnsatte || 0;
+  const antalAarsvaerk = latestData.antalAarsvaerk || 0;
   
   const personaleomkostninger = latestData.personaleomkostninger;
   const nettoomsaetning = latestData.nettoomsaetning || 0;
