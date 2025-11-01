@@ -220,13 +220,18 @@ export function parseXBRLOptimized(xbrlContent: string, period: string) {
 export function formatFinancialData(metrics: ReturnType<typeof parseXBRLOptimized>, period: string) {
   return {
     periode: period,
-    omsaetning: metrics.revenue?.value || null,
-    resultat: metrics.profit?.value || null,
-    aktiver: metrics.assets?.value || null,
+    
+    // Map to field names expected by scoreFinancialData in index.ts
+    nettoomsaetning: metrics.revenue?.value || null,
+    aaretsResultat: metrics.profit?.value || null,
+    statusBalance: metrics.assets?.value || null,
     egenkapital: metrics.equity?.value || null,
-    ebitda: metrics.ebitda?.value || null,
-    kortfristede_aktiver: metrics.currentAssets?.value || null,
-    langfristede_aktiver: metrics.noncurrentAssets?.value || null,
+    driftsresultat: metrics.ebitda?.value || null,
+    resultatFoerSkat: metrics.profit?.value || null,
+    anlaegsaktiverValue: metrics.noncurrentAssets?.value || null,
+    omsaetningsaktiver: metrics.currentAssets?.value || null,
+    
+    // Additional fields for comprehensive financial data
     kortfristet_gaeld: metrics.currentLiabilities?.value || null,
     langfristet_gaeld: metrics.noncurrentLiabilities?.value || null,
     valuta: metrics.revenue?.currency || metrics.profit?.currency || 'DKK'
