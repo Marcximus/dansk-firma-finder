@@ -1781,7 +1781,7 @@ serve(async (req) => {
           // Phase 2: Extract lines with financial data tags from remaining lines
           // Result: ~800 lines total with BOTH income statement AND balance sheet data
           let processedContent = xbrlContent;
-          if (candidateDoc.dokumentType === 'AARSRAPPORT_FINANSIEL' || candidateDoc.dokumentType === 'AARSRAPPORT_ESEF') {
+          if (candidateDoc.dokumentType === 'AARSRAPPORT_FINANSIEL' || candidateDoc.dokumentType === 'AARSRAPPORT_ESEF' || candidateDoc.dokumentType === 'AARSRAPPORT') {
             const lines = xbrlContent.split('\n');
             if (lines.length > 800) {
               // Phase 1: Always keep first 300 lines (contexts, namespaces, schema definitions)
