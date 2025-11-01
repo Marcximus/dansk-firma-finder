@@ -72,23 +72,11 @@ export const CompanyTimeline: React.FC<CompanyTimelineProps> = ({ cvrData, finan
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between gap-4">
-        <TimelineFiltersComponent 
-          filters={filters} 
-          onFiltersChange={setFilters}
-          events={allEvents}
-        />
-        <Button 
-          onClick={() => {
-            console.log('=== RAW CVR DATA DUMP ===');
-            console.log(JSON.stringify(cvrData, null, 2));
-          }}
-          variant="outline"
-          size="sm"
-        >
-          🐛 Debug Data
-        </Button>
-      </div>
+      <TimelineFiltersComponent 
+        filters={filters} 
+        onFiltersChange={setFilters}
+        events={allEvents}
+      />
 
       {filteredEvents.length === 0 ? (
         <Alert>

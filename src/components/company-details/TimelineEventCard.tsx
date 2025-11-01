@@ -18,9 +18,6 @@ import {
   Target
 } from 'lucide-react';
 import { TimelineEvent, getCategoryLabel } from '@/services/utils/timelineUtils';
-import { Button } from '@/components/ui/button';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { ChevronDown } from 'lucide-react';
 
 interface TimelineEventCardProps {
   event: TimelineEvent;
@@ -73,11 +70,9 @@ const getCategoryColor = (category: string): string => {
 };
 
 export const TimelineEventCard: React.FC<TimelineEventCardProps> = ({ event }) => {
-  const [isOpen, setIsOpen] = React.useState(false);
-  const hasMetadata = event.metadata && Object.keys(event.metadata).length > 0;
 
   return (
-    <Card className={`border-l-4 ${getSeverityColor(event.severity)} p-3 sm:p-4 hover:shadow-md transition-shadow`}>
+    <Card className={`border-l-4 ${getSeverityColor(event.severity)} p-2 sm:p-3 hover:shadow-md transition-shadow`}>
       <div className="flex gap-3">
         <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${getCategoryColor(event.category)}`}>
           {getCategoryIcon(event.category)}
@@ -111,24 +106,6 @@ export const TimelineEventCard: React.FC<TimelineEventCardProps> = ({ event }) =
                 </div>
               )}
             </div>
-          )}
-
-          {hasMetadata && (
-            <Collapsible open={isOpen} onOpenChange={setIsOpen} className="mt-2">
-              <CollapsibleTrigger asChild>
-                <Button variant="ghost" size="sm" className="h-7 text-xs p-0 hover:bg-transparent">
-                  <ChevronDown className={`w-3 h-3 mr-1 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
-                  {isOpen ? 'Skjul detaljer' : 'Vis detaljer'}
-                </Button>
-              </CollapsibleTrigger>
-              <CollapsibleContent className="mt-2">
-                <div className="bg-muted/50 rounded p-2 text-xs">
-                  <pre className="whitespace-pre-wrap break-all">
-                    {JSON.stringify(event.metadata, null, 2)}
-                  </pre>
-                </div>
-              </CollapsibleContent>
-            </Collapsible>
           )}
         </div>
       </div>
