@@ -115,8 +115,15 @@ function findTagValue(
         const numValue = parseFloat(tag.value);
         if (!isNaN(numValue)) {
           // Apply decimal scaling if present
+          // In XBRL: decimals="-5" means value is in units of 10^5 (already scaled)
+          // So we multiply by 10^decimals (negative decimals will divide)
           const decimals = tag.decimals ? parseInt(tag.decimals) : 0;
-          const scaledValue = decimals < 0 ? numValue * Math.pow(10, Math.abs(decimals)) : numValue;
+          const scaledValue = numValue * Math.pow(10, decimals);
+          
+          // Log scaling for debugging
+          if (decimals !== 0) {
+            console.log(`[SCALE] ${normalizedTag}: ${numValue} × 10^${decimals} = ${scaledValue}`);
+          }
           
           return {
             value: scaledValue,
