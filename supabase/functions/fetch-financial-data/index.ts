@@ -459,9 +459,9 @@ const parseXBRL = (xmlContent: string, period: string) => {
                 const decimalScale = parseInt(decimals);
                 if (decimalScale < 0) {
                   const originalValue = value;
-                  value = value * Math.pow(10, -decimalScale);
+                  value = value / Math.pow(10, -decimalScale);
                   if (logField) {
-                    console.log(`[DECIMAL CONVERSION] ${logField}: ${originalValue} × ${Math.pow(10, -decimalScale)} = ${value} DKK (decimals: ${decimals})`);
+                    console.log(`[DECIMAL CONVERSION] ${logField}: ${originalValue} ÷ ${Math.pow(10, -decimalScale)} = ${value} DKK (decimals: ${decimals})`);
                   }
                 }
               }
@@ -520,9 +520,9 @@ const parseXBRL = (xmlContent: string, period: string) => {
               const decimalScale = parseInt(decimals);
               if (decimalScale < 0) {
                 const originalValue = value;
-                value = value * Math.pow(10, -decimalScale);
+                value = value / Math.pow(10, -decimalScale);
                 if (logField) {
-                  console.log(`[DECIMAL CONVERSION] ${logField}: ${originalValue} × ${Math.pow(10, -decimalScale)} = ${value} DKK (decimals: ${decimals})`);
+                  console.log(`[DECIMAL CONVERSION] ${logField}: ${originalValue} ÷ ${Math.pow(10, -decimalScale)} = ${value} DKK (decimals: ${decimals})`);
                 }
               }
             }
@@ -581,9 +581,9 @@ const parseXBRL = (xmlContent: string, period: string) => {
                 const decimalScale = parseInt(decimals);
                 if (decimalScale < 0) {
                   const originalValue = value;
-                  value = value * Math.pow(10, -decimalScale);
+                  value = value / Math.pow(10, -decimalScale);
                   if (logField) {
-                    console.log(`[DECIMAL CONVERSION] ${logField}: ${originalValue} × ${Math.pow(10, -decimalScale)} = ${value} DKK (decimals: ${decimals})`);
+                    console.log(`[DECIMAL CONVERSION] ${logField}: ${originalValue} ÷ ${Math.pow(10, -decimalScale)} = ${value} DKK (decimals: ${decimals})`);
                   }
                 }
               }
@@ -642,9 +642,9 @@ const parseXBRL = (xmlContent: string, period: string) => {
                 const decimalScale = parseInt(decimals);
                 if (decimalScale < 0) {
                   const originalValue = value;
-                  value = value * Math.pow(10, -decimalScale);
+                  value = value / Math.pow(10, -decimalScale);
                   if (logField) {
-                    console.log(`[DECIMAL CONVERSION] ${logField}: ${originalValue} × ${Math.pow(10, -decimalScale)} = ${value} DKK (decimals: ${decimals})`);
+                    console.log(`[DECIMAL CONVERSION] ${logField}: ${originalValue} ÷ ${Math.pow(10, -decimalScale)} = ${value} DKK (decimals: ${decimals})`);
                   }
                 }
               }
@@ -703,9 +703,9 @@ const parseXBRL = (xmlContent: string, period: string) => {
                 const decimalScale = parseInt(decimals);
                 if (decimalScale < 0) {
                   const originalValue = value;
-                  value = value * Math.pow(10, -decimalScale);
+                  value = value / Math.pow(10, -decimalScale);
                   if (logField) {
-                    console.log(`[DECIMAL CONVERSION] ${logField}: ${originalValue} × ${Math.pow(10, -decimalScale)} = ${value} DKK (decimals: ${decimals})`);
+                    console.log(`[DECIMAL CONVERSION] ${logField}: ${originalValue} ÷ ${Math.pow(10, -decimalScale)} = ${value} DKK (decimals: ${decimals})`);
                   }
                 }
               }
@@ -764,9 +764,9 @@ const parseXBRL = (xmlContent: string, period: string) => {
                 const decimalScale = parseInt(decimals);
                 if (decimalScale < 0) {
                   const originalValue = value;
-                  value = value * Math.pow(10, -decimalScale);
+                  value = value / Math.pow(10, -decimalScale);
                   if (logField) {
-                    console.log(`[DECIMAL CONVERSION] ${logField}: ${originalValue} × ${Math.pow(10, -decimalScale)} = ${value} DKK (decimals: ${decimals})`);
+                    console.log(`[DECIMAL CONVERSION] ${logField}: ${originalValue} ÷ ${Math.pow(10, -decimalScale)} = ${value} DKK (decimals: ${decimals})`);
                   }
                 }
               }
