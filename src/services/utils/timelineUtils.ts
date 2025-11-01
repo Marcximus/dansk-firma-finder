@@ -85,7 +85,6 @@ export const extractAllHistoricalEvents = (cvrData: any, financialData?: any): T
   let eventIndex = 0;
 
   // Normalize the data structure - handle both flat and nested formats
-  // Simplified normalization - data should already be the Vrvirksomhed object from realCvrData
   const normalizeData = (data: any) => {
     if (!data) {
       console.log('[Timeline] normalizeData: data is null/undefined');
@@ -94,12 +93,23 @@ export const extractAllHistoricalEvents = (cvrData: any, financialData?: any): T
     
     console.log('[Timeline] normalizeData: Input structure:', {
       keys: Object.keys(data).slice(0, 10), // Show first 10 keys
-      hasNavne: !!data.navne,
-      hasDeltagerRelation: !!data.deltagerRelation,
-      hasBeliggenhedsadresse: !!data.beliggenhedsadresse,
+      hasVrvirksomhed: !!data.Vrvirksomhed,
+      hasNavneDirectly: !!data.navne,
     });
     
-    // Data should already be at the right level from realCvrData (Vrvirksomhed object)
+    // If data has Vrvirksomhed wrapper, unwrap it
+    if (data.Vrvirksomhed) {
+      console.log('[Timeline] normalizeData: Unwrapping Vrvirksomhed object');
+      return data.Vrvirksomhed;
+    }
+    
+    // If data already has the fields at top level, return as-is
+    if (data.navne || data.deltagerRelation || data.beliggenhedsadresse) {
+      console.log('[Timeline] normalizeData: Data already at correct level');
+      return data;
+    }
+    
+    console.warn('[Timeline] normalizeData: Unknown data structure, returning original');
     return data;
   };
 
