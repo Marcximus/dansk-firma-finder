@@ -92,14 +92,14 @@ const FinancialAccordion: React.FC<FinancialAccordionProps> = ({ cvr, cvrData })
             <FinancialSpreadsheet historicalData={financialData.historicalData} />
           )}
 
+          {/* Equity Chart - Show above equity statement if available */}
+          {financialData?.historicalData && financialData.historicalData.length > 0 && (
+            <EquityChart historicalData={financialData.historicalData} />
+          )}
+
           {/* Equity Statement - Show if we have historical data */}
           {financialData?.historicalData && financialData.historicalData.length >= 2 && (
             <EquityStatementCard historicalData={financialData.historicalData} />
-          )}
-
-          {/* Equity Chart - Show below equity statement if available */}
-          {financialData?.historicalData && financialData.historicalData.length > 0 && (
-            <EquityChart historicalData={financialData.historicalData} />
           )}
 
           {/* Key Financial Figures - Show if no spreadsheet data */}
