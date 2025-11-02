@@ -1326,38 +1326,16 @@ const parseXBRL = (xmlContent: string, period: string) => {
       })(),
 
       increaseInSharePremium: (() => {
-        // For share premium, calculate from balance changes
-        // Get opening balance (start of year)
-        const opening = extractValue(['SharePremium', 'OverkursVedEmission'], useInstantContextsLY, 'sharePremium opening');
-        
-        // Get closing balance (end of year) 
-        const closing = extractValue(['SharePremium', 'OverkursVedEmission'], useInstantContexts, 'sharePremium closing');
-        
-        // Also check for explicit transfer out
-        const transferOut = extractValue([
-          'TransferredFromSharePremium',
-          'TransferFromSharePremiumAccount',
-          'OverfoertFraOverkurs'
-        ], usePeriodContexts, 'sharePremium transfer out');
-        
-        // Calculate: Increase = (Closing - Opening) + TransferOut
-        // (We add transfer out because it's a decrease that happened during the year)
-        if (opening !== null && closing !== null) {
-          const change = closing - opening;
-          const adjustment = Math.abs(transferOut || 0);
-          const increase = change + adjustment;
-          if (increase > 0) {
-            console.log(`✅ [CALC] increaseInSharePremium: ${increase} DKK (Opening=${opening}, Closing=${closing}, Transfer=${transferOut})`);
-            return increase;
-          }
-        }
-        
-        // Fallback to simple tags
-        return extractValue([
-          'IncreaseDecreaseInSharePremiumAccount',
+        // Try to extract share premium increase from common tags
+        const result = extractValue([
           'IncreaseInSharePremium',
-          'KapitalforhoejelserOverkurs'
-        ], usePeriodContexts, 'increaseInSharePremium (fallback)');
+          'IncreaseDecreaseInSharePremiumAccount',
+          'KapitalforhoejelserOverkurs',
+          'SharePremiumIncreases',
+          'ContributionExceedingNominalValue'
+        ], usePeriodContexts, 'increaseInSharePremium');
+        
+        return result;
       })(),
 
       transferFromSharePremium: (() => {
