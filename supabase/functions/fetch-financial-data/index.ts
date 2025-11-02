@@ -1313,32 +1313,44 @@ const parseXBRL = (xmlContent: string, period: string) => {
         'LongtermDebt', 'NoncurrentFinancialLiabilities'
       ], useInstantContexts, 'langfristetGaeld'),
       
-      // Statement of Changes in Equity - Extract from dimensional contexts
+// Statement of Changes in Equity - Extract actual movement tags
       increaseInShareCapital: (() => {
-        // Try dimensional extraction first (most accurate)
-        const dimensional = extractFromDimension(
-          ['Equity', 'ChangesInEquity', 'IncreaseDecreaseInEquity'],
-          'ContributedCapitalMember',
-          'increaseInShareCapital'
-        );
-        if (dimensional !== null) return dimensional;
-        
-        // Fallback to simple tags
-        return extractValue([
-          'IncreaseDecreaseInShareCapital',
+        // Search for the IncreaseOfCapital tag (this is the actual tag name in XBRL)
+        const result = extractValue([
+          'IncreaseOfCapital',
           'IncreaseInShareCapital',
+          'IncreaseDecreaseInShareCapital',
           'KapitalforhoejelserVirksomhedskapital'
-        ], usePeriodContexts, 'increaseInShareCapital (fallback)');
+        ], usePeriodContexts, 'increaseInShareCapital');
+        return result;
       })(),
 
       increaseInSharePremium: (() => {
-        // Try dimensional extraction first (most accurate)
-        const dimensional = extractFromDimension(
-          ['Equity', 'ChangesInEquity', 'IncreaseDecreaseInEquity'],
-          'SharePremiumMember',
-          'increaseInSharePremium'
-        );
-        if (dimensional !== null) return dimensional;
+        // For share premium, calculate from balance changes
+        // Get opening balance (start of year)
+        const opening = extractValue(['SharePremium', 'OverkursVedEmission'], useInstantContextsLY, 'sharePremium opening');
+        
+        // Get closing balance (end of year) 
+        const closing = extractValue(['SharePremium', 'OverkursVedEmission'], useInstantContexts, 'sharePremium closing');
+        
+        // Also check for explicit transfer out
+        const transferOut = extractValue([
+          'TransferredFromSharePremium',
+          'TransferFromSharePremiumAccount',
+          'OverfoertFraOverkurs'
+        ], usePeriodContexts, 'sharePremium transfer out');
+        
+        // Calculate: Increase = (Closing - Opening) + TransferOut
+        // (We add transfer out because it's a decrease that happened during the year)
+        if (opening !== null && closing !== null) {
+          const change = closing - opening;
+          const adjustment = Math.abs(transferOut || 0);
+          const increase = change + adjustment;
+          if (increase > 0) {
+            console.log(`✅ [CALC] increaseInSharePremium: ${increase} DKK (Opening=${opening}, Closing=${closing}, Transfer=${transferOut})`);
+            return increase;
+          }
+        }
         
         // Fallback to simple tags
         return extractValue([
@@ -1349,33 +1361,14 @@ const parseXBRL = (xmlContent: string, period: string) => {
       })(),
 
       transferFromSharePremium: (() => {
-        // First check if there's a net decrease in SharePremium during the year
-        const sharePremiumClosing = extractValue(['SharePremium', 'OverkursVedEmission'], useInstantContexts);
-        const sharePremiumOpening = extractValue(['SharePremium', 'OverkursVedEmission'], useInstantContextsLY);
-        
-        // If closing is less than opening, there was a transfer out
-        if (sharePremiumClosing !== null && sharePremiumOpening !== null && sharePremiumOpening > sharePremiumClosing) {
-          // Get the increase during the year from dimensional context
-          const increase = extractFromDimension(
-            ['Equity', 'ChangesInEquity', 'IncreaseDecreaseInEquity'],
-            'SharePremiumMember',
-            'sharePremiumIncrease'
-          );
-          
-          // Transfer = Opening + Increase - Closing (should be positive)
-          const transfer = sharePremiumOpening + (increase || 0) - sharePremiumClosing;
-          if (transfer > 0) {
-            console.log(`✅ [DIMENSION] transferFromSharePremium: ${transfer} DKK calculated from balance changes (opening: ${sharePremiumOpening}, increase: ${increase || 0}, closing: ${sharePremiumClosing})`);
-            return transfer;
-          }
-        }
-        
-        // Fallback to simple transfer tags
-        return extractValue([
-          'TransfersToFromReserves',
+        // Search for the TransferredFromSharePremium tag (actual tag name in XBRL)
+        const result = extractValue([
+          'TransferredFromSharePremium',
           'TransferFromSharePremiumAccount',
-          'OverfoertFraOverkurs'
-        ], usePeriodContexts, 'transferFromSharePremium (fallback)');
+          'OverfoertFraOverkurs',
+          'TransfersToFromReserves'
+        ], usePeriodContexts, 'transferFromSharePremium');
+        return result !== null ? Math.abs(result) : null;
       })()
     };
 
