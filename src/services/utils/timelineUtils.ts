@@ -567,6 +567,37 @@ export const extractAllHistoricalEvents = (cvrData: any, financialData?: any): T
               });
             }
 
+            // Helper function to format attribute values
+            const formatAttributeValue = (attrType: string, value: string): string => {
+              // Format dates
+              if (attrType.includes('DATO') || attrType === 'VALGDATO' || attrType === 'STARTDATO' || attrType === 'SLUTTDATO') {
+                try {
+                  const date = new Date(value);
+                  return format(date, 'd. MMMM yyyy', { locale: da });
+                } catch {
+                  return value;
+                }
+              }
+
+              // Format percentages (if not already processed)
+              if (attrType.includes('PROCENT')) {
+                const num = parseFloat(value);
+                if (!isNaN(num)) {
+                  return `${num}%`;
+                }
+              }
+
+              // Format numbers with thousands separators
+              if (attrType.includes('ANTAL') || attrType.includes('VAERDI')) {
+                const num = parseFloat(value);
+                if (!isNaN(num)) {
+                  return new Intl.NumberFormat('da-DK').format(num);
+                }
+              }
+
+              return value;
+            };
+
             // Extract ALL other attribute changes (STILLING, TITEL, etc.)
             medlem.attributter?.forEach((attr: any) => {
               if (!attr.vaerdier || attr.vaerdier.length === 0) return;
@@ -576,36 +607,71 @@ export const extractAllHistoricalEvents = (cvrData: any, financialData?: any): T
                 return;
               }
               
+              // Attributes to completely skip (administrative metadata)
+              const skipAttributes = [
+                'EJERANDEL_MEDDELELSE_DATO',
+                'SIDST_OPDATERET',
+                'OPRETTET_DATO',
+              ];
+
+              if (skipAttributes.includes(attr.type)) {
+                return;
+              }
+              
               // Process other attribute types
               const attrLabels: Record<string, string> = {
+                // Management/Board attributes
                 'STILLING': 'Stilling',
                 'TITEL': 'Titel',
                 'VALGDATO': 'Valgdato',
                 'AFSAETTELSEGRUND': 'Afsættelsesgrund',
+                
+                // Ownership attributes
+                'EJERANDEL_STEMMERET_PROCENT': 'Stemmeandel',
+                'EJERANDEL_KAPITAL_KLASSE': 'Kapitalklasse',
+                'EJERANDEL_VEDERLAGS_FORM': 'Vederlagsform',
+                'EJERANDEL_ANTAL_ANPARTER': 'Antal anparter',
+                'EJERANDEL_ANTAL_AKTIER': 'Antal aktier',
+                'EJERANDEL_PAALYDENDE_VAERDI': 'Pålydende værdi',
+                
+                // Other attributes
+                'STARTDATO': 'Startdato',
+                'SLUTTDATO': 'Slutdato',
               };
               
-              const label = attrLabels[attr.type] || attr.type;
+              // Only show if we have a label mapping (skip unknown attributes)
+              if (!attrLabels[attr.type]) {
+                console.log(`[TIMELINE] Skipping unknown attribute: ${attr.type}`);
+                return;
+              }
               
-              attr.vaerdier.forEach((vaerdi: any, index: number) => {
-                const startDate = parseDate(vaerdi.periode?.gyldigFra);
-                if (startDate && vaerdi.vaerdi) {
-                  const prevValue = index < attr.vaerdier.length - 1 
-                    ? attr.vaerdier[index + 1].vaerdi 
-                    : null;
-                  
-                  events.push({
-                    id: generateId(category, startDate, eventIndex++),
-                    date: startDate,
-                    category,
-                    title: `${personName} - ${label} ændret`,
-                    description: `${label}: ${vaerdi.vaerdi}`,
-                    newValue: vaerdi.vaerdi,
-                    oldValue: prevValue || undefined,
-                    severity: 'low',
-                    metadata: { relation, org, medlem, vaerdi, type: 'attribute_change', attrType: attr.type },
-                  });
-                }
+              const label = attrLabels[attr.type];
+              
+          attr.vaerdier.forEach((vaerdi: any, index: number) => {
+            const startDate = parseDate(vaerdi.periode?.gyldigFra);
+            if (startDate && vaerdi.vaerdi) {
+              const prevValue = index < attr.vaerdier.length - 1
+                ? attr.vaerdier[index + 1].vaerdi
+                : null;
+
+              const formattedNewValue = formatAttributeValue(attr.type, vaerdi.vaerdi);
+              const formattedOldValue = prevValue ? formatAttributeValue(attr.type, prevValue) : null;
+
+              events.push({
+                id: generateId(category, startDate, eventIndex++),
+                date: startDate,
+                category,
+                title: `${personName} - ${label}`,
+                description: formattedOldValue 
+                  ? `${formattedOldValue} → ${formattedNewValue}`
+                  : formattedNewValue,
+                newValue: formattedNewValue,
+                oldValue: formattedOldValue || undefined,
+                severity: 'low',
+                metadata: { relation, org, medlem, vaerdi, type: 'attribute_change', attrType: attr.type },
               });
+            }
+          });
             });
           });
         }
