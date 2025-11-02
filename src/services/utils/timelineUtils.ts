@@ -160,6 +160,11 @@ export const extractAllHistoricalEvents = (cvrData: any, financialData?: any): T
           'UNDER_REKONSTRUKTION': 'Under rekonstruktion',
           'OPLØST': 'Opløst',
           'UNDER_TVANGSOPLØSNING': 'Under tvangsopløsning',
+          'TVANGSOPLØST': 'Tvangsopløst',
+          'UNDER TVANGSOPLØSNING': 'Under tvangsopløsning',
+          'UNDER KONKURS': 'Under konkurs',
+          'OPLØST EFTER KONKURS': 'Opløst efter konkurs',
+          'OPLØSTEFTERKONKURS': 'Opløst efter konkurs',
         };
 
         events.push({
@@ -172,6 +177,28 @@ export const extractAllHistoricalEvents = (cvrData: any, financialData?: any): T
           oldValue: idx < normalizedData.virksomhedsstatus.length - 1 ? normalizedData.virksomhedsstatus[idx + 1]?.status : undefined,
           severity: status.status === 'NORMAL' ? 'low' : 'high',
           metadata: status,
+        });
+      }
+    });
+  }
+
+  // Extract detailed bankruptcy/liquidation status stages
+  if (normalizedData?.status) {
+    normalizedData.status.forEach((statusObj: any) => {
+      const startDate = parseDate(statusObj.periode?.gyldigFra);
+      if (startDate) {
+        const statusText = statusObj.statustekst || statusObj.kreditoplysningtekst || 'Ukendt status';
+        const kredText = statusObj.kreditoplysningtekst ? ` (${statusObj.kreditoplysningtekst})` : '';
+        
+        events.push({
+          id: generateId('status-detail', startDate, eventIndex++),
+          date: startDate,
+          category: 'status',
+          title: `Detaljeret status: ${statusText}`,
+          description: `${statusText}${kredText}`,
+          newValue: statusText,
+          severity: statusObj.kreditoplysningkode === 3 ? 'high' : 'medium',
+          metadata: statusObj,
         });
       }
     });
@@ -391,6 +418,133 @@ export const extractAllHistoricalEvents = (cvrData: any, financialData?: any): T
     });
   }
 
+  // Extract annual employment data
+  if (normalizedData?.aarsbeskaeftigelse) {
+    normalizedData.aarsbeskaeftigelse.forEach((employment: any) => {
+      if (employment.aar) {
+        const date = new Date(employment.aar, 0, 1);
+        
+        const antalAnsatte = employment.antalAnsatte ?? employment.antalAarsvaerk ?? employment.antalInklusivEjere;
+        if (antalAnsatte !== null && antalAnsatte !== undefined) {
+          const beskrivelse = [
+            employment.antalAarsvaerk !== null ? `Årsværk: ${employment.antalAarsvaerk}` : null,
+            employment.antalAnsatte !== null ? `Ansatte: ${employment.antalAnsatte}` : null,
+            employment.antalInklusivEjere !== null ? `Inkl. ejere: ${employment.antalInklusivEjere}` : null,
+          ].filter(Boolean).join(', ');
+          
+          events.push({
+            id: generateId('employment-annual', date, eventIndex++),
+            date: date,
+            category: 'financial',
+            title: `Ansættelsesdata ${employment.aar}`,
+            description: beskrivelse,
+            newValue: String(antalAnsatte),
+            severity: 'low',
+            metadata: { employment, type: 'annual' },
+          });
+        }
+      }
+    });
+  }
+
+  // Extract quarterly employment data
+  if (normalizedData?.kvartalsbeskaeftigelse) {
+    normalizedData.kvartalsbeskaeftigelse.forEach((employment: any) => {
+      if (employment.aar && employment.kvartal) {
+        const month = (employment.kvartal - 1) * 3;
+        const date = new Date(employment.aar, month, 1);
+        
+        const antalAnsatte = employment.antalAarsvaerk ?? employment.antalAnsatte;
+        if (antalAnsatte !== null && antalAnsatte !== undefined) {
+          events.push({
+            id: generateId('employment-quarterly', date, eventIndex++),
+            date: date,
+            category: 'financial',
+            title: `Ansatte Q${employment.kvartal} ${employment.aar}`,
+            description: `Årsværk: ${employment.antalAarsvaerk ?? 'Ikke oplyst'}`,
+            newValue: String(antalAnsatte),
+            severity: 'low',
+            metadata: { employment, type: 'quarterly' },
+          });
+        }
+      }
+    });
+  }
+
+  // Extract P-number (production unit) changes
+  if (normalizedData?.penheder && normalizedData.penheder.length > 0) {
+    normalizedData.penheder.forEach((penhed: any, idx: number) => {
+      const startDate = parseDate(penhed.periode?.gyldigFra);
+      const endDate = parseDate(penhed.periode?.gyldigTil);
+      
+      if (startDate && idx < normalizedData.penheder.length - 1) {
+        events.push({
+          id: generateId('pnumber', startDate, eventIndex++),
+          date: startDate,
+          category: 'legal',
+          title: 'Produktionsenhed tilføjet',
+          description: `P-nummer: ${penhed.pNummer}`,
+          newValue: String(penhed.pNummer),
+          severity: 'low',
+          metadata: { penhed },
+        });
+      }
+      
+      if (endDate && endDate.getTime() !== startDate?.getTime()) {
+        events.push({
+          id: generateId('pnumber-end', endDate, eventIndex++),
+          date: endDate,
+          category: 'legal',
+          title: 'Produktionsenhed lukket',
+          description: `P-nummer: ${penhed.pNummer}`,
+          oldValue: String(penhed.pNummer),
+          severity: 'low',
+          metadata: { penhed },
+        });
+      }
+    });
+  }
+
+  // Extract additional important attributes from attributter array
+  if (normalizedData?.attributter) {
+    normalizedData.attributter.forEach((attr: any) => {
+      if (!attr.vaerdier || attr.vaerdier.length === 0) return;
+      
+      // Map attribute types to categories and labels
+      const attrConfig: Record<string, { category: 'financial' | 'legal', label: string, severity: 'low' | 'medium' | 'high' }> = {
+        'TEGNINGSREGEL': { category: 'legal', label: 'Tegningsregel ændret', severity: 'medium' },
+        'VEDTÆGT_SENESTE': { category: 'legal', label: 'Vedtægter opdateret', severity: 'low' },
+        'FØRSTE_REGNSKABSPERIODE_START': { category: 'financial', label: 'Første regnskabsperiode start', severity: 'low' },
+        'FØRSTE_REGNSKABSPERIODE_SLUT': { category: 'financial', label: 'Første regnskabsperiode slut', severity: 'low' },
+        'REGNSKABSÅR_START': { category: 'financial', label: 'Regnskabsår start ændret', severity: 'low' },
+        'REGNSKABSÅR_SLUT': { category: 'financial', label: 'Regnskabsår slut ændret', severity: 'low' },
+        'KAPITALVALUTA': { category: 'financial', label: 'Valuta ændret', severity: 'medium' },
+      };
+      
+      const config = attrConfig[attr.type];
+      if (!config) return;
+      
+      attr.vaerdier.forEach((vaerdi: any, idx: number) => {
+        const startDate = parseDate(vaerdi.periode?.gyldigFra);
+        if (startDate && vaerdi.vaerdi) {
+          const oldValue = idx < attr.vaerdier.length - 1 ? attr.vaerdier[idx + 1].vaerdi : undefined;
+          
+          events.push({
+            id: generateId(config.category, startDate, eventIndex++),
+            date: startDate,
+            category: config.category,
+            title: config.label,
+            description: vaerdi.vaerdi,
+            newValue: vaerdi.vaerdi,
+            oldValue: oldValue,
+            severity: config.severity,
+            metadata: { attr, vaerdi },
+          });
+        }
+      });
+    });
+  }
+
   // Extract accounting form history
   if (normalizedData?.regnskabsform) {
     normalizedData.regnskabsform.forEach((form: any, idx: number) => {
@@ -583,6 +737,57 @@ export const extractAllHistoricalEvents = (cvrData: any, financialData?: any): T
           metadata: reklame,
         });
       }
+    });
+  }
+
+  // Extract auditor (revisor) changes from deltagerRelation
+  if (normalizedData?.deltagerRelation) {
+    normalizedData.deltagerRelation.forEach((relation: any) => {
+      const deltager = relation.deltager;
+      
+      // Find REVISION organizations
+      deltager?.organisationer?.forEach((org: any) => {
+        if (org.hovedtype === 'REVISION') {
+          const revisorName = deltager.navne?.[0]?.navn || 'Ukendt revisor';
+          
+          org.medlemsData?.forEach((medlem: any) => {
+            medlem.attributter?.forEach((attr: any) => {
+              if (attr.type === 'FUNKTION') {
+                attr.vaerdier?.forEach((vaerdi: any) => {
+                  const startDate = parseDate(vaerdi.periode?.gyldigFra);
+                  const endDate = parseDate(vaerdi.periode?.gyldigTil);
+                  
+                  if (startDate) {
+                    events.push({
+                      id: generateId('auditor', startDate, eventIndex++),
+                      date: startDate,
+                      category: 'financial',
+                      title: `Ny revisor tilknyttet: ${revisorName}`,
+                      description: `Revisionsvirksomhed: ${revisorName}`,
+                      newValue: revisorName,
+                      severity: 'medium',
+                      metadata: { deltager, org, medlem },
+                    });
+                  }
+                  
+                  if (endDate && endDate.getTime() !== startDate?.getTime()) {
+                    events.push({
+                      id: generateId('auditor-end', endDate, eventIndex++),
+                      date: endDate,
+                      category: 'financial',
+                      title: `Revisor fratrådt: ${revisorName}`,
+                      description: `Revisionsvirksomhed forlod selskabet`,
+                      oldValue: revisorName,
+                      severity: 'medium',
+                      metadata: { deltager, org, medlem },
+                    });
+                  }
+                });
+              }
+            });
+          });
+        }
+      });
     });
   }
 
