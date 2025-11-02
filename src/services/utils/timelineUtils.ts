@@ -4,7 +4,7 @@ import { da } from 'date-fns/locale';
 export interface TimelineEvent {
   id: string;
   date: Date;
-  category: 'management' | 'board' | 'ownership' | 'address' | 'name' | 'industry' | 'status' | 'financial' | 'legal' | 'contact' | 'capital' | 'purpose' | 'signing';
+  category: 'management' | 'board' | 'ownership' | 'address' | 'name' | 'industry' | 'status' | 'financial' | 'legal' | 'contact' | 'capital' | 'purpose';
   title: string;
   description: string;
   oldValue?: string;
@@ -13,57 +13,34 @@ export interface TimelineEvent {
   metadata?: Record<string, any>;
 }
 
-export type FilterGroup = 'all' | 'grundlaeggende' | 'ledelse' | 'ejerskab' | 'finansielle';
-
 export interface TimelineFilters {
   showManagement: boolean;
   showBoard: boolean;
-  showSigning: boolean;
   showOwnership: boolean;
-  showCapital: boolean;
   showAddress: boolean;
   showName: boolean;
-  showStatus: boolean;
-  showLegal: boolean;
   showIndustry: boolean;
-  showPurpose: boolean;
+  showStatus: boolean;
   showFinancial: boolean;
+  showLegal: boolean;
   showContact: boolean;
+  showCapital: boolean;
+  showPurpose: boolean;
 }
 
 export const defaultFilters: TimelineFilters = {
-  // Ledelse
   showManagement: true,
   showBoard: true,
-  showSigning: true,
-  // Ejerskab
   showOwnership: true,
-  showCapital: true,
-  // Grundlæggende
-  showAddress: false,
-  showName: false,
-  showStatus: false,
-  showLegal: false,
-  showIndustry: false,
-  showPurpose: false,
-  // Finansielle
+  showAddress: true,
+  showName: true,
+  showIndustry: true,
+  showStatus: true,
   showFinancial: false,
-  showContact: false,
-};
-
-const mapOwnershipToRange = (value: number): string => {
-  const percentage = value * 100;
-  
-  if (percentage < 5) return '0-5%';
-  if (percentage < 10) return '5-10%';
-  if (percentage < 15) return '10-15%';
-  if (percentage < 20) return '15-20%';
-  if (percentage < 25) return '20-25%';
-  if (percentage < 33.33) return '25-33%';
-  if (percentage < 50) return '33-50%';
-  if (percentage < 66.67) return '50-67%';
-  if (percentage < 90) return '67-90%';
-  return '90-100%';
+  showLegal: true,
+  showContact: true,
+  showCapital: true,
+  showPurpose: true,
 };
 
 const parseDate = (dateString: string | null | undefined): Date | null => {
@@ -100,14 +77,14 @@ export const extractAllHistoricalEvents = (cvrData: any, financialData?: any): T
   if (normalizedData?.stiftelsesDato) {
     const foundingDate = parseDate(normalizedData.stiftelsesDato);
     if (foundingDate) {
-        events.push({
-          id: generateId('founding', foundingDate, eventIndex++),
-          date: foundingDate,
-          category: 'legal',
-          title: 'Selskab stiftet',
-          description: normalizedData.navne?.[normalizedData.navne.length - 1]?.navn || 'Ukendt navn',
-          severity: 'high',
-        });
+      events.push({
+        id: generateId('founding', foundingDate, eventIndex++),
+        date: foundingDate,
+        category: 'legal',
+        title: 'Virksomhed stiftet',
+        description: normalizedData.navne?.[normalizedData.navne.length - 1]?.navn || 'Ukendt navn',
+        severity: 'high',
+      });
     }
   }
 
@@ -121,15 +98,15 @@ export const extractAllHistoricalEvents = (cvrData: any, financialData?: any): T
       if (startDate) {
         const oldName = normalizedData.navne[idx + 1]?.navn;
         const title = oldName 
-          ? `Navneændring`
-          : `Navn registreret`;
+          ? `Selskabet skiftede navn fra "${oldName}" til "${navnObj.navn}"`
+          : `Selskabets navn blev registreret som "${navnObj.navn}"`;
         
         events.push({
           id: generateId('name', startDate, eventIndex++),
           date: startDate,
           category: 'name',
           title,
-          description: oldName ? `${oldName} → ${navnObj.navn}` : navnObj.navn,
+          description: '',
           newValue: navnObj.navn,
           oldValue: oldName,
           severity: 'medium',
@@ -161,7 +138,7 @@ export const extractAllHistoricalEvents = (cvrData: any, financialData?: any): T
           id: generateId('address', startDate, eventIndex++),
           date: startDate,
           category: 'address',
-          title: 'Adresseændring',
+          title: 'Selskabets adresse blev ændret',
           description: newAddress,
           newValue: newAddress,
           oldValue: oldAddress,
@@ -211,15 +188,15 @@ export const extractAllHistoricalEvents = (cvrData: any, financialData?: any): T
           : null;
         
         const title = oldIndustry
-          ? `Brancheskift`
-          : `Hovedbranche registreret`;
+          ? `Hovedbranche ændret fra ${oldIndustry} til ${currentIndustry}`
+          : `Hovedbranche registreret som ${currentIndustry}`;
         
         events.push({
           id: generateId('industry', startDate, eventIndex++),
           date: startDate,
           category: 'industry',
           title,
-          description: oldIndustry ? `${oldIndustry} → ${currentIndustry}` : currentIndustry,
+          description: '',
           newValue: branche.branchetekst,
           oldValue: oldIndustry || undefined,
           severity: 'medium',
@@ -243,16 +220,17 @@ export const extractAllHistoricalEvents = (cvrData: any, financialData?: any): T
         // Skip if no valid data
         if (!newForm) return;
         
+        // Natural language
         const title = oldForm 
-          ? `Ændring af selskabsform`
-          : `Selskabsform registreret`;
+          ? `Virksomhedsformen blev ændret fra ${oldForm} til ${newForm}`
+          : `Virksomhedsform registreret som ${newForm}`;
         
         events.push({
           id: generateId('legal', startDate, eventIndex++),
           date: startDate,
           category: 'legal',
           title,
-          description: oldForm ? `${oldForm} → ${newForm}` : newForm,
+          description: '',
           newValue: newForm,
           oldValue: oldForm || undefined,
           severity: 'high',
@@ -431,15 +409,15 @@ export const extractAllHistoricalEvents = (cvrData: any, financialData?: any): T
           : null;
         
         const title = oldFormLabel
-          ? `Skift af regnskabsklasse`
-          : `Regnskabsklasse registreret`;
+          ? `Regnskabsformen blev ændret fra ${oldFormLabel} til ${formLabel}`
+          : `Regnskabsform registreret som ${formLabel}`;
         
         events.push({
           id: generateId('legal', startDate, eventIndex++),
           date: startDate,
           category: 'legal',
           title,
-          description: oldFormLabel ? `${oldFormLabel} → ${formLabel}` : formLabel,
+          description: '',
           newValue: formLabel,
           oldValue: oldFormLabel || undefined,
           severity: 'low',
@@ -608,39 +586,6 @@ export const extractAllHistoricalEvents = (cvrData: any, financialData?: any): T
     });
   }
 
-  // Extract signing rules from deltagerRelation - TEGNINGSREGEL
-  if (normalizedData?.deltagerRelation) {
-    normalizedData.deltagerRelation.forEach((relation: any) => {
-      relation.organisationer?.forEach((org: any) => {
-        if (org.hovedtype === 'REGISTER_DIREKTION' && org.attributter) {
-          const signingAttr = org.attributter.find((a: any) => a.type === 'TEGNINGSREGEL');
-          if (signingAttr?.vaerdier) {
-            signingAttr.vaerdier.forEach((vaerdi: any, idx: number) => {
-              const startDate = parseDate(vaerdi.periode?.gyldigFra);
-              if (startDate && vaerdi.vaerdi) {
-                const oldRule = idx < signingAttr.vaerdier.length - 1 
-                  ? signingAttr.vaerdier[idx + 1]?.vaerdi 
-                  : null;
-                
-                events.push({
-                  id: generateId('signing', startDate, eventIndex++),
-                  date: startDate,
-                  category: 'signing',
-                  title: oldRule ? 'Tegningsregel ændret' : 'Tegningsregel fastsat',
-                  description: vaerdi.vaerdi,
-                  newValue: vaerdi.vaerdi,
-                  oldValue: oldRule || undefined,
-                  severity: 'high',
-                  metadata: { relation, org, vaerdi, type: 'signing_rule' },
-                });
-              }
-            });
-          }
-        }
-      });
-    });
-  }
-
   // Extract management, board, and ownership from deltagerRelation
   if (normalizedData?.deltagerRelation) {
     normalizedData.deltagerRelation.forEach((relation: any) => {
@@ -674,13 +619,12 @@ export const extractAllHistoricalEvents = (cvrData: any, financialData?: any): T
                   const roleTitle = vaerdi.vaerdi || 'Rolle';
                   
                   // Role start event
-                  const categoryLabel = category === 'management' ? 'direktør' : category === 'board' ? 'bestyrelsesmedlem' : 'ejer';
                   events.push({
                     id: generateId(category, startDate, eventIndex++),
                     date: startDate,
                     category,
-                    title: `Ny ${categoryLabel} tiltrådt`,
-                    description: `${personName} (${roleTitle.toLowerCase()})`,
+                    title: `${personName} indtrådte som ${roleTitle.toLowerCase()} i selskabet`,
+                    description: '',
                     newValue: personName,
                     severity,
                     metadata: { relation, org, medlem, vaerdi, type: 'role_start' },
@@ -692,8 +636,8 @@ export const extractAllHistoricalEvents = (cvrData: any, financialData?: any): T
                       id: generateId(category, endDate, eventIndex++),
                       date: endDate,
                       category,
-                      title: `${categoryLabel.charAt(0).toUpperCase() + categoryLabel.slice(1)} fratrådt`,
-                      description: `${personName} (${roleTitle.toLowerCase()})`,
+                      title: `${personName} udtrådte som ${roleTitle.toLowerCase()} i selskabet`,
+                      description: '',
                       oldValue: personName,
                       severity: 'medium',
                       metadata: { relation, org, medlem, vaerdi, type: 'role_end' },
@@ -705,79 +649,55 @@ export const extractAllHistoricalEvents = (cvrData: any, financialData?: any): T
             
             // Extract EJERANDEL_PROCENT (ownership percentage) changes
             if (category === 'ownership') {
-              // Handle ownership percentage (EJERANDEL_PROCENT)
-              const ejerandelAttr = medlem.attributter?.find((a: any) => a.type === 'EJERANDEL_PROCENT');
+              const ejerandelAttr = medlem.attributter?.find((a: any) => 
+                a.type === 'EJERANDEL_PROCENT' || a.type === 'EJERANDEL_STEMME_PROCENT'
+              );
+              
               if (ejerandelAttr?.vaerdier) {
                 ejerandelAttr.vaerdier.forEach((vaerdi: any, index: number) => {
                   const startDate = parseDate(vaerdi.periode?.gyldigFra);
+                  
                   if (startDate && vaerdi.vaerdi) {
-                    const currentRange = mapOwnershipToRange(parseFloat(vaerdi.vaerdi));
-                    
-                    // Check if this is a change from previous value
-                    const prevValue = index < ejerandelAttr.vaerdier.length - 1 
-                      ? ejerandelAttr.vaerdier[index + 1].vaerdi 
+                    // Multiply by 100 to get actual percentage (0.3333 → 33.33)
+                    const actualPercentage = parseFloat(vaerdi.vaerdi) * 100;
+                    const prevActualPercentage = index < ejerandelAttr.vaerdier.length - 1 
+                      ? parseFloat(ejerandelAttr.vaerdier[index + 1].vaerdi) * 100 
                       : null;
-                    const prevRange = prevValue ? mapOwnershipToRange(parseFloat(prevValue)) : null;
                     
-                    // Only create event if range changed or it's the first registration
-                    if (!prevRange || prevRange !== currentRange) {
-                      const title = prevRange 
-                        ? `Ændring i ejerskab for ${personName}`
-                        : `Ejerskab registreret for ${personName}`;
-                      const description = prevRange
-                        ? `Ejerandel ændret fra ${prevRange} til ${currentRange}`
-                        : `Ejerandel: ${currentRange}`;
-                      
-                      events.push({
-                        id: generateId('ownership', startDate, eventIndex++),
-                        date: startDate,
-                        category: 'ownership',
-                        title,
-                        description,
-                        newValue: currentRange,
-                        oldValue: prevRange || undefined,
-                        severity: 'medium',
-                        metadata: { relation, org, medlem, vaerdi, type: 'ownership_change' },
-                      });
+                    // Round for display
+                    const displayPercent = Math.round(actualPercentage * 10) / 10;
+                    const prevDisplayPercent = prevActualPercentage ? Math.round(prevActualPercentage * 10) / 10 : null;
+                    
+                    // Skip if no change
+                    if (prevDisplayPercent !== null && displayPercent === prevDisplayPercent) {
+                      return;
                     }
-                  }
-                });
-              }
-
-              // Handle voting rights (EJERANDEL_STEMMERET_PROCENT)
-              const stemmeretAttr = medlem.attributter?.find((a: any) => a.type === 'EJERANDEL_STEMMERET_PROCENT');
-              if (stemmeretAttr?.vaerdier) {
-                stemmeretAttr.vaerdier.forEach((vaerdi: any, index: number) => {
-                  const startDate = parseDate(vaerdi.periode?.gyldigFra);
-                  if (startDate && vaerdi.vaerdi) {
-                    const currentRange = mapOwnershipToRange(parseFloat(vaerdi.vaerdi));
                     
-                    const prevValue = index < stemmeretAttr.vaerdier.length - 1 
-                      ? stemmeretAttr.vaerdier[index + 1].vaerdi 
-                      : null;
-                    const prevRange = prevValue ? mapOwnershipToRange(parseFloat(prevValue)) : null;
+                    // Natural language based on change type
+                    let title: string;
                     
-                    // Only create event if range changed or it's the first registration
-                    if (!prevRange || prevRange !== currentRange) {
-                      const title = prevRange 
-                        ? `Ændring i stemmerettigheder for ${personName}`
-                        : `Stemmerettigheder registreret for ${personName}`;
-                      const description = prevRange
-                        ? `Stemmeandel ændret fra ${prevRange} til ${currentRange}`
-                        : `Stemmeandel: ${currentRange}`;
-                      
-                      events.push({
-                        id: generateId('ownership', startDate, eventIndex++),
-                        date: startDate,
-                        category: 'ownership',
-                        title,
-                        description,
-                        newValue: currentRange,
-                        oldValue: prevRange || undefined,
-                        severity: 'medium',
-                        metadata: { relation, org, medlem, vaerdi, type: 'voting_rights_change' },
-                      });
+                    if (!prevDisplayPercent) {
+                      // First time ownership registered
+                      title = `${personName} registreret som ejer med ca. ${displayPercent}% af stemmerne`;
+                    } else if (displayPercent > prevDisplayPercent) {
+                      // Ownership increased
+                      title = `${personName} forøgede sin andel af stemmerne i selskabet fra ca. ${prevDisplayPercent}% til ca. ${displayPercent}%`;
+                    } else {
+                      // Ownership decreased
+                      title = `${personName} reducerede sin andel af stemmerne i selskabet fra ca. ${prevDisplayPercent}% til ca. ${displayPercent}%`;
                     }
+                    
+                    events.push({
+                      id: generateId('ownership', startDate, eventIndex++),
+                      date: startDate,
+                      category: 'ownership',
+                      title,
+                      description: '',
+                      newValue: `${displayPercent}%`,
+                      oldValue: prevDisplayPercent ? `${prevDisplayPercent}%` : undefined,
+                      severity: 'medium',
+                      metadata: { relation, org, medlem, vaerdi, type: 'ownership_change' },
+                    });
                   }
                 });
               }
@@ -821,7 +741,7 @@ export const extractAllHistoricalEvents = (cvrData: any, financialData?: any): T
               if (!attr.vaerdier || attr.vaerdier.length === 0) return;
               
               // Skip already processed attributes
-              if (['FUNKTION', 'EJERANDEL_PROCENT', 'EJERANDEL_STEMMERET_PROCENT', 'VALGFORM'].includes(attr.type)) {
+              if (['FUNKTION', 'EJERANDEL_PROCENT', 'EJERANDEL_STEMME_PROCENT', 'VALGFORM'].includes(attr.type)) {
                 return;
               }
               
@@ -845,6 +765,7 @@ export const extractAllHistoricalEvents = (cvrData: any, financialData?: any): T
                 'AFSAETTELSEGRUND': 'Afsættelsesgrund',
                 
                 // Ownership attributes
+                'EJERANDEL_STEMMERET_PROCENT': 'Stemmeandel',
                 'EJERANDEL_KAPITAL_KLASSE': 'Kapitalklasse',
                 'EJERANDEL_VEDERLAGS_FORM': 'Vederlagsform',
                 'EJERANDEL_ANTAL_ANPARTER': 'Antal anparter',
@@ -935,17 +856,16 @@ export const filterEvents = (events: TimelineEvent[], filters: TimelineFilters):
     switch (event.category) {
       case 'management': return filters.showManagement;
       case 'board': return filters.showBoard;
-      case 'signing': return filters.showSigning;
       case 'ownership': return filters.showOwnership;
-      case 'capital': return filters.showCapital;
       case 'address': return filters.showAddress;
       case 'name': return filters.showName;
-      case 'status': return filters.showStatus;
-      case 'legal': return filters.showLegal;
       case 'industry': return filters.showIndustry;
-      case 'purpose': return filters.showPurpose;
+      case 'status': return filters.showStatus;
       case 'financial': return filters.showFinancial;
+      case 'legal': return filters.showLegal;
       case 'contact': return filters.showContact;
+      case 'capital': return filters.showCapital;
+      case 'purpose': return filters.showPurpose;
       default: return true;
     }
   });
@@ -955,41 +875,16 @@ export const getCategoryLabel = (category: string): string => {
   const labels: Record<string, string> = {
     management: 'Ledelse',
     board: 'Bestyrelse',
-    signing: 'Tegningsregler',
     ownership: 'Ejerskab',
-    capital: 'Kapital',
     address: 'Adresse',
     name: 'Navn',
-    status: 'Status',
-    legal: 'Juridisk',
     industry: 'Branche',
-    purpose: 'Formål',
+    status: 'Status',
     financial: 'Økonomi',
+    legal: 'Juridisk',
     contact: 'Kontakt',
+    capital: 'Kapital',
+    purpose: 'Formål',
   };
   return labels[category] || category;
-};
-
-export const getCategoryColor = (category: string): string => {
-  // Map categories to color themes
-  const colorMap: Record<string, string> = {
-    // Grundlæggende (Blue)
-    name: 'blue',
-    address: 'blue',
-    status: 'blue',
-    legal: 'blue',
-    industry: 'blue',
-    purpose: 'blue',
-    // Ledelse (Purple)
-    management: 'purple',
-    board: 'purple',
-    signing: 'purple',
-    // Ejerskab (Green)
-    ownership: 'green',
-    capital: 'green',
-    // Finansielle (Orange)
-    financial: 'orange',
-    contact: 'orange',
-  };
-  return colorMap[category] || 'gray';
 };
