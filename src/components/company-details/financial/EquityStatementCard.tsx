@@ -18,7 +18,7 @@ const EQUITY_EXPLANATIONS: Record<string, string> = {
   'virksomhedskapital': 'Den indskudte startkapital fra ejerne ved virksomhedens oprettelse.',
   'overkurs_ved_emission': 'Overkurs betalt ved udstedelse af nye aktier/anparter - forskel mellem kurs og pålydende værdi.',
   'overfoert_resultat': 'Opsparet overskud eller akkumuleret underskud fra tidligere år.',
-  'kontant_kapitalforhoejelse': 'Ny kapital indskudt af ejerne i løbet af året.',
+  'kontant_kapitalforhoejelse': 'Ny kapital indskudt af ejerne i løbet af året (virksomhedskapital + overkurs).',
   'aarets_resultat': 'Virksomhedens overskud eller underskud for året, som tilføjes egenkapitalen.',
   'overfoert_fra_overkurs': 'Flytning af overkurs til frie reserver (overført resultat).',
   'egenkapital_opening': 'Egenkapitalens størrelse ved årets begyndelse.',
@@ -279,6 +279,48 @@ const EquityStatementCard: React.FC<EquityStatementCardProps> = ({ historicalDat
                     );
                   })}
                 </TableRow>
+                
+                {isExpanded && (
+                  <>
+                    <TableRow className="hover:bg-muted/30">
+                      <EquityRowWithTooltip
+                        label="  heraf Virksomhedskapital"
+                        tooltipKey="virksomhedskapital"
+                        className="sticky left-0 bg-background text-xs py-1.5 w-[200px] pl-8 text-muted-foreground"
+                      />
+                      {periods.map((period, idx) => {
+                        const prev = periods[idx + 1] || null;
+                        const equity = calculateEquityMovements(period, prev);
+                        const value = equity.movements.kapitalforhoejelseVirksomhed;
+                        if (value === 0) return <TableCell key={idx} className="text-right text-xs py-1.5 w-[120px] text-muted-foreground">-</TableCell>;
+                        return (
+                          <TableCell key={idx} className={`text-right text-xs py-1.5 w-[120px] text-muted-foreground ${getValueColor(value)}`}>
+                            {formatThousands(value)}
+                          </TableCell>
+                        );
+                      })}
+                    </TableRow>
+                    
+                    <TableRow className="hover:bg-muted/30">
+                      <EquityRowWithTooltip
+                        label="  heraf Overkurs ved emission"
+                        tooltipKey="overkurs_ved_emission"
+                        className="sticky left-0 bg-background text-xs py-1.5 w-[200px] pl-8 text-muted-foreground"
+                      />
+                      {periods.map((period, idx) => {
+                        const prev = periods[idx + 1] || null;
+                        const equity = calculateEquityMovements(period, prev);
+                        const value = equity.movements.kapitalforhoejelseOverkurs;
+                        if (value === 0) return <TableCell key={idx} className="text-right text-xs py-1.5 w-[120px] text-muted-foreground">-</TableCell>;
+                        return (
+                          <TableCell key={idx} className={`text-right text-xs py-1.5 w-[120px] text-muted-foreground ${getValueColor(value)}`}>
+                            {formatThousands(value)}
+                          </TableCell>
+                        );
+                      })}
+                    </TableRow>
+                  </>
+                )}
                 
                 <TableRow className="hover:bg-muted/30">
                   <EquityRowWithTooltip
