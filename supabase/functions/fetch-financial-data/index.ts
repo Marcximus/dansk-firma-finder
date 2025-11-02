@@ -1163,6 +1163,18 @@ const parseXBRL = (xmlContent: string, period: string) => {
         'HenlagtOverskud'
       ], undefined, 'overfoertResultat'),
 
+      overkursVedEmission: extractValue([
+        'SharePremiumAccount', // Standard IFRS tag
+        'SharePremium', 'OverkursVedEmission',
+        'OverkursPaaAktier', // Danish A/S variant
+        'OverkursPaaAnparter', // Danish ApS variant
+        'AdditionalPaidInCapital', // US GAAP equivalent
+        'CapitalSurplus', 'PremiumReserve',
+        'EmissionsPremie', // Danish alternative
+        'OverkurskontoIAlt', // Danish total variant
+        'OverkursReserve'
+      ], undefined, 'overkursVedEmission'),
+
       leverandoererAfVarerOgTjenesteydelser: extractValue([
         'ShorttermTradePayables', // EXACT TAG from logs! ✅
         'TradePayables', 'Leverandoerer',

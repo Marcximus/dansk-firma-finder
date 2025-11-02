@@ -235,6 +235,7 @@ export const extractFinancialData = (cvrData: any, parsedFinancialData?: any) =>
         egenkapital: periodData.egenkapital || 0,
         virksomhedskapital: periodData.virksomhedskapital || 0,
         overfoertResultat: periodData.overfoertResultat || 0,
+        overkursVedEmission: periodData.overkursVedEmission || 0,
         hensatteForpligtelser: periodData.hensatteForpligtelser || 0,
         gaeldsforpligtelser: periodData.gaeldsforpligtelser || 0,
         langfristetGaeld: periodData.langfristetGaeld || 0,
