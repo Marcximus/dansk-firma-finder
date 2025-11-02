@@ -279,7 +279,6 @@ const EquityStatementCard: React.FC<EquityStatementCardProps> = ({ historicalDat
                     const prev = periods[idx + 1] || null;
                     const equity = calculateEquityMovements(period, prev);
                     const value = equity.movements.kontantKapitalforhoejelse;
-                    if (value === 0) return <TableCell key={idx} className="text-right text-xs py-1.5 w-[120px]">-</TableCell>;
                     return (
                       <TableCell key={idx} className={`text-right text-xs py-1.5 w-[120px] ${getValueColor(value)}`}>
                         {formatThousands(value)}
@@ -300,7 +299,6 @@ const EquityStatementCard: React.FC<EquityStatementCardProps> = ({ historicalDat
                         const prev = periods[idx + 1] || null;
                         const equity = calculateEquityMovements(period, prev);
                         const value = equity.movements.kapitalforhoejelseVirksomhed;
-                        if (value === 0) return <TableCell key={idx} className="text-right text-xs py-1.5 w-[120px] text-muted-foreground">-</TableCell>;
                         return (
                           <TableCell key={idx} className={`text-right text-xs py-1.5 w-[120px] text-muted-foreground ${getValueColor(value)}`}>
                             {formatThousands(value)}
@@ -319,7 +317,6 @@ const EquityStatementCard: React.FC<EquityStatementCardProps> = ({ historicalDat
                         const prev = periods[idx + 1] || null;
                         const equity = calculateEquityMovements(period, prev);
                         const value = equity.movements.kapitalforhoejelseOverkurs;
-                        if (value === 0) return <TableCell key={idx} className="text-right text-xs py-1.5 w-[120px] text-muted-foreground">-</TableCell>;
                         return (
                           <TableCell key={idx} className={`text-right text-xs py-1.5 w-[120px] text-muted-foreground ${getValueColor(value)}`}>
                             {formatThousands(value)}
@@ -358,7 +355,6 @@ const EquityStatementCard: React.FC<EquityStatementCardProps> = ({ historicalDat
                       const prev = periods[idx + 1] || null;
                       const equity = calculateEquityMovements(period, prev);
                       const value = equity.movements.overfoertFraOverkurs;
-                      if (value === 0) return <TableCell key={idx} className="text-right text-xs py-1.5 w-[120px]">-</TableCell>;
                       return (
                         <TableCell key={idx} className={`text-right text-xs py-1.5 w-[120px] ${getValueColor(value)}`}>
                           {formatThousands(value)}
