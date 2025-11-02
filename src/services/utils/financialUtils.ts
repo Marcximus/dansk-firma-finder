@@ -236,6 +236,11 @@ export const extractFinancialData = (cvrData: any, parsedFinancialData?: any) =>
         virksomhedskapital: periodData.virksomhedskapital || 0,
         overfoertResultat: periodData.overfoertResultat || 0,
         overkursVedEmission: periodData.overkursVedEmission || 0,
+        
+        // Equity Statement Movements (if provided from XBRL)
+        kapitalforhoejelseVirksomhed: periodData.increaseInShareCapital || 0,
+        kapitalforhoejelseOverkurs: periodData.increaseInSharePremium || 0,
+        overfoertFraOverkurs: Math.abs(periodData.transferFromSharePremium || 0),
         hensatteForpligtelser: periodData.hensatteForpligtelser || 0,
         gaeldsforpligtelser: periodData.gaeldsforpligtelser || 0,
         langfristetGaeld: periodData.langfristetGaeld || 0,

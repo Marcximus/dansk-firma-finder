@@ -103,16 +103,24 @@ const EquityStatementCard: React.FC<EquityStatementCardProps> = ({ historicalDat
       total: currentPeriod.egenkapital || 0,
     };
     
-    // Calculate movements
-    const kapitalforhoejelseVirksomhed = closing.virksomhedskapital - opening.virksomhedskapital;
-    const kapitalforhoejelseOverkurs = closing.overkursVedEmission - opening.overkursVedEmission;
+    // Calculate movements - use pre-calculated values if provided from XBRL equity statement
+    const kapitalforhoejelseVirksomhed = currentPeriod.kapitalforhoejelseVirksomhed !== undefined && currentPeriod.kapitalforhoejelseVirksomhed !== 0
+      ? currentPeriod.kapitalforhoejelseVirksomhed
+      : closing.virksomhedskapital - opening.virksomhedskapital;
+    const kapitalforhoejelseOverkurs = currentPeriod.kapitalforhoejelseOverkurs !== undefined && currentPeriod.kapitalforhoejelseOverkurs !== 0
+      ? currentPeriod.kapitalforhoejelseOverkurs
+      : closing.overkursVedEmission - opening.overkursVedEmission;
     const kontantKapitalforhoejelse = kapitalforhoejelseVirksomhed + kapitalforhoejelseOverkurs;
     
     const aaretsResultat = currentPeriod.aaretsResultat || 0;
     
-    // Calculate transfer from overkurs (when overkurs decreases but overført increases)
-    const potentialTransfer = opening.overkursVedEmission - closing.overkursVedEmission - Math.abs(kapitalforhoejelseOverkurs);
-    const overfoertFraOverkurs = potentialTransfer > 0 ? potentialTransfer : 0;
+    // Calculate transfer from overkurs - use pre-calculated value if available
+    const overfoertFraOverkurs = currentPeriod.overfoertFraOverkurs !== undefined && currentPeriod.overfoertFraOverkurs !== 0
+      ? currentPeriod.overfoertFraOverkurs
+      : (() => {
+          const potentialTransfer = opening.overkursVedEmission - closing.overkursVedEmission - Math.abs(kapitalforhoejelseOverkurs);
+          return potentialTransfer > 0 ? potentialTransfer : 0;
+        })();
     
     return {
       opening,

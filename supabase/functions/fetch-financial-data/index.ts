@@ -1255,7 +1255,38 @@ const parseXBRL = (xmlContent: string, period: string) => {
         'LangfristetGaeldTilKreditinstitutter',
         'NoncurrentLiabilities', 'LongtermLiabilities',
         'LongtermDebt', 'NoncurrentFinancialLiabilities'
-      ], useInstantContexts, 'langfristetGaeld')
+      ], useInstantContexts, 'langfristetGaeld'),
+      
+      // Statement of Changes in Equity - Movements (captures gross changes during the year)
+      increaseInShareCapital: extractValue([
+        'IncreaseDecreaseInShareCapital',
+        'IncreaseInShareCapital',
+        'KapitalforhoejelserVirksomhedskapital',
+        'ChangeInShareCapital',
+        'ShareCapitalIncrease',
+        'KapitalforhoejelserIAlt',
+        'AendringIVirksomhedskapital'
+      ], undefined, 'increaseInShareCapital'),
+      
+      increaseInSharePremium: extractValue([
+        'IncreaseDecreaseInSharePremiumAccount',
+        'IncreaseInSharePremium',
+        'KapitalforhoejelserOverkurs',
+        'SharePremiumIncreases',
+        'OverkursKapitalforhoejelse',
+        'AendringIOverkurs',
+        'SharePremiumMovement'
+      ], undefined, 'increaseInSharePremium'),
+      
+      transferFromSharePremium: extractValue([
+        'TransfersToFromReserves',
+        'TransferFromSharePremiumAccount',
+        'OverfoertFraOverkurs',
+        'TransferFromSharePremium',
+        'OverkursOverfoersel',
+        'OverfoertTilReserver',
+        'ReserveTransfers'
+      ], undefined, 'transferFromSharePremium')
     };
 
     // Calculate financial ratios
