@@ -10,7 +10,7 @@ interface TimelineFiltersProps {
   events: TimelineEvent[];
 }
 
-type FilterMode = 'important' | 'admin' | 'all';
+type FilterMode = 'all' | 'basic' | 'management' | 'ownership' | 'financial';
 
 export const TimelineFiltersComponent: React.FC<TimelineFiltersProps> = ({ 
   filters, 
@@ -18,72 +18,77 @@ export const TimelineFiltersComponent: React.FC<TimelineFiltersProps> = ({
   events 
 }) => {
   const getCurrentMode = (): FilterMode => {
-    const importantEnabled = filters.showManagement && filters.showBoard && filters.showOwnership && filters.showStatus && filters.showLegal && filters.showCapital;
-    const adminDisabled = !filters.showAddress && !filters.showName && !filters.showIndustry && !filters.showPurpose && !filters.showContact && !filters.showFinancial;
-    
-    if (importantEnabled && adminDisabled) return 'important';
-    
     const allEnabled = Object.values(filters).every(v => v);
     if (allEnabled) return 'all';
     
-    return 'admin';
+    const basicEnabled = filters.showName && filters.showAddress && filters.showStatus && 
+                         filters.showLegal && filters.showIndustry && filters.showPurpose && filters.showContact;
+    const basicOnly = basicEnabled && !filters.showManagement && !filters.showBoard && 
+                      !filters.showOwnership && !filters.showCapital && !filters.showFinancial;
+    if (basicOnly) return 'basic';
+    
+    const managementEnabled = filters.showManagement && filters.showBoard;
+    const managementOnly = managementEnabled && !filters.showName && !filters.showAddress && 
+                          !filters.showStatus && !filters.showLegal && !filters.showIndustry && 
+                          !filters.showPurpose && !filters.showContact && !filters.showOwnership && 
+                          !filters.showCapital && !filters.showFinancial;
+    if (managementOnly) return 'management';
+    
+    const ownershipEnabled = filters.showOwnership && filters.showCapital;
+    const ownershipOnly = ownershipEnabled && !filters.showName && !filters.showAddress && 
+                          !filters.showStatus && !filters.showLegal && !filters.showIndustry && 
+                          !filters.showPurpose && !filters.showContact && !filters.showManagement && 
+                          !filters.showBoard && !filters.showFinancial;
+    if (ownershipOnly) return 'ownership';
+    
+    const financialOnly = filters.showFinancial && !filters.showName && !filters.showAddress && 
+                          !filters.showStatus && !filters.showLegal && !filters.showIndustry && 
+                          !filters.showPurpose && !filters.showContact && !filters.showManagement && 
+                          !filters.showBoard && !filters.showOwnership && !filters.showCapital;
+    if (financialOnly) return 'financial';
+    
+    return 'all';
   };
 
   const setMode = (mode: FilterMode) => {
     const newFilters: TimelineFilters = {
-      showManagement: mode === 'important' || mode === 'all',
-      showBoard: mode === 'important' || mode === 'all',
-      showOwnership: mode === 'important' || mode === 'all',
-      showStatus: mode === 'important' || mode === 'all',
-      showLegal: mode === 'important' || mode === 'all',
-      showCapital: mode === 'important' || mode === 'all',
-      showAddress: mode === 'admin' || mode === 'all',
-      showName: mode === 'admin' || mode === 'all',
-      showIndustry: mode === 'admin' || mode === 'all',
-      showPurpose: mode === 'admin' || mode === 'all',
-      showContact: mode === 'admin' || mode === 'all',
-      showFinancial: mode === 'all',
+      showManagement: mode === 'management' || mode === 'all',
+      showBoard: mode === 'management' || mode === 'all',
+      showOwnership: mode === 'ownership' || mode === 'all',
+      showCapital: mode === 'ownership' || mode === 'all',
+      showFinancial: mode === 'financial' || mode === 'all',
+      showAddress: mode === 'basic' || mode === 'all',
+      showName: mode === 'basic' || mode === 'all',
+      showIndustry: mode === 'basic' || mode === 'all',
+      showStatus: mode === 'basic' || mode === 'all',
+      showLegal: mode === 'basic' || mode === 'all',
+      showContact: mode === 'basic' || mode === 'all',
+      showPurpose: mode === 'basic' || mode === 'all',
     };
     onFiltersChange(newFilters);
   };
 
   const currentMode = getCurrentMode();
   
-  const importantCount = events.filter(e => 
-    ['management', 'board', 'ownership', 'status', 'legal', 'capital'].includes(e.category)
+  const basicCount = events.filter(e => 
+    ['name', 'address', 'status', 'legal', 'industry', 'purpose', 'contact'].includes(e.category)
   ).length;
   
-  const adminCount = events.filter(e => 
-    ['address', 'name', 'industry', 'purpose', 'contact'].includes(e.category)
+  const managementCount = events.filter(e => 
+    ['management', 'board'].includes(e.category)
+  ).length;
+  
+  const ownershipCount = events.filter(e => 
+    ['ownership', 'capital'].includes(e.category)
+  ).length;
+  
+  const financialCount = events.filter(e => 
+    e.category === 'financial'
   ).length;
 
   return (
     <Card className="p-3 mb-4">
       <div className="flex flex-wrap items-center gap-2">
-        <Button
-          variant={currentMode === 'important' ? 'default' : 'outline'}
-          size="sm"
-          onClick={() => setMode('important')}
-          className="gap-1.5"
-        >
-          Vigtige
-          <Badge variant={currentMode === 'important' ? 'secondary' : 'outline'} className="text-xs">
-            {importantCount}
-          </Badge>
-        </Button>
-        
-        <Button
-          variant={currentMode === 'admin' ? 'default' : 'outline'}
-          size="sm"
-          onClick={() => setMode('admin')}
-          className="gap-1.5"
-        >
-          Administrative
-          <Badge variant={currentMode === 'admin' ? 'secondary' : 'outline'} className="text-xs">
-            {adminCount}
-          </Badge>
-        </Button>
-        
         <Button
           variant={currentMode === 'all' ? 'default' : 'outline'}
           size="sm"
@@ -93,6 +98,54 @@ export const TimelineFiltersComponent: React.FC<TimelineFiltersProps> = ({
           Alle
           <Badge variant={currentMode === 'all' ? 'secondary' : 'outline'} className="text-xs">
             {events.length}
+          </Badge>
+        </Button>
+        
+        <Button
+          variant={currentMode === 'basic' ? 'default' : 'outline'}
+          size="sm"
+          onClick={() => setMode('basic')}
+          className="gap-1.5"
+        >
+          Grundlæggende
+          <Badge variant={currentMode === 'basic' ? 'secondary' : 'outline'} className="text-xs">
+            {basicCount}
+          </Badge>
+        </Button>
+        
+        <Button
+          variant={currentMode === 'management' ? 'default' : 'outline'}
+          size="sm"
+          onClick={() => setMode('management')}
+          className="gap-1.5"
+        >
+          Ledelse
+          <Badge variant={currentMode === 'management' ? 'secondary' : 'outline'} className="text-xs">
+            {managementCount}
+          </Badge>
+        </Button>
+        
+        <Button
+          variant={currentMode === 'ownership' ? 'default' : 'outline'}
+          size="sm"
+          onClick={() => setMode('ownership')}
+          className="gap-1.5"
+        >
+          Ejerskab
+          <Badge variant={currentMode === 'ownership' ? 'secondary' : 'outline'} className="text-xs">
+            {ownershipCount}
+          </Badge>
+        </Button>
+        
+        <Button
+          variant={currentMode === 'financial' ? 'default' : 'outline'}
+          size="sm"
+          onClick={() => setMode('financial')}
+          className="gap-1.5"
+        >
+          Finansielle
+          <Badge variant={currentMode === 'financial' ? 'secondary' : 'outline'} className="text-xs">
+            {financialCount}
           </Badge>
         </Button>
       </div>

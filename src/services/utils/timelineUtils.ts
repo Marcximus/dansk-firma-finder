@@ -36,7 +36,7 @@ export const defaultFilters: TimelineFilters = {
   showName: true,
   showIndustry: true,
   showStatus: true,
-  showFinancial: false,
+  showFinancial: true,
   showLegal: true,
   showContact: true,
   showCapital: true,
