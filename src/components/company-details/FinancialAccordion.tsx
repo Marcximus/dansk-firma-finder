@@ -5,10 +5,9 @@ import { extractFinancialData } from '@/services/utils/financialUtils';
 import { TrendingUp } from 'lucide-react';
 import FinancialKPICard from './financial/FinancialKPICard';
 import CapitalInformationCard from './financial/CapitalInformationCard';
+import FinancialChartsSection from './financial/FinancialChartsSection';
 import FinancialSpreadsheet from './financial/FinancialSpreadsheet';
 import EquityStatementCard from './financial/EquityStatementCard';
-import RevenueResultChart from './financial/RevenueResultChart';
-import EquityChart from './financial/EquityChart';
 import { getFinancialData } from '@/services/companyAPI';
 
 interface FinancialAccordionProps {
@@ -87,24 +86,19 @@ const FinancialAccordion: React.FC<FinancialAccordionProps> = ({ cvr, cvrData })
             <FinancialSpreadsheet historicalData={financialData.historicalData} />
           )}
 
-          {/* Key Financial Figures - Show if no spreadsheet data */}
-          {(!financialData?.historicalData || financialData.historicalData.length === 0) && (
-            <FinancialKPICard financialKPIs={financialData?.financialKPIs} />
-          )}
-
-          {/* Revenue & Result Chart */}
-          {financialData?.historicalData && financialData.historicalData.length > 0 && (
-            <RevenueResultChart historicalData={financialData.historicalData} />
-          )}
-
           {/* Equity Statement - Show if we have historical data */}
           {financialData?.historicalData && financialData.historicalData.length >= 2 && (
             <EquityStatementCard historicalData={financialData.historicalData} />
           )}
 
-          {/* Equity Chart */}
+          {/* Key Financial Figures - Show if no spreadsheet data */}
+          {(!financialData?.historicalData || financialData.historicalData.length === 0) && (
+            <FinancialKPICard financialKPIs={financialData?.financialKPIs} />
+          )}
+
+          {/* Financial Charts - Show historical data if available */}
           {financialData?.historicalData && financialData.historicalData.length > 0 && (
-            <EquityChart historicalData={financialData.historicalData} />
+            <FinancialChartsSection historicalData={financialData.historicalData} />
           )}
 
           {/* Capital Information & Accounting Periods */}
