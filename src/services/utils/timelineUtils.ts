@@ -97,12 +97,16 @@ export const extractAllHistoricalEvents = (cvrData: any, financialData?: any): T
       const startDate = parseDate(navnObj.periode?.gyldigFra);
       if (startDate) {
         const oldName = normalizedData.navne[idx + 1]?.navn;
+        const title = oldName 
+          ? `Selskabet skiftede navn fra "${oldName}" til "${navnObj.navn}"`
+          : `Selskabets navn blev registreret som "${navnObj.navn}"`;
+        
         events.push({
           id: generateId('name', startDate, eventIndex++),
           date: startDate,
           category: 'name',
-          title: 'Navneændring',
-          description: navnObj.navn,
+          title,
+          description: '',
           newValue: navnObj.navn,
           oldValue: oldName,
           severity: 'medium',
@@ -127,14 +131,17 @@ export const extractAllHistoricalEvents = (cvrData: any, financialData?: any): T
           return parts.join(', ');
         };
 
+        const newAddress = formatAddr(addr);
+        const oldAddress = idx < normalizedData.beliggenhedsadresse.length - 1 ? formatAddr(normalizedData.beliggenhedsadresse[idx + 1]) : undefined;
+        
         events.push({
           id: generateId('address', startDate, eventIndex++),
           date: startDate,
           category: 'address',
-          title: 'Adresseændring',
-          description: formatAddr(addr),
-          newValue: formatAddr(addr),
-          oldValue: idx < normalizedData.beliggenhedsadresse.length - 1 ? formatAddr(normalizedData.beliggenhedsadresse[idx + 1]) : undefined,
+          title: 'Selskabets adresse blev ændret',
+          description: newAddress,
+          newValue: newAddress,
+          oldValue: oldAddress,
           severity: 'low',
           metadata: addr,
         });
@@ -175,13 +182,23 @@ export const extractAllHistoricalEvents = (cvrData: any, financialData?: any): T
     normalizedData.hovedbranche.forEach((branche: any, idx: number) => {
       const startDate = parseDate(branche.periode?.gyldigFra);
       if (startDate) {
+        const currentIndustry = branche.branchetekst || `Branchekode: ${branche.branchekode}`;
+        const oldIndustry = idx < normalizedData.hovedbranche.length - 1 
+          ? (normalizedData.hovedbranche[idx + 1].branchetekst || `Branchekode: ${normalizedData.hovedbranche[idx + 1].branchekode}`)
+          : null;
+        
+        const title = oldIndustry
+          ? `Hovedbranche ændret fra ${oldIndustry} til ${currentIndustry}`
+          : `Hovedbranche registreret som ${currentIndustry}`;
+        
         events.push({
           id: generateId('industry', startDate, eventIndex++),
           date: startDate,
           category: 'industry',
-          title: 'Brancheændring',
-          description: branche.branchetekst || `Branchekode: ${branche.branchekode}`,
+          title,
+          description: '',
           newValue: branche.branchetekst,
+          oldValue: oldIndustry || undefined,
           severity: 'medium',
           metadata: branche,
         });
@@ -198,16 +215,24 @@ export const extractAllHistoricalEvents = (cvrData: any, financialData?: any): T
         const oldForm = idx < normalizedData.virksomhedsform.length - 1 
           ? (normalizedData.virksomhedsform[idx + 1].langbeskrivelse || 
              normalizedData.virksomhedsform[idx + 1].kortbeskrivelse)
-          : undefined;
+          : null;
+        
+        // Skip if no valid data
+        if (!newForm) return;
+        
+        // Natural language
+        const title = oldForm 
+          ? `Virksomhedsformen blev ændret fra ${oldForm} til ${newForm}`
+          : `Virksomhedsform registreret som ${newForm}`;
         
         events.push({
           id: generateId('legal', startDate, eventIndex++),
           date: startDate,
           category: 'legal',
-          title: 'Ændring af virksomhedsform',
-          description: newForm,
+          title,
+          description: '',
           newValue: newForm,
-          oldValue: oldForm,
+          oldValue: oldForm || undefined,
           severity: 'high',
           metadata: form,
         });
@@ -258,25 +283,29 @@ export const extractAllHistoricalEvents = (cvrData: any, financialData?: any): T
       const startDate = parseDate(form.periode?.gyldigFra);
       if (startDate) {
         const formMap: Record<string, string> = {
-          'KLASSE_A': 'Årsregnskabsklasse A',
-          'KLASSE_B': 'Årsregnskabsklasse B',
-          'KLASSE_C': 'Årsregnskabsklasse C',
-          'KLASSE_D': 'Årsregnskabsklasse D',
+          'KLASSE_A': 'regnskabsklasse A',
+          'KLASSE_B': 'regnskabsklasse B',
+          'KLASSE_C': 'regnskabsklasse C',
+          'KLASSE_D': 'regnskabsklasse D',
         };
         
         const formLabel = formMap[form.regnskabsform] || form.regnskabsform;
-        const oldForm = idx < normalizedData.regnskabsform.length - 1 
+        const oldFormLabel = idx < normalizedData.regnskabsform.length - 1 
           ? formMap[normalizedData.regnskabsform[idx + 1].regnskabsform] 
-          : undefined;
+          : null;
+        
+        const title = oldFormLabel
+          ? `Regnskabsformen blev ændret fra ${oldFormLabel} til ${formLabel}`
+          : `Regnskabsform registreret som ${formLabel}`;
         
         events.push({
           id: generateId('legal', startDate, eventIndex++),
           date: startDate,
           category: 'legal',
-          title: 'Ændring af regnskabsform',
-          description: formLabel,
+          title,
+          description: '',
           newValue: formLabel,
-          oldValue: oldForm,
+          oldValue: oldFormLabel || undefined,
           severity: 'low',
           metadata: form,
         });
@@ -480,8 +509,8 @@ export const extractAllHistoricalEvents = (cvrData: any, financialData?: any): T
                     id: generateId(category, startDate, eventIndex++),
                     date: startDate,
                     category,
-                    title: `${personName} indtrådte som ${roleTitle}`,
-                    description: `${roleTitle}`,
+                    title: `${personName} indtrådte som ${roleTitle.toLowerCase()} i selskabet`,
+                    description: '',
                     newValue: personName,
                     severity,
                     metadata: { relation, org, medlem, vaerdi, type: 'role_start' },
@@ -493,8 +522,8 @@ export const extractAllHistoricalEvents = (cvrData: any, financialData?: any): T
                       id: generateId(category, endDate, eventIndex++),
                       date: endDate,
                       category,
-                      title: `${personName} udtrådte som ${roleTitle}`,
-                      description: `${roleTitle}`,
+                      title: `${personName} udtrådte som ${roleTitle.toLowerCase()} i selskabet`,
+                      description: '',
                       oldValue: personName,
                       severity: 'medium',
                       metadata: { relation, org, medlem, vaerdi, type: 'role_end' },
@@ -515,24 +544,43 @@ export const extractAllHistoricalEvents = (cvrData: any, financialData?: any): T
                   const startDate = parseDate(vaerdi.periode?.gyldigFra);
                   
                   if (startDate && vaerdi.vaerdi) {
-                    const percentage = parseFloat(vaerdi.vaerdi);
-                    const attrLabel = ejerandelAttr.type === 'EJERANDEL_STEMME_PROCENT' 
-                      ? 'Stemmeandel' 
-                      : 'Ejerandel';
-                    
-                    // Get previous value for comparison
-                    const prevValue = index < ejerandelAttr.vaerdier.length - 1 
-                      ? parseFloat(ejerandelAttr.vaerdier[index + 1].vaerdi) 
+                    // Multiply by 100 to get actual percentage (0.3333 → 33.33)
+                    const actualPercentage = parseFloat(vaerdi.vaerdi) * 100;
+                    const prevActualPercentage = index < ejerandelAttr.vaerdier.length - 1 
+                      ? parseFloat(ejerandelAttr.vaerdier[index + 1].vaerdi) * 100 
                       : null;
+                    
+                    // Round for display
+                    const displayPercent = Math.round(actualPercentage * 10) / 10;
+                    const prevDisplayPercent = prevActualPercentage ? Math.round(prevActualPercentage * 10) / 10 : null;
+                    
+                    // Skip if no change
+                    if (prevDisplayPercent !== null && displayPercent === prevDisplayPercent) {
+                      return;
+                    }
+                    
+                    // Natural language based on change type
+                    let title: string;
+                    
+                    if (!prevDisplayPercent) {
+                      // First time ownership registered
+                      title = `${personName} registreret som ejer med ca. ${displayPercent}% af stemmerne`;
+                    } else if (displayPercent > prevDisplayPercent) {
+                      // Ownership increased
+                      title = `${personName} forøgede sin andel af stemmerne i selskabet fra ca. ${prevDisplayPercent}% til ca. ${displayPercent}%`;
+                    } else {
+                      // Ownership decreased
+                      title = `${personName} reducerede sin andel af stemmerne i selskabet fra ca. ${prevDisplayPercent}% til ca. ${displayPercent}%`;
+                    }
                     
                     events.push({
                       id: generateId('ownership', startDate, eventIndex++),
                       date: startDate,
                       category: 'ownership',
-                      title: `${personName} - ${attrLabel} ændret`,
-                      description: `${attrLabel}: ${percentage}%`,
-                      newValue: `${percentage}%`,
-                      oldValue: prevValue ? `${prevValue}%` : undefined,
+                      title,
+                      description: '',
+                      newValue: `${displayPercent}%`,
+                      oldValue: prevDisplayPercent ? `${prevDisplayPercent}%` : undefined,
                       severity: 'medium',
                       metadata: { relation, org, medlem, vaerdi, type: 'ownership_change' },
                     });
@@ -541,31 +589,7 @@ export const extractAllHistoricalEvents = (cvrData: any, financialData?: any): T
               }
             }
             
-            // Extract VALGFORM (election form) changes
-            const valgformAttr = medlem.attributter?.find((a: any) => a.type === 'VALGFORM');
-            if (valgformAttr?.vaerdier) {
-              valgformAttr.vaerdier.forEach((vaerdi: any, index: number) => {
-                const startDate = parseDate(vaerdi.periode?.gyldigFra);
-                
-                if (startDate && vaerdi.vaerdi) {
-                  const prevValue = index < valgformAttr.vaerdier.length - 1 
-                    ? valgformAttr.vaerdier[index + 1].vaerdi 
-                    : null;
-                  
-                  events.push({
-                    id: generateId(category, startDate, eventIndex++),
-                    date: startDate,
-                    category,
-                    title: `${personName} - Valgform ændret`,
-                    description: `Valgform: ${vaerdi.vaerdi}`,
-                    newValue: vaerdi.vaerdi,
-                    oldValue: prevValue || undefined,
-                    severity: 'low',
-                    metadata: { relation, org, medlem, vaerdi, type: 'valgform_change' },
-                  });
-                }
-              });
-            }
+            // VALGFORM events are skipped - they are administrative noise and low value
 
             // Helper function to format attribute values
             const formatAttributeValue = (attrType: string, value: string): string => {
@@ -647,31 +671,31 @@ export const extractAllHistoricalEvents = (cvrData: any, financialData?: any): T
               
               const label = attrLabels[attr.type];
               
-          attr.vaerdier.forEach((vaerdi: any, index: number) => {
-            const startDate = parseDate(vaerdi.periode?.gyldigFra);
-            if (startDate && vaerdi.vaerdi) {
-              const prevValue = index < attr.vaerdier.length - 1
-                ? attr.vaerdier[index + 1].vaerdi
-                : null;
+              attr.vaerdier.forEach((vaerdi: any, index: number) => {
+                const startDate = parseDate(vaerdi.periode?.gyldigFra);
+                if (startDate && vaerdi.vaerdi) {
+                  const prevValue = index < attr.vaerdier.length - 1
+                    ? attr.vaerdier[index + 1].vaerdi
+                    : null;
 
-              const formattedNewValue = formatAttributeValue(attr.type, vaerdi.vaerdi);
-              const formattedOldValue = prevValue ? formatAttributeValue(attr.type, prevValue) : null;
+                  const formattedNewValue = formatAttributeValue(attr.type, vaerdi.vaerdi);
+                  const formattedOldValue = prevValue ? formatAttributeValue(attr.type, prevValue) : null;
 
-              events.push({
-                id: generateId(category, startDate, eventIndex++),
-                date: startDate,
-                category,
-                title: `${personName} - ${label}`,
-                description: formattedOldValue 
-                  ? `${formattedOldValue} → ${formattedNewValue}`
-                  : formattedNewValue,
-                newValue: formattedNewValue,
-                oldValue: formattedOldValue || undefined,
-                severity: 'low',
-                metadata: { relation, org, medlem, vaerdi, type: 'attribute_change', attrType: attr.type },
+                  events.push({
+                    id: generateId(category, startDate, eventIndex++),
+                    date: startDate,
+                    category,
+                    title: `${personName} - ${label}`,
+                    description: formattedOldValue 
+                      ? `${formattedOldValue} → ${formattedNewValue}`
+                      : formattedNewValue,
+                    newValue: formattedNewValue,
+                    oldValue: formattedOldValue || undefined,
+                    severity: 'low',
+                    metadata: { relation, org, medlem, vaerdi, type: 'attribute_change', attrType: attr.type },
+                  });
+                }
               });
-            }
-          });
             });
           });
         }
