@@ -4,7 +4,7 @@ import { da } from 'date-fns/locale';
 export interface TimelineEvent {
   id: string;
   date: Date;
-  category: 'management' | 'board' | 'ownership' | 'address' | 'name' | 'industry' | 'status' | 'financial' | 'legal' | 'contact' | 'capital' | 'purpose';
+  category: 'management' | 'board' | 'ownership' | 'address' | 'name' | 'industry' | 'status' | 'financial' | 'legal' | 'contact' | 'capital' | 'purpose' | 'signing';
   title: string;
   description: string;
   oldValue?: string;
@@ -13,34 +13,42 @@ export interface TimelineEvent {
   metadata?: Record<string, any>;
 }
 
+export type FilterGroup = 'all' | 'grundlaeggende' | 'ledelse' | 'ejerskab' | 'finansielle';
+
 export interface TimelineFilters {
   showManagement: boolean;
   showBoard: boolean;
+  showSigning: boolean;
   showOwnership: boolean;
+  showCapital: boolean;
   showAddress: boolean;
   showName: boolean;
-  showIndustry: boolean;
   showStatus: boolean;
-  showFinancial: boolean;
   showLegal: boolean;
-  showContact: boolean;
-  showCapital: boolean;
+  showIndustry: boolean;
   showPurpose: boolean;
+  showFinancial: boolean;
+  showContact: boolean;
 }
 
 export const defaultFilters: TimelineFilters = {
+  // Ledelse
   showManagement: true,
   showBoard: true,
+  showSigning: true,
+  // Ejerskab
   showOwnership: true,
-  showAddress: true,
-  showName: true,
-  showIndustry: true,
-  showStatus: true,
-  showFinancial: false,
-  showLegal: true,
-  showContact: true,
   showCapital: true,
-  showPurpose: true,
+  // Grundlæggende
+  showAddress: false,
+  showName: false,
+  showStatus: false,
+  showLegal: false,
+  showIndustry: false,
+  showPurpose: false,
+  // Finansielle
+  showFinancial: false,
+  showContact: false,
 };
 
 const parseDate = (dateString: string | null | undefined): Date | null => {
@@ -77,14 +85,14 @@ export const extractAllHistoricalEvents = (cvrData: any, financialData?: any): T
   if (normalizedData?.stiftelsesDato) {
     const foundingDate = parseDate(normalizedData.stiftelsesDato);
     if (foundingDate) {
-      events.push({
-        id: generateId('founding', foundingDate, eventIndex++),
-        date: foundingDate,
-        category: 'legal',
-        title: 'Virksomhed stiftet',
-        description: normalizedData.navne?.[normalizedData.navne.length - 1]?.navn || 'Ukendt navn',
-        severity: 'high',
-      });
+        events.push({
+          id: generateId('founding', foundingDate, eventIndex++),
+          date: foundingDate,
+          category: 'legal',
+          title: 'Selskab stiftet',
+          description: normalizedData.navne?.[normalizedData.navne.length - 1]?.navn || 'Ukendt navn',
+          severity: 'high',
+        });
     }
   }
 
@@ -98,15 +106,15 @@ export const extractAllHistoricalEvents = (cvrData: any, financialData?: any): T
       if (startDate) {
         const oldName = normalizedData.navne[idx + 1]?.navn;
         const title = oldName 
-          ? `Selskabet skiftede navn fra "${oldName}" til "${navnObj.navn}"`
-          : `Selskabets navn blev registreret som "${navnObj.navn}"`;
+          ? `Navneændring`
+          : `Navn registreret`;
         
         events.push({
           id: generateId('name', startDate, eventIndex++),
           date: startDate,
           category: 'name',
           title,
-          description: '',
+          description: oldName ? `${oldName} → ${navnObj.navn}` : navnObj.navn,
           newValue: navnObj.navn,
           oldValue: oldName,
           severity: 'medium',
@@ -138,7 +146,7 @@ export const extractAllHistoricalEvents = (cvrData: any, financialData?: any): T
           id: generateId('address', startDate, eventIndex++),
           date: startDate,
           category: 'address',
-          title: 'Selskabets adresse blev ændret',
+          title: 'Adresseændring',
           description: newAddress,
           newValue: newAddress,
           oldValue: oldAddress,
@@ -188,15 +196,15 @@ export const extractAllHistoricalEvents = (cvrData: any, financialData?: any): T
           : null;
         
         const title = oldIndustry
-          ? `Hovedbranche ændret fra ${oldIndustry} til ${currentIndustry}`
-          : `Hovedbranche registreret som ${currentIndustry}`;
+          ? `Brancheskift`
+          : `Hovedbranche registreret`;
         
         events.push({
           id: generateId('industry', startDate, eventIndex++),
           date: startDate,
           category: 'industry',
           title,
-          description: '',
+          description: oldIndustry ? `${oldIndustry} → ${currentIndustry}` : currentIndustry,
           newValue: branche.branchetekst,
           oldValue: oldIndustry || undefined,
           severity: 'medium',
@@ -220,17 +228,16 @@ export const extractAllHistoricalEvents = (cvrData: any, financialData?: any): T
         // Skip if no valid data
         if (!newForm) return;
         
-        // Natural language
         const title = oldForm 
-          ? `Virksomhedsformen blev ændret fra ${oldForm} til ${newForm}`
-          : `Virksomhedsform registreret som ${newForm}`;
+          ? `Ændring af selskabsform`
+          : `Selskabsform registreret`;
         
         events.push({
           id: generateId('legal', startDate, eventIndex++),
           date: startDate,
           category: 'legal',
           title,
-          description: '',
+          description: oldForm ? `${oldForm} → ${newForm}` : newForm,
           newValue: newForm,
           oldValue: oldForm || undefined,
           severity: 'high',
@@ -409,15 +416,15 @@ export const extractAllHistoricalEvents = (cvrData: any, financialData?: any): T
           : null;
         
         const title = oldFormLabel
-          ? `Regnskabsformen blev ændret fra ${oldFormLabel} til ${formLabel}`
-          : `Regnskabsform registreret som ${formLabel}`;
+          ? `Skift af regnskabsklasse`
+          : `Regnskabsklasse registreret`;
         
         events.push({
           id: generateId('legal', startDate, eventIndex++),
           date: startDate,
           category: 'legal',
           title,
-          description: '',
+          description: oldFormLabel ? `${oldFormLabel} → ${formLabel}` : formLabel,
           newValue: formLabel,
           oldValue: oldFormLabel || undefined,
           severity: 'low',
@@ -586,6 +593,39 @@ export const extractAllHistoricalEvents = (cvrData: any, financialData?: any): T
     });
   }
 
+  // Extract signing rules from deltagerRelation - TEGNINGSREGEL
+  if (normalizedData?.deltagerRelation) {
+    normalizedData.deltagerRelation.forEach((relation: any) => {
+      relation.organisationer?.forEach((org: any) => {
+        if (org.hovedtype === 'REGISTER_DIREKTION' && org.attributter) {
+          const signingAttr = org.attributter.find((a: any) => a.type === 'TEGNINGSREGEL');
+          if (signingAttr?.vaerdier) {
+            signingAttr.vaerdier.forEach((vaerdi: any, idx: number) => {
+              const startDate = parseDate(vaerdi.periode?.gyldigFra);
+              if (startDate && vaerdi.vaerdi) {
+                const oldRule = idx < signingAttr.vaerdier.length - 1 
+                  ? signingAttr.vaerdier[idx + 1]?.vaerdi 
+                  : null;
+                
+                events.push({
+                  id: generateId('signing', startDate, eventIndex++),
+                  date: startDate,
+                  category: 'signing',
+                  title: oldRule ? 'Tegningsregel ændret' : 'Tegningsregel fastsat',
+                  description: vaerdi.vaerdi,
+                  newValue: vaerdi.vaerdi,
+                  oldValue: oldRule || undefined,
+                  severity: 'high',
+                  metadata: { relation, org, vaerdi, type: 'signing_rule' },
+                });
+              }
+            });
+          }
+        }
+      });
+    });
+  }
+
   // Extract management, board, and ownership from deltagerRelation
   if (normalizedData?.deltagerRelation) {
     normalizedData.deltagerRelation.forEach((relation: any) => {
@@ -619,12 +659,13 @@ export const extractAllHistoricalEvents = (cvrData: any, financialData?: any): T
                   const roleTitle = vaerdi.vaerdi || 'Rolle';
                   
                   // Role start event
+                  const categoryLabel = category === 'management' ? 'direktør' : category === 'board' ? 'bestyrelsesmedlem' : 'ejer';
                   events.push({
                     id: generateId(category, startDate, eventIndex++),
                     date: startDate,
                     category,
-                    title: `${personName} indtrådte som ${roleTitle.toLowerCase()} i selskabet`,
-                    description: '',
+                    title: `Ny ${categoryLabel} tiltrådt`,
+                    description: `${personName} (${roleTitle.toLowerCase()})`,
                     newValue: personName,
                     severity,
                     metadata: { relation, org, medlem, vaerdi, type: 'role_start' },
@@ -636,8 +677,8 @@ export const extractAllHistoricalEvents = (cvrData: any, financialData?: any): T
                       id: generateId(category, endDate, eventIndex++),
                       date: endDate,
                       category,
-                      title: `${personName} udtrådte som ${roleTitle.toLowerCase()} i selskabet`,
-                      description: '',
+                      title: `${categoryLabel.charAt(0).toUpperCase() + categoryLabel.slice(1)} fratrådt`,
+                      description: `${personName} (${roleTitle.toLowerCase()})`,
                       oldValue: personName,
                       severity: 'medium',
                       metadata: { relation, org, medlem, vaerdi, type: 'role_end' },
@@ -675,16 +716,20 @@ export const extractAllHistoricalEvents = (cvrData: any, financialData?: any): T
                     
                     // Natural language based on change type
                     let title: string;
+                    let description: string;
                     
                     if (!prevDisplayPercent) {
                       // First time ownership registered
-                      title = `${personName} registreret som ejer med ca. ${displayPercent}% af stemmerne`;
+                      title = `Ejerskab registreret`;
+                      description = `${personName}: ca. ${displayPercent}% af stemmerne`;
                     } else if (displayPercent > prevDisplayPercent) {
                       // Ownership increased
-                      title = `${personName} forøgede sin andel af stemmerne i selskabet fra ca. ${prevDisplayPercent}% til ca. ${displayPercent}%`;
+                      title = `Øget ejerandel`;
+                      description = `${personName}: ${prevDisplayPercent}% → ${displayPercent}%`;
                     } else {
                       // Ownership decreased
-                      title = `${personName} reducerede sin andel af stemmerne i selskabet fra ca. ${prevDisplayPercent}% til ca. ${displayPercent}%`;
+                      title = `Reduceret ejerandel`;
+                      description = `${personName}: ${prevDisplayPercent}% → ${displayPercent}%`;
                     }
                     
                     events.push({
@@ -692,7 +737,7 @@ export const extractAllHistoricalEvents = (cvrData: any, financialData?: any): T
                       date: startDate,
                       category: 'ownership',
                       title,
-                      description: '',
+                      description,
                       newValue: `${displayPercent}%`,
                       oldValue: prevDisplayPercent ? `${prevDisplayPercent}%` : undefined,
                       severity: 'medium',
@@ -856,16 +901,17 @@ export const filterEvents = (events: TimelineEvent[], filters: TimelineFilters):
     switch (event.category) {
       case 'management': return filters.showManagement;
       case 'board': return filters.showBoard;
+      case 'signing': return filters.showSigning;
       case 'ownership': return filters.showOwnership;
+      case 'capital': return filters.showCapital;
       case 'address': return filters.showAddress;
       case 'name': return filters.showName;
-      case 'industry': return filters.showIndustry;
       case 'status': return filters.showStatus;
-      case 'financial': return filters.showFinancial;
       case 'legal': return filters.showLegal;
-      case 'contact': return filters.showContact;
-      case 'capital': return filters.showCapital;
+      case 'industry': return filters.showIndustry;
       case 'purpose': return filters.showPurpose;
+      case 'financial': return filters.showFinancial;
+      case 'contact': return filters.showContact;
       default: return true;
     }
   });
@@ -875,16 +921,41 @@ export const getCategoryLabel = (category: string): string => {
   const labels: Record<string, string> = {
     management: 'Ledelse',
     board: 'Bestyrelse',
+    signing: 'Tegningsregler',
     ownership: 'Ejerskab',
+    capital: 'Kapital',
     address: 'Adresse',
     name: 'Navn',
-    industry: 'Branche',
     status: 'Status',
-    financial: 'Økonomi',
     legal: 'Juridisk',
-    contact: 'Kontakt',
-    capital: 'Kapital',
+    industry: 'Branche',
     purpose: 'Formål',
+    financial: 'Økonomi',
+    contact: 'Kontakt',
   };
   return labels[category] || category;
+};
+
+export const getCategoryColor = (category: string): string => {
+  // Map categories to color themes
+  const colorMap: Record<string, string> = {
+    // Grundlæggende (Blue)
+    name: 'blue',
+    address: 'blue',
+    status: 'blue',
+    legal: 'blue',
+    industry: 'blue',
+    purpose: 'blue',
+    // Ledelse (Purple)
+    management: 'purple',
+    board: 'purple',
+    signing: 'purple',
+    // Ejerskab (Green)
+    ownership: 'green',
+    capital: 'green',
+    // Finansielle (Orange)
+    financial: 'orange',
+    contact: 'orange',
+  };
+  return colorMap[category] || 'gray';
 };
