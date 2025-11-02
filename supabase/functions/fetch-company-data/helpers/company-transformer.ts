@@ -25,6 +25,14 @@ export const transformCompanyData = (hit: any, determineLegalForm: (vrvirksomhed
   const source = hit._source;
   const vrvirksomhed = source.Vrvirksomhed || {};
   
+  // Debug: Check if kapitalforhold is present
+  console.log('[KAPITALFORHOLD DEBUG]', {
+    cvrNummer: vrvirksomhed.cvrNummer,
+    hasKapitalforhold: !!vrvirksomhed.kapitalforhold,
+    kapitalforholdLength: vrvirksomhed.kapitalforhold?.length || 0,
+    firstEntry: vrvirksomhed.kapitalforhold?.[0]
+  });
+  
   // Get the current/active name (where gyldigTil is null) or the most recent name
   const currentName = vrvirksomhed.navne?.find((n: any) => n.periode?.gyldigTil === null);
   const primaryName = currentName?.navn || vrvirksomhed.navne?.[vrvirksomhed.navne.length - 1]?.navn || 'Unknown';

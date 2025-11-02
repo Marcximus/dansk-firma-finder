@@ -21,7 +21,8 @@ export const buildPersonQuery = (personName: string) => {
       "Vrvirksomhed.maanedsbeskaeftigelse",
       "Vrvirksomhed.erstMaanedsbeskaeftigelse",
       "Vrvirksomhed.aarsbeskaeftigelse",
-      "Vrvirksomhed.kvartalsbeskaeftigelse"
+      "Vrvirksomhed.kvartalsbeskaeftigelse",
+      "Vrvirksomhed.kapitalforhold"
     ],
     "query": {
       "nested": {
