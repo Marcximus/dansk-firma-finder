@@ -850,37 +850,50 @@ const parseXBRL = (xmlContent: string, period: string) => {
       };
 
     // Parse equity contexts BEFORE financialData object
-    const parseEquityContexts = () => {
-      const contexts = {
-        shareCapital: [] as string[],
-        sharePremium: [] as string[],
-        retainedEarnings: [] as string[]
-      };
-      
-      const contextPattern = /<xbrli:context[^>]+id="([^"]+)"[^>]*>(.*?)<\/xbrli:context>/gis;
-      const contextMatches = Array.from(xmlContent.matchAll(contextPattern));
-      
-      contextMatches.forEach(match => {
-        const contextId = match[1];
-        const contextBody = match[2];
-        
-        if (contextBody.match(/ContributedCapital|ShareCapital|Virksomhedskapital/i)) {
-          contexts.shareCapital.push(contextId);
-        }
-        if (contextBody.match(/SharePremium|Overkurs/i)) {
-          contexts.sharePremium.push(contextId);
-        }
-        if (contextBody.match(/RetainedEarnings|Overf.*?rt.*?resultat/i)) {
-          contexts.retainedEarnings.push(contextId);
-        }
-      });
-      
-      console.log(`[EQUITY CONTEXTS] Share Capital: ${contexts.shareCapital.join(', ')}`);
-      console.log(`[EQUITY CONTEXTS] Share Premium: ${contexts.sharePremium.join(', ')}`);
-      console.log(`[EQUITY CONTEXTS] Retained Earnings: ${contexts.retainedEarnings.join(', ')}`);
-      
-      return contexts;
-    };
+const parseEquityContexts = () => {
+  const contexts = {
+    shareCapital: [] as string[],
+    sharePremium: [] as string[],
+    retainedEarnings: [] as string[]
+  };
+  
+  // Discover Share Premium contexts by finding which contexts have TransferredFromSharePremium tags
+  const sharePremiumPattern = /<[^:]+:TransferredFromSharePremium[^>]+contextRef="([^"]+)"/gi;
+  const sharePremiumMatches = Array.from(xmlContent.matchAll(sharePremiumPattern));
+  sharePremiumMatches.forEach(match => {
+    const contextId = match[1];
+    if (!contexts.sharePremium.includes(contextId)) {
+      contexts.sharePremium.push(contextId);
+    }
+  });
+  
+  // Discover Share Capital contexts by finding IncreaseOfCapital tags NOT in Share Premium contexts
+  const increaseCapitalPattern = /<[^:]+:IncreaseOfCapital[^>]+contextRef="([^"]+)"/gi;
+  const increaseMatches = Array.from(xmlContent.matchAll(increaseCapitalPattern));
+  increaseMatches.forEach(match => {
+    const contextId = match[1];
+    // If not a Share Premium context, it's likely Share Capital
+    if (!contexts.sharePremium.includes(contextId) && !contexts.shareCapital.includes(contextId)) {
+      contexts.shareCapital.push(contextId);
+    }
+  });
+  
+  // Discover Retained Earnings contexts by finding ProfitLoss tags in period contexts
+  const profitLossPattern = /<[^:]+:ProfitLoss[^>]+contextRef="([^"]+)"/gi;
+  const profitMatches = Array.from(xmlContent.matchAll(profitLossPattern));
+  profitMatches.forEach(match => {
+    const contextId = match[1];
+    if (!contexts.retainedEarnings.includes(contextId)) {
+      contexts.retainedEarnings.push(contextId);
+    }
+  });
+  
+  console.log(`[EQUITY CONTEXTS] Share Capital: ${contexts.shareCapital.join(', ')}`);
+  console.log(`[EQUITY CONTEXTS] Share Premium: ${contexts.sharePremium.join(', ')}`);
+  console.log(`[EQUITY CONTEXTS] Retained Earnings: ${contexts.retainedEarnings.join(', ')}`);
+  
+  return contexts;
+};
 
     const extractFromContexts = (
       tagNames: string[],
