@@ -234,6 +234,7 @@ export const extractFinancialData = (cvrData: any, parsedFinancialData?: any) =>
         // Balance Sheet - Equity & Liabilities (Passiver)
         egenkapital: periodData.egenkapital || 0,
         virksomhedskapital: periodData.virksomhedskapital || 0,
+        overkursVedEmission: periodData.overkursVedEmission || 0,
         overfoertResultat: periodData.overfoertResultat || 0,
         hensatteForpligtelser: periodData.hensatteForpligtelser || 0,
         gaeldsforpligtelser: periodData.gaeldsforpligtelser || 0,

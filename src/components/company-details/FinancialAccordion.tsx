@@ -7,6 +7,7 @@ import FinancialKPICard from './financial/FinancialKPICard';
 import CapitalInformationCard from './financial/CapitalInformationCard';
 import FinancialChartsSection from './financial/FinancialChartsSection';
 import FinancialSpreadsheet from './financial/FinancialSpreadsheet';
+import EquityStatementCard from './financial/EquityStatementCard';
 import { getFinancialData } from '@/services/companyAPI';
 
 interface FinancialAccordionProps {
@@ -93,6 +94,11 @@ const FinancialAccordion: React.FC<FinancialAccordionProps> = ({ cvr, cvrData })
           {/* Financial Charts - Show historical data if available */}
           {financialData?.historicalData && financialData.historicalData.length > 0 && (
             <FinancialChartsSection historicalData={financialData.historicalData} />
+          )}
+
+          {/* Equity Statement - Show breakdown of equity changes */}
+          {financialData?.historicalData && financialData.historicalData.length > 1 && (
+            <EquityStatementCard historicalData={financialData.historicalData} />
           )}
 
           {/* Capital Information & Accounting Periods */}
