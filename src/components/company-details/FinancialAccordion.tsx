@@ -92,10 +92,18 @@ const FinancialAccordion: React.FC<FinancialAccordionProps> = ({ cvr, cvrData })
             <FinancialKPICard financialKPIs={financialData?.financialKPIs} />
           )}
 
-          {/* Revenue & Result Chart */}
-          {financialData?.historicalData && financialData.historicalData.length > 0 && (
-            <RevenueResultChart historicalData={financialData.historicalData} />
-          )}
+          {/* Revenue & Result Chart - Only show if we have meaningful revenue data */}
+          {financialData?.historicalData && financialData.historicalData.length > 0 && (() => {
+            // Check if both nettoomsaetning and bruttofortjeneste are all zeros
+            const allRevenueZero = financialData.historicalData.every(d => d.nettoomsaetning === 0);
+            const allGrossProfitZero = financialData.historicalData.every(d => d.bruttofortjeneste === 0);
+            
+            // Only show chart if at least one has non-zero values
+            if (!allRevenueZero || !allGrossProfitZero) {
+              return <RevenueResultChart historicalData={financialData.historicalData} />;
+            }
+            return null;
+          })()}
 
           {/* Equity Statement - Show if we have historical data */}
           {financialData?.historicalData && financialData.historicalData.length >= 2 && (
