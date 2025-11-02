@@ -194,13 +194,20 @@ export const extractAllHistoricalEvents = (cvrData: any, financialData?: any): T
     normalizedData.virksomhedsform.forEach((form: any, idx: number) => {
       const startDate = parseDate(form.periode?.gyldigFra);
       if (startDate) {
+        const newForm = form.langbeskrivelse || form.kortbeskrivelse;
+        const oldForm = idx < normalizedData.virksomhedsform.length - 1 
+          ? (normalizedData.virksomhedsform[idx + 1].langbeskrivelse || 
+             normalizedData.virksomhedsform[idx + 1].kortbeskrivelse)
+          : undefined;
+        
         events.push({
           id: generateId('legal', startDate, eventIndex++),
           date: startDate,
           category: 'legal',
           title: 'Ændring af virksomhedsform',
-          description: form.langbeskrivelse || form.kortbeskrivelse,
-          newValue: form.langbeskrivelse,
+          description: newForm,
+          newValue: newForm,
+          oldValue: oldForm,
           severity: 'high',
           metadata: form,
         });
@@ -209,11 +216,27 @@ export const extractAllHistoricalEvents = (cvrData: any, financialData?: any): T
   }
 
   // Extract capital history
+  console.log('[TIMELINE] Checking for capital data:', !!normalizedData?.kapital);
   if (normalizedData?.kapital) {
+    console.log('[TIMELINE] Capital array length:', normalizedData.kapital.length);
+    if (normalizedData.kapital[0]) {
+      console.log('[TIMELINE] Capital data sample:', normalizedData.kapital[0]);
+    }
+    
     normalizedData.kapital.forEach((kapital: any, idx: number) => {
       const startDate = parseDate(kapital.periode?.gyldigFra);
       if (startDate) {
         const amount = new Intl.NumberFormat('da-DK', { style: 'currency', currency: kapital.valuta || 'DKK' }).format(kapital.beloeb);
+        
+        // Get previous value for comparison
+        const prevKapital = idx < normalizedData.kapital.length - 1 
+          ? normalizedData.kapital[idx + 1] 
+          : null;
+        const oldAmount = prevKapital ? new Intl.NumberFormat('da-DK', { 
+          style: 'currency', 
+          currency: prevKapital.valuta || 'DKK' 
+        }).format(prevKapital.beloeb) : undefined;
+        
         events.push({
           id: generateId('capital', startDate, eventIndex++),
           date: startDate,
@@ -221,9 +244,86 @@ export const extractAllHistoricalEvents = (cvrData: any, financialData?: any): T
           title: 'Kapitalændring',
           description: `Selskabskapital: ${amount}`,
           newValue: amount,
+          oldValue: oldAmount,
           severity: 'medium',
           metadata: kapital,
         });
+      }
+    });
+  }
+
+  // Extract accounting form history
+  if (normalizedData?.regnskabsform) {
+    normalizedData.regnskabsform.forEach((form: any, idx: number) => {
+      const startDate = parseDate(form.periode?.gyldigFra);
+      if (startDate) {
+        const formMap: Record<string, string> = {
+          'KLASSE_A': 'Årsregnskabsklasse A',
+          'KLASSE_B': 'Årsregnskabsklasse B',
+          'KLASSE_C': 'Årsregnskabsklasse C',
+          'KLASSE_D': 'Årsregnskabsklasse D',
+        };
+        
+        const formLabel = formMap[form.regnskabsform] || form.regnskabsform;
+        const oldForm = idx < normalizedData.regnskabsform.length - 1 
+          ? formMap[normalizedData.regnskabsform[idx + 1].regnskabsform] 
+          : undefined;
+        
+        events.push({
+          id: generateId('legal', startDate, eventIndex++),
+          date: startDate,
+          category: 'legal',
+          title: 'Ændring af regnskabsform',
+          description: formLabel,
+          newValue: formLabel,
+          oldValue: oldForm,
+          severity: 'low',
+          metadata: form,
+        });
+      }
+    });
+  }
+
+  // Extract production unit (produktionsenhed) changes
+  if (normalizedData?.produktionsenhed) {
+    normalizedData.produktionsenhed.forEach((enhed: any) => {
+      const startDate = parseDate(enhed.periode?.gyldigFra);
+      const endDate = parseDate(enhed.periode?.gyldigTil);
+      
+      if (startDate) {
+        const enhedName = enhed.navn || enhed.pNummer || 'Produktionsenhed';
+        const address = [
+          enhed.beliggenhedsadresse?.vejnavn,
+          enhed.beliggenhedsadresse?.husnummerFra,
+          enhed.beliggenhedsadresse?.postnummer,
+          enhed.beliggenhedsadresse?.postdistrikt
+        ].filter(Boolean).join(', ');
+        
+        // Opening event
+        events.push({
+          id: generateId('legal', startDate, eventIndex++),
+          date: startDate,
+          category: 'legal',
+          title: 'Produktionsenhed åbnet',
+          description: `${enhedName}${address ? ': ' + address : ''}`,
+          newValue: enhedName,
+          severity: 'medium',
+          metadata: enhed,
+        });
+        
+        // Closing event (if closed)
+        if (endDate) {
+          events.push({
+            id: generateId('legal', endDate, eventIndex++),
+            date: endDate,
+            category: 'legal',
+            title: 'Produktionsenhed lukket',
+            description: `${enhedName}${address ? ': ' + address : ''}`,
+            oldValue: enhedName,
+            severity: 'medium',
+            metadata: enhed,
+          });
+        }
       }
     });
   }
@@ -466,6 +566,47 @@ export const extractAllHistoricalEvents = (cvrData: any, financialData?: any): T
                 }
               });
             }
+
+            // Extract ALL other attribute changes (STILLING, TITEL, etc.)
+            medlem.attributter?.forEach((attr: any) => {
+              if (!attr.vaerdier || attr.vaerdier.length === 0) return;
+              
+              // Skip already processed attributes
+              if (['FUNKTION', 'EJERANDEL_PROCENT', 'EJERANDEL_STEMME_PROCENT', 'VALGFORM'].includes(attr.type)) {
+                return;
+              }
+              
+              // Process other attribute types
+              const attrLabels: Record<string, string> = {
+                'STILLING': 'Stilling',
+                'TITEL': 'Titel',
+                'VALGDATO': 'Valgdato',
+                'AFSAETTELSEGRUND': 'Afsættelsesgrund',
+              };
+              
+              const label = attrLabels[attr.type] || attr.type;
+              
+              attr.vaerdier.forEach((vaerdi: any, index: number) => {
+                const startDate = parseDate(vaerdi.periode?.gyldigFra);
+                if (startDate && vaerdi.vaerdi) {
+                  const prevValue = index < attr.vaerdier.length - 1 
+                    ? attr.vaerdier[index + 1].vaerdi 
+                    : null;
+                  
+                  events.push({
+                    id: generateId(category, startDate, eventIndex++),
+                    date: startDate,
+                    category,
+                    title: `${personName} - ${label} ændret`,
+                    description: `${label}: ${vaerdi.vaerdi}`,
+                    newValue: vaerdi.vaerdi,
+                    oldValue: prevValue || undefined,
+                    severity: 'low',
+                    metadata: { relation, org, medlem, vaerdi, type: 'attribute_change', attrType: attr.type },
+                  });
+                }
+              });
+            });
           });
         }
       });
