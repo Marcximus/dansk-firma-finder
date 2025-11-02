@@ -51,6 +51,21 @@ export const defaultFilters: TimelineFilters = {
   showContact: false,
 };
 
+const mapOwnershipToRange = (value: number): string => {
+  const percentage = value * 100;
+  
+  if (percentage < 5) return '0-5%';
+  if (percentage < 10) return '5-10%';
+  if (percentage < 15) return '10-15%';
+  if (percentage < 20) return '15-20%';
+  if (percentage < 25) return '20-25%';
+  if (percentage < 33.33) return '25-33%';
+  if (percentage < 50) return '33-50%';
+  if (percentage < 66.67) return '50-67%';
+  if (percentage < 90) return '67-90%';
+  return '90-100%';
+};
+
 const parseDate = (dateString: string | null | undefined): Date | null => {
   if (!dateString) return null;
   
@@ -690,59 +705,79 @@ export const extractAllHistoricalEvents = (cvrData: any, financialData?: any): T
             
             // Extract EJERANDEL_PROCENT (ownership percentage) changes
             if (category === 'ownership') {
-              const ejerandelAttr = medlem.attributter?.find((a: any) => 
-                a.type === 'EJERANDEL_PROCENT' || a.type === 'EJERANDEL_STEMME_PROCENT'
-              );
-              
+              // Handle ownership percentage (EJERANDEL_PROCENT)
+              const ejerandelAttr = medlem.attributter?.find((a: any) => a.type === 'EJERANDEL_PROCENT');
               if (ejerandelAttr?.vaerdier) {
                 ejerandelAttr.vaerdier.forEach((vaerdi: any, index: number) => {
                   const startDate = parseDate(vaerdi.periode?.gyldigFra);
-                  
                   if (startDate && vaerdi.vaerdi) {
-                    // Multiply by 100 to get actual percentage (0.3333 → 33.33)
-                    const actualPercentage = parseFloat(vaerdi.vaerdi) * 100;
-                    const prevActualPercentage = index < ejerandelAttr.vaerdier.length - 1 
-                      ? parseFloat(ejerandelAttr.vaerdier[index + 1].vaerdi) * 100 
+                    const currentRange = mapOwnershipToRange(parseFloat(vaerdi.vaerdi));
+                    
+                    // Check if this is a change from previous value
+                    const prevValue = index < ejerandelAttr.vaerdier.length - 1 
+                      ? ejerandelAttr.vaerdier[index + 1].vaerdi 
                       : null;
+                    const prevRange = prevValue ? mapOwnershipToRange(parseFloat(prevValue)) : null;
                     
-                    // Round for display
-                    const displayPercent = Math.round(actualPercentage * 10) / 10;
-                    const prevDisplayPercent = prevActualPercentage ? Math.round(prevActualPercentage * 10) / 10 : null;
-                    
-                    // Skip if no change
-                    if (prevDisplayPercent !== null && displayPercent === prevDisplayPercent) {
-                      return;
+                    // Only create event if range changed or it's the first registration
+                    if (!prevRange || prevRange !== currentRange) {
+                      const title = prevRange 
+                        ? `Ændring i ejerskab for ${personName}`
+                        : `Ejerskab registreret for ${personName}`;
+                      const description = prevRange
+                        ? `Ejerandel ændret fra ${prevRange} til ${currentRange}`
+                        : `Ejerandel: ${currentRange}`;
+                      
+                      events.push({
+                        id: generateId('ownership', startDate, eventIndex++),
+                        date: startDate,
+                        category: 'ownership',
+                        title,
+                        description,
+                        newValue: currentRange,
+                        oldValue: prevRange || undefined,
+                        severity: 'medium',
+                        metadata: { relation, org, medlem, vaerdi, type: 'ownership_change' },
+                      });
                     }
+                  }
+                });
+              }
+
+              // Handle voting rights (EJERANDEL_STEMMERET_PROCENT)
+              const stemmeretAttr = medlem.attributter?.find((a: any) => a.type === 'EJERANDEL_STEMMERET_PROCENT');
+              if (stemmeretAttr?.vaerdier) {
+                stemmeretAttr.vaerdier.forEach((vaerdi: any, index: number) => {
+                  const startDate = parseDate(vaerdi.periode?.gyldigFra);
+                  if (startDate && vaerdi.vaerdi) {
+                    const currentRange = mapOwnershipToRange(parseFloat(vaerdi.vaerdi));
                     
-                    // Natural language based on change type
-                    let title: string;
-                    let description: string;
+                    const prevValue = index < stemmeretAttr.vaerdier.length - 1 
+                      ? stemmeretAttr.vaerdier[index + 1].vaerdi 
+                      : null;
+                    const prevRange = prevValue ? mapOwnershipToRange(parseFloat(prevValue)) : null;
                     
-                    if (!prevDisplayPercent) {
-                      // First time ownership registered
-                      title = `Ejerskab registreret`;
-                      description = `${personName}: ca. ${displayPercent}% af stemmerne`;
-                    } else if (displayPercent > prevDisplayPercent) {
-                      // Ownership increased
-                      title = `Øget ejerandel`;
-                      description = `${personName}: ${prevDisplayPercent}% → ${displayPercent}%`;
-                    } else {
-                      // Ownership decreased
-                      title = `Reduceret ejerandel`;
-                      description = `${personName}: ${prevDisplayPercent}% → ${displayPercent}%`;
+                    // Only create event if range changed or it's the first registration
+                    if (!prevRange || prevRange !== currentRange) {
+                      const title = prevRange 
+                        ? `Ændring i stemmerettigheder for ${personName}`
+                        : `Stemmerettigheder registreret for ${personName}`;
+                      const description = prevRange
+                        ? `Stemmeandel ændret fra ${prevRange} til ${currentRange}`
+                        : `Stemmeandel: ${currentRange}`;
+                      
+                      events.push({
+                        id: generateId('ownership', startDate, eventIndex++),
+                        date: startDate,
+                        category: 'ownership',
+                        title,
+                        description,
+                        newValue: currentRange,
+                        oldValue: prevRange || undefined,
+                        severity: 'medium',
+                        metadata: { relation, org, medlem, vaerdi, type: 'voting_rights_change' },
+                      });
                     }
-                    
-                    events.push({
-                      id: generateId('ownership', startDate, eventIndex++),
-                      date: startDate,
-                      category: 'ownership',
-                      title,
-                      description,
-                      newValue: `${displayPercent}%`,
-                      oldValue: prevDisplayPercent ? `${prevDisplayPercent}%` : undefined,
-                      severity: 'medium',
-                      metadata: { relation, org, medlem, vaerdi, type: 'ownership_change' },
-                    });
                   }
                 });
               }
@@ -786,7 +821,7 @@ export const extractAllHistoricalEvents = (cvrData: any, financialData?: any): T
               if (!attr.vaerdier || attr.vaerdier.length === 0) return;
               
               // Skip already processed attributes
-              if (['FUNKTION', 'EJERANDEL_PROCENT', 'EJERANDEL_STEMME_PROCENT', 'VALGFORM'].includes(attr.type)) {
+              if (['FUNKTION', 'EJERANDEL_PROCENT', 'EJERANDEL_STEMMERET_PROCENT', 'VALGFORM'].includes(attr.type)) {
                 return;
               }
               
@@ -810,7 +845,6 @@ export const extractAllHistoricalEvents = (cvrData: any, financialData?: any): T
                 'AFSAETTELSEGRUND': 'Afsættelsesgrund',
                 
                 // Ownership attributes
-                'EJERANDEL_STEMMERET_PROCENT': 'Stemmeandel',
                 'EJERANDEL_KAPITAL_KLASSE': 'Kapitalklasse',
                 'EJERANDEL_VEDERLAGS_FORM': 'Vederlagsform',
                 'EJERANDEL_ANTAL_ANPARTER': 'Antal anparter',
