@@ -1163,15 +1163,6 @@ const parseXBRL = (xmlContent: string, period: string) => {
         'HenlagtOverskud'
       ], undefined, 'overfoertResultat'),
 
-      overkursVedEmission: extractValue([
-        'SharePremium', // EXACT TAG for share premium ✅
-        'SharePremiumAccount', 'OverkursVedEmission',
-        'AdditionalPaidInCapital', 'Overkurs',
-        'OverkursVedEmissionIAlt', 'Kapitaloverkurs',
-        'SharePremiumReserve', 'EmissionAgio',
-        'PaidInCapitalInExcessOfPar'
-      ], undefined, 'overkursVedEmission'),
-
       leverandoererAfVarerOgTjenesteydelser: extractValue([
         'ShorttermTradePayables', // EXACT TAG from logs! ✅
         'TradePayables', 'Leverandoerer',
