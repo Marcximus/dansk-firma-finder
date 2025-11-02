@@ -537,103 +537,6 @@ const parseXBRL = (xmlContent: string, period: string) => {
         }
 
           // Pattern 3: iXBRL inline format
-  // Parse XBRL contexts to identify which contexts correspond to which equity dimensions
-  const parseEquityContexts = () => {
-    const contexts = {
-      shareCapital: [] as string[],
-      sharePremium: [] as string[],
-      retainedEarnings: [] as string[]
-    };
-    
-    // Look for context definitions with dimension members
-    const contextPattern = /<xbrli:context[^>]+id="([^"]+)"[^>]*>(.*?)<\/xbrli:context>/gis;
-    const contextMatches = Array.from(xmlContent.matchAll(contextPattern));
-    
-    contextMatches.forEach(match => {
-      const contextId = match[1];
-      const contextBody = match[2];
-      
-      // Check for equity dimension members
-      if (contextBody.match(/ContributedCapital|ShareCapital|Virksomhedskapital/i)) {
-        contexts.shareCapital.push(contextId);
-      }
-      if (contextBody.match(/SharePremium|Overkurs/i)) {
-        contexts.sharePremium.push(contextId);
-      }
-      if (contextBody.match(/RetainedEarnings|Overf.*?rt.*?resultat/i)) {
-        contexts.retainedEarnings.push(contextId);
-      }
-    });
-    
-    console.log(`[EQUITY CONTEXTS] Share Capital: ${contexts.shareCapital.join(', ')}`);
-    console.log(`[EQUITY CONTEXTS] Share Premium: ${contexts.sharePremium.join(', ')}`);
-    console.log(`[EQUITY CONTEXTS] Retained Earnings: ${contexts.retainedEarnings.join(', ')}`);
-    
-    return contexts;
-  };
-
-  // Helper to extract value from specific context IDs
-  const extractFromContexts = (
-    tagNames: string[],
-    contextIds: string[],
-    logField?: string
-  ): number | null => {
-    if (contextIds.length === 0) {
-      if (logField) console.log(`❌ [NO CONTEXTS] ${logField}: No context IDs provided`);
-      return null;
-    }
-    
-    for (const tagName of tagNames) {
-      for (const contextId of contextIds) {
-        // Search for tag with specific contextRef
-        const patterns = [
-          `<h:${tagName}[^>]*contextRef="${contextId}"[^>]*>([^<]+)</h:${tagName}>`,
-          `<fsa:${tagName}[^>]*contextRef="${contextId}"[^>]*>([^<]+)</fsa:${tagName}>`,
-          `<ifrs-full:${tagName}[^>]*contextRef="${contextId}"[^>]*>([^<]+)</ifrs-full:${tagName}>`,
-          `<[^:]+:${tagName}[^>]*contextRef="${contextId}"[^>]*>([^<]+)</[^:]+:${tagName}>`
-        ];
-        
-        for (const pattern of patterns) {
-          const regex = new RegExp(pattern, 'gi');
-          const matches = Array.from(xmlContent.matchAll(regex));
-          
-          if (matches.length > 0) {
-            const fullTag = matches[0][0];
-            const unitRef = fullTag.match(/unitRef="([^"]+)"/)?.[1];
-            const decimals = fullTag.match(/decimals="([^"]+)"/)?.[1];
-            
-            let value = parseNumericValue(matches[0][1]);
-            
-            if (value !== null) {
-              // Apply unit scaling
-              if (unitRef) {
-                const scale = detectUnitScale(unitRef);
-                value = value * scale;
-              }
-              
-              // Apply decimals scaling
-              if (decimals) {
-                const decimalScale = parseInt(decimals);
-                if (decimalScale < 0) {
-                  value = value * Math.pow(10, -decimalScale);
-                }
-              }
-              
-              if (logField) {
-                console.log(`✅ [CONTEXT] ${logField}: ${value} DKK from tag ${tagName} with contextRef=${contextId}`);
-              }
-              return value;
-            }
-          }
-        }
-      }
-    }
-    
-    if (logField) {
-      console.log(`❌ [NO CONTEXT MATCH] ${logField}: No tag found in contexts ${contextIds.join(', ')}`);
-    }
-    return null;
-  };
 
           const ixbrlPattern = new RegExp(
             `<ix:nonFraction[^>]+name="[^"]*:${tagName}"[^>]*>\\s*([-\\d.,\\s]+?)\\s*</ix:nonFraction>`,
@@ -1412,17 +1315,111 @@ const parseXBRL = (xmlContent: string, period: string) => {
       ], useInstantContexts, 'langfristetGaeld'),
       
 // Statement of Changes in Equity - Extract using dimensional contexts
-      // Parse equity contexts first
-      equityContexts: (() => {
-        return parseEquityContexts();
+      
+      // Define equity context parsing functions
+      parseEquityContexts: (() => {
+        const contexts = {
+          shareCapital: [] as string[],
+          sharePremium: [] as string[],
+          retainedEarnings: [] as string[]
+        };
+        
+        // Look for context definitions with dimension members
+        const contextPattern = /<xbrli:context[^>]+id="([^"]+)"[^>]*>(.*?)<\/xbrli:context>/gis;
+        const contextMatches = Array.from(xmlContent.matchAll(contextPattern));
+        
+        contextMatches.forEach(match => {
+          const contextId = match[1];
+          const contextBody = match[2];
+          
+          // Check for equity dimension members
+          if (contextBody.match(/ContributedCapital|ShareCapital|Virksomhedskapital/i)) {
+            contexts.shareCapital.push(contextId);
+          }
+          if (contextBody.match(/SharePremium|Overkurs/i)) {
+            contexts.sharePremium.push(contextId);
+          }
+          if (contextBody.match(/RetainedEarnings|Overf.*?rt.*?resultat/i)) {
+            contexts.retainedEarnings.push(contextId);
+          }
+        });
+        
+        console.log(`[EQUITY CONTEXTS] Share Capital: ${contexts.shareCapital.join(', ')}`);
+        console.log(`[EQUITY CONTEXTS] Share Premium: ${contexts.sharePremium.join(', ')}`);
+        console.log(`[EQUITY CONTEXTS] Retained Earnings: ${contexts.retainedEarnings.join(', ')}`);
+        
+        return contexts;
+      })(),
+
+      extractFromContextsHelper: (() => {
+        return (
+          tagNames: string[],
+          contextIds: string[],
+          logField?: string
+        ): number | null => {
+          if (contextIds.length === 0) {
+            if (logField) console.log(`❌ [NO CONTEXTS] ${logField}: No context IDs provided`);
+            return null;
+          }
+          
+          for (const tagName of tagNames) {
+            for (const contextId of contextIds) {
+              // Search for tag with specific contextRef
+              const patterns = [
+                `<h:${tagName}[^>]*contextRef="${contextId}"[^>]*>([^<]+)</h:${tagName}>`,
+                `<fsa:${tagName}[^>]*contextRef="${contextId}"[^>]*>([^<]+)</fsa:${tagName}>`,
+                `<ifrs-full:${tagName}[^>]*contextRef="${contextId}"[^>]*>([^<]+)</ifrs-full:${tagName}>`,
+                `<[^:]+:${tagName}[^>]*contextRef="${contextId}"[^>]*>([^<]+)</[^:]+:${tagName}>`
+              ];
+              
+              for (const pattern of patterns) {
+                const regex = new RegExp(pattern, 'gi');
+                const matches = Array.from(xmlContent.matchAll(regex));
+                
+                if (matches.length > 0) {
+                  const fullTag = matches[0][0];
+                  const unitRef = fullTag.match(/unitRef="([^"]+)"/)?.[1];
+                  const decimals = fullTag.match(/decimals="([^"]+)"/)?.[1];
+                  
+                  let value = parseNumericValue(matches[0][1]);
+                  
+                  if (value !== null) {
+                    // Apply unit scaling
+                    if (unitRef) {
+                      const scale = detectUnitScale(unitRef);
+                      value = value * scale;
+                    }
+                    
+                    // Apply decimals scaling
+                    if (decimals) {
+                      const decimalScale = parseInt(decimals);
+                      if (decimalScale < 0) {
+                        value = value * Math.pow(10, -decimalScale);
+                      }
+                    }
+                    
+                    if (logField) {
+                      console.log(`✅ [CONTEXT] ${logField}: ${value} DKK from tag ${tagName} with contextRef=${contextId}`);
+                    }
+                    return value;
+                  }
+                }
+              }
+            }
+          }
+          
+          if (logField) {
+            console.log(`❌ [NO CONTEXT MATCH] ${logField}: No tag found in contexts ${contextIds.join(', ')}`);
+          }
+          return null;
+        };
       })(),
 
       increaseInShareCapital: (() => {
-        const equityContexts = parseEquityContexts();
         // Try dimensional extraction first
-        const dimensional = extractFromContexts(
+        const dimensional = data.extractFromContextsHelper(
           ['IncreaseOfCapital', 'Equity', 'ChangesInEquity'],
-          equityContexts.shareCapital,
+          data.parseEquityContexts.shareCapital,
           'increaseInShareCapital'
         );
         if (dimensional !== null) return dimensional;
@@ -1437,11 +1434,10 @@ const parseXBRL = (xmlContent: string, period: string) => {
       })(),
 
       increaseInSharePremium: (() => {
-        const equityContexts = parseEquityContexts();
         // Try dimensional extraction first
-        const dimensional = extractFromContexts(
+        const dimensional = data.extractFromContextsHelper(
           ['IncreaseOfCapital', 'Equity', 'ChangesInEquity'],
-          equityContexts.sharePremium,
+          data.parseEquityContexts.sharePremium,
           'increaseInSharePremium'
         );
         if (dimensional !== null) return dimensional;
@@ -1457,11 +1453,10 @@ const parseXBRL = (xmlContent: string, period: string) => {
       })(),
 
       transferFromSharePremium: (() => {
-        const equityContexts = parseEquityContexts();
         // Try dimensional extraction first
-        const dimensional = extractFromContexts(
+        const dimensional = data.extractFromContextsHelper(
           ['TransferredFromSharePremium'],
-          equityContexts.sharePremium,
+          data.parseEquityContexts.sharePremium,
           'transferFromSharePremium'
         );
         if (dimensional !== null) return Math.abs(dimensional);
