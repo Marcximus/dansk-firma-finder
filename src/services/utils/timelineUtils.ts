@@ -351,52 +351,120 @@ export const extractAllHistoricalEvents = (cvrData: any, financialData?: any): T
       relation.organisationer?.forEach((org: any) => {
         if (org.medlemsData) {
           org.medlemsData.forEach((medlem: any) => {
-            const startDate = parseDate(medlem.periode?.gyldigFra);
-            const endDate = parseDate(medlem.periode?.gyldigTil);
+            let category: 'management' | 'board' | 'ownership' = 'management';
+            let severity: 'low' | 'medium' | 'high' = 'medium';
             
-            if (startDate) {
-              const functionAttr = medlem.attributter?.find((a: any) => a.type === 'FUNKTION');
-              const roleTitle = functionAttr?.vaerdier?.[0]?.vaerdi || 'Rolle';
-              
-              let category: 'management' | 'board' | 'ownership' = 'management';
-              let severity: 'low' | 'medium' | 'high' = 'medium';
-              
-              if (org.hovedtype === 'REGISTER_DIREKTION') {
-                category = 'management';
-                severity = 'high';
-              } else if (org.hovedtype === 'REGISTER_BESTYRELSE') {
-                category = 'board';
-                severity = 'high';
-              } else if (org.hovedtype === 'EJERREGISTER') {
-                category = 'ownership';
-                severity = 'high';
-              }
+            if (org.hovedtype === 'REGISTER_DIREKTION') {
+              category = 'management';
+              severity = 'high';
+            } else if (org.hovedtype === 'REGISTER_BESTYRELSE') {
+              category = 'board';
+              severity = 'high';
+            } else if (org.hovedtype === 'EJERREGISTER') {
+              category = 'ownership';
+              severity = 'high';
+            }
 
-              // Entry event
-              events.push({
-                id: generateId(category, startDate, eventIndex++),
-                date: startDate,
-                category,
-                title: `${personName} indtrådte`,
-                description: `${roleTitle} - ${org.organisationsNavn?.[0]?.navn || org.hovedtype}`,
-                newValue: personName,
-                severity,
-                metadata: { relation, org, medlem, type: 'entry' },
+            // Extract FUNKTION (role) changes - each vaerdi is a separate event
+            const funktionAttr = medlem.attributter?.find((a: any) => a.type === 'FUNKTION');
+            if (funktionAttr?.vaerdier) {
+              funktionAttr.vaerdier.forEach((vaerdi: any, index: number) => {
+                const startDate = parseDate(vaerdi.periode?.gyldigFra);
+                const endDate = parseDate(vaerdi.periode?.gyldigTil);
+                
+                if (startDate) {
+                  const roleTitle = vaerdi.vaerdi || 'Rolle';
+                  
+                  // Role start event
+                  events.push({
+                    id: generateId(category, startDate, eventIndex++),
+                    date: startDate,
+                    category,
+                    title: `${personName} indtrådte som ${roleTitle}`,
+                    description: `${roleTitle}`,
+                    newValue: personName,
+                    severity,
+                    metadata: { relation, org, medlem, vaerdi, type: 'role_start' },
+                  });
+                  
+                  // Role end event (if ended)
+                  if (endDate) {
+                    events.push({
+                      id: generateId(category, endDate, eventIndex++),
+                      date: endDate,
+                      category,
+                      title: `${personName} udtrådte som ${roleTitle}`,
+                      description: `${roleTitle}`,
+                      oldValue: personName,
+                      severity: 'medium',
+                      metadata: { relation, org, medlem, vaerdi, type: 'role_end' },
+                    });
+                  }
+                }
               });
-
-              // Exit event (if ended)
-              if (endDate) {
-                events.push({
-                  id: generateId(category, endDate, eventIndex++),
-                  date: endDate,
-                  category,
-                  title: `${personName} udtrådte`,
-                  description: `${roleTitle} - ${org.organisationsNavn?.[0]?.navn || org.hovedtype}`,
-                  oldValue: personName,
-                  severity: 'medium',
-                  metadata: { relation, org, medlem, type: 'exit' },
+            }
+            
+            // Extract EJERANDEL_PROCENT (ownership percentage) changes
+            if (category === 'ownership') {
+              const ejerandelAttr = medlem.attributter?.find((a: any) => 
+                a.type === 'EJERANDEL_PROCENT' || a.type === 'EJERANDEL_STEMME_PROCENT'
+              );
+              
+              if (ejerandelAttr?.vaerdier) {
+                ejerandelAttr.vaerdier.forEach((vaerdi: any, index: number) => {
+                  const startDate = parseDate(vaerdi.periode?.gyldigFra);
+                  
+                  if (startDate && vaerdi.vaerdi) {
+                    const percentage = parseFloat(vaerdi.vaerdi);
+                    const attrLabel = ejerandelAttr.type === 'EJERANDEL_STEMME_PROCENT' 
+                      ? 'Stemmeandel' 
+                      : 'Ejerandel';
+                    
+                    // Get previous value for comparison
+                    const prevValue = index < ejerandelAttr.vaerdier.length - 1 
+                      ? parseFloat(ejerandelAttr.vaerdier[index + 1].vaerdi) 
+                      : null;
+                    
+                    events.push({
+                      id: generateId('ownership', startDate, eventIndex++),
+                      date: startDate,
+                      category: 'ownership',
+                      title: `${personName} - ${attrLabel} ændret`,
+                      description: `${attrLabel}: ${percentage}%`,
+                      newValue: `${percentage}%`,
+                      oldValue: prevValue ? `${prevValue}%` : undefined,
+                      severity: 'medium',
+                      metadata: { relation, org, medlem, vaerdi, type: 'ownership_change' },
+                    });
+                  }
                 });
               }
+            }
+            
+            // Extract VALGFORM (election form) changes
+            const valgformAttr = medlem.attributter?.find((a: any) => a.type === 'VALGFORM');
+            if (valgformAttr?.vaerdier) {
+              valgformAttr.vaerdier.forEach((vaerdi: any, index: number) => {
+                const startDate = parseDate(vaerdi.periode?.gyldigFra);
+                
+                if (startDate && vaerdi.vaerdi) {
+                  const prevValue = index < valgformAttr.vaerdier.length - 1 
+                    ? valgformAttr.vaerdier[index + 1].vaerdi 
+                    : null;
+                  
+                  events.push({
+                    id: generateId(category, startDate, eventIndex++),
+                    date: startDate,
+                    category,
+                    title: `${personName} - Valgform ændret`,
+                    description: `Valgform: ${vaerdi.vaerdi}`,
+                    newValue: vaerdi.vaerdi,
+                    oldValue: prevValue || undefined,
+                    severity: 'low',
+                    metadata: { relation, org, medlem, vaerdi, type: 'valgform_change' },
+                  });
+                }
+              });
             }
           });
         }
