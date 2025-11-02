@@ -1,9 +1,8 @@
 import React from 'react';
 import { Card } from '@/components/ui/card';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { TimelineFilters, TimelineEvent, getCategoryLabel } from '@/services/utils/timelineUtils';
+import { TimelineFilters, TimelineEvent } from '@/services/utils/timelineUtils';
+import { Button } from '@/components/ui/button';
 
 interface TimelineFiltersProps {
   filters: TimelineFilters;
@@ -11,73 +10,91 @@ interface TimelineFiltersProps {
   events: TimelineEvent[];
 }
 
+type FilterMode = 'important' | 'admin' | 'all';
+
 export const TimelineFiltersComponent: React.FC<TimelineFiltersProps> = ({ 
   filters, 
   onFiltersChange, 
   events 
 }) => {
-  const getCategoryCount = (category: string) => {
-    return events.filter(e => e.category === category).length;
+  const getCurrentMode = (): FilterMode => {
+    const importantEnabled = filters.showManagement && filters.showBoard && filters.showOwnership && filters.showStatus;
+    const allDisabled = !filters.showAddress && !filters.showName && !filters.showIndustry && !filters.showLegal && !filters.showCapital && !filters.showPurpose && !filters.showContact && !filters.showFinancial;
+    
+    if (importantEnabled && allDisabled) return 'important';
+    
+    const allEnabled = Object.values(filters).every(v => v);
+    if (allEnabled) return 'all';
+    
+    return 'admin';
   };
 
-  const filterOptions = [
-    { key: 'showManagement', category: 'management' },
-    { key: 'showBoard', category: 'board' },
-    { key: 'showOwnership', category: 'ownership' },
-    { key: 'showAddress', category: 'address' },
-    { key: 'showName', category: 'name' },
-    { key: 'showIndustry', category: 'industry' },
-    { key: 'showStatus', category: 'status' },
-    { key: 'showLegal', category: 'legal' },
-    { key: 'showCapital', category: 'capital' },
-    { key: 'showPurpose', category: 'purpose' },
-    { key: 'showContact', category: 'contact' },
-    { key: 'showFinancial', category: 'financial' },
-  ];
-
-  const handleToggle = (key: string) => {
-    onFiltersChange({
-      ...filters,
-      [key]: !filters[key as keyof TimelineFilters],
-    });
+  const setMode = (mode: FilterMode) => {
+    const newFilters: TimelineFilters = {
+      showManagement: mode === 'important' || mode === 'all',
+      showBoard: mode === 'important' || mode === 'all',
+      showOwnership: mode === 'important' || mode === 'all',
+      showStatus: mode === 'important' || mode === 'all',
+      showAddress: mode === 'admin' || mode === 'all',
+      showName: mode === 'admin' || mode === 'all',
+      showIndustry: mode === 'admin' || mode === 'all',
+      showLegal: mode === 'admin' || mode === 'all',
+      showCapital: mode === 'admin' || mode === 'all',
+      showPurpose: mode === 'admin' || mode === 'all',
+      showContact: mode === 'admin' || mode === 'all',
+      showFinancial: mode === 'all',
+    };
+    onFiltersChange(newFilters);
   };
 
-  const enabledCount = Object.values(filters).filter(Boolean).length;
-  const totalCount = Object.keys(filters).length;
+  const currentMode = getCurrentMode();
+  
+  const importantCount = events.filter(e => 
+    ['management', 'board', 'ownership', 'status'].includes(e.category)
+  ).length;
+  
+  const adminCount = events.filter(e => 
+    ['address', 'name', 'industry', 'legal', 'capital', 'purpose', 'contact'].includes(e.category)
+  ).length;
 
   return (
-    <Card className="p-4 mb-4">
-      <div className="flex items-center justify-between mb-3">
-        <h3 className="font-semibold text-sm">Filtrer hændelser</h3>
-        <Badge variant="outline">
-          {enabledCount}/{totalCount} aktive
-        </Badge>
-      </div>
-      
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-        {filterOptions.map(({ key, category }) => {
-          const count = getCategoryCount(category);
-          if (count === 0) return null;
-          
-          return (
-            <div key={key} className="flex items-center space-x-2">
-              <Checkbox
-                id={key}
-                checked={filters[key as keyof TimelineFilters]}
-                onCheckedChange={() => handleToggle(key)}
-              />
-              <Label 
-                htmlFor={key} 
-                className="text-xs cursor-pointer flex items-center gap-1 flex-1"
-              >
-                {getCategoryLabel(category)}
-                <Badge variant="secondary" className="text-xs ml-auto">
-                  {count}
-                </Badge>
-              </Label>
-            </div>
-          );
-        })}
+    <Card className="p-3 mb-4">
+      <div className="flex flex-wrap items-center gap-2">
+        <Button
+          variant={currentMode === 'important' ? 'default' : 'outline'}
+          size="sm"
+          onClick={() => setMode('important')}
+          className="gap-1.5"
+        >
+          Vigtige
+          <Badge variant={currentMode === 'important' ? 'secondary' : 'outline'} className="text-xs">
+            {importantCount}
+          </Badge>
+        </Button>
+        
+        <Button
+          variant={currentMode === 'admin' ? 'default' : 'outline'}
+          size="sm"
+          onClick={() => setMode('admin')}
+          className="gap-1.5"
+        >
+          Administrative
+          <Badge variant={currentMode === 'admin' ? 'secondary' : 'outline'} className="text-xs">
+            {adminCount}
+          </Badge>
+        </Button>
+        
+        <Button
+          variant={currentMode === 'all' ? 'default' : 'outline'}
+          size="sm"
+          onClick={() => setMode('all')}
+          className="gap-1.5"
+        >
+          Alle
+          <Badge variant={currentMode === 'all' ? 'secondary' : 'outline'} className="text-xs">
+            {events.length}
+          </Badge>
+        </Button>
       </div>
     </Card>
   );

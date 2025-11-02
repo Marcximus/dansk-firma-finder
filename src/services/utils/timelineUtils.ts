@@ -44,23 +44,13 @@ export const defaultFilters: TimelineFilters = {
 };
 
 const parseDate = (dateString: string | null | undefined): Date | null => {
-  if (!dateString) {
-    console.log('[Timeline] Empty date string');
-    return null;
-  }
+  if (!dateString) return null;
   
   try {
     const cleaned = dateString.trim();
     const parsed = parseISO(cleaned);
-    
-    if (isNaN(parsed.getTime())) {
-      console.warn('[Timeline] Invalid date parsed:', dateString);
-      return null;
-    }
-    
-    return parsed;
+    return isNaN(parsed.getTime()) ? null : parsed;
   } catch (error) {
-    console.error('[Timeline] Date parsing error:', dateString, error);
     return null;
   }
 };
@@ -70,66 +60,18 @@ const generateId = (category: string, date: Date, index: number): string => {
 };
 
 export const extractAllHistoricalEvents = (cvrData: any, financialData?: any): TimelineEvent[] => {
-  console.log('[Timeline] ========== EXTRACTING EVENTS START ==========');
-  console.log('[Timeline] Raw cvrData received:', cvrData);
-  console.log('[Timeline] cvrData type:', typeof cvrData);
-  console.log('[Timeline] cvrData is null?', cvrData === null);
-  console.log('[Timeline] cvrData is undefined?', cvrData === undefined);
-  
-  if (cvrData) {
-    console.log('[Timeline] Top-level keys:', Object.keys(cvrData));
-    console.log('[Timeline] Full structure sample:', JSON.stringify(cvrData, null, 2).substring(0, 2000));
-  }
-
   const events: TimelineEvent[] = [];
   let eventIndex = 0;
 
   // Normalize the data structure - handle both flat and nested formats
   const normalizeData = (data: any) => {
-    if (!data) {
-      console.log('[Timeline] normalizeData: data is null/undefined');
-      return null;
-    }
-    
-    console.log('[Timeline] normalizeData: Input structure:', {
-      keys: Object.keys(data).slice(0, 10), // Show first 10 keys
-      hasVrvirksomhed: !!data.Vrvirksomhed,
-      hasNavneDirectly: !!data.navne,
-    });
-    
-    // If data has Vrvirksomhed wrapper, unwrap it
-    if (data.Vrvirksomhed) {
-      console.log('[Timeline] normalizeData: Unwrapping Vrvirksomhed object');
-      return data.Vrvirksomhed;
-    }
-    
-    // If data already has the fields at top level, return as-is
-    if (data.navne || data.deltagerRelation || data.beliggenhedsadresse) {
-      console.log('[Timeline] normalizeData: Data already at correct level');
-      return data;
-    }
-    
-    console.warn('[Timeline] normalizeData: Unknown data structure, returning original');
+    if (!data) return null;
+    if (data.Vrvirksomhed) return data.Vrvirksomhed;
+    if (data.navne || data.deltagerRelation || data.beliggenhedsadresse) return data;
     return data;
   };
 
   const normalizedData = normalizeData(cvrData);
-  
-  // Comprehensive logging of all arrays with periode objects
-  console.log('[Timeline] Data structure after normalization:', {
-    hasData: !!normalizedData,
-    totalKeys: normalizedData ? Object.keys(normalizedData).length : 0,
-    arrays: {
-      navne: normalizedData?.navne?.length || 0,
-      deltagerRelation: normalizedData?.deltagerRelation?.length || 0,
-      beliggenhedsadresse: normalizedData?.beliggenhedsadresse?.length || 0,
-      virksomhedsstatus: normalizedData?.virksomhedsstatus?.length || 0,
-      hovedbranche: normalizedData?.hovedbranche?.length || 0,
-      virksomhedsform: normalizedData?.virksomhedsform?.length || 0,
-      kapital: normalizedData?.kapital?.length || 0,
-      formaal: normalizedData?.formaal?.length || 0,
-    }
-  });
 
   // Extract name history
   if (normalizedData?.navne) {
@@ -151,7 +93,6 @@ export const extractAllHistoricalEvents = (cvrData: any, financialData?: any): T
       }
     });
   }
-  console.log('[Timeline] Extracted name events:', events.filter(e => e.category === 'name').length);
 
   // Extract address history
   if (normalizedData?.beliggenhedsadresse) {
@@ -182,7 +123,6 @@ export const extractAllHistoricalEvents = (cvrData: any, financialData?: any): T
       }
     });
   }
-  console.log('[Timeline] Extracted address events:', events.filter(e => e.category === 'address').length);
 
   // Extract status history
   if (normalizedData?.virksomhedsstatus) {
@@ -288,8 +228,6 @@ export const extractAllHistoricalEvents = (cvrData: any, financialData?: any): T
       }
     });
   }
-  console.log('[Timeline] Extracted management/board/ownership events:', 
-    events.filter(e => ['management', 'board', 'ownership'].includes(e.category)).length);
 
   // Extract management, board, and ownership from deltagerRelation
   if (normalizedData?.deltagerRelation) {
@@ -351,24 +289,6 @@ export const extractAllHistoricalEvents = (cvrData: any, financialData?: any): T
       });
     });
   }
-
-
-  console.log('[Timeline] After enriched data extraction, total events:', events.length);
-
-  console.log('[Timeline] Total events extracted:', events.length, {
-    byCategory: {
-      name: events.filter(e => e.category === 'name').length,
-      address: events.filter(e => e.category === 'address').length,
-      status: events.filter(e => e.category === 'status').length,
-      industry: events.filter(e => e.category === 'industry').length,
-      legal: events.filter(e => e.category === 'legal').length,
-      capital: events.filter(e => e.category === 'capital').length,
-      purpose: events.filter(e => e.category === 'purpose').length,
-      management: events.filter(e => e.category === 'management').length,
-      board: events.filter(e => e.category === 'board').length,
-      ownership: events.filter(e => e.category === 'ownership').length,
-    }
-  });
 
   // Sort by date (newest first)
   events.sort((a, b) => b.date.getTime() - a.date.getTime());

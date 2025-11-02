@@ -14,7 +14,7 @@ import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { InfoIcon } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+
 
 interface CompanyTimelineProps {
   cvrData: any;
@@ -26,26 +26,15 @@ export const CompanyTimeline: React.FC<CompanyTimelineProps> = ({ cvrData, finan
 
   // Extract all events
   const allEvents = useMemo(() => {
-    console.log('[CompanyTimeline] ========== COMPONENT RENDER ==========');
-    console.log('[CompanyTimeline] Received cvrData:', !!cvrData);
-    console.log('[CompanyTimeline] Received financialData:', !!financialData);
-    
-    if (!cvrData) {
-      console.warn('[CompanyTimeline] No cvrData provided!');
-      return [];
-    }
+    if (!cvrData) return [];
     
     try {
-      const events = extractAllHistoricalEvents(cvrData, financialData);
-      console.log('[CompanyTimeline] Extracted events:', events.length);
-      return events;
+      return extractAllHistoricalEvents(cvrData, financialData);
     } catch (error) {
       console.error('[CompanyTimeline] Error extracting events:', error);
       return [];
     }
   }, [cvrData, financialData]);
-
-  console.log('[CompanyTimeline] All events count:', allEvents.length);
 
   // Apply filters
   const filteredEvents = useMemo(() => {
@@ -93,12 +82,12 @@ export const CompanyTimeline: React.FC<CompanyTimelineProps> = ({ cvrData, finan
 
           <ScrollArea className="h-[600px] pr-4">
             {years.map((year, yearIdx) => (
-              <div key={year} className="space-y-4">
+              <div key={year} className="space-y-2">
                 {/* Year divider */}
-                <div className="sticky top-0 z-10 bg-background py-2">
+                <div className="sticky top-0 z-10 bg-background py-3">
                   <div className="flex items-center gap-3">
                     <Separator className="flex-1" />
-                    <h3 className="text-lg font-bold px-3 bg-muted rounded-full">
+                    <h3 className="text-xl font-bold px-4 py-1 bg-muted/50 rounded-full">
                       {year}
                     </h3>
                     <Separator className="flex-1" />
@@ -106,12 +95,12 @@ export const CompanyTimeline: React.FC<CompanyTimelineProps> = ({ cvrData, finan
                 </div>
 
                 {/* Events for this year */}
-                <div className="space-y-3 pb-6">
+                <div className="space-y-1 pb-8">
                   {groupedByYear[year].map((event) => (
                     <div key={event.id} className="relative pl-6">
                       {/* Timeline connector */}
                       <div className="absolute left-0 top-0 bottom-0 w-px bg-border" />
-                      <div className="absolute left-[-3px] top-4 w-2 h-2 rounded-full bg-primary" />
+                      <div className="absolute left-[-3px] top-3 w-2 h-2 rounded-full bg-primary" />
                       
                       <TimelineEventCard event={event} />
                     </div>

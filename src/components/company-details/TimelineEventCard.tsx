@@ -1,8 +1,6 @@
 import React from 'react';
 import { format } from 'date-fns';
 import { da } from 'date-fns/locale';
-import { Card } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { 
   Users, 
   UserCog, 
@@ -17,7 +15,7 @@ import {
   DollarSign,
   Target
 } from 'lucide-react';
-import { TimelineEvent, getCategoryLabel } from '@/services/utils/timelineUtils';
+import { TimelineEvent } from '@/services/utils/timelineUtils';
 
 interface TimelineEventCardProps {
   event: TimelineEvent;
@@ -42,73 +40,31 @@ const getCategoryIcon = (category: string) => {
   return <Icon className="w-4 h-4" />;
 };
 
-const getSeverityColor = (severity: string): string => {
-  const colors: Record<string, string> = {
-    high: 'border-l-destructive',
-    medium: 'border-l-primary',
-    low: 'border-l-muted-foreground',
-  };
-  return colors[severity] || 'border-l-muted-foreground';
-};
-
-const getCategoryColor = (category: string): string => {
-  const colors: Record<string, string> = {
-    management: 'bg-primary/10 text-primary',
-    board: 'bg-secondary/10 text-secondary-foreground',
-    ownership: 'bg-accent/10 text-accent-foreground',
-    address: 'bg-muted text-muted-foreground',
-    name: 'bg-primary/10 text-primary',
-    industry: 'bg-secondary/10 text-secondary-foreground',
-    status: 'bg-destructive/10 text-destructive',
-    financial: 'bg-success/10 text-success',
-    legal: 'bg-primary/10 text-primary',
-    contact: 'bg-accent/10 text-accent-foreground',
-    capital: 'bg-success/10 text-success',
-    purpose: 'bg-muted text-muted-foreground',
-  };
-  return colors[category] || 'bg-muted text-muted-foreground';
-};
 
 export const TimelineEventCard: React.FC<TimelineEventCardProps> = ({ event }) => {
+  const formatChange = () => {
+    if (event.oldValue && event.newValue) {
+      return `${event.description} (${event.oldValue} → ${event.newValue})`;
+    }
+    return event.description;
+  };
 
   return (
-    <Card className={`border-l-4 ${getSeverityColor(event.severity)} p-2 sm:p-3 hover:shadow-md transition-shadow`}>
-      <div className="flex gap-3">
-        <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${getCategoryColor(event.category)}`}>
+    <div className="group hover:bg-muted/50 p-1.5 sm:p-2 rounded-md transition-colors">
+      <div className="flex items-start gap-2">
+        <div className="flex-shrink-0 mt-0.5">
           {getCategoryIcon(event.category)}
         </div>
         
-        <div className="flex-1 min-w-0">
-          <div className="flex flex-wrap items-center gap-2 mb-1">
-            <Badge variant="outline" className="text-xs">
-              {format(event.date, 'd. MMMM yyyy', { locale: da })}
-            </Badge>
-            <Badge variant="secondary" className="text-xs">
-              {getCategoryLabel(event.category)}
-            </Badge>
-          </div>
-          
-          <h4 className="font-semibold text-sm sm:text-base mb-1">{event.title}</h4>
-          <p className="text-sm text-muted-foreground">{event.description}</p>
-          
-          {(event.oldValue || event.newValue) && (
-            <div className="mt-2 text-xs space-y-1">
-              {event.oldValue && (
-                <div className="text-muted-foreground">
-                  <span className="font-medium">Fra: </span>
-                  <span>{event.oldValue}</span>
-                </div>
-              )}
-              {event.newValue && (
-                <div className="text-foreground">
-                  <span className="font-medium">Til: </span>
-                  <span>{event.newValue}</span>
-                </div>
-              )}
-            </div>
-          )}
+        <div className="flex-1 min-w-0 text-sm">
+          <span className="text-muted-foreground">
+            {format(event.date, 'd MMM yyyy', { locale: da })}
+          </span>
+          <span className="mx-1.5 text-muted-foreground">•</span>
+          <span className="font-medium">{event.title}:</span>
+          <span className="ml-1.5">{formatChange()}</span>
         </div>
       </div>
-    </Card>
+    </div>
   );
 };
