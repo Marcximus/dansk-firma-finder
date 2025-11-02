@@ -240,20 +240,134 @@ export const extractAllHistoricalEvents = (cvrData: any, financialData?: any): T
     });
   }
 
-  // Extract capital history
-  console.log('[TIMELINE] Checking for capital data:', !!normalizedData?.kapital);
-  if (normalizedData?.kapital) {
-    console.log('[TIMELINE] Capital array length:', normalizedData.kapital.length);
-    if (normalizedData.kapital[0]) {
-      console.log('[TIMELINE] Capital data sample:', normalizedData.kapital[0]);
-    }
+  // Extract detailed capital history from kapitalforhold
+  console.log('[TIMELINE] Checking for kapitalforhold data:', !!normalizedData?.kapitalforhold);
+  if (normalizedData?.kapitalforhold && normalizedData.kapitalforhold.length > 0) {
+    console.log('[TIMELINE] Kapitalforhold array length:', normalizedData.kapitalforhold.length);
+    
+    // Group by gyldigFra date to handle multiple payments on same date
+    const groupedByDate = new Map<string, any[]>();
+    normalizedData.kapitalforhold.forEach((forhold: any) => {
+      const dateKey = forhold.periode?.gyldigFra;
+      if (dateKey) {
+        if (!groupedByDate.has(dateKey)) {
+          groupedByDate.set(dateKey, []);
+        }
+        groupedByDate.get(dateKey)!.push(forhold);
+      }
+    });
+    
+    // Process each date group
+    Array.from(groupedByDate.entries()).forEach(([dateKey, forholdList]) => {
+      const startDate = parseDate(dateKey);
+      if (!startDate) return;
+      
+      // Sort by newest first within the group
+      forholdList.sort((a, b) => {
+        const aDate = a.vedtaegterDato || a.beslutningsDato || dateKey;
+        const bDate = b.vedtaegterDato || b.beslutningsDato || dateKey;
+        return bDate.localeCompare(aDate);
+      });
+      
+      const firstForhold = forholdList[0];
+      const totalCapital = firstForhold.kapitalbeloeb;
+      const currency = firstForhold.valuta || 'DKK';
+      
+      // Build description from all payments
+      const paymentDescriptions: string[] = [];
+      let isPartiallyPaid = false;
+      
+      forholdList.forEach((forhold: any) => {
+        if (forhold.beloeb) {
+          const amount = new Intl.NumberFormat('da-DK', { 
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2 
+          }).format(forhold.beloeb);
+          
+          let paymentDesc = `kr. ${amount},00`;
+          
+          // Add payment method
+          if (forhold.indbetalingstype) {
+            const paymentType = forhold.indbetalingstype === 'KONTANT' ? 'indbetalt kontant' : 'indbetalt';
+            paymentDesc += `, ${paymentType}`;
+          }
+          
+          // Add exchange rate if available
+          if (forhold.kurs) {
+            const kurs = new Intl.NumberFormat('da-DK', { 
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2 
+            }).format(forhold.kurs);
+            paymentDesc += `, kurs ${kurs}`;
+          }
+          
+          // Check if partially paid
+          if (forhold.delvisbetalt && forhold.indbetaltBeloeb) {
+            const indbetalt = new Intl.NumberFormat('da-DK', { 
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2 
+            }).format(forhold.indbetaltBeloeb);
+            paymentDesc += `, heraf samlet indbetalt kr. ${indbetalt}`;
+            isPartiallyPaid = true;
+          }
+          
+          paymentDescriptions.push(paymentDesc);
+        }
+      });
+      
+      // Format total capital
+      const formattedTotal = new Intl.NumberFormat('da-DK', { 
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2 
+      }).format(totalCapital);
+      
+      // Build full description
+      let description = paymentDescriptions.join('. ') + '.';
+      description += ` Kapitalen udgør herefter kr. ${formattedTotal},00`;
+      if (isPartiallyPaid) {
+        description += ', delvist indbetalt';
+      }
+      description += '.';
+      
+      // Determine title based on context
+      let title = 'Kapitalforhøjelse';
+      if (firstForhold.beslutningsDato) {
+        const beslutningDate = parseDate(firstForhold.beslutningsDato);
+        if (beslutningDate) {
+          const formattedDate = format(beslutningDate, 'd. MMMM yyyy', { locale: da });
+          title = `Kapitalforhøjelse besluttet den ${formattedDate}`;
+        }
+      }
+      
+      // Add metadata for extra info
+      let metadataDesc = '';
+      if (firstForhold.vedtaegterDato) {
+        const vedtaegterDate = parseDate(firstForhold.vedtaegterDato);
+        if (vedtaegterDate) {
+          metadataDesc = `Vedtægter ændret: ${format(vedtaegterDate, 'd. MMMM yyyy', { locale: da })}`;
+        }
+      }
+      
+      events.push({
+        id: generateId('capital', startDate, eventIndex++),
+        date: startDate,
+        category: 'capital',
+        title,
+        description: metadataDesc ? `${metadataDesc}\n\n${description}` : description,
+        newValue: `kr. ${formattedTotal},00`,
+        severity: 'high',
+        metadata: { forholdList, totalCapital, currency },
+      });
+    });
+  } else if (normalizedData?.kapital) {
+    // Fallback to simple capital data if kapitalforhold not available
+    console.log('[TIMELINE] Using fallback kapital data, length:', normalizedData.kapital.length);
     
     normalizedData.kapital.forEach((kapital: any, idx: number) => {
       const startDate = parseDate(kapital.periode?.gyldigFra);
       if (startDate) {
         const amount = new Intl.NumberFormat('da-DK', { style: 'currency', currency: kapital.valuta || 'DKK' }).format(kapital.beloeb);
         
-        // Get previous value for comparison
         const prevKapital = idx < normalizedData.kapital.length - 1 
           ? normalizedData.kapital[idx + 1] 
           : null;
