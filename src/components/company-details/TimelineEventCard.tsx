@@ -42,11 +42,19 @@ const getCategoryIcon = (category: string) => {
 
 
 export const TimelineEventCard: React.FC<TimelineEventCardProps> = ({ event }) => {
-  const formatChange = () => {
-    if (event.oldValue && event.newValue) {
-      return `${event.description} (${event.oldValue} → ${event.newValue})`;
+  const formatEventDescription = () => {
+    // For changes with old→new values
+    if (event.oldValue && event.newValue && event.oldValue !== event.newValue) {
+      return `${event.title}: ${event.oldValue} → ${event.newValue}`;
     }
-    return event.description;
+    
+    // For additions/removals (title already says what happened)
+    if (event.newValue && !event.oldValue) {
+      return `${event.title}: ${event.description}`;
+    }
+    
+    // Default - show title and description
+    return `${event.title}: ${event.description}`;
   };
 
   return (
@@ -61,8 +69,7 @@ export const TimelineEventCard: React.FC<TimelineEventCardProps> = ({ event }) =
             {format(event.date, 'd MMM yyyy', { locale: da })}
           </span>
           <span className="mx-1.5 text-muted-foreground">•</span>
-          <span className="font-medium">{event.title}:</span>
-          <span className="ml-1.5">{formatChange()}</span>
+          <span>{formatEventDescription()}</span>
         </div>
       </div>
     </div>

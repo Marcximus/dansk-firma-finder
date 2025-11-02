@@ -73,21 +73,39 @@ export const extractAllHistoricalEvents = (cvrData: any, financialData?: any): T
 
   const normalizedData = normalizeData(cvrData);
 
-  // Extract name history
-  if (normalizedData?.navne) {
-    normalizedData.navne.forEach((navnObj: any, idx: number) => {
+  // Extract actual company founding date FIRST
+  if (normalizedData?.stiftelsesDato) {
+    const foundingDate = parseDate(normalizedData.stiftelsesDato);
+    if (foundingDate) {
+      events.push({
+        id: generateId('founding', foundingDate, eventIndex++),
+        date: foundingDate,
+        category: 'legal',
+        title: 'Virksomhed stiftet',
+        description: normalizedData.navne?.[normalizedData.navne.length - 1]?.navn || 'Ukendt navn',
+        severity: 'high',
+      });
+    }
+  }
+
+  // Extract name history (ALL are name changes, not creation)
+  if (normalizedData?.navne && normalizedData.navne.length > 0) {
+    // Process all name entries, skip the oldest if we already showed founding
+    const nameEntries = normalizedData.stiftelsesDato ? normalizedData.navne.slice(0, -1) : normalizedData.navne;
+    
+    nameEntries.forEach((navnObj: any, idx: number) => {
       const startDate = parseDate(navnObj.periode?.gyldigFra);
       if (startDate) {
-        const isFirst = idx === normalizedData.navne.length - 1;
+        const oldName = normalizedData.navne[idx + 1]?.navn;
         events.push({
           id: generateId('name', startDate, eventIndex++),
           date: startDate,
           category: 'name',
-          title: isFirst ? 'Virksomhed oprettet' : 'Navneændring',
+          title: 'Navneændring',
           description: navnObj.navn,
           newValue: navnObj.navn,
-          oldValue: idx < normalizedData.navne.length - 1 ? normalizedData.navne[idx + 1]?.navn : undefined,
-          severity: isFirst ? 'high' : 'medium',
+          oldValue: oldName,
+          severity: 'medium',
           metadata: navnObj,
         });
       }
@@ -224,6 +242,102 @@ export const extractAllHistoricalEvents = (cvrData: any, financialData?: any): T
           newValue: formaal.formaalskode,
           severity: 'low',
           metadata: formaal,
+        });
+      }
+    });
+  }
+
+  // Extract email history
+  if (normalizedData?.elektroniskPost) {
+    normalizedData.elektroniskPost.forEach((email: any) => {
+      const startDate = parseDate(email.periode?.gyldigFra);
+      if (startDate) {
+        events.push({
+          id: generateId('contact', startDate, eventIndex++),
+          date: startDate,
+          category: 'contact',
+          title: email.periode?.gyldigTil ? 'Email fjernet' : 'Email tilføjet',
+          description: email.kontaktoplysning,
+          newValue: email.kontaktoplysning,
+          severity: 'low',
+          metadata: email,
+        });
+      }
+    });
+  }
+
+  // Extract phone history
+  if (normalizedData?.telefonNummer) {
+    normalizedData.telefonNummer.forEach((phone: any) => {
+      const startDate = parseDate(phone.periode?.gyldigFra);
+      if (startDate) {
+        events.push({
+          id: generateId('contact', startDate, eventIndex++),
+          date: startDate,
+          category: 'contact',
+          title: phone.periode?.gyldigTil ? 'Telefon fjernet' : 'Telefon tilføjet',
+          description: phone.kontaktoplysning,
+          newValue: phone.kontaktoplysning,
+          severity: 'low',
+          metadata: phone,
+        });
+      }
+    });
+  }
+
+  // Extract website history
+  if (normalizedData?.hjemmeside) {
+    normalizedData.hjemmeside.forEach((website: any) => {
+      const startDate = parseDate(website.periode?.gyldigFra);
+      if (startDate) {
+        events.push({
+          id: generateId('contact', startDate, eventIndex++),
+          date: startDate,
+          category: 'contact',
+          title: website.periode?.gyldigTil ? 'Hjemmeside fjernet' : 'Hjemmeside tilføjet',
+          description: website.kontaktoplysning,
+          newValue: website.kontaktoplysning,
+          severity: 'low',
+          metadata: website,
+        });
+      }
+    });
+  }
+
+  // Extract secondary industry history
+  ['bibranche1', 'bibranche2', 'bibranche3'].forEach((branchField) => {
+    if (normalizedData?.[branchField]) {
+      normalizedData[branchField].forEach((branche: any) => {
+        const startDate = parseDate(branche.periode?.gyldigFra);
+        if (startDate) {
+          events.push({
+            id: generateId('industry', startDate, eventIndex++),
+            date: startDate,
+            category: 'industry',
+            title: branche.periode?.gyldigTil ? 'Bibranche fjernet' : 'Bibranche tilføjet',
+            description: branche.branchetekst || `Branchekode: ${branche.branchekode}`,
+            newValue: branche.branchetekst,
+            severity: 'low',
+            metadata: branche,
+          });
+        }
+      });
+    }
+  });
+
+  // Extract reklamebeskyttelse history
+  if (normalizedData?.reklamebeskyttelse) {
+    normalizedData.reklamebeskyttelse.forEach((reklame: any) => {
+      const startDate = parseDate(reklame.periode?.gyldigFra);
+      if (startDate) {
+        events.push({
+          id: generateId('legal', startDate, eventIndex++),
+          date: startDate,
+          category: 'legal',
+          title: reklame.reklamebeskyttet ? 'Reklamebeskyttelse aktiveret' : 'Reklamebeskyttelse deaktiveret',
+          description: reklame.reklamebeskyttet ? 'Virksomheden er nu beskyttet mod reklamehenvendelser' : 'Reklamebeskyttelse fjernet',
+          severity: 'low',
+          metadata: reklame,
         });
       }
     });

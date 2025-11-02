@@ -18,10 +18,10 @@ export const TimelineFiltersComponent: React.FC<TimelineFiltersProps> = ({
   events 
 }) => {
   const getCurrentMode = (): FilterMode => {
-    const importantEnabled = filters.showManagement && filters.showBoard && filters.showOwnership && filters.showStatus;
-    const allDisabled = !filters.showAddress && !filters.showName && !filters.showIndustry && !filters.showLegal && !filters.showCapital && !filters.showPurpose && !filters.showContact && !filters.showFinancial;
+    const importantEnabled = filters.showManagement && filters.showBoard && filters.showOwnership && filters.showStatus && filters.showLegal && filters.showCapital;
+    const adminDisabled = !filters.showAddress && !filters.showName && !filters.showIndustry && !filters.showPurpose && !filters.showContact && !filters.showFinancial;
     
-    if (importantEnabled && allDisabled) return 'important';
+    if (importantEnabled && adminDisabled) return 'important';
     
     const allEnabled = Object.values(filters).every(v => v);
     if (allEnabled) return 'all';
@@ -35,11 +35,11 @@ export const TimelineFiltersComponent: React.FC<TimelineFiltersProps> = ({
       showBoard: mode === 'important' || mode === 'all',
       showOwnership: mode === 'important' || mode === 'all',
       showStatus: mode === 'important' || mode === 'all',
+      showLegal: mode === 'important' || mode === 'all',
+      showCapital: mode === 'important' || mode === 'all',
       showAddress: mode === 'admin' || mode === 'all',
       showName: mode === 'admin' || mode === 'all',
       showIndustry: mode === 'admin' || mode === 'all',
-      showLegal: mode === 'admin' || mode === 'all',
-      showCapital: mode === 'admin' || mode === 'all',
       showPurpose: mode === 'admin' || mode === 'all',
       showContact: mode === 'admin' || mode === 'all',
       showFinancial: mode === 'all',
@@ -50,11 +50,11 @@ export const TimelineFiltersComponent: React.FC<TimelineFiltersProps> = ({
   const currentMode = getCurrentMode();
   
   const importantCount = events.filter(e => 
-    ['management', 'board', 'ownership', 'status'].includes(e.category)
+    ['management', 'board', 'ownership', 'status', 'legal', 'capital'].includes(e.category)
   ).length;
   
   const adminCount = events.filter(e => 
-    ['address', 'name', 'industry', 'legal', 'capital', 'purpose', 'contact'].includes(e.category)
+    ['address', 'name', 'industry', 'purpose', 'contact'].includes(e.category)
   ).length;
 
   return (
