@@ -327,7 +327,7 @@ export const extractAllHistoricalEvents = (cvrData: any, financialData?: any): T
               minimumFractionDigits: 2,
               maximumFractionDigits: 2 
             }).format(kursValue);
-            paymentDesc += `, kurs ${kurs} (${kursValue / 100}%)`;
+            paymentDesc += `, kurs ${kurs}`;
             
             // Calculate total amount invested: nominal × (kurs / 100)
             const totalInvested = nominalValue * (kursValue / 100);
