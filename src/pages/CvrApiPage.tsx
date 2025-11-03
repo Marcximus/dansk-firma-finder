@@ -23,37 +23,420 @@ const CvrApiPage = () => {
   const exampleResponse = `{
   "cvr": 12345678,
   "navn": "Eksempel A/S",
-  "adresse": {
-    "vejnavn": "Eksempelvej",
-    "husnummer": "42",
-    "postnummer": 1234,
-    "by": "København"
-  },
-  "branche": {
-    "kode": "620100",
-    "beskrivelse": "Computerprogrammering"
-  },
-  "status": "NORMAL",
-  "stiftelsesdato": "2020-01-15",
-  "telefon": "+45 12 34 56 78",
-  "email": "kontakt@eksempel.dk",
-  "hjemmeside": "https://eksempel.dk",
-  "medarbejdere": {
-    "antal": 25,
-    "interval": "20-49"
-  },
-  "ledelse": [
+  "binavne": [
     {
-      "rolle": "Direktør",
-      "navn": "Lars Nielsen",
-      "startdato": "2020-01-15"
+      "navn": "Eksempel Technology",
+      "periode": {
+        "fra": "2021-03-15",
+        "til": null
+      }
     }
   ],
-  "regnskabsdata": {
-    "seneste_år": 2023,
-    "omsætning": 15000000,
-    "resultat": 2500000,
-    "egenkapital": 8000000
+  "virksomhedsform": {
+    "kode": "80",
+    "beskrivelse": "Aktieselskab",
+    "ansvarligDataleverandoer": "Erhvervsstyrelsen"
+  },
+  "status": {
+    "kode": "NORMAL",
+    "beskrivelse": "Normal",
+    "sidstOpdateret": "2024-01-15T10:30:00Z"
+  },
+  "stiftelsesdato": "2020-01-15",
+  "reklamebeskyttet": false,
+  "kontaktoplysninger": {
+    "telefon": [
+      {
+        "nummer": "+45 12 34 56 78",
+        "type": "Primær",
+        "valideret": true
+      },
+      {
+        "nummer": "+45 98 76 54 32",
+        "type": "Support",
+        "valideret": true
+      }
+    ],
+    "email": [
+      {
+        "adresse": "kontakt@eksempel.dk",
+        "type": "Primær"
+      },
+      {
+        "adresse": "support@eksempel.dk",
+        "type": "Support"
+      }
+    ],
+    "hjemmeside": [
+      "https://eksempel.dk",
+      "https://eksempel.com"
+    ]
+  },
+  "adresser": {
+    "primær": {
+      "vejnavn": "Eksempelvej",
+      "husnummer": "42",
+      "etage": "3",
+      "sidedør": "tv",
+      "postnummer": 1234,
+      "by": "København K",
+      "kommune": {
+        "kode": "0101",
+        "navn": "København"
+      },
+      "landekode": "DK",
+      "coNavn": null,
+      "beliggenhedsadresse": true,
+      "periode": {
+        "fra": "2020-01-15",
+        "til": null
+      }
+    },
+    "tidligere": [
+      {
+        "vejnavn": "Gammel Vej",
+        "husnummer": "10",
+        "postnummer": 2300,
+        "by": "København S",
+        "periode": {
+          "fra": "2018-01-01",
+          "til": "2020-01-14"
+        }
+      }
+    ]
+  },
+  "branche": {
+    "hovedbranche": {
+      "kode": "620100",
+      "beskrivelse": "Computerprogrammering",
+      "periode": {
+        "fra": "2020-01-15",
+        "til": null
+      }
+    },
+    "bibranche": [
+      {
+        "kode": "620200",
+        "beskrivelse": "Konsulentbistand vedrørende informationsteknologi",
+        "periode": {
+          "fra": "2021-06-01",
+          "til": null
+        }
+      },
+      {
+        "kode": "631110",
+        "beskrivelse": "Databehandling, webhosting og lignende serviceydelser",
+        "periode": {
+          "fra": "2022-01-01",
+          "til": null
+        }
+      }
+    ]
+  },
+  "medarbejdere": {
+    "antalAnsatte": 25,
+    "antalAnsatteInterval": {
+      "nedre": 20,
+      "øvre": 49
+    },
+    "antalInklusivEjere": 27,
+    "årsværk": 23.5,
+    "periode": "2023-12-31",
+    "historik": [
+      {
+        "år": 2023,
+        "antal": 25,
+        "interval": "20-49"
+      },
+      {
+        "år": 2022,
+        "antal": 18,
+        "interval": "10-19"
+      },
+      {
+        "år": 2021,
+        "antal": 12,
+        "interval": "10-19"
+      }
+    ]
+  },
+  "kapital": {
+    "aktiekapital": {
+      "beløb": 500000,
+      "valuta": "DKK",
+      "sidstOpdateret": "2023-06-15"
+    },
+    "egenkapital": {
+      "beløb": 8500000,
+      "valuta": "DKK",
+      "regnskabsår": 2023
+    },
+    "kapitalklasser": [
+      {
+        "type": "A-aktier",
+        "stemmerPerAktie": 10,
+        "antal": 25000,
+        "pålydende": 10
+      },
+      {
+        "type": "B-aktier",
+        "stemmerPerAktie": 1,
+        "antal": 25000,
+        "pålydende": 10
+      }
+    ]
+  },
+  "ejere": [
+    {
+      "navn": "Holding Company ApS",
+      "cvr": 87654321,
+      "ejerandel": 75.5,
+      "stemmeret": 85.0,
+      "type": "Juridisk person",
+      "registreret": "2020-01-15"
+    },
+    {
+      "navn": "Investment Fund A/S",
+      "cvr": 11223344,
+      "ejerandel": 15.0,
+      "stemmeret": 8.0,
+      "type": "Juridisk person",
+      "registreret": "2022-03-10"
+    }
+  ],
+  "ledelse": {
+    "direktion": [
+      {
+        "navn": "Lars Nielsen",
+        "funktion": "Administrerende direktør",
+        "startdato": "2020-01-15",
+        "slutdato": null,
+        "tegningsregel": "Direktionen tegner selskabet hver for sig"
+      },
+      {
+        "navn": "Maria Jensen",
+        "funktion": "Teknisk direktør",
+        "startdato": "2021-06-01",
+        "slutdato": null
+      }
+    ],
+    "bestyrelse": [
+      {
+        "navn": "Peter Andersen",
+        "funktion": "Bestyrelsesformand",
+        "startdato": "2020-01-15",
+        "slutdato": null
+      },
+      {
+        "navn": "Anna Christensen",
+        "funktion": "Bestyrelsesmedlem",
+        "startdato": "2020-01-15",
+        "slutdato": null
+      },
+      {
+        "navn": "Henrik Larsen",
+        "funktion": "Bestyrelsesmedlem",
+        "startdato": "2021-04-01",
+        "slutdato": null
+      },
+      {
+        "navn": "Sophie Hansen",
+        "funktion": "Bestyrelsessuppleant",
+        "startdato": "2022-01-15",
+        "slutdato": null
+      }
+    ],
+    "revisor": [
+      {
+        "navn": "BDO Statsautoriseret revisionsaktieselskab",
+        "cvr": 99887766,
+        "type": "Godkendt revisionsvirksomhed",
+        "startdato": "2020-01-15",
+        "slutdato": null
+      }
+    ],
+    "tidligere": [
+      {
+        "navn": "Ole Thomsen",
+        "funktion": "Bestyrelsesmedlem",
+        "startdato": "2020-01-15",
+        "slutdato": "2021-03-31"
+      }
+    ]
+  },
+  "regnskab": {
+    "regnskabsperiode": {
+      "start": "01-01",
+      "slut": "12-31"
+    },
+    "regnskabsklasse": "B",
+    "revisionsklasse": "pålagt",
+    "seneste": {
+      "år": 2023,
+      "omsætning": 25000000,
+      "bruttofortjeneste": 18000000,
+      "driftsresultat": 3500000,
+      "ordinærtResultat": 3200000,
+      "årsresultat": 2500000,
+      "egenkapital": 8500000,
+      "sumAktiver": 15000000,
+      "kortfristetGæld": 4000000,
+      "langfristetGæld": 2500000,
+      "gældsgrad": 0.76,
+      "soliditetsgrad": 56.7,
+      "afkastningsgrad": 21.3,
+      "egenkapitalforrentning": 29.4,
+      "overskudsgrad": 12.8,
+      "likviditetsgrad": 1.85
+    },
+    "historik": [
+      {
+        "år": 2023,
+        "omsætning": 25000000,
+        "årsresultat": 2500000,
+        "egenkapital": 8500000,
+        "medarbejdere": 25
+      },
+      {
+        "år": 2022,
+        "omsætning": 18000000,
+        "årsresultat": 1800000,
+        "egenkapital": 6000000,
+        "medarbejdere": 18
+      },
+      {
+        "år": 2021,
+        "omsætning": 12000000,
+        "årsresultat": 1200000,
+        "egenkapital": 4200000,
+        "medarbejdere": 12
+      },
+      {
+        "år": 2020,
+        "omsætning": 8000000,
+        "årsresultat": 800000,
+        "egenkapital": 3000000,
+        "medarbejdere": 8
+      }
+    ]
+  },
+  "koncernforhold": {
+    "modervirksomhed": {
+      "navn": "Holding Company ApS",
+      "cvr": 87654321,
+      "land": "Danmark"
+    },
+    "datterselskaber": [
+      {
+        "navn": "Eksempel Software ApS",
+        "cvr": 55443322,
+        "ejerandel": 100,
+        "land": "Danmark"
+      },
+      {
+        "navn": "Eksempel Consulting ApS",
+        "cvr": 66554433,
+        "ejerandel": 75,
+        "land": "Danmark"
+      }
+    ],
+    "søsterselskaber": [
+      {
+        "navn": "Partner Company A/S",
+        "cvr": 77665544,
+        "fællesEjer": "Holding Company ApS"
+      }
+    ],
+    "ultimativModervirksomhed": {
+      "navn": "Global Investment Group Inc.",
+      "land": "USA",
+      "identifikation": "US123456789"
+    }
+  },
+  "produktionsenheder": [
+    {
+      "pNummer": "1012345678",
+      "navn": "Eksempel A/S - Hovedkontor",
+      "adresse": {
+        "vejnavn": "Eksempelvej",
+        "husnummer": "42",
+        "postnummer": 1234,
+        "by": "København K"
+      },
+      "telefon": "+45 12 34 56 78",
+      "medarbejdere": 20,
+      "hovedbranche": "620100",
+      "startdato": "2020-01-15"
+    },
+    {
+      "pNummer": "1012345679",
+      "navn": "Eksempel A/S - Afdeling Aarhus",
+      "adresse": {
+        "vejnavn": "Viborgvej",
+        "husnummer": "100",
+        "postnummer": 8000,
+        "by": "Aarhus C"
+      },
+      "telefon": "+45 98 76 54 32",
+      "medarbejdere": 5,
+      "hovedbranche": "620100",
+      "startdato": "2022-06-01"
+    }
+  ],
+  "dokumenter": {
+    "vedtægter": {
+      "sidstOpdateret": "2023-06-15",
+      "tilgængelig": true
+    },
+    "årsrapporter": [
+      {
+        "år": 2023,
+        "publiceret": "2024-05-31",
+        "dokumentID": "doc_2023_12345678",
+        "tilgængelig": true
+      },
+      {
+        "år": 2022,
+        "publiceret": "2023-05-31",
+        "dokumentID": "doc_2022_12345678",
+        "tilgængelig": true
+      }
+    ],
+    "stiftelsesdokument": {
+      "dato": "2020-01-10",
+      "tilgængelig": true
+    }
+  },
+  "begivenheder": [
+    {
+      "type": "Kapitalændring",
+      "dato": "2023-06-15",
+      "beskrivelse": "Forhøjelse af aktiekapital fra 400.000 til 500.000 DKK"
+    },
+    {
+      "type": "Ledelsesændring",
+      "dato": "2022-01-15",
+      "beskrivelse": "Sophie Hansen indtrådt som bestyrelsessuppleant"
+    },
+    {
+      "type": "Adresseændring",
+      "dato": "2020-01-15",
+      "beskrivelse": "Flytning til Eksempelvej 42, 1234 København K"
+    }
+  ],
+  "kreditoplysninger": {
+    "kreditvurdering": "AAA",
+    "kreditlimit": 5000000,
+    "betalingsanmærkninger": 0,
+    "konkurser": 0,
+    "tvangsopløsninger": 0,
+    "sidstOpdateret": "2024-01-15"
+  },
+  "metadata": {
+    "sidstOpdateret": "2024-11-03T14:30:00Z",
+    "dataKilde": "CVR Register",
+    "apiVersion": "2.0",
+    "requestId": "req_abc123xyz789"
   }
 }`;
 
