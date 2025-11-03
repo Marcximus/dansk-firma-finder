@@ -306,26 +306,36 @@ export const extractAllHistoricalEvents = (cvrData: any, financialData?: any): T
       
       forholdList.forEach((forhold: any) => {
         if (forhold.beloeb) {
+          const nominalValue = forhold.beloeb;
           const amount = new Intl.NumberFormat('da-DK', { 
             minimumFractionDigits: 2,
             maximumFractionDigits: 2 
-          }).format(forhold.beloeb);
+          }).format(nominalValue);
           
-          let paymentDesc = `kr. ${amount},00`;
+          let paymentDesc = `Nye aktier udstedt: kr. ${amount} (nominel værdi)`;
           
           // Add payment method
           if (forhold.indbetalingstype) {
-            const paymentType = forhold.indbetalingstype === 'KONTANT' ? 'indbetalt kontant' : 'indbetalt';
-            paymentDesc += `, ${paymentType}`;
+            const paymentType = forhold.indbetalingstype === 'KONTANT' ? 'Indbetalt kontant' : 'Indbetalt';
+            paymentDesc += `. ${paymentType}`;
           }
           
-          // Add exchange rate if available
+          // Add exchange rate and calculate total amount if available
           if (forhold.kurs) {
+            const kursValue = forhold.kurs;
             const kurs = new Intl.NumberFormat('da-DK', { 
               minimumFractionDigits: 2,
               maximumFractionDigits: 2 
-            }).format(forhold.kurs);
-            paymentDesc += `, kurs ${kurs}`;
+            }).format(kursValue);
+            paymentDesc += `, kurs ${kurs} (${kursValue / 100}%)`;
+            
+            // Calculate total amount invested: nominal × (kurs / 100)
+            const totalInvested = nominalValue * (kursValue / 100);
+            const formattedTotal = new Intl.NumberFormat('da-DK', { 
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2 
+            }).format(totalInvested);
+            paymentDesc += `. Samlet indbetalt beløb: kr. ${formattedTotal}`;
           }
           
           // Check if partially paid
@@ -334,7 +344,7 @@ export const extractAllHistoricalEvents = (cvrData: any, financialData?: any): T
               minimumFractionDigits: 2,
               maximumFractionDigits: 2 
             }).format(forhold.indbetaltBeloeb);
-            paymentDesc += `, heraf samlet indbetalt kr. ${indbetalt}`;
+            paymentDesc += `. Heraf delvist indbetalt: kr. ${indbetalt}`;
             isPartiallyPaid = true;
           }
           
@@ -348,13 +358,14 @@ export const extractAllHistoricalEvents = (cvrData: any, financialData?: any): T
         maximumFractionDigits: 2 
       }).format(totalCapital);
       
-      // Build full description
-      let description = paymentDescriptions.join('. ') + '.';
-      description += ` Kapitalen udgør herefter kr. ${formattedTotal},00`;
+      // Build full description with line breaks for readability
+      let description = paymentDescriptions.join('\n');
+      description += `\nKapitalen udgør herefter kr. ${formattedTotal}`;
       if (isPartiallyPaid) {
-        description += ', delvist indbetalt';
+        description += ' (delvist indbetalt)';
       }
       description += '.';
+
       
       // Determine title based on context
       let title = 'Kapitalforhøjelse';

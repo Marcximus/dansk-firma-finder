@@ -71,6 +71,20 @@ export const TimelineEventCard: React.FC<TimelineEventCardProps> = ({ event }) =
       }
       if (event.description && (event.title === 'Kapitalforhøjelse' || event.title === 'Kapitalnedsættelse')) {
         const changeType = event.title === 'Kapitalforhøjelse' ? 'kapitalforhøjelse' : 'kapitalnedsættelse';
+        // Split description by newlines and format as bullet points
+        const lines = event.description.split('\n').filter(line => line.trim());
+        if (lines.length > 1) {
+          return (
+            <>
+              <span>blev der gennemført en {changeType}:</span>
+              <ul className="mt-1 ml-4 space-y-0.5">
+                {lines.map((line, i) => (
+                  <li key={i} className="text-sm">• {line}</li>
+                ))}
+              </ul>
+            </>
+          );
+        }
         return `blev der gennemført en ${changeType}: ${event.description}`;
       }
       if (event.title === 'Kapitalforhøjelse' && event.oldValue && event.newValue) {
