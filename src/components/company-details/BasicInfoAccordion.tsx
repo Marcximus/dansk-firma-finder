@@ -254,7 +254,7 @@ const BasicInfoAccordion: React.FC<BasicInfoAccordionProps> = ({ company, cvrDat
           
           <InfoRow 
             icon={Shield} 
-            label={isMobile ? "Vurdering" : "Virksomheds Vurdering"} 
+            label="SI Vurdering" 
             value={
               <span className={getRiskColor(riskScore.totalScore)}>
                 {riskScore.totalScore.toFixed(1)}/10.0 ({riskScore.riskLevelText})
