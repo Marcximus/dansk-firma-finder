@@ -24,6 +24,7 @@ import KontaktOsPage from "./pages/KontaktOsPage";
 import VirksomhedsrapporterPage from "./pages/VirksomhedsrapporterPage";
 import PaymentSuccessPage from "./pages/PaymentSuccessPage";
 import DatakilderPage from "./pages/DatakilderPage";
+import CvrApiPage from "./pages/CvrApiPage";
 import NotFound from "./pages/NotFound";
 import ScrollToTop from "./components/ScrollToTop";
 import { AdminLayout } from "./components/admin/AdminLayout";
@@ -73,6 +74,7 @@ const App = () => (
             <Route path="/virksomhedsrapporter" element={<VirksomhedsrapporterPage />} />
             <Route path="/payment-success" element={<PaymentSuccessPage />} />
             <Route path="/datakilder" element={<DatakilderPage />} />
+            <Route path="/cvr-api" element={<CvrApiPage />} />
             
             {/* Sitemap Routes */}
             <Route path="/sitemap.xml" element={<SitemapPage />} />
