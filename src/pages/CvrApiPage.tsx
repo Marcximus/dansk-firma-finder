@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import Layout from '@/components/Layout';
 import SEO from '@/components/SEO';
 import JSONLDScript, { createServiceSchema } from '@/components/JSONLDScript';
@@ -647,9 +648,9 @@ const CvrApiPage = () => {
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
             <Button size="lg" asChild>
-              <a href="mailto:kontakt@cvr.dev">
-                Kontakt os på kontakt@cvr.dev
-              </a>
+              <Link to="/kontakt-os">
+                Kontakt os
+              </Link>
             </Button>
           </div>
           <p className="text-sm text-muted-foreground mt-6">
