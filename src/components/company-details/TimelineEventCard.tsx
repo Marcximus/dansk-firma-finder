@@ -19,7 +19,6 @@ import { TimelineEvent } from '@/services/utils/timelineUtils';
 
 interface TimelineEventCardProps {
   event: TimelineEvent;
-  allEvents: TimelineEvent[];
 }
 
 const getCategoryColor = (category: string): string => {
@@ -61,16 +60,9 @@ const getCategoryIcon = (category: string) => {
 };
 
 
-export const TimelineEventCard: React.FC<TimelineEventCardProps> = ({ event, allEvents }) => {
+export const TimelineEventCard: React.FC<TimelineEventCardProps> = ({ event }) => {
   const formatEventDescription = () => {
     const date = format(event.date, 'd MMM yyyy', { locale: da });
-    
-    // Check if there's a capital event on the same day
-    const hasCapitalEventSameDay = allEvents.some(e => 
-      e.category === 'capital' && 
-      e.date.toDateString() === event.date.toDateString() &&
-      e.id !== event.id
-    );
     
     // Capital changes
     if (event.category === 'capital') {
@@ -119,28 +111,6 @@ export const TimelineEventCard: React.FC<TimelineEventCardProps> = ({ event, all
     
     // Management/Board/Ownership changes
     if (['management', 'board', 'ownership'].includes(event.category)) {
-      // Special handling for ownership changes
-      if (event.category === 'ownership' && event.newValue) {
-        const ownerName = event.title.split(' - ')[0];
-        const ownershipRange = event.newValue; // e.g., "5-10%"
-        
-        // Check if there's a capital event on the same day
-        if (hasCapitalEventSameDay) {
-          if (event.oldValue) {
-            return `${ownerName} - ejerandel og stemmeandel steg fra ${event.oldValue} til ${ownershipRange} i forbindelse med kapitalforhøjelsen samme dag`;
-          } else {
-            return `${ownerName} - ejerandel og stemmeandel på ${ownershipRange} registreret i forbindelse med kapitalforhøjelsen samme dag`;
-          }
-        }
-        
-        // No capital event same day
-        if (event.oldValue) {
-          return `${ownerName} - ejerandel og stemmeandel ændrede sig fra ${event.oldValue} til ${ownershipRange}`;
-        } else {
-          return `${ownerName} - ejerandel og stemmeandel registreret på ${ownershipRange}`;
-        }
-      }
-      
       if (event.title.includes('tiltrådt') || event.title.includes('tilføjet')) {
         return `${event.title.toLowerCase()}`;
       }

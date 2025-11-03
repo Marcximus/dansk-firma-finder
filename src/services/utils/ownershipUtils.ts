@@ -6,7 +6,7 @@ import { extractDataIntelligently, scanDataStructure } from './dataDiscovery';
 
 // Map ownership interval codes to percentage ranges
 // Based on Danish Business Authority's ownership reporting intervals
-export const mapOwnershipToRange = (value: number): string => {
+const mapOwnershipToRange = (value: number): string => {
   // The value is typically between 0 and 1 (e.g., 0.15 = 15%)
   const percentage = value * 100;
   

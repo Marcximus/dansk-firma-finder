@@ -1,6 +1,5 @@
 import { format, parseISO } from 'date-fns';
 import { da } from 'date-fns/locale';
-import { mapOwnershipToRange } from './ownershipUtils';
 
 export interface TimelineEvent {
   id: string;
@@ -930,53 +929,20 @@ export const extractAllHistoricalEvents = (cvrData: any, financialData?: any): T
             
             // Extract EJERANDEL_PROCENT (ownership percentage) changes
             if (category === 'ownership') {
-              console.log('[TIMELINE DEBUG] Processing ownership for:', personName, {
-                hasAttributter: !!medlem.attributter,
-                attributterCount: medlem.attributter?.length,
-                attributeTypes: medlem.attributter?.map((a: any) => a.type)
-              });
-              
               const ejerandelAttr = medlem.attributter?.find((a: any) => 
-                a.type === 'EJERANDEL_PROCENT' || 
-                a.type === 'EJERANDEL_STEMME_PROCENT' ||
-                a.type === 'EJERANDEL_STEMMERET_PROCENT'
+                a.type === 'EJERANDEL_PROCENT' || a.type === 'EJERANDEL_STEMME_PROCENT'
               );
-              
-              console.log('[TIMELINE DEBUG] Found ejerandelAttr:', {
-                found: !!ejerandelAttr,
-                type: ejerandelAttr?.type,
-                vaerdierCount: ejerandelAttr?.vaerdier?.length
-              });
               
               if (ejerandelAttr?.vaerdier) {
                 ejerandelAttr.vaerdier.forEach((vaerdi: any, index: number) => {
                   const startDate = parseDate(vaerdi.periode?.gyldigFra);
                   
                   if (startDate && vaerdi.vaerdi) {
-                    // Get raw value from CVR
-                    const rawValue = parseFloat(vaerdi.vaerdi);
-                    
-                    console.log('[TIMELINE DEBUG] Processing ownership value:', {
-                      index,
-                      rawValue,
-                      hasStartDate: !!startDate,
-                      startDate: startDate?.toISOString()
-                    });
-                    
-                    // Normalize to 0-1 range (handle both decimal and percentage formats)
-                    // If value > 1, it's likely already a percentage (33.33), so divide by 100
-                    // If value <= 1, it's likely a decimal (0.3333)
-                    const normalizedValue = rawValue > 1 ? rawValue / 100 : rawValue;
-                    
-                    // For display as exact percentage
-                    const actualPercentage = normalizedValue * 100;
-                    
-                    // Same for previous value
-                    const prevRawValue = index < ejerandelAttr.vaerdier.length - 1 
-                      ? parseFloat(ejerandelAttr.vaerdier[index + 1].vaerdi)
+                    // Multiply by 100 to get actual percentage (0.3333 → 33.33)
+                    const actualPercentage = parseFloat(vaerdi.vaerdi) * 100;
+                    const prevActualPercentage = index < ejerandelAttr.vaerdier.length - 1 
+                      ? parseFloat(ejerandelAttr.vaerdier[index + 1].vaerdi) * 100 
                       : null;
-                    const prevNormalizedValue = prevRawValue && prevRawValue > 1 ? prevRawValue / 100 : prevRawValue;
-                    const prevActualPercentage = prevNormalizedValue ? prevNormalizedValue * 100 : null;
                     
                     // Round for display
                     const displayPercent = Math.round(actualPercentage * 10) / 10;
@@ -987,32 +953,18 @@ export const extractAllHistoricalEvents = (cvrData: any, financialData?: any): T
                       return;
                     }
                     
-                    // Convert to range format (e.g., "5-10%") - expects 0-1 range
-                    const displayRange = mapOwnershipToRange(normalizedValue);
-                    const prevDisplayRange = prevNormalizedValue 
-                      ? mapOwnershipToRange(prevNormalizedValue)
-                      : null;
+                    // Natural language based on change type
+                    let title: string;
                     
-                    console.log('[TIMELINE DEBUG] Range conversion:', {
-                      normalizedValue,
-                      prevNormalizedValue,
-                      displayRange,
-                      prevDisplayRange,
-                      actualPercentage,
-                      prevActualPercentage
-                    });
-                    
-                    // Simple title with structured data
-                    const title = `${personName} - ejerandel og stemmeandel`;
-                    
-                    // Description provides context
-                    let description: string;
-                    if (!prevDisplayRange) {
-                      description = 'Registreret som ejer';
-                    } else if (actualPercentage > prevActualPercentage) {
-                      description = 'Ejerandel forøget';
+                    if (!prevDisplayPercent) {
+                      // First time ownership registered
+                      title = `${personName} registreret som ejer med ca. ${displayPercent}% af stemmerne`;
+                    } else if (displayPercent > prevDisplayPercent) {
+                      // Ownership increased
+                      title = `${personName} forøgede sin andel af stemmerne i selskabet fra ca. ${prevDisplayPercent}% til ca. ${displayPercent}%`;
                     } else {
-                      description = 'Ejerandel reduceret';
+                      // Ownership decreased
+                      title = `${personName} reducerede sin andel af stemmerne i selskabet fra ca. ${prevDisplayPercent}% til ca. ${displayPercent}%`;
                     }
                     
                     events.push({
@@ -1020,19 +972,11 @@ export const extractAllHistoricalEvents = (cvrData: any, financialData?: any): T
                       date: startDate,
                       category: 'ownership',
                       title,
-                      description,
-                      newValue: displayRange,
-                      oldValue: prevDisplayRange || undefined,
-                      severity: 'high',
+                      description: '',
+                      newValue: `${displayPercent}%`,
+                      oldValue: prevDisplayPercent ? `${prevDisplayPercent}%` : undefined,
+                      severity: 'medium',
                       metadata: { relation, org, medlem, vaerdi, type: 'ownership_change' },
-                    });
-                    
-                    console.log('[TIMELINE DEBUG] Created ownership event:', {
-                      title,
-                      newValue: displayRange,
-                      oldValue: prevDisplayRange,
-                      date: startDate.toISOString(),
-                      description
                     });
                   }
                 });
@@ -1077,7 +1021,7 @@ export const extractAllHistoricalEvents = (cvrData: any, financialData?: any): T
               if (!attr.vaerdier || attr.vaerdier.length === 0) return;
               
               // Skip already processed attributes
-              if (['FUNKTION', 'EJERANDEL_PROCENT', 'EJERANDEL_STEMME_PROCENT', 'EJERANDEL_STEMMERET_PROCENT', 'VALGFORM'].includes(attr.type)) {
+              if (['FUNKTION', 'EJERANDEL_PROCENT', 'EJERANDEL_STEMME_PROCENT', 'VALGFORM'].includes(attr.type)) {
                 return;
               }
               
