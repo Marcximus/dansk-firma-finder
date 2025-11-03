@@ -25,6 +25,7 @@ import VirksomhedsrapporterPage from "./pages/VirksomhedsrapporterPage";
 import PaymentSuccessPage from "./pages/PaymentSuccessPage";
 import DatakilderPage from "./pages/DatakilderPage";
 import CvrApiPage from "./pages/CvrApiPage";
+import FremhaevVirksomhedPage from "./pages/FremhaevVirksomhedPage";
 import NotFound from "./pages/NotFound";
 import ScrollToTop from "./components/ScrollToTop";
 import { AdminLayout } from "./components/admin/AdminLayout";
@@ -75,6 +76,7 @@ const App = () => (
             <Route path="/payment-success" element={<PaymentSuccessPage />} />
             <Route path="/datakilder" element={<DatakilderPage />} />
             <Route path="/cvr-api" element={<CvrApiPage />} />
+            <Route path="/fremhaev-virksomhed" element={<FremhaevVirksomhedPage />} />
             
             {/* Sitemap Routes */}
             <Route path="/sitemap.xml" element={<SitemapPage />} />
