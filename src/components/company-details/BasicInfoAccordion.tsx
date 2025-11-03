@@ -2,12 +2,13 @@
 import React from 'react';
 import { AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Company } from '@/services/companyAPI';
-import { FileText, Building2, Hash, MapPin, Calendar, Briefcase, DollarSign, ScrollText, User, Shield } from 'lucide-react';
+import { FileText, Building2, Hash, MapPin, Calendar, Briefcase, DollarSign, ScrollText, User, Shield, Info } from 'lucide-react';
 import { format } from 'date-fns';
 import { da } from 'date-fns/locale';
 import { extractExtendedInfo } from '@/services/cvrUtils';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { calculateRiskScore } from '@/services/utils/riskAssessment';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface BasicInfoAccordionProps {
   company: Company;
@@ -252,15 +253,34 @@ const BasicInfoAccordion: React.FC<BasicInfoAccordionProps> = ({ company, cvrDat
             />
           )}
           
-          <InfoRow 
-            icon={Shield} 
-            label="SI Vurdering" 
-            value={
-              <span className={getRiskColor(riskScore.totalScore)}>
-                {riskScore.totalScore.toFixed(1)}/10.0 ({riskScore.riskLevelText})
-              </span>
-            }
-          />
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div className="flex flex-row items-start sm:items-center gap-1 sm:gap-2 md:gap-3">
+                  <div className="flex items-center gap-0.5 sm:gap-1 md:gap-1.5 min-w-[90px] sm:min-w-[140px] flex-shrink-0">
+                    <Shield className="h-3 w-3 sm:h-3.5 sm:w-3.5 md:h-4 md:w-4 text-muted-foreground flex-shrink-0" />
+                    <span className="text-[10px] sm:text-xs md:text-sm text-muted-foreground font-medium whitespace-nowrap">
+                      SI Vurdering:
+                    </span>
+                    <Info className="h-3 w-3 text-muted-foreground ml-1 cursor-help" />
+                  </div>
+                  <span className="text-[10px] sm:text-xs md:text-sm break-words flex-1">
+                    <span className={getRiskColor(riskScore.totalScore)}>
+                      {riskScore.totalScore.toFixed(1)}/10.0 ({riskScore.riskLevelText})
+                    </span>
+                  </span>
+                </div>
+              </TooltipTrigger>
+              <TooltipContent className="max-w-sm">
+                <p className="font-semibold mb-2">Om SI Vurdering</p>
+                <p className="text-sm">
+                  SI Vurdering er en algoritmisk risikovurdering baseret på virksomhedens status, 
+                  økonomiske data, alder, ledelsesmæssig stabilitet, revisorskift, adresseændringer 
+                  og datakvalitet. Scoren går fra 0 (høj risiko) til 10 (lav risiko).
+                </p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
           
         </div>
       </AccordionContent>
