@@ -1,4 +1,4 @@
-import { Building2, FileText, Bell, Code, Star } from "lucide-react";
+import { Building2, FileText, Bell, Code, Star, ArrowRight, Sparkles } from "lucide-react";
 import { Link } from "react-router-dom";
 import Layout from "@/components/Layout";
 import SEO from "@/components/SEO";
@@ -20,7 +20,10 @@ const AlleProdukterPage = () => {
         "Gratis grundlæggende oplysninger"
       ],
       link: "/",
-      cta: "Søg nu"
+      cta: "Søg nu",
+      gradient: "from-blue-500/10 via-cyan-500/10 to-blue-500/10",
+      accentColor: "text-blue-500",
+      bgGlow: "bg-blue-500/5"
     },
     {
       id: "virksomhedsrapporter",
@@ -35,7 +38,10 @@ const AlleProdukterPage = () => {
         "PDF-download og delingsmuligheder"
       ],
       link: "/virksomhedsrapporter",
-      cta: "Se rapporttyper"
+      cta: "Se rapporttyper",
+      gradient: "from-purple-500/10 via-pink-500/10 to-purple-500/10",
+      accentColor: "text-purple-500",
+      bgGlow: "bg-purple-500/5"
     },
     {
       id: "track-foelg",
@@ -50,7 +56,10 @@ const AlleProdukterPage = () => {
         "Historik over alle ændringer"
       ],
       link: "/track-foelg",
-      cta: "Start abonnement"
+      cta: "Start abonnement",
+      gradient: "from-amber-500/10 via-orange-500/10 to-amber-500/10",
+      accentColor: "text-amber-500",
+      bgGlow: "bg-amber-500/5"
     },
     {
       id: "cvr-api",
@@ -65,7 +74,10 @@ const AlleProdukterPage = () => {
         "Dedikeret teknisk support"
       ],
       link: "/cvr-api",
-      cta: "Se API-dokumentation"
+      cta: "Se API-dokumentation",
+      gradient: "from-green-500/10 via-emerald-500/10 to-green-500/10",
+      accentColor: "text-green-500",
+      bgGlow: "bg-green-500/5"
     },
     {
       id: "fremhaev-virksomhed",
@@ -80,7 +92,10 @@ const AlleProdukterPage = () => {
         "Detaljeret statistik over visninger"
       ],
       link: "/fremhaev-virksomhed",
-      cta: "Læs mere"
+      cta: "Læs mere",
+      gradient: "from-rose-500/10 via-pink-500/10 to-rose-500/10",
+      accentColor: "text-rose-500",
+      bgGlow: "bg-rose-500/5"
     }
   ];
 
@@ -92,84 +107,155 @@ const AlleProdukterPage = () => {
         keywords="virksomhedssøgning, virksomhedsrapporter, cvr data, api, track følg, fremhæv virksomhed"
       />
 
-      <div className="min-h-screen bg-gradient-to-b from-background to-muted/20">
+      <div className="min-h-screen relative overflow-hidden">
+        {/* Animated Background */}
+        <div className="fixed inset-0 -z-10">
+          <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-background to-secondary/5" />
+          <div className="absolute top-0 left-1/4 w-96 h-96 bg-primary/10 rounded-full blur-3xl animate-pulse" />
+          <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-secondary/10 rounded-full blur-3xl animate-pulse delay-1000" />
+        </div>
+
         {/* Hero Section */}
-        <section className="py-16 md:py-24">
+        <section className="relative py-20 md:py-32">
           <div className="container mx-auto px-4">
-            <div className="max-w-3xl mx-auto text-center">
-              <h1 className="text-4xl md:text-5xl font-bold mb-6">
+            <div className="max-w-4xl mx-auto text-center">
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 mb-6 animate-fade-in">
+                <Sparkles className="w-4 h-4 text-primary" />
+                <span className="text-sm font-medium text-primary">5 Kraftfulde Produkter</span>
+              </div>
+              
+              <h1 className="text-5xl md:text-7xl font-bold mb-6 bg-gradient-to-r from-foreground via-foreground/80 to-foreground bg-clip-text text-transparent animate-fade-in">
                 Alle Vores Produkter
               </h1>
-              <p className="text-xl text-muted-foreground">
+              
+              <p className="text-xl md:text-2xl text-muted-foreground max-w-2xl mx-auto animate-fade-in delay-100">
                 Komplet oversigt over alle vores produkter og tjenester til at hjælpe dig med at
-                få de virksomhedsoplysninger, du har brug for.
+                få de virksomhedsoplysninger, du har brug for
               </p>
             </div>
           </div>
+          
+          {/* Decorative Elements */}
+          <div className="absolute top-20 left-10 w-20 h-20 border-2 border-primary/20 rounded-lg rotate-12 animate-pulse" />
+          <div className="absolute bottom-20 right-10 w-16 h-16 border-2 border-secondary/20 rounded-full animate-pulse delay-500" />
         </section>
 
         {/* Products Section */}
-        <section className="pb-24">
+        <section className="pb-32 relative">
           <div className="container mx-auto px-4">
-            <div className="max-w-4xl mx-auto space-y-12">
+            <div className="max-w-7xl mx-auto space-y-32">
               {products.map((product, index) => {
                 const Icon = product.icon;
+                const isEven = index % 2 === 0;
+                
                 return (
-                  <Card key={product.id} className="overflow-hidden border-2 hover:border-primary/50 transition-colors">
-                    <CardHeader className="bg-muted/50">
-                      <div className="flex items-start gap-4">
-                        <div className="p-3 rounded-lg bg-primary/10">
-                          <Icon className="h-8 w-8 text-primary" />
+                  <div 
+                    key={product.id} 
+                    className="group relative animate-fade-in"
+                    style={{ animationDelay: `${index * 100}ms` }}
+                  >
+                    {/* Number Badge */}
+                    <div className={`absolute -top-8 ${isEven ? 'left-0' : 'right-0'} text-8xl md:text-9xl font-bold text-muted/5 select-none`}>
+                      0{index + 1}
+                    </div>
+                    
+                    <div className={`grid md:grid-cols-2 gap-8 md:gap-12 items-center ${isEven ? '' : 'md:grid-flow-dense'}`}>
+                      {/* Content Side */}
+                      <div className={`space-y-6 ${isEven ? 'md:pr-8' : 'md:pl-8 md:col-start-2'}`}>
+                        <div className={`inline-flex items-center gap-3 p-4 rounded-2xl bg-gradient-to-br ${product.gradient} backdrop-blur-sm border border-border/50 group-hover:scale-110 transition-transform duration-300`}>
+                          <Icon className={`h-10 w-10 ${product.accentColor}`} />
                         </div>
-                        <div className="flex-1">
-                          <CardTitle className="text-2xl md:text-3xl mb-2">
+                        
+                        <div>
+                          <h2 className="text-4xl md:text-5xl font-bold mb-4 group-hover:text-primary transition-colors">
                             {product.title}
-                          </CardTitle>
-                          <CardDescription className="text-base">
+                          </h2>
+                          <p className="text-lg text-muted-foreground leading-relaxed">
                             {product.description}
-                          </CardDescription>
+                          </p>
                         </div>
+
+                        <Button 
+                          asChild 
+                          size="lg" 
+                          className="group/btn shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
+                        >
+                          <Link to={product.link} className="gap-2">
+                            {product.cta}
+                            <ArrowRight className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" />
+                          </Link>
+                        </Button>
                       </div>
-                    </CardHeader>
-                    <CardContent className="pt-6">
-                      <div className="mb-6">
-                        <h3 className="font-semibold mb-3 text-lg">Nøglefunktioner:</h3>
-                        <ul className="space-y-2">
-                          {product.features.map((feature, idx) => (
-                            <li key={idx} className="flex items-start gap-2">
-                              <span className="text-primary mt-1">✓</span>
-                              <span className="text-muted-foreground">{feature}</span>
-                            </li>
-                          ))}
-                        </ul>
+
+                      {/* Features Card Side */}
+                      <div className={isEven ? 'md:col-start-2' : 'md:col-start-1'}>
+                        <Card className={`relative overflow-hidden border-2 border-border/50 backdrop-blur-sm bg-card/50 hover:border-primary/50 transition-all duration-500 group-hover:shadow-2xl group-hover:scale-[1.02]`}>
+                          {/* Glow Effect */}
+                          <div className={`absolute inset-0 bg-gradient-to-br ${product.gradient} opacity-0 group-hover:opacity-100 transition-opacity duration-500`} />
+                          
+                          <CardContent className="relative p-8">
+                            <h3 className="font-bold text-xl mb-6 flex items-center gap-2">
+                              <span className={`w-1.5 h-6 rounded-full ${product.accentColor.replace('text-', 'bg-')}`} />
+                              Nøglefunktioner
+                            </h3>
+                            
+                            <ul className="space-y-4">
+                              {product.features.map((feature, idx) => (
+                                <li 
+                                  key={idx} 
+                                  className="flex items-start gap-3 group/item animate-fade-in"
+                                  style={{ animationDelay: `${(index * 100) + (idx * 50)}ms` }}
+                                >
+                                  <span className={`flex-shrink-0 w-6 h-6 rounded-full ${product.bgGlow} ${product.accentColor} flex items-center justify-center text-xs font-bold group-hover/item:scale-110 transition-transform`}>
+                                    ✓
+                                  </span>
+                                  <span className="text-muted-foreground group-hover/item:text-foreground transition-colors">
+                                    {feature}
+                                  </span>
+                                </li>
+                              ))}
+                            </ul>
+                          </CardContent>
+                        </Card>
                       </div>
-                      <Button asChild size="lg" className="w-full sm:w-auto">
-                        <Link to={product.link}>
-                          {product.cta}
-                        </Link>
-                      </Button>
-                    </CardContent>
-                  </Card>
+                    </div>
+                  </div>
                 );
               })}
             </div>
           </div>
         </section>
 
-        {/* CTA Section */}
-        <section className="py-16 bg-muted/50">
-          <div className="container mx-auto px-4">
-            <div className="max-w-3xl mx-auto text-center">
-              <h2 className="text-3xl font-bold mb-4">
+        {/* Enhanced CTA Section */}
+        <section className="relative py-24 overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-background to-secondary/10" />
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(var(--primary),0.1)_0%,transparent_65%)]" />
+          
+          <div className="container mx-auto px-4 relative">
+            <div className="max-w-4xl mx-auto text-center">
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 mb-6">
+                <Sparkles className="w-4 h-4 text-primary animate-pulse" />
+                <span className="text-sm font-medium text-primary">Vi er her for at hjælpe</span>
+              </div>
+              
+              <h2 className="text-4xl md:text-5xl font-bold mb-6">
                 Har du brug for hjælp?
               </h2>
-              <p className="text-lg text-muted-foreground mb-8">
+              
+              <p className="text-xl text-muted-foreground mb-10 max-w-2xl mx-auto">
                 Kontakt os, hvis du har spørgsmål til vores produkter eller har brug for rådgivning
                 om, hvilken løsning der passer bedst til dine behov.
               </p>
-              <Button asChild size="lg" variant="outline">
-                <Link to="/kontakt-os">
+              
+              <Button 
+                asChild 
+                size="lg" 
+                variant="default"
+                className="shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 text-lg px-8 py-6"
+              >
+                <Link to="/kontakt-os" className="gap-2">
                   Kontakt os
+                  <ArrowRight className="w-5 h-5" />
                 </Link>
               </Button>
             </div>
