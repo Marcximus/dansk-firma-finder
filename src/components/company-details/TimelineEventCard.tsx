@@ -121,23 +121,23 @@ export const TimelineEventCard: React.FC<TimelineEventCardProps> = ({ event, all
     if (['management', 'board', 'ownership'].includes(event.category)) {
       // Special handling for ownership changes
       if (event.category === 'ownership' && event.newValue) {
-        const ownerName = event.title.split(' - ')[0]; // Extract owner name from title
-        const percentage = event.newValue;
+        const ownerName = event.title.split(' - ')[0];
+        const ownershipRange = event.newValue; // e.g., "5-10%"
         
         // Check if there's a capital event on the same day
         if (hasCapitalEventSameDay) {
           if (event.oldValue) {
-            return `${ownerName} - ejerskab og stemmeandel steg fra ${event.oldValue} til ${percentage} i forbindelse med kapitalforhøjelsen samme dag`;
+            return `${ownerName} - ejerandel og stemmeandel steg fra ${event.oldValue} til ${ownershipRange} i forbindelse med kapitalforhøjelsen samme dag`;
           } else {
-            return `${ownerName} - ejerskab og stemmeandel på ${percentage} registreret i forbindelse med kapitalforhøjelsen samme dag`;
+            return `${ownerName} - ejerandel og stemmeandel på ${ownershipRange} registreret i forbindelse med kapitalforhøjelsen samme dag`;
           }
         }
         
         // No capital event same day
         if (event.oldValue) {
-          return `${ownerName} - ejerskab og stemmeandel ændrede sig fra ${event.oldValue} til ${percentage}`;
+          return `${ownerName} - ejerandel og stemmeandel ændrede sig fra ${event.oldValue} til ${ownershipRange}`;
         } else {
-          return `${ownerName} - ejerskab og stemmeandel registreret på ${percentage}`;
+          return `${ownerName} - ejerandel og stemmeandel registreret på ${ownershipRange}`;
         }
       }
       

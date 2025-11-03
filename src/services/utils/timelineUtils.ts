@@ -1,5 +1,6 @@
 import { format, parseISO } from 'date-fns';
 import { da } from 'date-fns/locale';
+import { mapOwnershipToRange } from './ownershipUtils';
 
 export interface TimelineEvent {
   id: string;
@@ -930,7 +931,9 @@ export const extractAllHistoricalEvents = (cvrData: any, financialData?: any): T
             // Extract EJERANDEL_PROCENT (ownership percentage) changes
             if (category === 'ownership') {
               const ejerandelAttr = medlem.attributter?.find((a: any) => 
-                a.type === 'EJERANDEL_PROCENT' || a.type === 'EJERANDEL_STEMME_PROCENT'
+                a.type === 'EJERANDEL_PROCENT' || 
+                a.type === 'EJERANDEL_STEMME_PROCENT' ||
+                a.type === 'EJERANDEL_STEMMERET_PROCENT'
               );
               
               if (ejerandelAttr?.vaerdier) {
@@ -953,14 +956,20 @@ export const extractAllHistoricalEvents = (cvrData: any, financialData?: any): T
                       return;
                     }
                     
+                    // Convert to range format (e.g., "5-10%")
+                    const displayRange = mapOwnershipToRange(actualPercentage / 100);
+                    const prevDisplayRange = prevActualPercentage 
+                      ? mapOwnershipToRange(prevActualPercentage / 100)
+                      : null;
+                    
                     // Simple title with structured data
                     const title = `${personName} - ejerandel og stemmeandel`;
                     
                     // Description provides context
                     let description: string;
-                    if (!prevDisplayPercent) {
+                    if (!prevDisplayRange) {
                       description = 'Registreret som ejer';
-                    } else if (displayPercent > prevDisplayPercent) {
+                    } else if (actualPercentage > prevActualPercentage) {
                       description = 'Ejerandel forøget';
                     } else {
                       description = 'Ejerandel reduceret';
@@ -972,9 +981,9 @@ export const extractAllHistoricalEvents = (cvrData: any, financialData?: any): T
                       category: 'ownership',
                       title,
                       description,
-                      newValue: `${displayPercent}%`,
-                      oldValue: prevDisplayPercent ? `${prevDisplayPercent}%` : undefined,
-                      severity: 'medium',
+                      newValue: displayRange,
+                      oldValue: prevDisplayRange || undefined,
+                      severity: 'high',
                       metadata: { relation, org, medlem, vaerdi, type: 'ownership_change' },
                     });
                   }
@@ -1020,7 +1029,7 @@ export const extractAllHistoricalEvents = (cvrData: any, financialData?: any): T
               if (!attr.vaerdier || attr.vaerdier.length === 0) return;
               
               // Skip already processed attributes
-              if (['FUNKTION', 'EJERANDEL_PROCENT', 'EJERANDEL_STEMME_PROCENT', 'VALGFORM'].includes(attr.type)) {
+              if (['FUNKTION', 'EJERANDEL_PROCENT', 'EJERANDEL_STEMME_PROCENT', 'EJERANDEL_STEMMERET_PROCENT', 'VALGFORM'].includes(attr.type)) {
                 return;
               }
               
