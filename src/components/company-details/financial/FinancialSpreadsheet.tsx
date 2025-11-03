@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
-import { ChevronDown, ChevronUp } from 'lucide-react';
+import { ChevronDown, ChevronUp, Download } from 'lucide-react';
 import {
   Tooltip,
   TooltipContent,
@@ -256,7 +256,23 @@ const FinancialSpreadsheet: React.FC<FinancialSpreadsheetProps> = ({ historicalD
                   <TableHead className="sticky left-0 bg-background w-[200px] h-8 text-xs font-medium">Post</TableHead>
                   {periods.map((period, idx) => (
                     <TableHead key={idx} className="text-right h-8 text-xs font-medium w-[120px]">
-                      {period.year || getYearLabel(period.periode)}
+                      <div className="flex flex-col items-end gap-1">
+                        <span>{period.year || getYearLabel(period.periode)}</span>
+                        {period.documentUrl ? (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => window.open(period.documentUrl, '_blank')}
+                            className="h-5 px-1.5 text-[10px] hover:bg-primary/10"
+                            title="Download årsrapport"
+                          >
+                            <Download className="h-3 w-3 mr-0.5" />
+                            <span className="hidden sm:inline">PDF</span>
+                          </Button>
+                        ) : (
+                          <span className="h-5 text-[10px] text-muted-foreground">-</span>
+                        )}
+                      </div>
                     </TableHead>
                   ))}
                 </TableRow>
@@ -421,7 +437,23 @@ const FinancialSpreadsheet: React.FC<FinancialSpreadsheetProps> = ({ historicalD
                   <TableHead className="sticky left-0 bg-background w-[200px] h-8 text-xs font-medium">Post</TableHead>
                   {periods.map((period, idx) => (
                     <TableHead key={idx} className="text-right h-8 text-xs font-medium w-[120px]">
-                      {getYearLabel(period.periode)}
+                      <div className="flex flex-col items-end gap-1">
+                        <span>{getYearLabel(period.periode)}</span>
+                        {period.documentUrl ? (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => window.open(period.documentUrl, '_blank')}
+                            className="h-5 px-1.5 text-[10px] hover:bg-primary/10"
+                            title="Download årsrapport"
+                          >
+                            <Download className="h-3 w-3 mr-0.5" />
+                            <span className="hidden sm:inline">PDF</span>
+                          </Button>
+                        ) : (
+                          <span className="h-5 text-[10px] text-muted-foreground">-</span>
+                        )}
+                      </div>
                     </TableHead>
                   ))}
                 </TableRow>
@@ -778,7 +810,23 @@ const FinancialSpreadsheet: React.FC<FinancialSpreadsheetProps> = ({ historicalD
                     <TableHead className="sticky left-0 bg-background w-[200px] h-8 text-xs font-medium">Nøgletal</TableHead>
                     {periods.map((period, idx) => (
                       <TableHead key={idx} className="text-right h-8 text-xs font-medium w-[120px]">
-                        {getYearLabel(period.periode)}
+                        <div className="flex flex-col items-end gap-1">
+                          <span>{getYearLabel(period.periode)}</span>
+                          {period.documentUrl ? (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => window.open(period.documentUrl, '_blank')}
+                              className="h-5 px-1.5 text-[10px] hover:bg-primary/10"
+                              title="Download årsrapport"
+                            >
+                              <Download className="h-3 w-3 mr-0.5" />
+                              <span className="hidden sm:inline">PDF</span>
+                            </Button>
+                          ) : (
+                            <span className="h-5 text-[10px] text-muted-foreground">-</span>
+                          )}
+                        </div>
                       </TableHead>
                     ))}
                   </TableRow>

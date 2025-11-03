@@ -194,10 +194,19 @@ export const extractFinancialData = (cvrData: any, parsedFinancialData?: any) =>
       
       const ratios = calculateFinancialRatios(periodData, allRevenueZero);
       
+      // Find matching report metadata for this period to get documentUrl
+      const matchingReport = parsedFinancialData.financialReports?.find((report: any) => {
+        // Extract year from report period
+        const reportYearMatch = report.period?.match(/(\d{4})/);
+        const reportYear = reportYearMatch ? parseInt(reportYearMatch[1]) : null;
+        return reportYear === year;
+      });
+      
       // Transform XBRL data structure to match FinancialYearData interface
       return {
         year, // Add year field
         periode: periodData.periode,
+        documentUrl: matchingReport?.documentUrl || null,
         
         // Income Statement (Resultatopgørelse)
         nettoomsaetning: periodData.nettoomsaetning || 0,
