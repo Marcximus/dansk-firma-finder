@@ -1,7 +1,7 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
-import { Company } from '@/services/companyAPI';
+import { Company, getFinancialData } from '@/services/companyAPI';
 import { FileText, Building2, Hash, MapPin, Calendar, Briefcase, DollarSign, ScrollText, User, Shield, Info } from 'lucide-react';
 import { format } from 'date-fns';
 import { da } from 'date-fns/locale';
@@ -9,6 +9,7 @@ import { extractExtendedInfo } from '@/services/cvrUtils';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { calculateRiskScore } from '@/services/utils/riskAssessment';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { extractFinancialData } from '@/services/utils/financialUtils';
 
 interface BasicInfoAccordionProps {
   company: Company;
@@ -17,6 +18,33 @@ interface BasicInfoAccordionProps {
 
 const BasicInfoAccordion: React.FC<BasicInfoAccordionProps> = ({ company, cvrData }) => {
   const isMobile = useIsMobile();
+  const [financialData, setFinancialData] = useState<any>(null);
+  const [isLoadingFinancial, setIsLoadingFinancial] = useState(true);
+  
+  // Fetch financial data for comprehensive risk assessment
+  useEffect(() => {
+    const fetchFinancialDataForRisk = async () => {
+      if (!company.cvr) {
+        setIsLoadingFinancial(false);
+        return;
+      }
+      
+      try {
+        const data = await getFinancialData(company.cvr);
+        if (data && data.financialReports) {
+          const parsedFinancialData = data.financialReports.length > 0 ? data : null;
+          const extractedData = extractFinancialData(cvrData, parsedFinancialData);
+          setFinancialData(extractedData);
+        }
+      } catch (error) {
+        console.error('Error fetching financial data for risk assessment:', error);
+      } finally {
+        setIsLoadingFinancial(false);
+      }
+    };
+    
+    fetchFinancialDataForRisk();
+  }, [company.cvr, cvrData]);
   
   const InfoRow = ({ icon: Icon, label, value, className = "" }: {
     icon: any, 
@@ -167,8 +195,10 @@ const BasicInfoAccordion: React.FC<BasicInfoAccordionProps> = ({ company, cvrDat
   const ceo = getCEO();
   const extendedInfo = extractExtendedInfo(cvrData);
   
-  // Calculate risk score
-  const riskScore = calculateRiskScore(company, cvrData);
+  // Calculate risk score with financial data (wait for loading to complete)
+  const riskScore = !isLoadingFinancial 
+    ? calculateRiskScore(company, cvrData, financialData)
+    : { totalScore: 0, riskLevelText: 'Beregner...', riskLevel: 'medium' as const, factors: {} as any, warnings: [], criticalFlags: [] };
   
   // Get risk color based on score
   const getRiskColor = (score: number) => {
@@ -271,12 +301,23 @@ const BasicInfoAccordion: React.FC<BasicInfoAccordionProps> = ({ company, cvrDat
                   </span>
                 </div>
               </TooltipTrigger>
-              <TooltipContent className="max-w-sm">
+              <TooltipContent className="max-w-md">
                 <p className="font-semibold mb-2">Om SI Vurdering</p>
-                <p className="text-sm">
-                  SI Vurdering er en algoritmisk risikovurdering baseret på virksomhedens status, 
-                  økonomiske data, alder, ledelsesmæssig stabilitet, revisorskift, adresseændringer 
-                  og datakvalitet. Scoren går fra 0 (høj risiko) til 10 (lav risiko).
+                <p className="text-sm mb-2">
+                  SI Vurdering er en omfattende algoritmisk risikovurdering baseret på:
+                </p>
+                <ul className="text-xs space-y-1 mb-2">
+                  <li>• <strong>Finansiel sundhed (40%)</strong>: Egenkapital, rentabilitet, likviditet, gældsgrad</li>
+                  <li>• <strong>Finansielle tendenser (15%)</strong>: 3-5 års udvikling i nøgletal</li>
+                  <li>• <strong>Cash flow & likviditet (10%)</strong>: Betalingsevne på kort sigt</li>
+                  <li>• <strong>Gældsstruktur (8%)</strong>: Gældsbæreevne og struktur</li>
+                  <li>• <strong>Virksomhedsstatus (15%)</strong>: Aktiv/inaktiv status</li>
+                  <li>• <strong>Virksomhedsalder (7%)</strong>: Erfaring og stabilitet</li>
+                  <li>• <strong>Ledelse & revision (7%)</strong>: Organisatorisk stabilitet</li>
+                </ul>
+                <p className="text-xs text-muted-foreground">
+                  Scoren går fra 0 (ekstrem risiko) til 10 (lav risiko). Virksomheder med negativ egenkapital 
+                  eller flere år med tab vil få markant lavere score.
                 </p>
               </TooltipContent>
             </Tooltip>

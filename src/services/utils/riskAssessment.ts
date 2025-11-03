@@ -11,6 +11,9 @@ export interface RiskScore {
   factors: {
     status: RiskFactor;
     financial: RiskFactor;
+    financialTrends: RiskFactor;
+    cashFlow: RiskFactor;
+    debtStructure: RiskFactor;
     age: RiskFactor;
     management: RiskFactor;
     auditor: RiskFactor;
@@ -18,6 +21,7 @@ export interface RiskScore {
     dataCompleteness: RiskFactor;
   };
   warnings: string[];
+  criticalFlags: string[];
 }
 
 // Assess company status risk
@@ -49,38 +53,422 @@ const assessStatusRisk = (cvrData: any): { score: number; details: string } => {
   return { score: 7, details: `Status: ${statusText}` };
 };
 
-// Assess financial health
-const assessFinancialRisk = (cvrData: any): { score: number; details: string } => {
-  const kapitalforhold = cvrData?.kapitalforhold?.[0];
+// Helper function to extract equity values from financial data
+const extractEquityValues = (financialData: any): number[] => {
+  const equityValues: number[] = [];
   
-  if (!kapitalforhold) {
-    return { score: 5, details: 'Ingen finansielle data tilgængelig' };
-  }
+  if (!financialData || !financialData.historicalData) return equityValues;
+  
+  // Sort by year descending (most recent first)
+  const sortedData = [...financialData.historicalData].sort((a, b) => b.year - a.year);
+  
+  sortedData.forEach((yearData: any) => {
+    if (yearData.egenkapital !== null && yearData.egenkapital !== undefined) {
+      equityValues.push(yearData.egenkapital);
+    }
+  });
+  
+  return equityValues;
+};
 
-  const equity = kapitalforhold.kapital;
-  const interval = kapitalforhold.kapitalinterval?.toLowerCase() || '';
+// Helper function to extract profit/loss values
+const extractProfitLossValues = (financialData: any): number[] => {
+  const profitValues: number[] = [];
   
-  // Negative equity is a major red flag
-  if (equity < 0) {
-    return { score: 1, details: `Negativ egenkapital: ${equity.toLocaleString('da-DK')} kr.` };
+  if (!financialData || !financialData.historicalData) return profitValues;
+  
+  const sortedData = [...financialData.historicalData].sort((a, b) => b.year - a.year);
+  
+  sortedData.forEach((yearData: any) => {
+    if (yearData.aaretsResultat !== null && yearData.aaretsResultat !== undefined) {
+      profitValues.push(yearData.aaretsResultat);
+    }
+  });
+  
+  return profitValues;
+};
+
+// Helper function to extract revenue values
+const extractRevenueValues = (financialData: any): number[] => {
+  const revenueValues: number[] = [];
+  
+  if (!financialData || !financialData.historicalData) return revenueValues;
+  
+  const sortedData = [...financialData.historicalData].sort((a, b) => b.year - a.year);
+  
+  sortedData.forEach((yearData: any) => {
+    if (yearData.nettoomsaetning !== null && yearData.nettoomsaetning !== undefined) {
+      revenueValues.push(yearData.nettoomsaetning);
+    }
+  });
+  
+  return revenueValues;
+};
+
+// 1. Assess Equity Health (35% of financial score)
+const assessEquityHealth = (financialData: any, cvrData: any): { score: number; details: string; warnings: string[] } => {
+  const warnings: string[] = [];
+  const equityValues = extractEquityValues(financialData);
+  
+  // If no detailed financial data, fall back to CVR kapitalforhold
+  if (equityValues.length === 0) {
+    const kapitalforhold = cvrData?.kapitalforhold?.[0];
+    if (!kapitalforhold) {
+      return { score: 5, details: 'Ingen egenkapitaldata tilgængelig', warnings };
+    }
+    
+    const equity = kapitalforhold.kapital;
+    if (equity < 0) {
+      warnings.push('KRITISK: Negativ egenkapital');
+      return { score: 0, details: `Negativ egenkapital: ${equity.toLocaleString('da-DK')} kr.`, warnings };
+    }
+    
+    return { score: 6, details: `Egenkapital: ${equity.toLocaleString('da-DK')} kr.`, warnings };
   }
   
-  // Score based on capital intervals
-  if (interval.includes('500.000')) {
-    return { score: 9, details: 'Solid egenkapital (500.000+ kr.)' };
-  } else if (interval.includes('200.000')) {
-    return { score: 8, details: 'God egenkapital (200.000-499.999 kr.)' };
-  } else if (interval.includes('125.000')) {
-    return { score: 7, details: 'Moderat egenkapital (125.000-199.999 kr.)' };
-  } else if (interval.includes('80.000')) {
-    return { score: 6, details: 'Begrænset egenkapital (80.000-124.999 kr.)' };
-  } else if (interval.includes('50.000')) {
-    return { score: 5, details: 'Lav egenkapital (50.000-79.999 kr.)' };
-  } else if (interval.includes('40.000')) {
-    return { score: 4, details: 'Meget lav egenkapital (40.000-49.999 kr.)' };
+  // Analyze detailed equity data
+  const latestEquity = equityValues[0];
+  
+  // Check for negative equity (CRITICAL)
+  if (latestEquity < 0) {
+    // Count consecutive years with negative equity
+    let negativeYears = 0;
+    for (const equity of equityValues) {
+      if (equity < 0) negativeYears++;
+      else break;
+    }
+    
+    if (negativeYears >= 2) {
+      warnings.push(`KRITISK: Negativ egenkapital i ${negativeYears} år i træk`);
+      return { score: 0, details: `${negativeYears} år med negativ egenkapital`, warnings };
+    } else {
+      warnings.push('KRITISK: Negativ egenkapital');
+      return { score: 1, details: `Negativ egenkapital: ${latestEquity.toLocaleString('da-DK')} kr.`, warnings };
+    }
   }
   
-  return { score: 6, details: `Egenkapital: ${equity.toLocaleString('da-DK')} kr.` };
+  // Check equity trend (compare latest 3 years)
+  if (equityValues.length >= 3) {
+    const recentEquity = equityValues.slice(0, 3);
+    const isDecreasing = recentEquity[0] < recentEquity[1] && recentEquity[1] < recentEquity[2];
+    const declineRate = ((recentEquity[2] - recentEquity[0]) / recentEquity[2]) * 100;
+    
+    if (isDecreasing && Math.abs(declineRate) > 30) {
+      warnings.push('Kraftigt fald i egenkapital (>30% over 3 år)');
+      return { score: 3, details: `Egenkapital falder kraftigt (${Math.abs(declineRate).toFixed(1)}% fald)`, warnings };
+    } else if (isDecreasing && Math.abs(declineRate) > 15) {
+      warnings.push('Faldende egenkapital');
+      return { score: 5, details: `Egenkapital falder (${Math.abs(declineRate).toFixed(1)}% fald)`, warnings };
+    }
+  }
+  
+  // Positive equity scoring
+  if (latestEquity >= 5000000) {
+    return { score: 10, details: `Meget solid egenkapital: ${(latestEquity / 1000000).toFixed(1)}M kr.`, warnings };
+  } else if (latestEquity >= 1000000) {
+    return { score: 9, details: `Solid egenkapital: ${(latestEquity / 1000000).toFixed(1)}M kr.`, warnings };
+  } else if (latestEquity >= 500000) {
+    return { score: 8, details: `God egenkapital: ${latestEquity.toLocaleString('da-DK')} kr.`, warnings };
+  } else if (latestEquity >= 200000) {
+    return { score: 7, details: `Moderat egenkapital: ${latestEquity.toLocaleString('da-DK')} kr.`, warnings };
+  } else if (latestEquity >= 80000) {
+    return { score: 5, details: `Lav egenkapital: ${latestEquity.toLocaleString('da-DK')} kr.`, warnings };
+  } else {
+    warnings.push('Meget lav egenkapital');
+    return { score: 3, details: `Meget lav egenkapital: ${latestEquity.toLocaleString('da-DK')} kr.`, warnings };
+  }
+};
+
+// 2. Assess Profitability (25% of financial score)
+const assessProfitability = (financialData: any): { score: number; details: string; warnings: string[] } => {
+  const warnings: string[] = [];
+  const profitValues = extractProfitLossValues(financialData);
+  
+  if (profitValues.length === 0) {
+    return { score: 5, details: 'Ingen resultatdata tilgængelig', warnings };
+  }
+  
+  const latestProfit = profitValues[0];
+  
+  // Count consecutive loss years
+  let consecutiveLosses = 0;
+  for (const profit of profitValues) {
+    if (profit < 0) consecutiveLosses++;
+    else break;
+  }
+  
+  // Multiple years of losses
+  if (consecutiveLosses >= 3) {
+    warnings.push(`KRITISK: Tab i ${consecutiveLosses} år i træk`);
+    return { score: 1, details: `${consecutiveLosses} år med tab`, warnings };
+  } else if (consecutiveLosses === 2) {
+    warnings.push('Tab i 2 år i træk');
+    return { score: 2, details: '2 år med tab', warnings };
+  } else if (latestProfit < 0) {
+    warnings.push('Seneste år med tab');
+    return { score: 4, details: `Tab: ${latestProfit.toLocaleString('da-DK')} kr.`, warnings };
+  }
+  
+  // Break-even or small profit
+  if (latestProfit >= 0 && latestProfit < 100000) {
+    return { score: 5, details: `Nær break-even: ${latestProfit.toLocaleString('da-DK')} kr.`, warnings };
+  }
+  
+  // Profitable scoring
+  if (latestProfit >= 1000000) {
+    return { score: 10, details: `Stærk rentabilitet: ${(latestProfit / 1000000).toFixed(1)}M kr.`, warnings };
+  } else if (latestProfit >= 500000) {
+    return { score: 9, details: `God rentabilitet: ${latestProfit.toLocaleString('da-DK')} kr.`, warnings };
+  } else if (latestProfit >= 200000) {
+    return { score: 8, details: `Rentabel: ${latestProfit.toLocaleString('da-DK')} kr.`, warnings };
+  } else {
+    return { score: 7, details: `Moderat profit: ${latestProfit.toLocaleString('da-DK')} kr.`, warnings };
+  }
+};
+
+// 3. Assess Liquidity & Solvency (20% of financial score)
+const assessLiquiditySolvency = (financialData: any): { score: number; details: string; warnings: string[] } => {
+  const warnings: string[] = [];
+  
+  if (!financialData || !financialData.historicalData || financialData.historicalData.length === 0) {
+    return { score: 5, details: 'Ingen likviditetsdata tilgængelig', warnings };
+  }
+  
+  const latestData = financialData.historicalData[0];
+  const equityRatio = latestData.soliditetsgrad; // Equity ratio
+  const liquidityRatio = latestData.likviditetsgrad; // Liquidity ratio
+  
+  let score = 5;
+  let details = '';
+  
+  // Equity Ratio (Soliditetsgrad) - Measures financial stability
+  if (equityRatio !== null && equityRatio !== undefined) {
+    if (equityRatio < 10) {
+      warnings.push('KRITISK: Meget lav soliditetsgrad (<10%)');
+      score = Math.min(score, 1);
+      details += `Soliditet: ${equityRatio.toFixed(1)}% (meget lav). `;
+    } else if (equityRatio < 20) {
+      warnings.push('Lav soliditetsgrad (<20%)');
+      score = Math.min(score, 3);
+      details += `Soliditet: ${equityRatio.toFixed(1)}% (lav). `;
+    } else if (equityRatio < 30) {
+      score = Math.max(score, 6);
+      details += `Soliditet: ${equityRatio.toFixed(1)}% (moderat). `;
+    } else if (equityRatio < 50) {
+      score = Math.max(score, 8);
+      details += `Soliditet: ${equityRatio.toFixed(1)}% (god). `;
+    } else {
+      score = Math.max(score, 9);
+      details += `Soliditet: ${equityRatio.toFixed(1)}% (meget god). `;
+    }
+  }
+  
+  // Liquidity Ratio (Likviditetsgrad)
+  if (liquidityRatio !== null && liquidityRatio !== undefined) {
+    if (liquidityRatio < 50) {
+      warnings.push('KRITISK: Meget lav likviditetsgrad (<50%)');
+      score = Math.min(score, 2);
+      details += `Likviditet: ${liquidityRatio.toFixed(1)}% (kritisk lav)`;
+    } else if (liquidityRatio < 100) {
+      warnings.push('Lav likviditetsgrad (<100%)');
+      score = Math.min(score, 4);
+      details += `Likviditet: ${liquidityRatio.toFixed(1)}% (lav)`;
+    } else if (liquidityRatio < 150) {
+      score = Math.max(score, 6);
+      details += `Likviditet: ${liquidityRatio.toFixed(1)}% (moderat)`;
+    } else {
+      score = Math.max(score, 8);
+      details += `Likviditet: ${liquidityRatio.toFixed(1)}% (god)`;
+    }
+  }
+  
+  if (!details) {
+    details = 'Ingen nøgletal tilgængelige';
+  }
+  
+  return { score, details, warnings };
+};
+
+// 4. Assess Financial Trends (15% weight)
+const assessFinancialTrends = (financialData: any): { score: number; details: string; warnings: string[] } => {
+  const warnings: string[] = [];
+  
+  if (!financialData || !financialData.historicalData || financialData.historicalData.length < 3) {
+    return { score: 5, details: 'Utilstrækkelig historik til trendanalyse', warnings };
+  }
+  
+  const equityValues = extractEquityValues(financialData);
+  const profitValues = extractProfitLossValues(financialData);
+  const revenueValues = extractRevenueValues(financialData);
+  
+  let decliningMetrics = 0;
+  let improvingMetrics = 0;
+  
+  // Analyze equity trend
+  if (equityValues.length >= 3) {
+    const recent = equityValues.slice(0, 3);
+    if (recent[0] < recent[1] && recent[1] < recent[2]) {
+      decliningMetrics++;
+    } else if (recent[0] > recent[1] && recent[1] > recent[2]) {
+      improvingMetrics++;
+    }
+  }
+  
+  // Analyze profit trend
+  if (profitValues.length >= 3) {
+    const recent = profitValues.slice(0, 3);
+    if (recent[0] < recent[1] && recent[1] < recent[2]) {
+      decliningMetrics++;
+    } else if (recent[0] > recent[1] && recent[1] > recent[2]) {
+      improvingMetrics++;
+    }
+  }
+  
+  // Analyze revenue trend
+  if (revenueValues.length >= 3) {
+    const recent = revenueValues.slice(0, 3);
+    if (recent[0] < recent[1] && recent[1] < recent[2]) {
+      decliningMetrics++;
+    } else if (recent[0] > recent[1] && recent[1] > recent[2]) {
+      improvingMetrics++;
+    }
+  }
+  
+  // Score based on trends
+  if (decliningMetrics >= 3) {
+    warnings.push('KRITISK: Alle nøgletal falder');
+    return { score: 0, details: 'Alle finansielle nøgletal i kraftig tilbagegang', warnings };
+  } else if (decliningMetrics >= 2) {
+    warnings.push('Flere nøgletal falder');
+    return { score: 3, details: 'Faldende finansielle tendenser', warnings };
+  } else if (decliningMetrics === 1) {
+    return { score: 5, details: 'Blandede finansielle tendenser', warnings };
+  } else if (improvingMetrics >= 2) {
+    return { score: 9, details: 'Stigende finansielle tendenser', warnings };
+  } else {
+    return { score: 6, details: 'Stabile finansielle tendenser', warnings };
+  }
+};
+
+// 5. Assess Cash Flow & Liquidity Risk (10% weight)
+const assessCashFlowRisk = (financialData: any): { score: number; details: string; warnings: string[] } => {
+  const warnings: string[] = [];
+  
+  if (!financialData || !financialData.historicalData || financialData.historicalData.length === 0) {
+    return { score: 5, details: 'Ingen cash flow data tilgængelig', warnings };
+  }
+  
+  const latestData = financialData.historicalData[0];
+  const kortfristetGaeld = latestData.kortfristetGaeld;
+  const likviderMidler = latestData.likviderMidler;
+  
+  if (kortfristetGaeld === null || likviderMidler === null) {
+    return { score: 5, details: 'Ingen detaljeret gældsdata', warnings };
+  }
+  
+  // Calculate current ratio (liquid assets / short-term debt)
+  if (kortfristetGaeld === 0) {
+    return { score: 10, details: 'Ingen kortfristet gæld', warnings };
+  }
+  
+  const currentRatio = (likviderMidler / kortfristetGaeld) * 100;
+  
+  if (currentRatio < 30) {
+    warnings.push('KRITISK: Meget lav betalingsevne');
+    return { score: 1, details: `Likvide midler dækker kun ${currentRatio.toFixed(1)}% af kortfristet gæld`, warnings };
+  } else if (currentRatio < 50) {
+    warnings.push('Lav betalingsevne på kort sigt');
+    return { score: 3, details: `Begrænset likviditet (${currentRatio.toFixed(1)}% dækning)`, warnings };
+  } else if (currentRatio < 80) {
+    return { score: 5, details: `Moderat likviditet (${currentRatio.toFixed(1)}% dækning)`, warnings };
+  } else if (currentRatio < 120) {
+    return { score: 8, details: `God likviditet (${currentRatio.toFixed(1)}% dækning)`, warnings };
+  } else {
+    return { score: 10, details: `Stærk likviditet (${currentRatio.toFixed(1)}% dækning)`, warnings };
+  }
+};
+
+// 6. Assess Debt Structure (8% weight)
+const assessDebtStructure = (financialData: any): { score: number; details: string; warnings: string[] } => {
+  const warnings: string[] = [];
+  
+  if (!financialData || !financialData.historicalData || financialData.historicalData.length === 0) {
+    return { score: 5, details: 'Ingen gældsdata tilgængelig', warnings };
+  }
+  
+  const latestData = financialData.historicalData[0];
+  const kortfristetGaeld = latestData.kortfristetGaeld || 0;
+  const langfristetGaeld = latestData.langfristetGaeld || 0;
+  const aktiverIAlt = latestData.aktiverIAlt || 0;
+  const egenkapital = latestData.egenkapital || 0;
+  
+  const totalDebt = kortfristetGaeld + langfristetGaeld;
+  
+  if (aktiverIAlt === 0) {
+    return { score: 5, details: 'Ingen aktivdata', warnings };
+  }
+  
+  // Debt-to-assets ratio
+  const debtToAssets = (totalDebt / aktiverIAlt) * 100;
+  
+  // Debt-to-equity ratio
+  let debtToEquity = 0;
+  if (egenkapital > 0) {
+    debtToEquity = (totalDebt / egenkapital) * 100;
+  } else if (egenkapital <= 0 && totalDebt > 0) {
+    warnings.push('KRITISK: Negativ egenkapital med gæld');
+    return { score: 0, details: 'Insolvens - gæld overstiger aktiver', warnings };
+  }
+  
+  if (debtToAssets > 80) {
+    warnings.push('KRITISK: Meget høj gæld i forhold til aktiver (>80%)');
+    return { score: 1, details: `Gæld udgør ${debtToAssets.toFixed(1)}% af aktiver`, warnings };
+  } else if (debtToAssets > 60) {
+    warnings.push('Høj gæld i forhold til aktiver');
+    return { score: 3, details: `Høj gældsgrad (${debtToAssets.toFixed(1)}%)`, warnings };
+  } else if (debtToAssets > 40) {
+    return { score: 6, details: `Moderat gældsgrad (${debtToAssets.toFixed(1)}%)`, warnings };
+  } else if (debtToAssets > 20) {
+    return { score: 8, details: `Lav gældsgrad (${debtToAssets.toFixed(1)}%)`, warnings };
+  } else {
+    return { score: 10, details: `Meget lav gæld (${debtToAssets.toFixed(1)}%)`, warnings };
+  }
+};
+
+// Comprehensive Financial Risk Assessment (combines all financial factors)
+const assessComprehensiveFinancialRisk = (
+  cvrData: any,
+  financialData: any
+): { score: number; details: string; warnings: string[] } => {
+  const warnings: string[] = [];
+  
+  // Sub-factor assessments with their weights
+  const equityAssessment = assessEquityHealth(financialData, cvrData);
+  const profitAssessment = assessProfitability(financialData);
+  const liquidityAssessment = assessLiquiditySolvency(financialData);
+  
+  // Combine warnings
+  warnings.push(...equityAssessment.warnings);
+  warnings.push(...profitAssessment.warnings);
+  warnings.push(...liquidityAssessment.warnings);
+  
+  // Weighted scoring within financial assessment
+  const equityWeight = 0.35;
+  const profitWeight = 0.25;
+  const liquidityWeight = 0.20;
+  const revenueWeight = 0.10;
+  const operatingWeight = 0.10;
+  
+  const totalScore = 
+    equityAssessment.score * equityWeight +
+    profitAssessment.score * profitWeight +
+    liquidityAssessment.score * liquidityWeight +
+    5 * revenueWeight + // Default for revenue (not yet assessed separately)
+    5 * operatingWeight; // Default for operating performance
+  
+  const details = `${equityAssessment.details}; ${profitAssessment.details}; ${liquidityAssessment.details}`;
+  
+  return { score: totalScore, details, warnings };
 };
 
 // Assess company age
@@ -245,8 +633,12 @@ const assessDataCompleteness = (cvrData: any): { score: number; details: string 
   }
 };
 
-// Calculate total risk score
-export const calculateRiskScore = (company: any, cvrData: any): RiskScore => {
+// Calculate total risk score with comprehensive financial analysis
+export const calculateRiskScore = (
+  company: any, 
+  cvrData: any, 
+  financialData?: any
+): RiskScore => {
   // If company is inactive, return 0.0 immediately
   const statusAssessment = assessStatusRisk(cvrData);
   if (statusAssessment.score === 0) {
@@ -255,48 +647,97 @@ export const calculateRiskScore = (company: any, cvrData: any): RiskScore => {
       riskLevel: 'extreme',
       riskLevelText: 'Ekstrem risiko',
       factors: {
-        status: { score: 0, weight: 30, details: statusAssessment.details },
-        financial: { score: 0, weight: 25, details: 'Ikke relevant for inaktiv virksomhed' },
-        age: { score: 0, weight: 15, details: 'Ikke relevant for inaktiv virksomhed' },
-        management: { score: 0, weight: 15, details: 'Ikke relevant for inaktiv virksomhed' },
-        auditor: { score: 0, weight: 10, details: 'Ikke relevant for inaktiv virksomhed' },
-        address: { score: 0, weight: 5, details: 'Ikke relevant for inaktiv virksomhed' },
-        dataCompleteness: { score: 0, weight: 5, details: 'Ikke relevant for inaktiv virksomhed' },
+        status: { score: 0, weight: 15, details: statusAssessment.details },
+        financial: { score: 0, weight: 40, details: 'Ikke relevant for inaktiv virksomhed' },
+        financialTrends: { score: 0, weight: 15, details: 'Ikke relevant for inaktiv virksomhed' },
+        cashFlow: { score: 0, weight: 10, details: 'Ikke relevant for inaktiv virksomhed' },
+        debtStructure: { score: 0, weight: 8, details: 'Ikke relevant for inaktiv virksomhed' },
+        age: { score: 0, weight: 7, details: 'Ikke relevant for inaktiv virksomhed' },
+        management: { score: 0, weight: 5, details: 'Ikke relevant for inaktiv virksomhed' },
+        auditor: { score: 0, weight: 2, details: 'Ikke relevant for inaktiv virksomhed' },
+        address: { score: 0, weight: 1, details: 'Ikke relevant for inaktiv virksomhed' },
+        dataCompleteness: { score: 0, weight: 2, details: 'Ikke relevant for inaktiv virksomhed' },
       },
       warnings: ['Virksomheden er inaktiv eller opløst'],
+      criticalFlags: ['INAKTIV_VIRKSOMHED'],
     };
   }
   
-  // Calculate all risk factors
-  const financialAssessment = assessFinancialRisk(cvrData);
+  // Calculate all risk factors with new comprehensive assessments
+  const financialAssessment = assessComprehensiveFinancialRisk(cvrData, financialData);
+  const trendsAssessment = assessFinancialTrends(financialData);
+  const cashFlowAssessment = assessCashFlowRisk(financialData);
+  const debtAssessment = assessDebtStructure(financialData);
   const ageAssessment = assessAgeRisk(cvrData);
   const managementAssessment = assessManagementStability(cvrData);
   const auditorAssessment = assessAuditorChanges(cvrData);
   const addressAssessment = assessAddressChanges(cvrData);
   const dataAssessment = assessDataCompleteness(cvrData);
   
-  // Define weights
+  // Define new weights (totaling 100%)
   const weights = {
-    status: 0.30,
-    financial: 0.25,
-    age: 0.15,
-    management: 0.15,
-    auditor: 0.10,
-    address: 0.05,
-    dataCompleteness: 0.05,
+    status: 0.15,           // 15%
+    financial: 0.40,        // 40% (most important)
+    financialTrends: 0.15,  // 15%
+    cashFlow: 0.10,         // 10%
+    debtStructure: 0.08,    // 8%
+    age: 0.07,              // 7%
+    management: 0.05,       // 5%
+    auditor: 0.02,          // 2%
+    address: 0.01,          // 1%
+    dataCompleteness: 0.02, // 2%
   };
   
   // Calculate weighted score
-  const totalScore = 
+  let totalScore = 
     statusAssessment.score * weights.status +
     financialAssessment.score * weights.financial +
+    trendsAssessment.score * weights.financialTrends +
+    cashFlowAssessment.score * weights.cashFlow +
+    debtAssessment.score * weights.debtStructure +
     ageAssessment.score * weights.age +
     managementAssessment.score * weights.management +
     auditorAssessment.score * weights.auditor +
     addressAssessment.score * weights.address +
     dataAssessment.score * weights.dataCompleteness;
   
-  // Determine risk level
+  // Collect all warnings and critical flags
+  const warnings: string[] = [];
+  const criticalFlags: string[] = [];
+  
+  warnings.push(...financialAssessment.warnings);
+  warnings.push(...trendsAssessment.warnings);
+  warnings.push(...cashFlowAssessment.warnings);
+  warnings.push(...debtAssessment.warnings);
+  
+  // Apply critical cap: If critical financial issues, cap max score
+  const equityValues = extractEquityValues(financialData);
+  const profitValues = extractProfitLossValues(financialData);
+  
+  // Critical Flag: Negative equity for 2+ years
+  if (equityValues.length >= 2 && equityValues[0] < 0 && equityValues[1] < 0) {
+    totalScore = Math.min(totalScore, 3.0);
+    criticalFlags.push('NEGATIV_EGENKAPITAL_FLERE_ÅR');
+  }
+  
+  // Critical Flag: Negative equity + losses
+  if (equityValues.length > 0 && equityValues[0] < 0 && profitValues.length > 0 && profitValues[0] < 0) {
+    totalScore = Math.min(totalScore, 2.0);
+    criticalFlags.push('NEGATIV_EGENKAPITAL_OG_TAB');
+  }
+  
+  // Add standard warnings
+  if (financialAssessment.score < 5) {
+    warnings.push('Svage finansielle forhold');
+  }
+  if (ageAssessment.score < 5) {
+    warnings.push('Ny virksomhed med begrænset historik');
+  }
+  if (managementAssessment.score < 6) {
+    warnings.push('Ustabil ledelse med hyppige skift');
+  }
+  
+  // Determine risk level with new thresholds
   let riskLevel: 'low' | 'medium' | 'high' | 'extreme';
   let riskLevelText: string;
   
@@ -314,25 +755,6 @@ export const calculateRiskScore = (company: any, cvrData: any): RiskScore => {
     riskLevelText = 'Ekstrem risiko';
   }
   
-  // Generate warnings
-  const warnings: string[] = [];
-  
-  if (financialAssessment.score < 5) {
-    warnings.push('Svage finansielle forhold');
-  }
-  if (ageAssessment.score < 5) {
-    warnings.push('Ny virksomhed med begrænset historik');
-  }
-  if (managementAssessment.score < 6) {
-    warnings.push('Ustabil ledelse med hyppige skift');
-  }
-  if (auditorAssessment.score < 7) {
-    warnings.push('Hyppige revisorskift kan indikere problemer');
-  }
-  if (dataAssessment.score < 7) {
-    warnings.push('Begrænset offentligt tilgængelig data');
-  }
-  
   return {
     totalScore: Math.round(totalScore * 10) / 10,
     riskLevel,
@@ -340,6 +762,9 @@ export const calculateRiskScore = (company: any, cvrData: any): RiskScore => {
     factors: {
       status: { score: statusAssessment.score, weight: weights.status * 100, details: statusAssessment.details },
       financial: { score: financialAssessment.score, weight: weights.financial * 100, details: financialAssessment.details },
+      financialTrends: { score: trendsAssessment.score, weight: weights.financialTrends * 100, details: trendsAssessment.details },
+      cashFlow: { score: cashFlowAssessment.score, weight: weights.cashFlow * 100, details: cashFlowAssessment.details },
+      debtStructure: { score: debtAssessment.score, weight: weights.debtStructure * 100, details: debtAssessment.details },
       age: { score: ageAssessment.score, weight: weights.age * 100, details: ageAssessment.details },
       management: { score: managementAssessment.score, weight: weights.management * 100, details: managementAssessment.details },
       auditor: { score: auditorAssessment.score, weight: weights.auditor * 100, details: auditorAssessment.details },
@@ -347,5 +772,6 @@ export const calculateRiskScore = (company: any, cvrData: any): RiskScore => {
       dataCompleteness: { score: dataAssessment.score, weight: weights.dataCompleteness * 100, details: dataAssessment.details },
     },
     warnings,
+    criticalFlags,
   };
 };
