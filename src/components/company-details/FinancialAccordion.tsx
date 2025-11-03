@@ -89,7 +89,7 @@ const FinancialAccordion: React.FC<FinancialAccordionProps> = ({ cvr, cvrData })
 
           {/* Financial Spreadsheet - Show comprehensive data if available */}
           {financialData?.historicalData && financialData.historicalData.length > 0 && (
-            <FinancialSpreadsheet historicalData={financialData.historicalData} />
+            <FinancialSpreadsheet historicalData={financialData.historicalData} cvr={cvr} />
           )}
 
           {/* Equity Chart - Show above equity statement if available */}

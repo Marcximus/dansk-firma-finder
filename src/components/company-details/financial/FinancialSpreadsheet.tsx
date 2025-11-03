@@ -12,6 +12,7 @@ import {
 
 interface FinancialSpreadsheetProps {
   historicalData: any[];
+  cvr: string;
 }
 
 const FINANCIAL_EXPLANATIONS: Record<string, string> = {
@@ -147,7 +148,7 @@ const FinancialRowWithTooltip: React.FC<{
   );
 };
 
-const FinancialSpreadsheet: React.FC<FinancialSpreadsheetProps> = ({ historicalData }) => {
+const FinancialSpreadsheet: React.FC<FinancialSpreadsheetProps> = ({ historicalData, cvr }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   
   console.log('[FinancialSpreadsheet] Received data:', historicalData.map(d => ({ 
@@ -258,20 +259,22 @@ const FinancialSpreadsheet: React.FC<FinancialSpreadsheetProps> = ({ historicalD
                     <TableHead key={idx} className="text-right h-8 text-xs font-medium w-[120px]">
                       <div className="flex flex-col items-end gap-1">
                         <span>{period.year || getYearLabel(period.periode)}</span>
-                        {period.documentUrl ? (
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => window.open(period.documentUrl, '_blank')}
-                            className="h-5 px-1.5 text-[10px] hover:bg-primary/10"
-                            title="Download årsrapport"
-                          >
-                            <Download className="h-3 w-3 mr-0.5" />
-                            <span className="hidden sm:inline">PDF</span>
-                          </Button>
-                        ) : (
-                          <span className="h-5 text-[10px] text-muted-foreground">-</span>
-                        )}
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => {
+                            if (period.documentUrl) {
+                              window.open(period.documentUrl, '_blank');
+                            } else {
+                              window.open(`https://datacvr.virk.dk/enhed/virksomhed/${cvr}`, '_blank');
+                            }
+                          }}
+                          className="h-5 px-1.5 text-[10px] hover:bg-primary/10"
+                          title={period.documentUrl ? "Download årsrapport" : "Se virksomhed på CVR"}
+                        >
+                          <Download className="h-3 w-3 mr-0.5" />
+                          <span className="hidden sm:inline">PDF</span>
+                        </Button>
                       </div>
                     </TableHead>
                   ))}
