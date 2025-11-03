@@ -56,10 +56,13 @@ const FremhaevVirksomhedPage = () => {
       name: "Basis",
       duration: "1-3 måneder",
       features: [
-        "Fremhævet i søgeresultater",
-        "Premium badge",
-        "Tilføj ekstra oplysninger",
-        "Email support"
+        "⭐ Top 3 placering i søgeresultater - Ved søgninger på CVR og virksomhedsnavn",
+        "🏆 Guld \"Verificeret\" badge - Øger troværdigheden med 67%",
+        "📊 Tilføj op til 5 ekstra felter - Produkter, services, certificeringer, arbejdstider",
+        "📝 Virksomhedsbeskrivelse - Op til 500 tegn til at fortælle din historie",
+        "📧 Email support - Svar inden for 24 timer",
+        "📈 Månedlig synlighedsrapport - Se hvor mange der har set din profil",
+        "✏️ 1 gratis opdatering/måned - Skift informationer når du har brug"
       ],
       popular: false
     },
@@ -67,11 +70,17 @@ const FremhaevVirksomhedPage = () => {
       name: "Premium",
       duration: "6 måneder",
       features: [
-        "Alle Basis funktioner",
-        "Prioriteret placering",
-        "Social media integration",
-        "Brugerdefineret banner",
-        "Prioriteret support"
+        "✅ Alt fra Basis pakken",
+        "🥇 Garanteret #1 placering - Øverst i alle søgninger",
+        "🎨 Brugerdefineret banner + logo - Upload 1920x400px banner og højopløseligt logo",
+        "📱 Social media links - Facebook, LinkedIn, Instagram, Twitter, TikTok, YouTube (op til 8 links)",
+        "🌐 Website highlight - \"Besøg hjemmeside\" knap fremhæves",
+        "📊 Op til 15 ekstra felter - Udvidet profil med alle relevante informationer",
+        "⚡ Ubegrænset opdateringer - Skift informationer så ofte du vil",
+        "💬 Direkte chat-support - Svar inden for 4 timer",
+        "📸 Galleri med op til 10 billeder - Vis produkter, kontor, medarbejdere, projekter",
+        "🎯 Fremhævet kontaktinfo - Dine oplysninger fremhæves tydeligt",
+        "📊 Ugentlige detaljerede rapporter - Søgeord, visninger, kliks og konverteringer"
       ],
       popular: true
     },
@@ -79,11 +88,21 @@ const FremhaevVirksomhedPage = () => {
       name: "Årligt",
       duration: "12 måneder",
       features: [
-        "Alle Premium funktioner",
-        "Maksimal synlighed",
-        "Dedikeret account manager",
-        "Månedlige rapporter",
-        "24/7 support"
+        "✅ Alt fra Premium pakken",
+        "👑 Eksklusivt \"Premium Partner\" badge - Den højeste troværdighedsmarkering",
+        "🎯 Featured på CVR.dev forside - Roterende fremvisning (1 gang/måned)",
+        "📧 Personlig account manager - Dedikeret kontaktperson",
+        "📞 Prioriteret telefonsupport 24/7 - Ring direkte til supportteam",
+        "🚀 SEO optimering - Vi optimerer din profil til Google",
+        "📊 Ubegrænsede ekstra felter - Ingen begrænsninger",
+        "📸 Ubegrænset billedgalleri - Vis så mange billeder du vil",
+        "🎥 Video integration - Embed YouTube/Vimeo (op til 3 videoer)",
+        "📰 Nyhedsopdateringer - Del nyheder direkte på din profil",
+        "🏆 Udmærkelser & certificeringer sektion - Fremvis dine præstationer",
+        "📊 Avanceret analytics dashboard - Real-time statistik med demografi",
+        "💰 Spar op til 40% - Sammenlignet med månedsvis betaling",
+        "🎁 Gratis 1 måneds forlængelse - Ved betaling for hele året",
+        "⭐ Gennemsnitlig ROI: 5:1 - Baseret på 457+ virksomheder"
       ],
       popular: false
     }
