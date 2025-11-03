@@ -501,7 +501,8 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-6 md:gap-8">
             <div>
               <h2 className="text-xs sm:text-base md:text-lg font-semibold mb-1.5 sm:mb-3 md:mb-4">Selskabsinfo</h2>
-              <p className="text-xs sm:text-sm text-muted-foreground leading-tight">Nem adgang til danske virksomhedsoplysninger siden 2025.</p>
+              <p className="text-xs sm:text-sm text-muted-foreground leading-tight mb-2">Nem adgang til danske virksomhedsoplysninger siden 2025.</p>
+              <a href="/alle-produkter" className="text-xs sm:text-sm text-primary hover:underline inline-block">Alle Produkter</a>
             </div>
             <div>
               <h2 className="text-xs sm:text-base md:text-lg font-semibold mb-1.5 sm:mb-3 md:mb-4">Tjenester</h2>
