@@ -595,7 +595,7 @@ const CvrApiPage = () => {
               <div>
                 <CardTitle className="flex items-center gap-2">
                   <Code className="h-5 w-5" />
-                  GET /api/company/12345678
+                  GET /api/selskab/12345678
                 </CardTitle>
                 <CardDescription className="mt-2">
                   Eksempel på respons ved opslag af virksomhed
