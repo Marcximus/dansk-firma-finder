@@ -102,7 +102,7 @@ export const CompanyTimeline: React.FC<CompanyTimelineProps> = ({ cvrData, finan
                       <div className="absolute left-0 top-0 bottom-0 w-px bg-border" />
                       <div className="absolute left-[-3px] top-3 w-2 h-2 rounded-full bg-primary" />
                       
-                      <TimelineEventCard event={event} />
+                      <TimelineEventCard event={event} allEvents={allEvents} />
                     </div>
                   ))}
                 </div>
