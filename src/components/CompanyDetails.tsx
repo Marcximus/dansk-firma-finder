@@ -14,8 +14,6 @@ import { ProductionUnitsAccordion } from './company-details/ProductionUnitsAccor
 import FinancialAccordion from './company-details/FinancialAccordion';
 import EmployeeAccordion from './company-details/EmployeeAccordion';
 import HistoryAccordion from './company-details/HistoryAccordion';
-import RawDataAccordion from './company-details/RawDataAccordion';
-import DataSourceInfo from './company-details/DataSourceInfo';
 
 interface CompanyDetailsProps {
   company: Company;
@@ -47,11 +45,9 @@ const CompanyDetails: React.FC<CompanyDetailsProps> = ({ company }) => {
         <FinancialAccordion cvr={company.cvr} cvrData={company.realCvrData} />
         <EmployeeAccordion cvr={company.cvr} cvrData={company.realCvrData} />
         <HistoryAccordion cvrData={company.realCvrData} />
-        <RawDataAccordion cvrData={company.realCvrData} />
       </Accordion>
       
       <div className="mt-4 sm:mt-6 md:mt-8 space-y-3 sm:space-y-4">
-        <DataSourceInfo />
         <div className="flex justify-center">
           <Button asChild variant="outline" className="flex gap-1 h-8 sm:h-9 md:h-10 px-3 sm:px-4 md:px-6 text-xs sm:text-sm">
             <Link to="/">
