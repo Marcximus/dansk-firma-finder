@@ -19,6 +19,7 @@ import { TimelineEvent } from '@/services/utils/timelineUtils';
 
 interface TimelineEventCardProps {
   event: TimelineEvent;
+  allEvents: TimelineEvent[];
 }
 
 const getCategoryColor = (category: string): string => {
@@ -60,9 +61,16 @@ const getCategoryIcon = (category: string) => {
 };
 
 
-export const TimelineEventCard: React.FC<TimelineEventCardProps> = ({ event }) => {
+export const TimelineEventCard: React.FC<TimelineEventCardProps> = ({ event, allEvents }) => {
   const formatEventDescription = () => {
     const date = format(event.date, 'd MMM yyyy', { locale: da });
+    
+    // Check if there's a capital event on the same day
+    const hasCapitalEventSameDay = allEvents.some(e => 
+      e.category === 'capital' && 
+      e.date.toDateString() === event.date.toDateString() &&
+      e.id !== event.id
+    );
     
     // Capital changes
     if (event.category === 'capital') {
@@ -111,6 +119,18 @@ export const TimelineEventCard: React.FC<TimelineEventCardProps> = ({ event }) =
     
     // Management/Board/Ownership changes
     if (['management', 'board', 'ownership'].includes(event.category)) {
+      // Special handling for ownership changes with capital events on same day
+      if (event.category === 'ownership' && hasCapitalEventSameDay && event.newValue) {
+        const ownerName = event.title.split(' ')[0]; // Extract owner name from title
+        const percentage = event.newValue;
+        
+        // Try to extract both ownership and voting percentage from title
+        const titleLower = event.title.toLowerCase();
+        if (titleLower.includes('ejer') || titleLower.includes('stemme')) {
+          return `${ownerName} - ejerskab og stemmeandel steg til ${percentage} i forbindelse med kapitalforhøjelsen samme dag`;
+        }
+      }
+      
       if (event.title.includes('tiltrådt') || event.title.includes('tilføjet')) {
         return `${event.title.toLowerCase()}`;
       }
