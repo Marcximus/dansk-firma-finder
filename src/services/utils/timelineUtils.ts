@@ -953,17 +953,18 @@ export const extractAllHistoricalEvents = (cvrData: any, financialData?: any): T
                       return;
                     }
                     
-                    // Simple title with structured data
-                    const title = `${personName} - ejerandel og stemmeandel`;
+                    // Natural language based on change type
+                    let title: string;
                     
-                    // Description provides context
-                    let description: string;
                     if (!prevDisplayPercent) {
-                      description = 'Registreret som ejer';
+                      // First time ownership registered
+                      title = `${personName} registreret som ejer med ca. ${displayPercent}% af stemmerne`;
                     } else if (displayPercent > prevDisplayPercent) {
-                      description = 'Ejerandel forøget';
+                      // Ownership increased
+                      title = `${personName} forøgede sin andel af stemmerne i selskabet fra ca. ${prevDisplayPercent}% til ca. ${displayPercent}%`;
                     } else {
-                      description = 'Ejerandel reduceret';
+                      // Ownership decreased
+                      title = `${personName} reducerede sin andel af stemmerne i selskabet fra ca. ${prevDisplayPercent}% til ca. ${displayPercent}%`;
                     }
                     
                     events.push({
@@ -971,7 +972,7 @@ export const extractAllHistoricalEvents = (cvrData: any, financialData?: any): T
                       date: startDate,
                       category: 'ownership',
                       title,
-                      description,
+                      description: '',
                       newValue: `${displayPercent}%`,
                       oldValue: prevDisplayPercent ? `${prevDisplayPercent}%` : undefined,
                       severity: 'medium',
