@@ -3,6 +3,7 @@ import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { TimelineFilters, TimelineEvent } from '@/services/utils/timelineUtils';
 import { Button } from '@/components/ui/button';
+import { FileText, Users, Building2, TrendingUp } from 'lucide-react';
 
 interface TimelineFiltersProps {
   filters: TimelineFilters;
@@ -107,6 +108,7 @@ export const TimelineFiltersComponent: React.FC<TimelineFiltersProps> = ({
           onClick={() => setMode('basic')}
           className="gap-1.5"
         >
+          <FileText className="w-3.5 h-3.5 text-slate-600 dark:text-slate-400" />
           Grundlæggende
           <Badge variant={currentMode === 'basic' ? 'secondary' : 'outline'} className="text-xs">
             {basicCount}
@@ -119,6 +121,7 @@ export const TimelineFiltersComponent: React.FC<TimelineFiltersProps> = ({
           onClick={() => setMode('management')}
           className="gap-1.5"
         >
+          <Users className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
           Ledelse
           <Badge variant={currentMode === 'management' ? 'secondary' : 'outline'} className="text-xs">
             {managementCount}
@@ -131,6 +134,7 @@ export const TimelineFiltersComponent: React.FC<TimelineFiltersProps> = ({
           onClick={() => setMode('ownership')}
           className="gap-1.5"
         >
+          <Building2 className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
           Ejerskab
           <Badge variant={currentMode === 'ownership' ? 'secondary' : 'outline'} className="text-xs">
             {ownershipCount}
@@ -143,6 +147,7 @@ export const TimelineFiltersComponent: React.FC<TimelineFiltersProps> = ({
           onClick={() => setMode('financial')}
           className="gap-1.5"
         >
+          <TrendingUp className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
           Finansielle
           <Badge variant={currentMode === 'financial' ? 'secondary' : 'outline'} className="text-xs">
             {financialCount}

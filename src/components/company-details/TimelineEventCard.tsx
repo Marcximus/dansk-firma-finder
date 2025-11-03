@@ -21,6 +21,24 @@ interface TimelineEventCardProps {
   event: TimelineEvent;
 }
 
+const getCategoryColor = (category: string): string => {
+  const colors: Record<string, string> = {
+    management: 'text-blue-600 dark:text-blue-400',
+    board: 'text-purple-600 dark:text-purple-400',
+    ownership: 'text-amber-600 dark:text-amber-400',
+    address: 'text-green-600 dark:text-green-400',
+    name: 'text-slate-600 dark:text-slate-400',
+    industry: 'text-cyan-600 dark:text-cyan-400',
+    status: 'text-red-600 dark:text-red-400',
+    financial: 'text-emerald-600 dark:text-emerald-400',
+    legal: 'text-indigo-600 dark:text-indigo-400',
+    contact: 'text-sky-600 dark:text-sky-400',
+    capital: 'text-yellow-600 dark:text-yellow-500',
+    purpose: 'text-violet-600 dark:text-violet-400',
+  };
+  return colors[category] || 'text-muted-foreground';
+};
+
 const getCategoryIcon = (category: string) => {
   const icons: Record<string, React.ElementType> = {
     management: UserCog,
@@ -37,7 +55,8 @@ const getCategoryIcon = (category: string) => {
     purpose: Target,
   };
   const Icon = icons[category] || FileText;
-  return <Icon className="w-4 h-4" />;
+  const colorClass = getCategoryColor(category);
+  return <Icon className={`w-4 h-4 ${colorClass}`} />;
 };
 
 
