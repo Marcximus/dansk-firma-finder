@@ -64,10 +64,14 @@ export const TimelineEventCard: React.FC<TimelineEventCardProps> = ({ event }) =
   const formatEventDescription = () => {
     const date = format(event.date, 'd MMM yyyy', { locale: da });
     
-    // Capital changes
+    // Capital changes - show full detailed description
     if (event.category === 'capital') {
       if (event.title === 'Selskabskapital registreret') {
         return `blev stiftelseskapitalen registreret på ${event.newValue}`;
+      }
+      if (event.description && (event.title === 'Kapitalforhøjelse' || event.title === 'Kapitalnedsættelse')) {
+        const changeType = event.title === 'Kapitalforhøjelse' ? 'kapitalforhøjelse' : 'kapitalnedsættelse';
+        return `blev der gennemført en ${changeType}: ${event.description}`;
       }
       if (event.title === 'Kapitalforhøjelse' && event.oldValue && event.newValue) {
         return `blev der gennemført en kapitalforhøjelse, hvor kapitalen steg fra ${event.oldValue} til ${event.newValue}`;
