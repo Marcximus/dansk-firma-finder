@@ -7,6 +7,7 @@ import { format } from 'date-fns';
 import { da } from 'date-fns/locale';
 import { extractExtendedInfo } from '@/services/cvrUtils';
 import { useIsMobile } from '@/hooks/use-mobile';
+import RiskAssessmentCard from './RiskAssessmentCard';
 
 interface BasicInfoAccordionProps {
   company: Company;
@@ -241,6 +242,9 @@ const BasicInfoAccordion: React.FC<BasicInfoAccordionProps> = ({ company, cvrDat
           )}
           
         </div>
+        
+        {/* Risk Assessment Card */}
+        <RiskAssessmentCard company={company} cvrData={cvrData} />
       </AccordionContent>
     </AccordionItem>
   );
