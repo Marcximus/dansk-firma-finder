@@ -62,17 +62,92 @@ const getCategoryIcon = (category: string) => {
 
 export const TimelineEventCard: React.FC<TimelineEventCardProps> = ({ event }) => {
   const formatEventDescription = () => {
-    // For changes with old→new values
+    const date = format(event.date, 'd MMM yyyy', { locale: da });
+    
+    // Capital changes
+    if (event.category === 'capital') {
+      if (event.title === 'Selskabskapital registreret') {
+        return `blev stiftelseskapitalen registreret på ${event.newValue}`;
+      }
+      if (event.title === 'Kapitalforhøjelse' && event.oldValue && event.newValue) {
+        return `blev der gennemført en kapitalforhøjelse, hvor kapitalen steg fra ${event.oldValue} til ${event.newValue}`;
+      }
+      if (event.title === 'Kapitalnedsættelse' && event.oldValue && event.newValue) {
+        return `blev der gennemført en kapitalnedsættelse, hvor kapitalen faldt fra ${event.oldValue} til ${event.newValue}`;
+      }
+    }
+    
+    // Status changes
+    if (event.category === 'status') {
+      if (event.oldValue && event.newValue) {
+        return `ændrede status fra "${event.oldValue}" til "${event.newValue}"`;
+      }
+      return `ændrede status til "${event.newValue || event.description}"`;
+    }
+    
+    // Address changes
+    if (event.category === 'address') {
+      if (event.oldValue && event.newValue) {
+        return `flyttede adresse fra ${event.oldValue} til ${event.newValue}`;
+      }
+      return `fik ny adresse: ${event.newValue || event.description}`;
+    }
+    
+    // Name changes
+    if (event.category === 'name') {
+      if (event.oldValue && event.newValue) {
+        return `skiftede navn fra "${event.oldValue}" til "${event.newValue}"`;
+      }
+      return `fik nyt navn: "${event.newValue || event.description}"`;
+    }
+    
+    // Industry changes
+    if (event.category === 'industry') {
+      if (event.oldValue && event.newValue) {
+        return `skiftede branche fra ${event.oldValue} til ${event.newValue}`;
+      }
+      return `fik ny branche: ${event.newValue || event.description}`;
+    }
+    
+    // Management/Board/Ownership changes
+    if (['management', 'board', 'ownership'].includes(event.category)) {
+      if (event.title.includes('tiltrådt') || event.title.includes('tilføjet')) {
+        return `${event.title.toLowerCase()}`;
+      }
+      if (event.title.includes('fratrådt') || event.title.includes('fjernet')) {
+        return `${event.title.toLowerCase()}`;
+      }
+      if (event.oldValue && event.newValue) {
+        return `${event.title.toLowerCase()}: ${event.oldValue} → ${event.newValue}`;
+      }
+      return event.title.toLowerCase();
+    }
+    
+    // Contact changes
+    if (event.category === 'contact') {
+      if (event.oldValue && event.newValue) {
+        return `opdaterede ${event.title.toLowerCase()} fra ${event.oldValue} til ${event.newValue}`;
+      }
+      return `${event.title.toLowerCase()}: ${event.newValue || event.description}`;
+    }
+    
+    // Financial and Legal changes
+    if (['financial', 'legal'].includes(event.category)) {
+      if (event.oldValue && event.newValue) {
+        return `${event.title.toLowerCase()}: fra ${event.oldValue} til ${event.newValue}`;
+      }
+      return `${event.title.toLowerCase()}: ${event.newValue || event.description}`;
+    }
+    
+    // Default fallback
     if (event.oldValue && event.newValue && event.oldValue !== event.newValue) {
       return `${event.title}: ${event.oldValue} → ${event.newValue}`;
     }
     
-    // For additions/removals (title already says what happened)
     if (event.newValue && !event.oldValue) {
       return `${event.title}: ${event.description}`;
     }
     
-    // Default - show title and description
     return `${event.title}: ${event.description}`;
   };
 
@@ -87,7 +162,7 @@ export const TimelineEventCard: React.FC<TimelineEventCardProps> = ({ event }) =
           <span className="text-muted-foreground">
             {format(event.date, 'd MMM yyyy', { locale: da })}
           </span>
-          <span className="mx-1.5 text-muted-foreground">•</span>
+          <span className="mx-1.5 text-muted-foreground"></span>
           <span>{formatEventDescription()}</span>
         </div>
       </div>
