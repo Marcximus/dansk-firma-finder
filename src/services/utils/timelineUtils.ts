@@ -930,11 +930,23 @@ export const extractAllHistoricalEvents = (cvrData: any, financialData?: any): T
             
             // Extract EJERANDEL_PROCENT (ownership percentage) changes
             if (category === 'ownership') {
+              console.log('[TIMELINE DEBUG] Processing ownership for:', personName, {
+                hasAttributter: !!medlem.attributter,
+                attributterCount: medlem.attributter?.length,
+                attributeTypes: medlem.attributter?.map((a: any) => a.type)
+              });
+              
               const ejerandelAttr = medlem.attributter?.find((a: any) => 
                 a.type === 'EJERANDEL_PROCENT' || 
                 a.type === 'EJERANDEL_STEMME_PROCENT' ||
                 a.type === 'EJERANDEL_STEMMERET_PROCENT'
               );
+              
+              console.log('[TIMELINE DEBUG] Found ejerandelAttr:', {
+                found: !!ejerandelAttr,
+                type: ejerandelAttr?.type,
+                vaerdierCount: ejerandelAttr?.vaerdier?.length
+              });
               
               if (ejerandelAttr?.vaerdier) {
                 ejerandelAttr.vaerdier.forEach((vaerdi: any, index: number) => {
@@ -943,6 +955,13 @@ export const extractAllHistoricalEvents = (cvrData: any, financialData?: any): T
                   if (startDate && vaerdi.vaerdi) {
                     // Get raw value from CVR
                     const rawValue = parseFloat(vaerdi.vaerdi);
+                    
+                    console.log('[TIMELINE DEBUG] Processing ownership value:', {
+                      index,
+                      rawValue,
+                      hasStartDate: !!startDate,
+                      startDate: startDate?.toISOString()
+                    });
                     
                     // Normalize to 0-1 range (handle both decimal and percentage formats)
                     // If value > 1, it's likely already a percentage (33.33), so divide by 100
@@ -974,6 +993,15 @@ export const extractAllHistoricalEvents = (cvrData: any, financialData?: any): T
                       ? mapOwnershipToRange(prevNormalizedValue)
                       : null;
                     
+                    console.log('[TIMELINE DEBUG] Range conversion:', {
+                      normalizedValue,
+                      prevNormalizedValue,
+                      displayRange,
+                      prevDisplayRange,
+                      actualPercentage,
+                      prevActualPercentage
+                    });
+                    
                     // Simple title with structured data
                     const title = `${personName} - ejerandel og stemmeandel`;
                     
@@ -997,6 +1025,14 @@ export const extractAllHistoricalEvents = (cvrData: any, financialData?: any): T
                       oldValue: prevDisplayRange || undefined,
                       severity: 'high',
                       metadata: { relation, org, medlem, vaerdi, type: 'ownership_change' },
+                    });
+                    
+                    console.log('[TIMELINE DEBUG] Created ownership event:', {
+                      title,
+                      newValue: displayRange,
+                      oldValue: prevDisplayRange,
+                      date: startDate.toISOString(),
+                      description
                     });
                   }
                 });
