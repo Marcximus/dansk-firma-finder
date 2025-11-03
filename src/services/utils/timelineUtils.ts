@@ -941,11 +941,23 @@ export const extractAllHistoricalEvents = (cvrData: any, financialData?: any): T
                   const startDate = parseDate(vaerdi.periode?.gyldigFra);
                   
                   if (startDate && vaerdi.vaerdi) {
-                    // Multiply by 100 to get actual percentage (0.3333 → 33.33)
-                    const actualPercentage = parseFloat(vaerdi.vaerdi) * 100;
-                    const prevActualPercentage = index < ejerandelAttr.vaerdier.length - 1 
-                      ? parseFloat(ejerandelAttr.vaerdier[index + 1].vaerdi) * 100 
+                    // Get raw value from CVR
+                    const rawValue = parseFloat(vaerdi.vaerdi);
+                    
+                    // Normalize to 0-1 range (handle both decimal and percentage formats)
+                    // If value > 1, it's likely already a percentage (33.33), so divide by 100
+                    // If value <= 1, it's likely a decimal (0.3333)
+                    const normalizedValue = rawValue > 1 ? rawValue / 100 : rawValue;
+                    
+                    // For display as exact percentage
+                    const actualPercentage = normalizedValue * 100;
+                    
+                    // Same for previous value
+                    const prevRawValue = index < ejerandelAttr.vaerdier.length - 1 
+                      ? parseFloat(ejerandelAttr.vaerdier[index + 1].vaerdi)
                       : null;
+                    const prevNormalizedValue = prevRawValue && prevRawValue > 1 ? prevRawValue / 100 : prevRawValue;
+                    const prevActualPercentage = prevNormalizedValue ? prevNormalizedValue * 100 : null;
                     
                     // Round for display
                     const displayPercent = Math.round(actualPercentage * 10) / 10;
@@ -956,10 +968,10 @@ export const extractAllHistoricalEvents = (cvrData: any, financialData?: any): T
                       return;
                     }
                     
-                    // Convert to range format (e.g., "5-10%")
-                    const displayRange = mapOwnershipToRange(actualPercentage / 100);
-                    const prevDisplayRange = prevActualPercentage 
-                      ? mapOwnershipToRange(prevActualPercentage / 100)
+                    // Convert to range format (e.g., "5-10%") - expects 0-1 range
+                    const displayRange = mapOwnershipToRange(normalizedValue);
+                    const prevDisplayRange = prevNormalizedValue 
+                      ? mapOwnershipToRange(prevNormalizedValue)
                       : null;
                     
                     // Simple title with structured data
