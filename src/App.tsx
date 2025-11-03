@@ -14,6 +14,7 @@ import PersonPage from "./pages/PersonPage";
 import FAQPage from "./pages/FAQPage";
 import ServicevilkaarPage from "./pages/ServicevilkaarPage";
 import PrivatlivspolitikPage from "./pages/PrivatlivspolitikPage";
+import HandelsbetingelserPage from "./pages/HandelsbetingelserPage";
 import HjaelpecenterPage from "./pages/HjaelpecenterPage";
 
 import TrackFoelgPage from "./pages/TrackFoelgPage";
@@ -65,6 +66,7 @@ const App = () => (
             <Route path="/faq" element={<FAQPage />} />
             <Route path="/servicevilkaar" element={<ServicevilkaarPage />} />
             <Route path="/privatlivspolitik" element={<PrivatlivspolitikPage />} />
+            <Route path="/handelsbetingelser" element={<HandelsbetingelserPage />} />
             <Route path="/hjaelpecenter" element={<HjaelpecenterPage />} />
             
             <Route path="/track-foelg" element={<TrackFoelgPage />} />

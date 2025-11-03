@@ -526,6 +526,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
               <ul className="space-y-0.5 sm:space-y-2">
                 <li><a href="/servicevilkaar" className="text-xs sm:text-sm text-muted-foreground hover:text-primary">Servicevilkår</a></li>
                 <li><a href="/privatlivspolitik" className="text-xs sm:text-sm text-muted-foreground hover:text-primary">Privatlivspolitik</a></li>
+                <li><a href="/handelsbetingelser" className="text-xs sm:text-sm text-muted-foreground hover:text-primary">Handelsbetingelser</a></li>
                 <li><a href="/datakilder" className="text-xs sm:text-sm text-muted-foreground hover:text-primary">Datakilder</a></li>
               </ul>
             </div>
