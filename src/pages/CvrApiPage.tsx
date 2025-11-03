@@ -13,10 +13,56 @@ import {
   FileSearch, 
   Globe, 
   CheckCircle2,
-  Mail
+  Mail,
+  Copy
 } from 'lucide-react';
 
 const CvrApiPage = () => {
+  const [copied, setCopied] = React.useState(false);
+
+  const exampleResponse = `{
+  "cvr": 12345678,
+  "navn": "Eksempel A/S",
+  "adresse": {
+    "vejnavn": "Eksempelvej",
+    "husnummer": "42",
+    "postnummer": 1234,
+    "by": "København"
+  },
+  "branche": {
+    "kode": "620100",
+    "beskrivelse": "Computerprogrammering"
+  },
+  "status": "NORMAL",
+  "stiftelsesdato": "2020-01-15",
+  "telefon": "+45 12 34 56 78",
+  "email": "kontakt@eksempel.dk",
+  "hjemmeside": "https://eksempel.dk",
+  "medarbejdere": {
+    "antal": 25,
+    "interval": "20-49"
+  },
+  "ledelse": [
+    {
+      "rolle": "Direktør",
+      "navn": "Lars Nielsen",
+      "startdato": "2020-01-15"
+    }
+  ],
+  "regnskabsdata": {
+    "seneste_år": 2023,
+    "omsætning": 15000000,
+    "resultat": 2500000,
+    "egenkapital": 8000000
+  }
+}`;
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(exampleResponse);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
   const features = [
     {
       icon: <Code className="h-8 w-8 text-primary" />,
@@ -153,6 +199,43 @@ const CvrApiPage = () => {
               </Card>
             ))}
           </div>
+        </section>
+
+        {/* API Example Section */}
+        <section>
+          <h2 className="text-2xl sm:text-3xl font-bold text-center mb-4">Eksempel på API-respons</h2>
+          <p className="text-center text-muted-foreground mb-8 max-w-2xl mx-auto">
+            Se hvordan data returneres fra vores API i JSON-format
+          </p>
+          <Card className="max-w-4xl mx-auto">
+            <CardHeader className="flex flex-row items-center justify-between pb-3">
+              <div>
+                <CardTitle className="flex items-center gap-2">
+                  <Code className="h-5 w-5" />
+                  GET /api/company/12345678
+                </CardTitle>
+                <CardDescription className="mt-2">
+                  Eksempel på respons ved opslag af virksomhed
+                </CardDescription>
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleCopy}
+                className="flex items-center gap-2"
+              >
+                <Copy className="h-4 w-4" />
+                {copied ? 'Kopieret!' : 'Kopiér'}
+              </Button>
+            </CardHeader>
+            <CardContent>
+              <pre className="bg-muted p-4 rounded-lg overflow-x-auto text-xs sm:text-sm">
+                <code className="text-foreground font-mono">
+                  {exampleResponse}
+                </code>
+              </pre>
+            </CardContent>
+          </Card>
         </section>
 
         {/* Available Data Section */}
