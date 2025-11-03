@@ -2,12 +2,12 @@
 import React from 'react';
 import { AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Company } from '@/services/companyAPI';
-import { FileText, Building2, Hash, MapPin, Calendar, Briefcase, DollarSign, ScrollText, User } from 'lucide-react';
+import { FileText, Building2, Hash, MapPin, Calendar, Briefcase, DollarSign, ScrollText, User, Shield } from 'lucide-react';
 import { format } from 'date-fns';
 import { da } from 'date-fns/locale';
 import { extractExtendedInfo } from '@/services/cvrUtils';
 import { useIsMobile } from '@/hooks/use-mobile';
-import RiskAssessmentCard from './RiskAssessmentCard';
+import { calculateRiskScore } from '@/services/utils/riskAssessment';
 
 interface BasicInfoAccordionProps {
   company: Company;
@@ -165,6 +165,17 @@ const BasicInfoAccordion: React.FC<BasicInfoAccordionProps> = ({ company, cvrDat
   const address = getAddress();
   const ceo = getCEO();
   const extendedInfo = extractExtendedInfo(cvrData);
+  
+  // Calculate risk score
+  const riskScore = calculateRiskScore(company, cvrData);
+  
+  // Get risk color based on score
+  const getRiskColor = (score: number) => {
+    if (score >= 8.0) return 'text-green-600 dark:text-green-400';
+    if (score >= 5.0) return 'text-yellow-600 dark:text-yellow-400';
+    if (score >= 2.0) return 'text-orange-600 dark:text-orange-400';
+    return 'text-red-600 dark:text-red-400';
+  };
 
   return (
     <AccordionItem value="basic" className="border rounded-lg">
@@ -241,10 +252,17 @@ const BasicInfoAccordion: React.FC<BasicInfoAccordionProps> = ({ company, cvrDat
             />
           )}
           
+          <InfoRow 
+            icon={Shield} 
+            label={isMobile ? "Vurdering" : "Virksomheds Vurdering"} 
+            value={
+              <span className={getRiskColor(riskScore.totalScore)}>
+                {riskScore.totalScore.toFixed(1)}/10.0 ({riskScore.riskLevelText})
+              </span>
+            }
+          />
+          
         </div>
-        
-        {/* Risk Assessment Card */}
-        <RiskAssessmentCard company={company} cvrData={cvrData} />
       </AccordionContent>
     </AccordionItem>
   );
