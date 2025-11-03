@@ -55,54 +55,77 @@ const FremhaevVirksomhedPage = () => {
     {
       name: "Basis",
       duration: "1-3 måneder",
-      features: [
-        "⭐ Top 3 placering i søgeresultater - Ved søgninger på CVR og virksomhedsnavn",
-        "🏆 Guld \"Verificeret\" badge - Øger troværdigheden med 67%",
-        "📊 Tilføj op til 5 ekstra felter - Produkter, services, certificeringer, arbejdstider",
-        "📝 Virksomhedsbeskrivelse - Op til 500 tegn til at fortælle din historie",
-        "📧 Email support - Svar inden for 24 timer",
-        "📈 Månedlig synlighedsrapport - Se hvor mange der har set din profil",
-        "✏️ 1 gratis opdatering/måned - Skift informationer når du har brug"
+      keyFeatures: [
+        { title: "Top 3 søgeplacering", detail: "Ved CVR og virksomhedsnavn" },
+        { title: "Guld Verificeret badge", detail: "Øger troværdighed med 67%" },
+        { title: "Op til 5 ekstra felter", detail: "Produkter, services, certificeringer" },
+        { title: "Email support", detail: "Svar inden for 24 timer" },
+        { title: "Månedlig rapport", detail: "Synlighed og visninger" }
+      ],
+      allFeatures: [
+        "Top 3 placering i søgeresultater",
+        "Guld \"Verificeret\" badge på profil",
+        "Tilføj op til 5 ekstra informationsfelter",
+        "Virksomhedsbeskrivelse (op til 500 tegn)",
+        "Email support med 24 timers responstid",
+        "Månedlig synlighedsrapport",
+        "1 gratis opdatering per måned"
       ],
       popular: false
     },
     {
       name: "Premium",
       duration: "6 måneder",
-      features: [
-        "✅ Alt fra Basis pakken",
-        "🥇 Garanteret #1 placering - Øverst i alle søgninger",
-        "🎨 Brugerdefineret banner + logo - Upload 1920x400px banner og højopløseligt logo",
-        "📱 Social media links - Facebook, LinkedIn, Instagram, Twitter, TikTok, YouTube (op til 8 links)",
-        "🌐 Website highlight - \"Besøg hjemmeside\" knap fremhæves",
-        "📊 Op til 15 ekstra felter - Udvidet profil med alle relevante informationer",
-        "⚡ Ubegrænset opdateringer - Skift informationer så ofte du vil",
-        "💬 Direkte chat-support - Svar inden for 4 timer",
-        "📸 Galleri med op til 10 billeder - Vis produkter, kontor, medarbejdere, projekter",
-        "🎯 Fremhævet kontaktinfo - Dine oplysninger fremhæves tydeligt",
-        "📊 Ugentlige detaljerede rapporter - Søgeord, visninger, kliks og konverteringer"
+      keyFeatures: [
+        { title: "Alt fra Basis", detail: "+ følgende fordele" },
+        { title: "Garanteret #1 placering", detail: "Øverst i alle søgninger" },
+        { title: "Brugerdefineret banner + logo", detail: "1920x400px banner" },
+        { title: "Social media integration", detail: "Op til 8 platforme" },
+        { title: "Billedgalleri", detail: "Op til 10 billeder" },
+        { title: "Chat-support", detail: "Svar inden for 4 timer" }
+      ],
+      allFeatures: [
+        "Alt fra Basis pakken inkluderet",
+        "Garanteret #1 placering i søgeresultater",
+        "Brugerdefineret banner og logo upload",
+        "Social media links (op til 8 platforme)",
+        "Fremhævet \"Besøg hjemmeside\" knap",
+        "Op til 15 ekstra informationsfelter",
+        "Ubegrænsede opdateringer",
+        "Direkte chat-support (4 timers responstid)",
+        "Billedgalleri med op til 10 billeder",
+        "Fremhævet kontaktinformation",
+        "Ugentlige detaljerede rapporter"
       ],
       popular: true
     },
     {
       name: "Årligt",
       duration: "12 måneder",
-      features: [
-        "✅ Alt fra Premium pakken",
-        "👑 Eksklusivt \"Premium Partner\" badge - Den højeste troværdighedsmarkering",
-        "🎯 Featured på CVR.dev forside - Roterende fremvisning (1 gang/måned)",
-        "📧 Personlig account manager - Dedikeret kontaktperson",
-        "📞 Prioriteret telefonsupport 24/7 - Ring direkte til supportteam",
-        "🚀 SEO optimering - Vi optimerer din profil til Google",
-        "📊 Ubegrænsede ekstra felter - Ingen begrænsninger",
-        "📸 Ubegrænset billedgalleri - Vis så mange billeder du vil",
-        "🎥 Video integration - Embed YouTube/Vimeo (op til 3 videoer)",
-        "📰 Nyhedsopdateringer - Del nyheder direkte på din profil",
-        "🏆 Udmærkelser & certificeringer sektion - Fremvis dine præstationer",
-        "📊 Avanceret analytics dashboard - Real-time statistik med demografi",
-        "💰 Spar op til 40% - Sammenlignet med månedsvis betaling",
-        "🎁 Gratis 1 måneds forlængelse - Ved betaling for hele året",
-        "⭐ Gennemsnitlig ROI: 5:1 - Baseret på 457+ virksomheder"
+      keyFeatures: [
+        { title: "Alt fra Premium", detail: "+ følgende fordele" },
+        { title: "Premium Partner badge", detail: "Højeste troværdighed" },
+        { title: "Featured på forside", detail: "1 gang om måneden" },
+        { title: "Personlig account manager", detail: "Dedikeret kontaktperson" },
+        { title: "24/7 telefonsupport", detail: "Ring når som helst" },
+        { title: "Spar op til 40%", detail: "ROI 5:1 i gennemsnit" }
+      ],
+      allFeatures: [
+        "Alt fra Premium pakken inkluderet",
+        "Eksklusivt \"Premium Partner\" badge",
+        "Featured på CVR.dev forside månedligt",
+        "Personlig dedikeret account manager",
+        "24/7 prioriteret telefonsupport",
+        "Professionel SEO optimering",
+        "Ubegrænsede ekstra felter",
+        "Ubegrænset billedgalleri",
+        "Video integration (op til 3 videoer)",
+        "Nyhedsopdateringer på profil",
+        "Udmærkelser & certificeringer sektion",
+        "Avanceret analytics dashboard",
+        "Spar op til 40% vs. månedlig betaling",
+        "Gratis 1 måneds forlængelse",
+        "Gennemsnitlig ROI: 5:1"
       ],
       popular: false
     }
@@ -216,7 +239,7 @@ const FremhaevVirksomhedPage = () => {
               Find den løsning der passer bedst til din virksomhed
             </p>
           </div>
-          <div className="grid md:grid-cols-3 gap-6">
+          <div className="grid md:grid-cols-3 gap-8">
             {pricingTiers.map((tier, index) => (
               <Card key={index} className={`relative ${tier.popular ? 'border-primary shadow-xl scale-105' : ''}`}>
                 {tier.popular && (
@@ -226,7 +249,7 @@ const FremhaevVirksomhedPage = () => {
                     </span>
                   </div>
                 )}
-                <CardHeader className="text-center pb-8">
+                <CardHeader className="text-center pb-6">
                   <CardTitle className="text-2xl mb-2">{tier.name}</CardTitle>
                   <CardDescription className="flex items-center justify-center gap-2">
                     <Clock className="h-4 w-4" />
@@ -237,13 +260,32 @@ const FremhaevVirksomhedPage = () => {
                     <p className="text-sm text-muted-foreground">for pris</p>
                   </div>
                 </CardHeader>
-                <CardContent className="space-y-4">
-                  {tier.features.map((feature, featureIndex) => (
+                <CardContent className="space-y-3">
+                  {tier.keyFeatures.map((feature, featureIndex) => (
                     <div key={featureIndex} className="flex items-start gap-3">
                       <Check className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
-                      <span className="text-sm">{feature}</span>
+                      <div className="flex-1">
+                        <div className="font-medium text-sm">{feature.title}</div>
+                        <div className="text-xs text-muted-foreground">{feature.detail}</div>
+                      </div>
                     </div>
                   ))}
+                  
+                  <Accordion type="single" collapsible className="w-full pt-2">
+                    <AccordionItem value="details" className="border-0">
+                      <AccordionTrigger className="text-xs text-primary hover:no-underline py-2">
+                        Se alle {tier.allFeatures.length} funktioner
+                      </AccordionTrigger>
+                      <AccordionContent className="space-y-2 pt-2">
+                        {tier.allFeatures.map((feature, idx) => (
+                          <div key={idx} className="flex items-start gap-2 text-xs">
+                            <Check className="h-3 w-3 text-primary mt-0.5 flex-shrink-0" />
+                            <span className="text-muted-foreground">{feature}</span>
+                          </div>
+                        ))}
+                      </AccordionContent>
+                    </AccordionItem>
+                  </Accordion>
                 </CardContent>
                 <CardFooter>
                   <Button 
@@ -259,6 +301,104 @@ const FremhaevVirksomhedPage = () => {
                 </CardFooter>
               </Card>
             ))}
+          </div>
+
+          {/* Comparison Table */}
+          <div className="mt-16">
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-center">Detaljeret sammenligning</CardTitle>
+                <CardDescription className="text-center">Se alle funktioner side om side</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="border-b">
+                        <th className="text-left py-4 px-4 font-semibold">Funktion</th>
+                        {pricingTiers.map((tier, idx) => (
+                          <th key={idx} className="text-center py-4 px-4 font-semibold">{tier.name}</th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y">
+                      <tr className="hover:bg-muted/50">
+                        <td className="py-3 px-4 text-sm">Søgeresultat placering</td>
+                        <td className="py-3 px-4 text-center text-sm">Top 3</td>
+                        <td className="py-3 px-4 text-center text-sm font-semibold text-primary">#1 Placering</td>
+                        <td className="py-3 px-4 text-center text-sm font-semibold text-primary">#1 Placering</td>
+                      </tr>
+                      <tr className="hover:bg-muted/50">
+                        <td className="py-3 px-4 text-sm">Verificeret badge</td>
+                        <td className="py-3 px-4 text-center"><Check className="h-5 w-5 text-primary mx-auto" /></td>
+                        <td className="py-3 px-4 text-center"><Check className="h-5 w-5 text-primary mx-auto" /></td>
+                        <td className="py-3 px-4 text-center text-sm font-semibold text-primary">Premium Partner</td>
+                      </tr>
+                      <tr className="hover:bg-muted/50">
+                        <td className="py-3 px-4 text-sm">Ekstra informationsfelter</td>
+                        <td className="py-3 px-4 text-center text-sm">Op til 5</td>
+                        <td className="py-3 px-4 text-center text-sm">Op til 15</td>
+                        <td className="py-3 px-4 text-center text-sm font-semibold text-primary">Ubegrænset</td>
+                      </tr>
+                      <tr className="hover:bg-muted/50">
+                        <td className="py-3 px-4 text-sm">Brugerdefineret banner & logo</td>
+                        <td className="py-3 px-4 text-center text-muted-foreground">-</td>
+                        <td className="py-3 px-4 text-center"><Check className="h-5 w-5 text-primary mx-auto" /></td>
+                        <td className="py-3 px-4 text-center"><Check className="h-5 w-5 text-primary mx-auto" /></td>
+                      </tr>
+                      <tr className="hover:bg-muted/50">
+                        <td className="py-3 px-4 text-sm">Billedgalleri</td>
+                        <td className="py-3 px-4 text-center text-muted-foreground">-</td>
+                        <td className="py-3 px-4 text-center text-sm">Op til 10</td>
+                        <td className="py-3 px-4 text-center text-sm font-semibold text-primary">Ubegrænset</td>
+                      </tr>
+                      <tr className="hover:bg-muted/50">
+                        <td className="py-3 px-4 text-sm">Video integration</td>
+                        <td className="py-3 px-4 text-center text-muted-foreground">-</td>
+                        <td className="py-3 px-4 text-center text-muted-foreground">-</td>
+                        <td className="py-3 px-4 text-center text-sm">Op til 3</td>
+                      </tr>
+                      <tr className="hover:bg-muted/50">
+                        <td className="py-3 px-4 text-sm">Social media links</td>
+                        <td className="py-3 px-4 text-center text-muted-foreground">-</td>
+                        <td className="py-3 px-4 text-center text-sm">Op til 8</td>
+                        <td className="py-3 px-4 text-center text-sm">Op til 8</td>
+                      </tr>
+                      <tr className="hover:bg-muted/50">
+                        <td className="py-3 px-4 text-sm">Support</td>
+                        <td className="py-3 px-4 text-center text-sm">Email (24t)</td>
+                        <td className="py-3 px-4 text-center text-sm">Chat (4t)</td>
+                        <td className="py-3 px-4 text-center text-sm font-semibold text-primary">24/7 Telefon</td>
+                      </tr>
+                      <tr className="hover:bg-muted/50">
+                        <td className="py-3 px-4 text-sm">Account manager</td>
+                        <td className="py-3 px-4 text-center text-muted-foreground">-</td>
+                        <td className="py-3 px-4 text-center text-muted-foreground">-</td>
+                        <td className="py-3 px-4 text-center"><Check className="h-5 w-5 text-primary mx-auto" /></td>
+                      </tr>
+                      <tr className="hover:bg-muted/50">
+                        <td className="py-3 px-4 text-sm">Rapporter</td>
+                        <td className="py-3 px-4 text-center text-sm">Månedlig</td>
+                        <td className="py-3 px-4 text-center text-sm">Ugentlig</td>
+                        <td className="py-3 px-4 text-center text-sm font-semibold text-primary">Real-time Dashboard</td>
+                      </tr>
+                      <tr className="hover:bg-muted/50">
+                        <td className="py-3 px-4 text-sm">Featured på forside</td>
+                        <td className="py-3 px-4 text-center text-muted-foreground">-</td>
+                        <td className="py-3 px-4 text-center text-muted-foreground">-</td>
+                        <td className="py-3 px-4 text-center text-sm">Månedlig</td>
+                      </tr>
+                      <tr className="hover:bg-muted/50">
+                        <td className="py-3 px-4 text-sm font-semibold">Besparelse</td>
+                        <td className="py-3 px-4 text-center text-muted-foreground">-</td>
+                        <td className="py-3 px-4 text-center text-muted-foreground">-</td>
+                        <td className="py-3 px-4 text-center text-sm font-semibold text-primary">Op til 40%</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </CardContent>
+            </Card>
           </div>
         </div>
       </section>
