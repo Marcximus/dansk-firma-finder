@@ -588,7 +588,7 @@ const CvrApiPage = () => {
         <section>
           <h2 className="text-2xl sm:text-3xl font-bold text-center mb-4">Eksempel på API-respons</h2>
           <p className="text-center text-muted-foreground mb-8 max-w-2xl mx-auto">
-            Se hvordan data returneres fra vores API i JSON-format
+            I bestemmer selv hvordan I gerne vil have jeres respons - Se et eksempel på hvordan data kan returneres fra vores API i JSON-format
           </p>
           <Card className="max-w-4xl mx-auto">
             <CardHeader className="flex flex-row items-center justify-between pb-3">
