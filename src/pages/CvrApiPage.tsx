@@ -647,7 +647,7 @@ const CvrApiPage = () => {
             Hvis du har spørgsmål eller idéer til specifik funktionalitet, er du mere end velkommen til at skrive til os.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-            <Button size="lg" asChild>
+            <Button size="lg" asChild className="animate-pulse shadow-lg shadow-primary/50 hover:shadow-primary/70 transition-all">
               <Link to="/kontakt-os">
                 Kontakt os
               </Link>
