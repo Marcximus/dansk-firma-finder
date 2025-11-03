@@ -612,11 +612,13 @@ const CvrApiPage = () => {
               </Button>
             </CardHeader>
             <CardContent>
-              <pre className="bg-muted p-4 rounded-lg overflow-x-auto text-xs sm:text-sm">
-                <code className="text-foreground font-mono">
-                  {exampleResponse}
-                </code>
-              </pre>
+              <div className="bg-black p-4 rounded-lg overflow-auto max-h-[500px] border border-green-500/30">
+                <pre className="text-xs sm:text-sm">
+                  <code className="text-green-400 font-mono">
+                    {exampleResponse}
+                  </code>
+                </pre>
+              </div>
             </CardContent>
           </Card>
         </section>
