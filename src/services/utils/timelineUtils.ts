@@ -505,6 +505,81 @@ export const extractAllHistoricalEvents = (cvrData: any, financialData?: any): T
     });
   }
 
+  // Extract capital changes from KAPITAL attribute with detailed comparison
+  if (normalizedData?.attributter) {
+    const kapitalAttr = normalizedData.attributter.find((attr: any) => attr.type === 'KAPITAL');
+    
+    if (kapitalAttr && kapitalAttr.vaerdier && kapitalAttr.vaerdier.length > 0) {
+      // Sort values by date (oldest first for chronological comparison)
+      const sortedKapital = [...kapitalAttr.vaerdier].sort((a: any, b: any) => {
+        const dateA = parseDate(a.periode?.gyldigFra);
+        const dateB = parseDate(b.periode?.gyldigFra);
+        if (!dateA || !dateB) return 0;
+        return dateA.getTime() - dateB.getTime();
+      });
+      
+      // Get currency from KAPITALVALUTA attribute
+      const valutaAttr = normalizedData.attributter.find((attr: any) => attr.type === 'KAPITALVALUTA');
+      const currency = valutaAttr?.vaerdier?.[0]?.vaerdi || 'DKK';
+      
+      // Process each capital value
+      for (let i = 0; i < sortedKapital.length; i++) {
+        const current = sortedKapital[i];
+        const previous = i > 0 ? sortedKapital[i - 1] : null;
+        
+        const startDate = parseDate(current.periode?.gyldigFra);
+        if (!startDate || !current.vaerdi) continue;
+        
+        const currentValue = parseFloat(current.vaerdi);
+        const previousValue = previous ? parseFloat(previous.vaerdi) : null;
+        
+        // Skip if no change
+        if (previousValue !== null && currentValue === previousValue) continue;
+        
+        let title: string;
+        let description: string;
+        let severity: 'low' | 'medium' | 'high';
+        
+        if (previousValue === null) {
+          // Initial capital
+          title = 'Selskabskapital registreret';
+          description = `Stiftelseskapital: ${currentValue.toLocaleString('da-DK')} ${currency}`;
+          severity = 'high';
+        } else if (currentValue > previousValue) {
+          // Capital increase
+          const increase = currentValue - previousValue;
+          title = 'Kapitalforhøjelse';
+          description = `Kapital forhøjet fra ${previousValue.toLocaleString('da-DK')} ${currency} til ${currentValue.toLocaleString('da-DK')} ${currency}. Forhøjelse: ${increase.toLocaleString('da-DK')} ${currency}`;
+          severity = 'high';
+        } else {
+          // Capital decrease
+          const decrease = previousValue - currentValue;
+          title = 'Kapitalnedsættelse';
+          description = `Kapital nedsat fra ${previousValue.toLocaleString('da-DK')} ${currency} til ${currentValue.toLocaleString('da-DK')} ${currency}. Nedsættelse: ${decrease.toLocaleString('da-DK')} ${currency}`;
+          severity = 'high';
+        }
+        
+        events.push({
+          id: generateId('capital', startDate, eventIndex++),
+          date: startDate,
+          category: 'capital',
+          title,
+          description,
+          oldValue: previousValue !== null ? `${previousValue.toLocaleString('da-DK')} ${currency}` : undefined,
+          newValue: `${currentValue.toLocaleString('da-DK')} ${currency}`,
+          severity,
+          metadata: { 
+            current, 
+            previous,
+            currentValue,
+            previousValue,
+            currency 
+          },
+        });
+      }
+    }
+  }
+
   // Extract additional important attributes from attributter array
   if (normalizedData?.attributter) {
     normalizedData.attributter.forEach((attr: any) => {
