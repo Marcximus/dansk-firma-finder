@@ -288,11 +288,10 @@ const BasicInfoAccordion: React.FC<BasicInfoAccordionProps> = ({ company, cvrDat
               <TooltipTrigger asChild>
                 <div className="flex flex-row items-start sm:items-center gap-1 sm:gap-2 md:gap-3">
                   <div className="flex items-center gap-0.5 sm:gap-1 md:gap-1.5 min-w-[90px] sm:min-w-[140px] flex-shrink-0">
-                    <Shield className="h-3 w-3 sm:h-3.5 sm:w-3.5 md:h-4 md:w-4 text-muted-foreground flex-shrink-0" />
-                    <span className="text-[10px] sm:text-xs md:text-sm text-muted-foreground font-medium whitespace-nowrap">
-                      SI Vurdering:
-                    </span>
-                    <Info className="h-3 w-3 text-muted-foreground ml-1 cursor-help" />
+                  <Shield className="h-3 w-3 sm:h-3.5 sm:w-3.5 md:h-4 md:w-4 text-muted-foreground flex-shrink-0" />
+                  <span className="text-[10px] sm:text-xs md:text-sm text-muted-foreground font-medium whitespace-nowrap">
+                    SI Vurdering:
+                  </span>
                   </div>
                   <span className="text-[10px] sm:text-xs md:text-sm break-words flex-1">
                     <span className={getRiskColor(riskScore.totalScore)}>
