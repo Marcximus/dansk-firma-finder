@@ -306,17 +306,23 @@ const BasicInfoAccordion: React.FC<BasicInfoAccordionProps> = ({ company, cvrDat
                   SI Vurdering er en omfattende algoritmisk risikovurdering baseret på:
                 </p>
                 <ul className="text-xs space-y-1 mb-2">
-                  <li>• <strong>Finansiel sundhed (40%)</strong>: Egenkapital, rentabilitet, likviditet, gældsgrad</li>
-                  <li>• <strong>Finansielle tendenser (15%)</strong>: 3-5 års udvikling i nøgletal</li>
-                  <li>• <strong>Cash flow & likviditet (10%)</strong>: Betalingsevne på kort sigt</li>
-                  <li>• <strong>Gældsstruktur (8%)</strong>: Gældsbæreevne og struktur</li>
-                  <li>• <strong>Virksomhedsstatus (15%)</strong>: Aktiv/inaktiv status</li>
-                  <li>• <strong>Virksomhedsalder (7%)</strong>: Erfaring og stabilitet</li>
-                  <li>• <strong>Ledelse & revision (7%)</strong>: Organisatorisk stabilitet</li>
+                  <li>• <strong>Status (15%)</strong>: Aktiv/inaktiv, konkurs, likvidation</li>
+                  <li>• <strong>Finansiel sundhed (38%)</strong>: Egenkapital, rentabilitet, likviditet</li>
+                  <li>• <strong>Finansielle tendenser (14%)</strong>: 3-5 års udvikling</li>
+                  <li>• <strong>Cash flow (9%)</strong>: Betalingsevne på kort sigt</li>
+                  <li>• <strong>Gældsstruktur (7%)</strong>: Gældsbæreevne</li>
+                  <li>• <strong>Virksomhedsalder (5%)</strong>: Erfaring og stabilitet</li>
+                  <li>• <strong>Ledelse (4%)</strong>: Ledelsesmæssig stabilitet</li>
+                  <li>• <strong>Ejerskab (3%)</strong>: Ejerskabsstabilitet</li>
+                  <li>• <strong>Branche (3%)</strong>: Branchespecifik risiko</li>
+                  <li>• <strong>Betalingshistorik (2%)</strong>: Registrerede anmærkninger</li>
+                  <li>• <strong>Revisor (1,5%)</strong>: Revisorstabilitet</li>
+                  <li>• <strong>Adresse (0,5%)</strong>: Adressestabilitet</li>
+                  <li>• <strong>Datakvalitet (1,5%)</strong>: Tilgængelig data</li>
                 </ul>
                 <p className="text-xs text-muted-foreground">
-                  Scoren går fra 0 (ekstrem risiko) til 10 (lav risiko). Virksomheder med negativ egenkapital 
-                  eller flere år med tab vil få markant lavere score.
+                  Scoren går fra 0 (ekstrem risiko) til 10 (lav risiko). <strong>Inaktive virksomheder får automatisk 0.0</strong>. 
+                  Virksomheder med negativ egenkapital eller flere år med tab får markant lavere score.
                 </p>
               </TooltipContent>
             </Tooltip>
