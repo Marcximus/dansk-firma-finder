@@ -1,15 +1,18 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
-import { Company } from '@/services/companyAPI';
+import { Company, getFinancialData } from '@/services/companyAPI';
 import { extractExtendedInfo } from '@/services/cvrUtils';
-import { Info, Phone, MapPin, Briefcase, TrendingUp, TrendingDown, DollarSign, Calendar, FileText, Mail, Activity, User, Building2, Globe, Users } from 'lucide-react';
+import { Info, Phone, MapPin, Briefcase, TrendingUp, TrendingDown, DollarSign, Calendar, FileText, Mail, Activity, User, Building2, Globe, Users, Shield } from 'lucide-react';
 import { formatPhoneNumber } from '@/services/utils/formatUtils';
 import { format } from 'date-fns';
 import { da } from 'date-fns/locale';
 import { useNavigate } from 'react-router-dom';
 import { generateCompanyUrl, generatePersonUrl } from '@/lib/urlUtils';
 import { useToast } from '@/hooks/use-toast';
+import { calculateRiskScore } from '@/services/utils/riskAssessment';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { extractFinancialData } from '@/services/utils/financialUtils';
 
 interface ExtendedInfoAccordionProps {
   company: Company;
@@ -19,10 +22,38 @@ interface ExtendedInfoAccordionProps {
 const ExtendedInfoAccordion: React.FC<ExtendedInfoAccordionProps> = ({ company, cvrData }) => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const [financialData, setFinancialData] = useState<any>(null);
+  const [isLoadingFinancial, setIsLoadingFinancial] = useState(true);
+  
   console.log('ExtendedInfoAccordion - Raw CVR Data:', cvrData);
   
   const extendedInfo = extractExtendedInfo(cvrData);
   console.log('ExtendedInfoAccordion - Extracted Info:', extendedInfo);
+
+  // Fetch financial data for comprehensive risk assessment
+  useEffect(() => {
+    const fetchFinancialDataForRisk = async () => {
+      if (!company.cvr) {
+        setIsLoadingFinancial(false);
+        return;
+      }
+      
+      try {
+        const data = await getFinancialData(company.cvr);
+        if (data && data.financialReports) {
+          const parsedFinancialData = data.financialReports.length > 0 ? data : null;
+          const extractedData = extractFinancialData(cvrData, parsedFinancialData);
+          setFinancialData(extractedData);
+        }
+      } catch (error) {
+        console.error('Error fetching financial data for risk assessment:', error);
+      } finally {
+        setIsLoadingFinancial(false);
+      }
+    };
+    
+    fetchFinancialDataForRisk();
+  }, [company.cvr, cvrData]);
 
   const getContactInfo = () => {
     if (!cvrData) return { email: null, phone: null };
@@ -170,6 +201,19 @@ const ExtendedInfoAccordion: React.FC<ExtendedInfoAccordionProps> = ({ company, 
   const contactInfo = getContactInfo();
   const website = getWebsite();
   const employeeData = getEmployeeCount();
+  
+  // Calculate risk score with financial data (wait for loading to complete)
+  const riskScore = !isLoadingFinancial 
+    ? calculateRiskScore(company, cvrData, financialData)
+    : { totalScore: 0, riskLevelText: 'Beregner...', riskLevel: 'medium' as const, factors: {} as any, warnings: [], criticalFlags: [] };
+  
+  // Get risk color based on score
+  const getRiskColor = (score: number) => {
+    if (score >= 8.0) return 'text-green-600 dark:text-green-400';
+    if (score >= 5.0) return 'text-yellow-600 dark:text-yellow-400';
+    if (score >= 2.0) return 'text-orange-600 dark:text-orange-400';
+    return 'text-red-600 dark:text-red-400';
+  };
 
   const InfoRow = ({ icon: Icon, label, value, className = "" }: { 
     icon: any, 
@@ -388,6 +432,51 @@ const ExtendedInfoAccordion: React.FC<ExtendedInfoAccordionProps> = ({ company, 
               }
             />
           )}
+          
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div className="flex flex-row items-start sm:items-center gap-1 sm:gap-2 md:gap-3">
+                  <div className="flex items-center gap-0.5 sm:gap-1 md:gap-1.5 min-w-[90px] sm:min-w-[140px] flex-shrink-0">
+                  <Shield className="h-3 w-3 sm:h-3.5 sm:w-3.5 md:h-4 md:w-4 text-muted-foreground flex-shrink-0" />
+                  <span className="text-[10px] sm:text-xs md:text-sm text-muted-foreground font-medium whitespace-nowrap">
+                    SI Vurdering:
+                  </span>
+                  </div>
+                  <span className="text-[10px] sm:text-xs md:text-sm break-words flex-1">
+                    <span className={getRiskColor(riskScore.totalScore)}>
+                      {riskScore.totalScore.toFixed(1)}/10.0 ({riskScore.riskLevelText})
+                    </span>
+                  </span>
+                </div>
+              </TooltipTrigger>
+              <TooltipContent className="max-w-md">
+                <p className="font-semibold mb-2">Om SI Vurdering</p>
+                <p className="text-sm mb-2">
+                  SI Vurdering er en omfattende algoritmisk risikovurdering baseret på:
+                </p>
+                <ul className="text-xs space-y-1 mb-2">
+                  <li>• <strong>Status (15%)</strong>: Aktiv/inaktiv, konkurs, likvidation</li>
+                  <li>• <strong>Finansiel sundhed (38%)</strong>: Egenkapital, rentabilitet, likviditet</li>
+                  <li>• <strong>Finansielle tendenser (14%)</strong>: 3-5 års udvikling</li>
+                  <li>• <strong>Cash flow (9%)</strong>: Betalingsevne på kort sigt</li>
+                  <li>• <strong>Gældsstruktur (7%)</strong>: Gældsbæreevne</li>
+                  <li>• <strong>Virksomhedsalder (5%)</strong>: Erfaring og stabilitet</li>
+                  <li>• <strong>Ledelse (4%)</strong>: Ledelsesmæssig stabilitet</li>
+                  <li>• <strong>Ejerskab (3%)</strong>: Ejerskabsstabilitet</li>
+                  <li>• <strong>Branche (3%)</strong>: Branchespecifik risiko</li>
+                  <li>• <strong>Betalingshistorik (2%)</strong>: Registrerede anmærkninger</li>
+                  <li>• <strong>Revisor (1,5%)</strong>: Revisorstabilitet</li>
+                  <li>• <strong>Adresse (0,5%)</strong>: Adressestabilitet</li>
+                  <li>• <strong>Datakvalitet (1,5%)</strong>: Tilgængelig data</li>
+                </ul>
+                <p className="text-xs text-muted-foreground">
+                  Scoren går fra 0 (ekstrem risiko) til 10 (lav risiko). <strong>Inaktive virksomheder får automatisk 0.0</strong>. 
+                  Virksomheder med negativ egenkapital eller flere år med tab får markant lavere score.
+                </p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
 
           {/* Secondary Industries */}
           {extendedInfo?.secondaryIndustries && extendedInfo.secondaryIndustries.length > 0 && (
