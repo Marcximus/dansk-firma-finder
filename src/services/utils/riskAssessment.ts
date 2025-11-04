@@ -796,7 +796,7 @@ export const calculateRiskScore = (
     return {
       totalScore: 0.0,
       riskLevel: 'extreme',
-      riskLevelText: 'Ekstrem risiko',
+      riskLevelText: '🚨 Ekstrem risiko',
       factors: {
         status: { score: 0, weight: 15, details: statusAssessment.details },
         financial: { score: 0, weight: 38, details: 'Ikke relevant for inaktiv virksomhed' },
@@ -825,7 +825,7 @@ export const calculateRiskScore = (
     return {
       totalScore: 1.5,
       riskLevel: 'extreme',
-      riskLevelText: 'Ekstrem risiko',
+      riskLevelText: '🚨 Ekstrem risiko',
       factors: {
         status: { score: 1, weight: 15, details: statusAssessment.details },
         financial: { score: 0, weight: 38, details: 'Under rekonstruktion' },
@@ -951,16 +951,16 @@ export const calculateRiskScore = (
   
   if (totalScore >= 8.0) {
     riskLevel = 'low';
-    riskLevelText = 'Lav risiko';
+    riskLevelText = '✅ Lav risiko';
   } else if (totalScore >= 5.0) {
     riskLevel = 'medium';
-    riskLevelText = 'Medium risiko';
+    riskLevelText = '⚠️ Medium risiko';
   } else if (totalScore >= 2.0) {
     riskLevel = 'high';
-    riskLevelText = 'Høj risiko';
+    riskLevelText = '❌ Høj risiko';
   } else {
     riskLevel = 'extreme';
-    riskLevelText = 'Ekstrem risiko';
+    riskLevelText = '🚨 Ekstrem risiko';
   }
   
   return {
