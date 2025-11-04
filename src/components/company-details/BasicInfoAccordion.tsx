@@ -236,51 +236,6 @@ const BasicInfoAccordion: React.FC<BasicInfoAccordionProps> = ({ company, cvrDat
             value={getStartDate()} 
           />
           
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <div className="flex flex-row items-start sm:items-center gap-1 sm:gap-2 md:gap-3">
-                  <div className="flex items-center gap-0.5 sm:gap-1 md:gap-1.5 min-w-[90px] sm:min-w-[140px] flex-shrink-0">
-                  <Shield className="h-3 w-3 sm:h-3.5 sm:w-3.5 md:h-4 md:w-4 text-muted-foreground flex-shrink-0" />
-                  <span className="text-[10px] sm:text-xs md:text-sm text-muted-foreground font-medium whitespace-nowrap">
-                    SI Vurdering:
-                  </span>
-                  </div>
-                  <span className="text-[10px] sm:text-xs md:text-sm break-words flex-1">
-                    <span className={getRiskColor(riskScore.totalScore)}>
-                      {riskScore.totalScore.toFixed(1)}/10.0 ({riskScore.riskLevelText})
-                    </span>
-                  </span>
-                </div>
-              </TooltipTrigger>
-              <TooltipContent className="max-w-md">
-                <p className="font-semibold mb-2">Om SI Vurdering</p>
-                <p className="text-sm mb-2">
-                  SI Vurdering er en omfattende algoritmisk risikovurdering baseret på:
-                </p>
-                <ul className="text-xs space-y-1 mb-2">
-                  <li>• <strong>Status (15%)</strong>: Aktiv/inaktiv, konkurs, likvidation</li>
-                  <li>• <strong>Finansiel sundhed (38%)</strong>: Egenkapital, rentabilitet, likviditet</li>
-                  <li>• <strong>Finansielle tendenser (14%)</strong>: 3-5 års udvikling</li>
-                  <li>• <strong>Cash flow (9%)</strong>: Betalingsevne på kort sigt</li>
-                  <li>• <strong>Gældsstruktur (7%)</strong>: Gældsbæreevne</li>
-                  <li>• <strong>Virksomhedsalder (5%)</strong>: Erfaring og stabilitet</li>
-                  <li>• <strong>Ledelse (4%)</strong>: Ledelsesmæssig stabilitet</li>
-                  <li>• <strong>Ejerskab (3%)</strong>: Ejerskabsstabilitet</li>
-                  <li>• <strong>Branche (3%)</strong>: Branchespecifik risiko</li>
-                  <li>• <strong>Betalingshistorik (2%)</strong>: Registrerede anmærkninger</li>
-                  <li>• <strong>Revisor (1,5%)</strong>: Revisorstabilitet</li>
-                  <li>• <strong>Adresse (0,5%)</strong>: Adressestabilitet</li>
-                  <li>• <strong>Datakvalitet (1,5%)</strong>: Tilgængelig data</li>
-                </ul>
-                <p className="text-xs text-muted-foreground">
-                  Scoren går fra 0 (ekstrem risiko) til 10 (lav risiko). <strong>Inaktive virksomheder får automatisk 0.0</strong>. 
-                  Virksomheder med negativ egenkapital eller flere år med tab får markant lavere score.
-                </p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-          
           <InfoRow 
             icon={MapPin} 
             label="Adresse" 
