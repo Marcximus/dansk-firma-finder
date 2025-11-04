@@ -444,7 +444,7 @@ const ExtendedInfoAccordion: React.FC<ExtendedInfoAccordionProps> = ({ company, 
                   </span>
                   </div>
                   <span className="text-[10px] sm:text-xs md:text-sm break-words flex-1">
-                    <span className={getRiskColor(riskScore.totalScore)}>
+                    <span className={`${getRiskColor(riskScore.totalScore)} pulse`}>
                       {riskScore.totalScore.toFixed(1)}/10.0 ({riskScore.riskLevelText})
                     </span>
                   </span>
