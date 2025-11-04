@@ -2,10 +2,9 @@
 import React from 'react';
 import { Company, extractCvrDetails, extractOwnershipData } from '@/services/companyAPI';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, FileText } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
-import { Alert, AlertDescription } from '@/components/ui/alert';
 import CompanyHeader from './company-details/CompanyHeader';
 import BasicInfoAccordion from './company-details/BasicInfoAccordion';
 import ExtendedInfoAccordion from './company-details/ExtendedInfoAccordion';
@@ -33,18 +32,6 @@ const CompanyDetails: React.FC<CompanyDetailsProps> = ({ company }) => {
   return (
     <div className="py-2 sm:py-4 md:py-6 max-w-7xl mx-auto px-2 sm:px-3 md:px-4">
       <CompanyHeader company={company} />
-
-      <Alert className="my-4 bg-primary/5 border-primary/20">
-        <FileText className="h-4 w-4" />
-        <AlertDescription className="flex items-center justify-between flex-wrap gap-2">
-          <span className="text-sm">Skal du handle med selskabet? - Få en Virksomheds- og Kreditrapport</span>
-          <Button asChild size="sm" variant="default">
-            <Link to="/virksomhedsrapporter" state={{ preselectedCompany: company }}>
-              Se rapporter
-            </Link>
-          </Button>
-        </AlertDescription>
-      </Alert>
 
       <Accordion type="multiple" defaultValue={["basic", "extended", "signing-rules", "ownership", "production-units", "financial", "employees", "history"]} className="w-full space-y-2 sm:space-y-3 md:space-y-4">
         <BasicInfoAccordion company={company} cvrData={company.realCvrData} />

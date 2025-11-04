@@ -7,7 +7,7 @@ import { Info, Phone, MapPin, Briefcase, TrendingUp, TrendingDown, DollarSign, C
 import { formatPhoneNumber } from '@/services/utils/formatUtils';
 import { format } from 'date-fns';
 import { da } from 'date-fns/locale';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { generateCompanyUrl, generatePersonUrl } from '@/lib/urlUtils';
 import { useToast } from '@/hooks/use-toast';
 import { calculateRiskScore } from '@/services/utils/riskAssessment';
@@ -447,6 +447,10 @@ const ExtendedInfoAccordion: React.FC<ExtendedInfoAccordionProps> = ({ company, 
                     <span className={`${getRiskColor(riskScore.totalScore)} pulse`}>
                       {riskScore.totalScore.toFixed(1)}/10.0 ({riskScore.riskLevelText})
                     </span>
+                    {' - '}
+                    <Link to="/virksomhedsrapporter" state={{ preselectedCompany: company }} className="text-primary hover:underline">
+                      Skal du handle med selskabet? - Få en Virksomheds- og Kreditrapport
+                    </Link>
                   </span>
                 </div>
               </TooltipTrigger>
