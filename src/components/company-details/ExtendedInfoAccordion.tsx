@@ -215,7 +215,14 @@ const ExtendedInfoAccordion: React.FC<ExtendedInfoAccordionProps> = ({ company, 
     return 'text-red-600 dark:text-red-400';
   };
 
-  const InfoRow = ({ icon: Icon, label, value, className = "" }: { 
+  const getRiskEmoji = (score: number) => {
+    if (score >= 8.0) return '✅';
+    if (score >= 5.0) return '⚠️';
+    if (score >= 2.0) return '❌';
+    return '🚨';
+  };
+
+  const InfoRow = ({ icon: Icon, label, value, className = "" }: {
     icon: any, 
     label: string, 
     value: string | null | undefined | React.ReactNode, 
@@ -445,7 +452,7 @@ const ExtendedInfoAccordion: React.FC<ExtendedInfoAccordionProps> = ({ company, 
                   </div>
                   <span className="text-[10px] sm:text-xs md:text-sm break-words flex-1">
                     <span className={`${getRiskColor(riskScore.totalScore)} pulse`}>
-                      {riskScore.totalScore.toFixed(1)}/10.0 ({riskScore.riskLevelText})
+                      {getRiskEmoji(riskScore.totalScore)} {riskScore.totalScore.toFixed(1)}/10.0 ({riskScore.riskLevelText})
                     </span>
                     {' - '}
                     <Link to="/virksomhedsrapporter" state={{ preselectedCompany: company }} className="text-primary hover:underline">
