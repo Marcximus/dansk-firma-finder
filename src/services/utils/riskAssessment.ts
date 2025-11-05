@@ -25,6 +25,10 @@ export interface RiskScore {
   };
   warnings: string[];
   criticalFlags: string[];
+  contextualModifiers?: {
+    value: number;
+    details: string[];
+  };
 }
 
 // Assess company status risk
@@ -784,6 +788,126 @@ const assessDataCompleteness = (cvrData: any): { score: number; details: string 
   }
 };
 
+// Helper: Extract company age in years
+const extractCompanyAge = (cvrData: any): number => {
+  const startDate = cvrData?.livsforloeb?.[0]?.periode?.gyldigFra;
+  if (!startDate) return 0;
+  
+  const start = new Date(startDate);
+  const now = new Date();
+  return (now.getTime() - start.getTime()) / (1000 * 60 * 60 * 24 * 365);
+};
+
+// Helper: Extract employee count
+const extractEmployeeCount = (cvrData: any): number => {
+  const antalAnsatte = cvrData?.virksomhedMetadata?.[0]?.antalAnsatte || 
+                       cvrData?.antalAnsatte?.[0]?.antalAnsatte;
+  return antalAnsatte || 0;
+};
+
+// Calculate contextual modifiers based on company characteristics
+const calculateContextualModifiers = (
+  cvrData: any,
+  financialData: any,
+  ageAssessment: any,
+  cashFlowAssessment: any,
+  trendsAssessment: any,
+  managementAssessment: any,
+  debtAssessment: any,
+  industryAssessment: any
+): { modifier: number; details: string[] } => {
+  let modifier = 0;
+  const details: string[] = [];
+  
+  // POSITIVE MODIFIERS
+  // Age bonus (established companies are more resilient)
+  const ageYears = extractCompanyAge(cvrData);
+  if (ageYears >= 10) {
+    modifier += 0.5;
+    details.push('+0.5: Velestableret virksomhed (10+ år)');
+  } else if (ageYears >= 5) {
+    modifier += 0.3;
+    details.push('+0.3: Etableret virksomhed (5-10 år)');
+  } else if (ageYears >= 2) {
+    modifier += 0.1;
+    details.push('+0.1: Moderat etableret (2-5 år)');
+  }
+  
+  // Cash flow strength
+  if (cashFlowAssessment.score >= 8) {
+    modifier += 0.4;
+    details.push('+0.4: Stærk likviditet og cash flow');
+  } else if (cashFlowAssessment.score >= 6) {
+    modifier += 0.2;
+    details.push('+0.2: God cash flow position');
+  }
+  
+  // Revenue trends
+  const revenueValues = extractRevenueValues(financialData);
+  if (revenueValues.length >= 2 && revenueValues[0] > revenueValues[1]) {
+    modifier += 0.3;
+    details.push('+0.3: Voksende omsætning');
+  } else if (revenueValues.length >= 2 && revenueValues[0] >= revenueValues[1] * 0.95) {
+    modifier += 0.1;
+    details.push('+0.1: Stabil omsætning');
+  }
+  
+  // Management stability
+  if (managementAssessment.score >= 9) {
+    modifier += 0.2;
+    details.push('+0.2: Stabil ledelse');
+  }
+  
+  // Low debt
+  if (debtAssessment.score >= 8) {
+    modifier += 0.2;
+    details.push('+0.2: Lav gældsætning');
+  }
+  
+  // NEGATIVE MODIFIERS
+  // Youth penalty
+  if (ageYears < 1) {
+    modifier -= 0.4;
+    details.push('-0.4: Meget ny virksomhed (<1 år)');
+  } else if (ageYears < 2) {
+    modifier -= 0.2;
+    details.push('-0.2: Ny virksomhed (1-2 år)');
+  }
+  
+  // Small workforce (less resilient)
+  const employeeCount = extractEmployeeCount(cvrData);
+  if (employeeCount === 1) {
+    modifier -= 0.3;
+    details.push('-0.3: Enkeltmandsvirksomhed (1 ansat)');
+  } else if (employeeCount >= 2 && employeeCount <= 5) {
+    modifier -= 0.1;
+    details.push('-0.1: Lille virksomhed (2-5 ansatte)');
+  }
+  
+  // High-risk industry
+  if (industryAssessment.score <= 4) {
+    modifier -= 0.2;
+    details.push('-0.2: Højrisiko branche');
+  }
+  
+  // Management instability
+  if (managementAssessment.score <= 4) {
+    modifier -= 0.2;
+    details.push('-0.2: Ustabil ledelse');
+  }
+  
+  // Declining trends
+  if (trendsAssessment.score <= 3) {
+    modifier -= 0.3;
+    details.push('-0.3: Faldende finansielle tendenser');
+  } else if (trendsAssessment.score <= 5) {
+    modifier -= 0.1;
+    details.push('-0.1: Blandede finansielle tendenser');
+  }
+  
+  return { modifier, details };
+};
+
 // Calculate total risk score with comprehensive financial analysis
 export const calculateRiskScore = (
   company: any, 
@@ -905,33 +1029,95 @@ export const calculateRiskScore = (
   warnings.push(...industryAssessment.warnings);
   warnings.push(...paymentAssessment.warnings);
   
-  // Apply critical cap: If critical financial issues, cap max score
+  // Calculate contextual modifiers
+  const contextualMods = calculateContextualModifiers(
+    cvrData,
+    financialData,
+    ageAssessment,
+    cashFlowAssessment,
+    trendsAssessment,
+    managementAssessment,
+    debtAssessment,
+    industryAssessment
+  );
+  
+  // Apply range-based caps with contextual modifiers
   const equityValues = extractEquityValues(financialData);
   const profitValues = extractProfitLossValues(financialData);
   
   // Critical Flag: Technical insolvency (equity < -500k)
+  // Base range: 0.5 - 1.5
   if (equityValues.length > 0 && equityValues[0] < -500000) {
-    totalScore = Math.min(totalScore, 1.0);
+    const baseCap = 1.0;
+    const rangeLow = 0.5;
+    const rangeHigh = 1.5;
+    
+    // Apply modifier within range
+    let adjustedCap = baseCap + contextualMods.modifier;
+    adjustedCap = Math.max(rangeLow, Math.min(rangeHigh, adjustedCap));
+    
+    totalScore = Math.min(totalScore, adjustedCap);
     criticalFlags.push('TEKNISK_INSOLVENT');
+    
+    // Add modifier details to warnings
+    if (contextualMods.details.length > 0) {
+      warnings.push(`Kontekstjusteringer: ${contextualMods.details.join(', ')}`);
+    }
+  }
+  
+  // Critical Flag: Persistent losses (3+ years) with negative equity
+  // Base range: 1.5 - 2.5
+  const consecutiveLosses = profitValues.filter(p => p < 0).length;
+  if (equityValues.length > 0 && equityValues[0] < 0 && consecutiveLosses >= 3) {
+    const baseCap = 2.0;
+    const rangeLow = 1.5;
+    const rangeHigh = 2.5;
+    
+    let adjustedCap = baseCap + contextualMods.modifier;
+    adjustedCap = Math.max(rangeLow, Math.min(rangeHigh, adjustedCap));
+    
+    totalScore = Math.min(totalScore, adjustedCap);
+    criticalFlags.push('VEDVARENDE_TAB_OG_NEGATIV_EGENKAPITAL');
+    
+    if (contextualMods.details.length > 0 && !warnings.includes(`Kontekstjusteringer: ${contextualMods.details.join(', ')}`)) {
+      warnings.push(`Kontekstjusteringer: ${contextualMods.details.join(', ')}`);
+    }
+  }
+  
+  // Critical Flag: Negative equity + current losses
+  // Base range: 2.0 - 3.5
+  if (equityValues.length > 0 && equityValues[0] < 0 && profitValues.length > 0 && profitValues[0] < 0) {
+    const baseCap = 2.5;
+    const rangeLow = 2.0;
+    const rangeHigh = 3.5;
+    
+    let adjustedCap = baseCap + contextualMods.modifier;
+    adjustedCap = Math.max(rangeLow, Math.min(rangeHigh, adjustedCap));
+    
+    totalScore = Math.min(totalScore, adjustedCap);
+    criticalFlags.push('NEGATIV_EGENKAPITAL_OG_TAB');
+    
+    if (contextualMods.details.length > 0 && !warnings.includes(`Kontekstjusteringer: ${contextualMods.details.join(', ')}`)) {
+      warnings.push(`Kontekstjusteringer: ${contextualMods.details.join(', ')}`);
+    }
   }
   
   // Critical Flag: Negative equity for 2+ years
+  // Base range: 3.0 - 4.5
   if (equityValues.length >= 2 && equityValues[0] < 0 && equityValues[1] < 0) {
-    totalScore = Math.min(totalScore, 3.0);
+    const baseCap = 3.5;
+    const rangeLow = 3.0;
+    const rangeHigh = 4.5;
+    
+    let adjustedCap = baseCap + contextualMods.modifier;
+    adjustedCap = Math.max(rangeLow, Math.min(rangeHigh, adjustedCap));
+    
+    totalScore = Math.min(totalScore, adjustedCap);
     criticalFlags.push('NEGATIV_EGENKAPITAL_FLERE_ÅR');
-  }
-  
-  // Critical Flag: Negative equity + losses
-  if (equityValues.length > 0 && equityValues[0] < 0 && profitValues.length > 0 && profitValues[0] < 0) {
-    totalScore = Math.min(totalScore, 2.0);
-    criticalFlags.push('NEGATIV_EGENKAPITAL_OG_TAB');
-  }
-  
-  // Critical Flag: Persistent losses with negative equity
-  const consecutiveLosses = profitValues.filter(p => p < 0).length;
-  if (equityValues[0] < 0 && consecutiveLosses >= 3) {
-    totalScore = Math.min(totalScore, 1.5);
-    criticalFlags.push('VEDVARENDE_TAB_OG_NEGATIV_EGENKAPITAL');
+    
+    if (contextualMods.details.length > 0 && !warnings.includes(`Kontekstjusteringer: ${contextualMods.details.join(', ')}`)) {
+      warnings.push(`Kontekstjusteringer: ${contextualMods.details.join(', ')}`);
+    }
   }
   
   // Add standard warnings
@@ -984,5 +1170,9 @@ export const calculateRiskScore = (
     },
     warnings,
     criticalFlags,
+    contextualModifiers: {
+      value: contextualMods.modifier,
+      details: contextualMods.details
+    }
   };
 };
