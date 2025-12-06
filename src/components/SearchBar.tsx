@@ -111,8 +111,13 @@ const SearchBar: React.FC<SearchBarProps> = ({ onSearch, isLoading = false, shou
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             onFocus={handleInputFocus}
-            className="pl-8 sm:pl-9 md:pl-10 h-8 sm:h-10 md:h-12 text-xs sm:text-sm md:text-base"
+            className="pl-8 sm:pl-9 md:pl-10 pr-8 sm:pr-9 md:pr-10 h-8 sm:h-10 md:h-12 text-xs sm:text-sm md:text-base"
           />
+          {isSearching && (
+            <div className="absolute right-2 sm:right-2.5 md:right-3 top-1/2 -translate-y-1/2">
+              <div className="w-3.5 h-3.5 sm:w-4 sm:h-4 md:w-5 md:h-5 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+            </div>
+          )}
           
           {/* Search Results Dropdown */}
           {showDropdown && (searchResults.length > 0 || isSearching) && (
