@@ -23,12 +23,9 @@ export function NotFoundPage() {
       {/* Content */}
       <div className="container mx-auto relative z-10">
         <div className="flex justify-center">
-          <div className="w-full sm:w-10/12 md:w-8/12 text-center">
-            <div
-              className="bg-[url(https://cdn.dribbble.com/users/285475/screenshots/2083086/dribbble_1.gif)] h-[250px] sm:h-[350px] md:h-[400px] bg-center bg-no-repeat bg-contain"
-              aria-hidden="true"
-            >
-              <h1 className="text-center text-white text-6xl sm:text-7xl md:text-8xl pt-6 sm:pt-8 drop-shadow-lg">
+        <div className="w-full sm:w-10/12 md:w-8/12 text-center">
+            <div className="h-[250px] sm:h-[350px] md:h-[400px] flex items-center justify-center">
+              <h1 className="text-center text-white text-8xl sm:text-9xl md:text-[12rem] font-bold drop-shadow-[0_0_30px_rgba(97,220,163,0.5)] animate-pulse">
                 404
               </h1>
             </div>
