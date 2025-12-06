@@ -114,9 +114,9 @@ function findTagValue(
         // Parse the value
         const numValue = parseFloat(tag.value);
         if (!isNaN(numValue)) {
-          // Apply decimal scaling if present
-          const decimals = tag.decimals ? parseInt(tag.decimals) : 0;
-          const scaledValue = decimals < 0 ? numValue * Math.pow(10, Math.abs(decimals)) : numValue;
+          // Note: decimals attribute indicates precision, not a scaling factor
+          // Values are already in the correct scale - DO NOT multiply
+          const scaledValue = numValue;
           
           return {
             value: scaledValue,
