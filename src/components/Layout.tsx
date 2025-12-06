@@ -113,9 +113,10 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           <div className="flex-1 w-full md:w-auto md:max-w-md">
             <SearchBar 
               onSearch={(query) => {
-                const searchParams = new URLSearchParams();
-                searchParams.set('search', query.trim());
-                navigate(`/?${searchParams.toString()}`);
+                navigate({
+                  pathname: '/',
+                  search: `search=${encodeURIComponent(query.trim())}`
+                });
               }}
               isLoading={false}
             />
