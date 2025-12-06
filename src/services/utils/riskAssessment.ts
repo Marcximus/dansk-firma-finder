@@ -1131,11 +1131,15 @@ export const calculateRiskScore = (
     warnings.push('Ustabil ledelse med hyppige skift');
   }
   
-  // Determine risk level with new thresholds
+  // Determine risk level with calibrated thresholds
+  // Score 7.0+ = Lav risiko (strong companies with good financials)
+  // Score 5.0-6.9 = Medium risiko (average companies)
+  // Score 2.0-4.9 = Høj risiko (concerning signals)
+  // Score <2.0 = Ekstrem risiko (critical issues)
   let riskLevel: 'low' | 'medium' | 'high' | 'extreme';
   let riskLevelText: string;
   
-  if (totalScore >= 8.0) {
+  if (totalScore >= 7.0) {
     riskLevel = 'low';
     riskLevelText = 'Lav risiko';
   } else if (totalScore >= 5.0) {
