@@ -214,26 +214,66 @@ export function parseXBRLOptimized(xbrlContent: string, period: string) {
   return metrics;
 }
 
+// Currency conversion rates to DKK
+const CURRENCY_TO_DKK: Record<string, number> = {
+  'DKK': 1,
+  'EUR': 7.46,
+  'USD': 6.85,
+  'GBP': 8.70,
+  'SEK': 0.63,
+  'NOK': 0.62,
+};
+
+/**
+ * Convert a value from source currency to DKK
+ */
+function convertToDKK(value: number | null, currency: string): number | null {
+  if (value === null) return null;
+  
+  const upperCurrency = currency.toUpperCase();
+  const rate = CURRENCY_TO_DKK[upperCurrency];
+  
+  if (rate && rate !== 1) {
+    console.log(`[CURRENCY] Converting ${value} ${upperCurrency} to DKK (rate: ${rate}) = ${value * rate}`);
+    return value * rate;
+  }
+  
+  return value;
+}
+
 /**
  * Convert extracted metrics to database format
+ * Automatically converts EUR and other currencies to DKK using fixed rates
  */
 export function formatFinancialData(metrics: ReturnType<typeof parseXBRLOptimized>, period: string) {
+  // Detect the source currency from the metrics
+  const sourceCurrency = metrics.revenue?.currency || metrics.profit?.currency || 'DKK';
+  const needsConversion = sourceCurrency.toUpperCase() !== 'DKK';
+  
+  if (needsConversion) {
+    console.log(`[CURRENCY] Detected ${sourceCurrency} - will convert all values to DKK`);
+  }
+  
   return {
     periode: period,
     
     // Map to field names expected by scoreFinancialData in index.ts
-    nettoomsaetning: metrics.revenue?.value || null,
-    aaretsResultat: metrics.profit?.value || null,
-    statusBalance: metrics.assets?.value || null,
-    egenkapital: metrics.equity?.value || null,
-    driftsresultat: metrics.ebitda?.value || null,
-    resultatFoerSkat: metrics.profit?.value || null,
-    anlaegsaktiverValue: metrics.noncurrentAssets?.value || null,
-    omsaetningsaktiver: metrics.currentAssets?.value || null,
+    // Convert all monetary values to DKK
+    nettoomsaetning: convertToDKK(metrics.revenue?.value || null, sourceCurrency),
+    aaretsResultat: convertToDKK(metrics.profit?.value || null, sourceCurrency),
+    statusBalance: convertToDKK(metrics.assets?.value || null, sourceCurrency),
+    egenkapital: convertToDKK(metrics.equity?.value || null, sourceCurrency),
+    driftsresultat: convertToDKK(metrics.ebitda?.value || null, sourceCurrency),
+    resultatFoerSkat: convertToDKK(metrics.profit?.value || null, sourceCurrency),
+    anlaegsaktiverValue: convertToDKK(metrics.noncurrentAssets?.value || null, sourceCurrency),
+    omsaetningsaktiver: convertToDKK(metrics.currentAssets?.value || null, sourceCurrency),
     
     // Additional fields for comprehensive financial data
-    kortfristet_gaeld: metrics.currentLiabilities?.value || null,
-    langfristet_gaeld: metrics.noncurrentLiabilities?.value || null,
-    valuta: metrics.revenue?.currency || metrics.profit?.currency || 'DKK'
+    kortfristet_gaeld: convertToDKK(metrics.currentLiabilities?.value || null, sourceCurrency),
+    langfristet_gaeld: convertToDKK(metrics.noncurrentLiabilities?.value || null, sourceCurrency),
+    
+    // Always store as DKK after conversion, but keep original currency info for reference
+    valuta: 'DKK',
+    originalValuta: sourceCurrency
   };
 }
