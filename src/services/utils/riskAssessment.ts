@@ -600,28 +600,50 @@ const assessAgeRisk = (cvrData: any): { score: number; details: string } => {
   const startDates = livsforloeb
     .map((l: any) => l.periode?.gyldigFra)
     .filter((d: string | null | undefined) => d && d !== 'null')
-    .sort();
+    .sort((a: string, b: string) => new Date(a).getTime() - new Date(b).getTime()); // Sort chronologically
   
   const startDate = startDates[0];
   
-  if (!startDate) {
+  // Also check virksomhedMetadata for stiftelsesdato
+  const stiftelsesDato = cvrData?.virksomhedMetadata?.stiftelsesDato || 
+                         cvrData?.stiftelsesDato ||
+                         cvrData?.virksomhedMetadata?.[0]?.stiftelsesDato;
+  
+  // Use whichever is earlier
+  const effectiveStartDate = stiftelsesDato && startDate 
+    ? (new Date(stiftelsesDato) < new Date(startDate) ? stiftelsesDato : startDate)
+    : stiftelsesDato || startDate;
+  
+  if (!effectiveStartDate) {
     return { score: 5, details: 'Stiftelsesdato ukendt' };
   }
   
-  const start = new Date(startDate);
+  const start = new Date(effectiveStartDate);
   const now = new Date();
   const ageInYears = (now.getTime() - start.getTime()) / (1000 * 60 * 60 * 24 * 365);
   
-  if (ageInYears < 1) {
+  // Risk tiers per user specification:
+  // Under 2 years: highest risk (score 3)
+  // 3+ years: score 5
+  // 5+ years: score 6
+  // 8+ years: score 7
+  // 10+ years: score 8.5
+  // 20+ years: lowest risk (score 10)
+  
+  if (ageInYears < 2) {
     return { score: 3, details: `Ny virksomhed (${Math.round(ageInYears * 12)} måneder)` };
-  } else if (ageInYears < 2) {
-    return { score: 5, details: `Ung virksomhed (${Math.round(ageInYears)} år)` };
+  } else if (ageInYears < 3) {
+    return { score: 4, details: `Ung virksomhed (${Math.round(ageInYears)} år)` };
   } else if (ageInYears < 5) {
-    return { score: 7, details: `${Math.round(ageInYears)} år gammel` };
+    return { score: 5, details: `${Math.round(ageInYears)} år gammel` };
+  } else if (ageInYears < 8) {
+    return { score: 6, details: `Moderat etableret (${Math.round(ageInYears)} år)` };
   } else if (ageInYears < 10) {
-    return { score: 9, details: `Etableret virksomhed (${Math.round(ageInYears)} år)` };
+    return { score: 7, details: `Etableret virksomhed (${Math.round(ageInYears)} år)` };
+  } else if (ageInYears < 20) {
+    return { score: 8.5, details: `Velestableret (${Math.round(ageInYears)} år)` };
   } else {
-    return { score: 10, details: `Velestableret (${Math.round(ageInYears)} år)` };
+    return { score: 10, details: `Meget velestableret (${Math.round(ageInYears)}+ år)` };
   }
 };
 
@@ -900,12 +922,23 @@ const extractCompanyAge = (cvrData: any): number => {
   const startDates = livsforloeb
     .map((l: any) => l.periode?.gyldigFra)
     .filter((d: string | null | undefined) => d && d !== 'null')
-    .sort();
+    .sort((a: string, b: string) => new Date(a).getTime() - new Date(b).getTime()); // Sort chronologically
   
   const startDate = startDates[0];
-  if (!startDate) return 0;
   
-  const start = new Date(startDate);
+  // Also check virksomhedMetadata for stiftelsesdato
+  const stiftelsesDato = cvrData?.virksomhedMetadata?.stiftelsesDato || 
+                         cvrData?.stiftelsesDato ||
+                         cvrData?.virksomhedMetadata?.[0]?.stiftelsesDato;
+  
+  // Use whichever is earlier
+  const effectiveStartDate = stiftelsesDato && startDate 
+    ? (new Date(stiftelsesDato) < new Date(startDate) ? stiftelsesDato : startDate)
+    : stiftelsesDato || startDate;
+  
+  if (!effectiveStartDate) return 0;
+  
+  const start = new Date(effectiveStartDate);
   const now = new Date();
   return (now.getTime() - start.getTime()) / (1000 * 60 * 60 * 24 * 365);
 };
