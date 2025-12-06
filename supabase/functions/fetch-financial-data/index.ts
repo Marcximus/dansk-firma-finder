@@ -155,6 +155,67 @@ const parseXBRL = (xmlContent: string, period: string) => {
   try {
     console.log(`[XBRL Parser] Processing ${xmlContent.length} bytes for period ${period}`);
     
+    // Currency conversion rates to DKK (same as in xbrl-parser-optimized.ts)
+    const CURRENCY_TO_DKK: Record<string, number> = {
+      'DKK': 1,
+      'EUR': 7.46,
+      'USD': 6.85,
+      'GBP': 8.70,
+      'SEK': 0.63,
+      'NOK': 0.62,
+    };
+    
+    // Detect currency from unit definitions in the XBRL document
+    const detectDocumentCurrency = (): string => {
+      // Look for unit definitions with currency codes
+      // Pattern 1: <xbrli:unit id="..."><xbrli:measure>iso4217:EUR</xbrli:measure></xbrli:unit>
+      const iso4217Match = xmlContent.match(/iso4217:([A-Z]{3})/i);
+      if (iso4217Match) {
+        const currency = iso4217Match[1].toUpperCase();
+        console.log(`[CURRENCY DETECT] Found iso4217 currency: ${currency}`);
+        return currency;
+      }
+      
+      // Pattern 2: unitRef="EUR" or unitRef="eur"
+      const unitRefMatch = xmlContent.match(/unitRef="([A-Za-z]{3})"/);
+      if (unitRefMatch) {
+        const candidate = unitRefMatch[1].toUpperCase();
+        if (CURRENCY_TO_DKK[candidate]) {
+          console.log(`[CURRENCY DETECT] Found unitRef currency: ${candidate}`);
+          return candidate;
+        }
+      }
+      
+      // Pattern 3: Look for currency in unit ID patterns like "vEUR" or "uEUR"
+      const vCurrencyMatch = xmlContent.match(/unit[^>]+id="[vu]?([A-Z]{3})"/i);
+      if (vCurrencyMatch) {
+        const candidate = vCurrencyMatch[1].toUpperCase();
+        if (CURRENCY_TO_DKK[candidate]) {
+          console.log(`[CURRENCY DETECT] Found unit ID currency: ${candidate}`);
+          return candidate;
+        }
+      }
+      
+      console.log(`[CURRENCY DETECT] No foreign currency detected, assuming DKK`);
+      return 'DKK';
+    };
+    
+    const documentCurrency = detectDocumentCurrency();
+    const needsCurrencyConversion = documentCurrency !== 'DKK';
+    
+    // Helper function to convert value to DKK
+    const convertValueToDKK = (value: number | null): number | null => {
+      if (value === null || !needsCurrencyConversion) return value;
+      
+      const rate = CURRENCY_TO_DKK[documentCurrency] || 1;
+      if (rate !== 1) {
+        const converted = value * rate;
+        console.log(`[CURRENCY CONVERT] ${value.toLocaleString()} ${documentCurrency} → ${converted.toLocaleString()} DKK (rate: ${rate})`);
+        return converted;
+      }
+      return value;
+    };
+    
     // Cache unit scales per XML document to avoid re-parsing
     const unitScaleCache = new Map<string, number>();
     
@@ -1479,6 +1540,38 @@ const parseEquityContexts = () => {
         return result !== null ? Math.abs(result) : null;
       })()
     };
+
+    // Apply currency conversion to all monetary fields if needed
+    if (needsCurrencyConversion) {
+      console.log(`[CURRENCY] Applying ${documentCurrency} → DKK conversion to all monetary values`);
+      
+      const monetaryFields = [
+        'nettoomsaetning', 'bruttofortjeneste', 'driftsresultat', 'resultatFoerSkat', 
+        'aaretsResultat', 'anlaegsaktiverValue', 'omsaetningsaktiver', 'statusBalance',
+        'egenkapital', 'hensatteForpligtelser', 'gaeldsforpligtelser', 'kortfristetGaeld',
+        'driftsomkostninger', 'personaleomkostninger', 'afskrivninger', 'finansielleIndtaegter',
+        'finansielleOmkostninger', 'skatAfAaretsResultat', 'bruttotab',
+        'immaterielleAnlaeggsaktiver', 'materielleAnlaeggsaktiver', 'finansielleAnlaeggsaktiver',
+        'deposita', 'varebeholdninger', 'tilgodehavender', 'tilgodehavenderFraSalgOgTjenesteydelser',
+        'andreTilgodehavender', 'kravPaaIndbetalingAfVirksomhedskapital',
+        'periodeafgraensningsporterAktiver', 'likvideBehoelninger',
+        'virksomhedskapital', 'overfoertResultat', 'overkursVedEmission',
+        'leverandoererAfVarerOgTjenesteydelser', 'gaeldTilAssocieretVirksomheder',
+        'skyldideMomsOgAfgifter', 'andenGaeld', 'feriepengeforpligtelser',
+        'periodeafgraensningsporterPassiver', 'langfristetGaeld',
+        'increaseInShareCapital', 'increaseInSharePremium', 'transferFromSharePremium'
+      ];
+      
+      for (const field of monetaryFields) {
+        if (financialData[field] !== null && financialData[field] !== undefined) {
+          financialData[field] = convertValueToDKK(financialData[field]);
+        }
+      }
+      
+      // Add currency metadata
+      financialData.valuta = 'DKK';
+      financialData.originalValuta = documentCurrency;
+    }
 
     // Calculate financial ratios
     const ratios: any = {};

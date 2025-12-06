@@ -225,6 +225,32 @@ const CURRENCY_TO_DKK: Record<string, number> = {
 };
 
 /**
+ * Extract currency code from unitRef
+ * Handles formats like: "iso4217:EUR", "EUR", "eur", "vDKK", "DKK_1000", etc.
+ */
+function extractCurrencyFromUnitRef(unitRef: string | undefined): string {
+  if (!unitRef) return 'DKK';
+  
+  const upper = unitRef.toUpperCase();
+  
+  // Check for iso4217: prefix (e.g., "iso4217:EUR")
+  if (upper.includes('ISO4217:')) {
+    const match = upper.match(/ISO4217:([A-Z]{3})/);
+    if (match) return match[1];
+  }
+  
+  // Check for currency codes anywhere in the string
+  for (const currency of Object.keys(CURRENCY_TO_DKK)) {
+    if (upper.includes(currency)) {
+      return currency;
+    }
+  }
+  
+  // Default to DKK if no known currency found
+  return 'DKK';
+}
+
+/**
  * Convert a value from source currency to DKK
  */
 function convertToDKK(value: number | null, currency: string): number | null {
@@ -234,8 +260,9 @@ function convertToDKK(value: number | null, currency: string): number | null {
   const rate = CURRENCY_TO_DKK[upperCurrency];
   
   if (rate && rate !== 1) {
-    console.log(`[CURRENCY] Converting ${value} ${upperCurrency} to DKK (rate: ${rate}) = ${value * rate}`);
-    return value * rate;
+    const converted = value * rate;
+    console.log(`[CURRENCY] Converting ${value.toLocaleString()} ${upperCurrency} → ${converted.toLocaleString()} DKK (rate: ${rate})`);
+    return converted;
   }
   
   return value;
@@ -246,12 +273,13 @@ function convertToDKK(value: number | null, currency: string): number | null {
  * Automatically converts EUR and other currencies to DKK using fixed rates
  */
 export function formatFinancialData(metrics: ReturnType<typeof parseXBRLOptimized>, period: string) {
-  // Detect the source currency from the metrics
-  const sourceCurrency = metrics.revenue?.currency || metrics.profit?.currency || 'DKK';
-  const needsConversion = sourceCurrency.toUpperCase() !== 'DKK';
+  // Detect the source currency from the metrics (use extractCurrencyFromUnitRef for proper parsing)
+  const rawCurrency = metrics.revenue?.currency || metrics.profit?.currency || metrics.assets?.currency || 'DKK';
+  const sourceCurrency = extractCurrencyFromUnitRef(rawCurrency);
+  const needsConversion = sourceCurrency !== 'DKK';
   
   if (needsConversion) {
-    console.log(`[CURRENCY] Detected ${sourceCurrency} - will convert all values to DKK`);
+    console.log(`[CURRENCY] Detected ${sourceCurrency} from unitRef "${rawCurrency}" - will convert all values to DKK`);
   }
   
   return {
