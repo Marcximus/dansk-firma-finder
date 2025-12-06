@@ -205,7 +205,7 @@ const ExtendedInfoAccordion: React.FC<ExtendedInfoAccordionProps> = ({ company, 
   // Calculate risk score with financial data (wait for loading to complete)
   const riskScore = !isLoadingFinancial 
     ? calculateRiskScore(company, cvrData, financialData)
-    : { totalScore: 0, riskLevelText: 'Beregner...', riskLevel: 'medium' as const, factors: {} as any, warnings: [], criticalFlags: [] };
+    : { totalScore: 0, riskLevelText: 'Beregner...', riskLevel: 'medium' as const, factors: {} as any, warnings: [], criticalFlags: [], contextualModifiers: { value: 0, details: [] } };
   
   // Get risk color based on score (matches thresholds in riskAssessment.ts)
   const getRiskColor = (score: number) => {
@@ -448,29 +448,119 @@ const ExtendedInfoAccordion: React.FC<ExtendedInfoAccordionProps> = ({ company, 
                       {riskScore.totalScore.toFixed(1)}/10.0 ({riskScore.riskLevelText})
                     </span>
                   </TooltipTrigger>
-                  <TooltipContent className="max-w-md">
-                    <p className="font-semibold mb-2">Om SI Vurdering</p>
-                    <p className="text-sm mb-2">
-                      SI Vurdering er en omfattende algoritmisk risikovurdering baseret på:
+                  <TooltipContent className="max-w-lg p-4">
+                    <p className="font-semibold mb-1 text-base">SI Vurdering for {company.name}</p>
+                    <p className={`text-lg font-bold mb-3 ${getRiskColor(riskScore.totalScore)}`}>
+                      {riskScore.totalScore.toFixed(1)}/10.0 - {riskScore.riskLevelText}
                     </p>
-                    <ul className="text-xs space-y-1 mb-2">
-                      <li>• <strong>Status (15%)</strong>: Aktiv/inaktiv, konkurs, likvidation</li>
-                      <li>• <strong>Finansiel sundhed (38%)</strong>: Egenkapital, rentabilitet, likviditet</li>
-                      <li>• <strong>Finansielle tendenser (14%)</strong>: 3-5 års udvikling</li>
-                      <li>• <strong>Cash flow (9%)</strong>: Betalingsevne på kort sigt</li>
-                      <li>• <strong>Gældsstruktur (7%)</strong>: Gældsbæreevne</li>
-                      <li>• <strong>Virksomhedsalder (5%)</strong>: Erfaring og stabilitet</li>
-                      <li>• <strong>Ledelse (4%)</strong>: Ledelsesmæssig stabilitet</li>
-                      <li>• <strong>Ejerskab (3%)</strong>: Ejerskabsstabilitet</li>
-                      <li>• <strong>Branche (3%)</strong>: Branchespecifik risiko</li>
-                      <li>• <strong>Betalingshistorik (2%)</strong>: Registrerede anmærkninger</li>
-                      <li>• <strong>Revisor (1,5%)</strong>: Revisorstabilitet</li>
-                      <li>• <strong>Adresse (0,5%)</strong>: Adressestabilitet</li>
-                      <li>• <strong>Datakvalitet (1,5%)</strong>: Tilgængelig data</li>
-                    </ul>
-                    <p className="text-xs text-muted-foreground">
-                      Scoren går fra 0 (ekstrem risiko) til 10 (lav risiko). <strong>Inaktive virksomheder får automatisk 0.0</strong>. 
-                      Virksomheder med negativ egenkapital eller flere år med tab får markant lavere score.
+                    
+                    <div className="border-t pt-2 mb-2">
+                      <p className="text-xs font-medium mb-2 text-muted-foreground">Faktoropdeling:</p>
+                      <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
+                        <div className="flex justify-between">
+                          <span>Status:</span>
+                          <span className={riskScore.factors.status.score >= 7 ? 'text-green-600' : riskScore.factors.status.score >= 5 ? 'text-yellow-600' : 'text-red-600'}>
+                            {riskScore.factors.status.score.toFixed(1)}
+                          </span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Finansiel (45%):</span>
+                          <span className={riskScore.factors.financial.score >= 7 ? 'text-green-600' : riskScore.factors.financial.score >= 5 ? 'text-yellow-600' : 'text-red-600'}>
+                            {riskScore.factors.financial.score.toFixed(1)}
+                          </span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Tendenser (14%):</span>
+                          <span className={riskScore.factors.financialTrends.score >= 7 ? 'text-green-600' : riskScore.factors.financialTrends.score >= 5 ? 'text-yellow-600' : 'text-red-600'}>
+                            {riskScore.factors.financialTrends.score.toFixed(1)}
+                          </span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Cash flow (9%):</span>
+                          <span className={riskScore.factors.cashFlow.score >= 7 ? 'text-green-600' : riskScore.factors.cashFlow.score >= 5 ? 'text-yellow-600' : 'text-red-600'}>
+                            {riskScore.factors.cashFlow.score.toFixed(1)}
+                          </span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Gæld (7%):</span>
+                          <span className={riskScore.factors.debtStructure.score >= 7 ? 'text-green-600' : riskScore.factors.debtStructure.score >= 5 ? 'text-yellow-600' : 'text-red-600'}>
+                            {riskScore.factors.debtStructure.score.toFixed(1)}
+                          </span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Revisor (10%):</span>
+                          <span className={riskScore.factors.auditor.score >= 7 ? 'text-green-600' : riskScore.factors.auditor.score >= 5 ? 'text-yellow-600' : 'text-red-600'}>
+                            {riskScore.factors.auditor.score.toFixed(1)}
+                          </span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Alder (5%):</span>
+                          <span className={riskScore.factors.age.score >= 7 ? 'text-green-600' : riskScore.factors.age.score >= 5 ? 'text-yellow-600' : 'text-red-600'}>
+                            {riskScore.factors.age.score.toFixed(1)}
+                          </span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Betaling (5%):</span>
+                          <span className={riskScore.factors.paymentHistory.score >= 7 ? 'text-green-600' : riskScore.factors.paymentHistory.score >= 5 ? 'text-yellow-600' : 'text-red-600'}>
+                            {riskScore.factors.paymentHistory.score.toFixed(1)}
+                          </span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Ledelse (4%):</span>
+                          <span className={riskScore.factors.management.score >= 7 ? 'text-green-600' : riskScore.factors.management.score >= 5 ? 'text-yellow-600' : 'text-red-600'}>
+                            {riskScore.factors.management.score.toFixed(1)}
+                          </span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Ejerskab (3%):</span>
+                          <span className={riskScore.factors.ownership.score >= 7 ? 'text-green-600' : riskScore.factors.ownership.score >= 5 ? 'text-yellow-600' : 'text-red-600'}>
+                            {riskScore.factors.ownership.score.toFixed(1)}
+                          </span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Branche (3%):</span>
+                          <span className={riskScore.factors.industry.score >= 7 ? 'text-green-600' : riskScore.factors.industry.score >= 5 ? 'text-yellow-600' : 'text-red-600'}>
+                            {riskScore.factors.industry.score.toFixed(1)}
+                          </span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Adresse (0,5%):</span>
+                          <span className={riskScore.factors.address.score >= 7 ? 'text-green-600' : riskScore.factors.address.score >= 5 ? 'text-yellow-600' : 'text-red-600'}>
+                            {riskScore.factors.address.score.toFixed(1)}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    {riskScore.criticalFlags && riskScore.criticalFlags.length > 0 && (
+                      <div className="border-t pt-2 mt-2">
+                        <p className="text-xs font-medium text-red-600 mb-1">⚠️ Kritiske advarsler:</p>
+                        <ul className="text-xs space-y-0.5 text-red-600">
+                          {riskScore.criticalFlags.map((flag, idx) => (
+                            <li key={idx}>• {flag}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                    
+                    {riskScore.contextualModifiers && riskScore.contextualModifiers.details.length > 0 && (
+                      <div className="border-t pt-2 mt-2">
+                        <p className="text-xs font-medium mb-1">
+                          Kontekstuelle justeringer: {riskScore.contextualModifiers.value >= 0 ? '+' : ''}{riskScore.contextualModifiers.value.toFixed(2)}
+                        </p>
+                        <ul className="text-xs space-y-0.5 text-muted-foreground">
+                          {riskScore.contextualModifiers.details.slice(0, 5).map((detail, idx) => (
+                            <li key={idx}>• {detail}</li>
+                          ))}
+                          {riskScore.contextualModifiers.details.length > 5 && (
+                            <li className="text-muted-foreground italic">...og {riskScore.contextualModifiers.details.length - 5} mere</li>
+                          )}
+                        </ul>
+                      </div>
+                    )}
+                    
+                    <p className="text-[10px] text-muted-foreground mt-3 pt-2 border-t">
+                      Score: 7+ = Lav risiko • 5-7 = Medium • 2-5 = Høj • &lt;2 = Ekstrem
                     </p>
                   </TooltipContent>
                 </Tooltip>
