@@ -1,11 +1,13 @@
 
 import React, { useState, useRef, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Search, Building, MapPin } from 'lucide-react';
 import { Spinner } from '@/components/ui/spinner';
 import { searchCompanies, Company } from '@/services/companyAPI';
 import { useDebounce } from '@/hooks/useDebounce';
+import { generateCompanyUrl } from '@/lib/urlUtils';
 
 interface SearchBarProps {
   onSearch: (query: string) => void;
@@ -21,6 +23,7 @@ const SearchBar: React.FC<SearchBarProps> = ({ onSearch, isLoading = false, shou
   const inputRef = useRef<HTMLInputElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const debouncedQuery = useDebounce(query, 100);
+  const navigate = useNavigate();
 
   // Handle search results
   useEffect(() => {
@@ -88,9 +91,10 @@ const SearchBar: React.FC<SearchBarProps> = ({ onSearch, isLoading = false, shou
   };
 
   const handleSuggestionClick = (company: Company) => {
-    setQuery(company.name);
     setShowDropdown(false);
-    onSearch(company.name);
+    // Navigate directly to the company page
+    const companyUrl = generateCompanyUrl(company.name, company.cvr);
+    navigate(companyUrl);
   };
 
   const handleInputFocus = () => {
