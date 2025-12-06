@@ -245,7 +245,7 @@ const OwnershipAccordion: React.FC<OwnershipAccordionProps> = ({
                 ))
               ) : (
                 <div className="text-muted-foreground text-xs sm:text-sm border-l-2 sm:border-l-4 border-gray-200 pl-3 sm:pl-4 py-2">
-                  Ingen datterselskaber registreret
+                  Kommer snart
                 </div>
               )}
             </div>
