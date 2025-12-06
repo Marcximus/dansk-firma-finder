@@ -457,10 +457,10 @@ const ExtendedInfoAccordion: React.FC<ExtendedInfoAccordionProps> = ({ company, 
                     <div className="border-t pt-2 mb-2">
                       <p className="text-xs font-medium mb-2 text-muted-foreground">Faktoropdeling:</p>
                       <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
-                        <div className="flex justify-between">
-                          <span>Status:</span>
-                          <span className={riskScore.factors.status.score >= 7 ? 'text-green-600' : riskScore.factors.status.score >= 5 ? 'text-yellow-600' : 'text-red-600'}>
-                            {riskScore.factors.status.score.toFixed(1)}
+                        <div className="flex justify-between col-span-2 mb-1 pb-1 border-b border-dashed">
+                          <span className="text-muted-foreground">Status:</span>
+                          <span className="text-green-600 font-medium">
+                            ✓ Aktiv
                           </span>
                         </div>
                         <div className="flex justify-between">

@@ -595,7 +595,14 @@ const assessComprehensiveFinancialRisk = (
 
 // Assess company age
 const assessAgeRisk = (cvrData: any): { score: number; details: string } => {
-  const startDate = cvrData?.livsforloeb?.[0]?.periode?.gyldigFra;
+  // Find the EARLIEST start date from livsforloeb (oldest registration)
+  const livsforloeb = cvrData?.livsforloeb || [];
+  const startDates = livsforloeb
+    .map((l: any) => l.periode?.gyldigFra)
+    .filter((d: string | null | undefined) => d && d !== 'null')
+    .sort();
+  
+  const startDate = startDates[0];
   
   if (!startDate) {
     return { score: 5, details: 'Stiftelsesdato ukendt' };
@@ -888,7 +895,14 @@ const assessDataCompleteness = (cvrData: any): { score: number; details: string 
 
 // Helper: Extract company age in years
 const extractCompanyAge = (cvrData: any): number => {
-  const startDate = cvrData?.livsforloeb?.[0]?.periode?.gyldigFra;
+  // Find the EARLIEST start date from livsforloeb (oldest registration)
+  const livsforloeb = cvrData?.livsforloeb || [];
+  const startDates = livsforloeb
+    .map((l: any) => l.periode?.gyldigFra)
+    .filter((d: string | null | undefined) => d && d !== 'null')
+    .sort();
+  
+  const startDate = startDates[0];
   if (!startDate) return 0;
   
   const start = new Date(startDate);
