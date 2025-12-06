@@ -207,9 +207,9 @@ const ExtendedInfoAccordion: React.FC<ExtendedInfoAccordionProps> = ({ company, 
     ? calculateRiskScore(company, cvrData, financialData)
     : { totalScore: 0, riskLevelText: 'Beregner...', riskLevel: 'medium' as const, factors: {} as any, warnings: [], criticalFlags: [] };
   
-  // Get risk color based on score
+  // Get risk color based on score (matches thresholds in riskAssessment.ts)
   const getRiskColor = (score: number) => {
-    if (score >= 8.0) return 'text-green-600 dark:text-green-400';
+    if (score >= 7.0) return 'text-green-600 dark:text-green-400';
     if (score >= 5.0) return 'text-yellow-600 dark:text-yellow-400';
     if (score >= 2.0) return 'text-orange-600 dark:text-orange-400';
     return 'text-red-600 dark:text-red-400';
