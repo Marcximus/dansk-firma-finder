@@ -527,6 +527,9 @@ const parseXBRL = (xmlContent: string, period: string) => {
                 }
               }
               
+              // Apply currency conversion to DKK
+              value = convertValueToDKK(value);
+              
               if (logField) console.log(`✅ [EXTRACTED] ${logField}: ${value} DKK from tag ${tagName} (NOV:, context: ${contextInfo})`);
               return value;
             }
@@ -588,6 +591,9 @@ const parseXBRL = (xmlContent: string, period: string) => {
               }
             }
             
+            // Apply currency conversion to DKK
+            value = convertValueToDKK(value);
+            
             if (logField) console.log(`✅ [EXTRACTED] ${logField}: ${value} DKK from tag ${tagName} (ifrs-full:, context: ${contextInfo})`);
             return value;
           }
@@ -644,15 +650,18 @@ const parseXBRL = (xmlContent: string, period: string) => {
                 if (decimalScale < 0) {
                   const originalValue = value;
                   value = value * Math.pow(10, -decimalScale);
-                  if (logField) {
-                    console.log(`[DECIMAL CONVERSION] ${logField}: ${originalValue} × ${Math.pow(10, -decimalScale)} = ${value} DKK (decimals: ${decimals})`);
-                  }
+                if (logField) {
+                  console.log(`[DECIMAL CONVERSION] ${logField}: ${originalValue} × ${Math.pow(10, -decimalScale)} = ${value} DKK (decimals: ${decimals})`);
                 }
               }
-              
-              if (logField) console.log(`✅ [EXTRACTED] ${logField}: ${value} DKK from tag ${tagName} (iXBRL, context: ${contextInfo})`);
-              return value;
             }
+            
+            // Apply currency conversion to DKK
+            value = convertValueToDKK(value);
+            
+            if (logField) console.log(`✅ [EXTRACTED] ${logField}: ${value} DKK from tag ${tagName} (iXBRL, context: ${contextInfo})`);
+            return value;
+          }
             
             if (value === null && logField) {
               console.log(`⚠️ [NULL VALUE] ${logField}: Found tag ${tagName} using iXBRL in context ${contextInfo} but value is null/unparseable: "${matches[0][1]}"`);
@@ -711,6 +720,9 @@ const parseXBRL = (xmlContent: string, period: string) => {
                 }
               }
               
+              // Apply currency conversion to DKK
+              value = convertValueToDKK(value);
+              
               if (logField) console.log(`✅ [EXTRACTED] ${logField}: ${value} DKK from tag ${tagName} (fsa:, context: ${contextInfo})`);
               return value;
             }
@@ -766,15 +778,18 @@ const parseXBRL = (xmlContent: string, period: string) => {
                 if (decimalScale < 0) {
                   const originalValue = value;
                   value = value * Math.pow(10, -decimalScale);
-                  if (logField) {
-                    console.log(`[DECIMAL CONVERSION] ${logField}: ${originalValue} × ${Math.pow(10, -decimalScale)} = ${value} DKK (decimals: ${decimals})`);
-                  }
+                if (logField) {
+                  console.log(`[DECIMAL CONVERSION] ${logField}: ${originalValue} × ${Math.pow(10, -decimalScale)} = ${value} DKK (decimals: ${decimals})`);
                 }
               }
-              
-              if (logField) console.log(`✅ [EXTRACTED] ${logField}: ${value} DKK from tag ${tagName} (wildcard, context: ${contextInfo})`);
-              return value;
             }
+            
+            // Apply currency conversion to DKK
+            value = convertValueToDKK(value);
+            
+            if (logField) console.log(`✅ [EXTRACTED] ${logField}: ${value} DKK from tag ${tagName} (wildcard, context: ${contextInfo})`);
+            return value;
+          }
             
             if (value === null && logField) {
               console.log(`⚠️ [NULL VALUE] ${logField}: Found tag ${tagName} using wildcard in context ${contextInfo} but value is null/unparseable: "${matches[0][1]}"`);
@@ -832,6 +847,9 @@ const parseXBRL = (xmlContent: string, period: string) => {
                   }
                 }
               }
+              
+              // Apply currency conversion to DKK
+              value = convertValueToDKK(value);
               
               if (logField) console.log(`✅ [EXTRACTED] ${logField}: ${value} DKK from tag ${tagName} (no namespace, context: ${contextInfo})`);
               return value;
@@ -894,6 +912,9 @@ const parseXBRL = (xmlContent: string, period: string) => {
                     value = value * Math.pow(10, -decimalScale);
                   }
                 }
+                
+                // Apply currency conversion to DKK
+                value = convertValueToDKK(value);
                 
                 if (logField) {
                   console.log(`✅ [DIMENSION] ${logField}: ${value} DKK from tag ${tagName} with dimension ${dimensionMember} (context: ${contextInfo})`);
