@@ -602,17 +602,31 @@ const assessAgeRisk = (cvrData: any): { score: number; details: string } => {
     .filter((d: string | null | undefined) => d && d !== 'null')
     .sort((a: string, b: string) => new Date(a).getTime() - new Date(b).getTime()); // Sort chronologically
   
-  const startDate = startDates[0];
+  const startDateFromLivsforloeb = startDates[0];
   
-  // Also check virksomhedMetadata for stiftelsesdato
+  // Check multiple possible locations for stiftelsesdato
   const stiftelsesDato = cvrData?.virksomhedMetadata?.stiftelsesDato || 
                          cvrData?.stiftelsesDato ||
-                         cvrData?.virksomhedMetadata?.[0]?.stiftelsesDato;
+                         cvrData?.virksomhedMetadata?.[0]?.stiftelsesDato ||
+                         cvrData?.virksomhed?.virksomhedMetadata?.stiftelsesDato ||
+                         cvrData?.vrvirksomhed?.virksomhedMetadata?.stiftelsesDato;
   
-  // Use whichever is earlier
-  const effectiveStartDate = stiftelsesDato && startDate 
-    ? (new Date(stiftelsesDato) < new Date(startDate) ? stiftelsesDato : startDate)
-    : stiftelsesDato || startDate;
+  // Also check stiftet directly
+  const stiftetDate = cvrData?.stiftet || cvrData?.virksomhed?.stiftet;
+  
+  // Choose the earliest valid date from all sources
+  const allDates = [startDateFromLivsforloeb, stiftelsesDato, stiftetDate]
+    .filter(d => d && d !== 'null' && !isNaN(new Date(d).getTime()))
+    .sort((a, b) => new Date(a!).getTime() - new Date(b!).getTime());
+  
+  const effectiveStartDate = allDates[0];
+  
+  console.log('[assessAgeRisk] Company age calculation:', {
+    livsforloebDates: startDates,
+    stiftelsesDato,
+    stiftetDate,
+    effectiveStartDate
+  });
   
   if (!effectiveStartDate) {
     return { score: 5, details: 'Stiftelsesdato ukendt' };
