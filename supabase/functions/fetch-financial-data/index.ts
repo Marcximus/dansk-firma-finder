@@ -515,17 +515,9 @@ const parseXBRL = (xmlContent: string, period: string) => {
                 }
               }
               
-              // Apply decimals scaling if present
-              if (decimals) {
-                const decimalScale = parseInt(decimals);
-                if (decimalScale < 0) {
-                  const originalValue = value;
-                  value = value * Math.pow(10, -decimalScale);
-                  if (logField) {
-                    console.log(`[DECIMAL CONVERSION] ${logField}: ${originalValue} × ${Math.pow(10, -decimalScale)} = ${value} DKK (decimals: ${decimals})`);
-                  }
-                }
-              }
+              // Note: decimals attribute in XBRL indicates precision, not a scaling factor
+              // Values are already in the correct scale (e.g., decimals=-6 means value is already in millions)
+              // DO NOT multiply by 10^(-decimals) - that was causing astronomical values
               
               // Apply currency conversion to DKK
               value = convertValueToDKK(value);
@@ -579,17 +571,7 @@ const parseXBRL = (xmlContent: string, period: string) => {
               }
             }
             
-            // Apply decimals scaling if present
-            if (decimals) {
-              const decimalScale = parseInt(decimals);
-              if (decimalScale < 0) {
-                const originalValue = value;
-                value = value * Math.pow(10, -decimalScale);
-                if (logField) {
-                  console.log(`[DECIMAL CONVERSION] ${logField}: ${originalValue} × ${Math.pow(10, -decimalScale)} = ${value} DKK (decimals: ${decimals})`);
-                }
-              }
-            }
+            // Note: decimals attribute indicates precision, not scaling - values are already correct
             
             // Apply currency conversion to DKK
             value = convertValueToDKK(value);
@@ -644,17 +626,7 @@ const parseXBRL = (xmlContent: string, period: string) => {
                 }
               }
               
-              // Apply decimals scaling if present
-              if (decimals) {
-                const decimalScale = parseInt(decimals);
-                if (decimalScale < 0) {
-                  const originalValue = value;
-                  value = value * Math.pow(10, -decimalScale);
-                if (logField) {
-                  console.log(`[DECIMAL CONVERSION] ${logField}: ${originalValue} × ${Math.pow(10, -decimalScale)} = ${value} DKK (decimals: ${decimals})`);
-                }
-              }
-            }
+                // Note: decimals attribute indicates precision, not scaling - values are already correct
             
             // Apply currency conversion to DKK
             value = convertValueToDKK(value);
@@ -708,17 +680,7 @@ const parseXBRL = (xmlContent: string, period: string) => {
                 }
               }
               
-              // Apply decimals scaling if present
-              if (decimals) {
-                const decimalScale = parseInt(decimals);
-                if (decimalScale < 0) {
-                  const originalValue = value;
-                  value = value * Math.pow(10, -decimalScale);
-                  if (logField) {
-                    console.log(`[DECIMAL CONVERSION] ${logField}: ${originalValue} × ${Math.pow(10, -decimalScale)} = ${value} DKK (decimals: ${decimals})`);
-                  }
-                }
-              }
+                // Note: decimals attribute indicates precision, not scaling - values are already correct
               
               // Apply currency conversion to DKK
               value = convertValueToDKK(value);
@@ -772,17 +734,7 @@ const parseXBRL = (xmlContent: string, period: string) => {
                 }
               }
               
-              // Apply decimals scaling if present
-              if (decimals) {
-                const decimalScale = parseInt(decimals);
-                if (decimalScale < 0) {
-                  const originalValue = value;
-                  value = value * Math.pow(10, -decimalScale);
-                if (logField) {
-                  console.log(`[DECIMAL CONVERSION] ${logField}: ${originalValue} × ${Math.pow(10, -decimalScale)} = ${value} DKK (decimals: ${decimals})`);
-                }
-              }
-            }
+                // Note: decimals attribute indicates precision, not scaling - values are already correct
             
             // Apply currency conversion to DKK
             value = convertValueToDKK(value);
@@ -836,17 +788,7 @@ const parseXBRL = (xmlContent: string, period: string) => {
                 }
               }
               
-              // Apply decimals scaling if present
-              if (decimals) {
-                const decimalScale = parseInt(decimals);
-                if (decimalScale < 0) {
-                  const originalValue = value;
-                  value = value * Math.pow(10, -decimalScale);
-                  if (logField) {
-                    console.log(`[DECIMAL CONVERSION] ${logField}: ${originalValue} × ${Math.pow(10, -decimalScale)} = ${value} DKK (decimals: ${decimals})`);
-                  }
-                }
-              }
+                // Note: decimals attribute indicates precision, not scaling - values are already correct
               
               // Apply currency conversion to DKK
               value = convertValueToDKK(value);
@@ -905,13 +847,7 @@ const parseXBRL = (xmlContent: string, period: string) => {
                   value = value * scale;
                 }
                 
-                // Apply decimals scaling
-                if (decimals) {
-                  const decimalScale = parseInt(decimals);
-                  if (decimalScale < 0) {
-                    value = value * Math.pow(10, -decimalScale);
-                  }
-                }
+                // Note: decimals attribute indicates precision, not scaling - values are already correct
                 
                 // Apply currency conversion to DKK
                 value = convertValueToDKK(value);
@@ -1013,12 +949,7 @@ const parseEquityContexts = () => {
                   value = value * scale;
                 }
                 
-                if (decimals) {
-                  const decimalScale = parseInt(decimals);
-                  if (decimalScale < 0) {
-                    value = value * Math.pow(10, -decimalScale);
-                  }
-                }
+                // Note: decimals attribute indicates precision, not scaling - values are already correct
                 
                 if (logField) {
                   console.log(`✅ [CONTEXT] ${logField}: ${value} DKK from tag ${tagName} with contextRef=${contextId}`);
