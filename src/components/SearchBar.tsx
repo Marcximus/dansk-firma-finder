@@ -29,7 +29,7 @@ const SearchBar: React.FC<SearchBarProps> = ({ onSearch, isLoading = false, shou
         setIsSearching(true);
         try {
           const results = await searchCompanies(debouncedQuery);
-          setSearchResults(results.slice(0, 5)); // Limit to 5 suggestions
+          setSearchResults(results.slice(0, 3)); // Limit to 3 suggestions for faster display
           setShowDropdown(true);
         } catch (error) {
           console.error('Search suggestions error:', error);
