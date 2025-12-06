@@ -113,6 +113,8 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           <div className="flex-1 w-full md:w-auto md:max-w-md">
             <SearchBar 
               onSearch={(query) => {
+                console.log('Header search: navigating with query:', query);
+                console.log('Will navigate to: /?search=' + encodeURIComponent(query.trim()));
                 navigate({
                   pathname: '/',
                   search: `search=${encodeURIComponent(query.trim())}`
