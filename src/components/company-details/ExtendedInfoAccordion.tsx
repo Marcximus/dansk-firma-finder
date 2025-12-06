@@ -203,9 +203,32 @@ const ExtendedInfoAccordion: React.FC<ExtendedInfoAccordionProps> = ({ company, 
   const employeeData = getEmployeeCount();
   
   // Calculate risk score with financial data (wait for loading to complete)
+  const defaultFactor = { score: 0, weight: 0, details: 'Beregner...' };
   const riskScore = !isLoadingFinancial 
     ? calculateRiskScore(company, cvrData, financialData)
-    : { totalScore: 0, riskLevelText: 'Beregner...', riskLevel: 'medium' as const, factors: {} as any, warnings: [], criticalFlags: [], contextualModifiers: { value: 0, details: [] } };
+    : { 
+        totalScore: 0, 
+        riskLevelText: 'Beregner...', 
+        riskLevel: 'medium' as const, 
+        factors: {
+          status: defaultFactor,
+          financial: defaultFactor,
+          financialTrends: defaultFactor,
+          cashFlow: defaultFactor,
+          debtStructure: defaultFactor,
+          auditor: defaultFactor,
+          age: defaultFactor,
+          paymentHistory: defaultFactor,
+          management: defaultFactor,
+          ownership: defaultFactor,
+          industry: defaultFactor,
+          address: defaultFactor,
+          dataCompleteness: defaultFactor,
+        }, 
+        warnings: [], 
+        criticalFlags: [], 
+        contextualModifiers: { value: 0, details: [] } 
+      };
   
   // Get risk color based on score (matches thresholds in riskAssessment.ts)
   const getRiskColor = (score: number) => {
