@@ -3,7 +3,7 @@ import React, { ReactNode, useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Search } from 'lucide-react';
+import SearchBar from '@/components/SearchBar';
 import {
   Dialog,
   DialogContent,
@@ -23,7 +23,6 @@ interface LayoutProps {
 }
 
 const Layout: React.FC<LayoutProps> = ({ children }) => {
-  const [headerSearchQuery, setHeaderSearchQuery] = useState('');
   const [isJuridiskDialogOpen, setIsJuridiskDialogOpen] = useState(false);
   const [isRegnskabDialogOpen, setIsRegnskabDialogOpen] = useState(false);
   const [formData, setFormData] = useState({
@@ -49,13 +48,6 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     wantEmail: false,
   });
   const navigate = useNavigate();
-
-  const handleHeaderSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (headerSearchQuery.trim()) {
-      navigate(`/?search=${encodeURIComponent(headerSearchQuery.trim())}`);
-    }
-  };
 
   const handleFormSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -118,17 +110,12 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             <Link to="/" className="text-base sm:text-xl md:text-2xl font-bold text-primary">Selskabsinfo</Link>
           </div>
           
-          <form onSubmit={handleHeaderSearch} className="flex-1 w-full md:w-auto">
-            <div className="relative">
-              <Search className="absolute left-1.5 sm:left-2 md:left-3 top-1/2 h-3 w-3 sm:h-3.5 sm:w-3.5 md:h-4 md:w-4 -translate-y-1/2 text-muted-foreground" />
-              <Input 
-                className="pl-7 sm:pl-9 md:pl-10 h-7 sm:h-9 md:h-10 text-[11px] sm:text-xs md:text-sm"
-                placeholder="Søg..." 
-                value={headerSearchQuery}
-                onChange={(e) => setHeaderSearchQuery(e.target.value)}
-              />
-            </div>
-          </form>
+          <div className="flex-1 w-full md:w-auto md:max-w-md">
+            <SearchBar 
+              onSearch={(query) => navigate(`/?search=${encodeURIComponent(query.trim())}`)}
+              isLoading={false}
+            />
+          </div>
           
           <div className="flex items-center justify-center md:justify-end gap-1 sm:gap-1.5 md:gap-2 w-full md:w-auto">
             <NotificationBell />
