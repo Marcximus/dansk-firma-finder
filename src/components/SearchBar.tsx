@@ -20,7 +20,7 @@ const SearchBar: React.FC<SearchBarProps> = ({ onSearch, isLoading = false, shou
   const [isSearching, setIsSearching] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
-  const debouncedQuery = useDebounce(query, 300);
+  const debouncedQuery = useDebounce(query, 100);
 
   // Handle search results
   useEffect(() => {
